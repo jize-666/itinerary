@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draf v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
+| **Status** | Draf v1.3 (jadwal dipadatkan: selesai 28 Des 2026). v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
 | **Tanggal** | 7 November 2026 (trip ±5 bulan lagi, perkiraan awal April 2027) |
 | **Pemilik produk** | Host (pemilik repo) |
 | **Penyusun draf** | Claude, berdasarkan sesi tanya-jawab dengan host |
@@ -824,23 +824,26 @@ Ketersediaan perangkat nyata: lihat Q10.
 
 ## 16. Milestone
 
-**H = Hari 0 (tiba) = Rabu 7 Apr 2027** (sementara, §2.1). Kalau tanggal trip bergeser, semua tanggal di bawah ikut bergeser. Ada ±5 bulan, jadi jadwalnya longgar dan punya buffer di setiap fase.
+**Target: web selesai dan diserahkan ke host Senin 28 Des 2026. Batas akhir Januari 2027** (dipakai sebagai buffer). Pengerjaan dipadatkan menjadi ±7 minggu dengan beberapa fase berjalan paralel. Cek fakta, revisi host, dan pengiriman ke tamu tetap mengikuti tanggal trip (H = Hari 0, sementara Rabu 7 Apr 2027, §2.1).
 
 | # | Periode | Milestone | Isi | Kriteria selesai |
 |---|---|---|---|---|
-| M0 | 9 Nov – 13 Des 2026 | Fondasi konten | Draf itinerary dirapikan, shot list, sourcing foto dimulai (berlanjut paralel sampai Jan) | Draf konten EN/ID lengkap. ≥ 10 kandidat foto berlisensi tercatat. |
-| M0.5 | 16 Nov – 13 Des 2026 | **Desain & prototipe motion** | **Three.js Viewer (paling awal):** preview **gong ageng** dan **gunungan SVG** + cahaya blencong. **Framer**: styleframe per bab + prototipe motion (navigasi per slide, text reveal, stagger, mask, shared element, horizontal gallery, timing §9). Token warna & tipografi. | Host menyetujui gong, gunungan, arah visual, dan rasa motion. Token motion dikunci. |
-| M1 | 30 Nov – 20 Des 2026 | Kerangka & akses | Scaffold Next.js, schema, `content:check`, **project Supabase baru** + migrasi/RLS + Edge Functions, gate, token, i18n, CI + keep-alive, deploy preview | Gate berfungsi di HP nyata. Data hanya keluar lewat token. `noindex` aktif. |
-| — | 21 Des 2026 – 3 Jan 2027 | *Buffer libur akhir tahun* | | |
-| M2 | 4 – 17 Jan 2027 | Today | Today lengkap + offline + kontak + Plan B | Diuji di iPhone & Android. Sudah berguna walau film belum jadi. |
-| M3 | 18 Jan – 31 Jan 2027 | Film 2D | Mesin slide (input, transisi, scrub dengan jari), bab, horizontal gallery, text/mask reveal, panel foto dasar, Calm mode | Cerita lengkap bisa diikuti slide demi slide dari awal sampai akhir. FR-20a lolos di trackpad & HP. |
-| M4 | 1 Feb – 14 Mar 2027 | Film 3D & cahaya | Inti 3D berurutan: **gong** → gunungan → benang emas → diorama Solo → lereng Lawu + Candi Sukuh → canting + kain mori. Ditambah siklus waktu/LUT, post-FX, partikel, fog, shot kamera per slide, tier kualitas, depth parallax. *Pemodelan gong & gunungan sudah dimulai paralel sejak M0.5–M2.* | S1–S2 tercapai di perangkat uji dengan semua inti 3D aktif |
-| M5 | 15 – 21 Mar 2027 | Finale & polish | Boarding pass physics, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp, *(P2)* audio | Seluruh baris di §8 terpenuhi |
-| M6 | 22 Mar – 1 Apr 2027 | QA & preflight | Matriks perangkat, aksesibilitas, proofread, **verifikasi [V] pertama di H-14 (24 Mar)**, dry-run | Semua kriteria di §4 hijau |
-| — | **H-5: Jumat 2 Apr 2027** | **Revisi host** | Host merevisi Q1–Q6 dan isi itinerary. Perubahan masuk ke data, lalu `content:publish`. | |
-| — | H-4: Sabtu 3 Apr 2027 | Verifikasi akhir | Verifikasi [V] kedua, cek status Supabase, uji gate & Today sekali lagi | |
-| M7 | **H-3: Minggu 4 Apr 2027** | Kirim | Pesan WhatsApp + link (**kode dikirim di pesan terpisah**), standby perbaikan konten | Tamu berhasil masuk |
-| — | H-1: Selasa 6 Apr 2027 | Cek terakhir | Status Supabase, keep-alive, data hari pertama | |
+| M0.5 | **Minggu 1:** 9 – 15 Nov 2026 | Desain & prototipe | **Three.js Viewer:** preview **gong ageng** dan **gunungan SVG** + cahaya blencong. **Framer:** prototipe motion (navigasi per slide, text reveal, stagger, mask, shared element, horizontal gallery) + styleframe. Token warna & tipografi. | Host menyetujui gong, gunungan, arah visual, dan rasa motion |
+| M0 | 9 – 29 Nov 2026 (paralel) | Konten & foto | Draf teks EN/ID, shot list, sourcing 10–15 foto berlisensi | Konten lengkap. ≥ 10 foto tercatat di manifest. |
+| M1 | 12 – 22 Nov 2026 | Kerangka & akses | Scaffold Next.js, schema, `content:check`, **project Supabase baru** + migrasi/RLS + Edge Functions, gate, token, i18n, CI + keep-alive, deploy preview | Gate berfungsi di HP nyata. Data hanya keluar lewat token. `noindex` aktif. |
+| M2 | 23 – 29 Nov 2026 | Today | Today lengkap + offline + kontak + Plan B | Diuji di iPhone & Android |
+| M3 | 26 Nov – 6 Des 2026 | Film 2D | Mesin slide, bab, horizontal gallery, text/mask reveal, panel foto, Calm mode | Cerita lengkap bisa diikuti slide demi slide. FR-20a lolos. |
+| M4 | 30 Nov – 18 Des 2026 | Film 3D & cahaya | **Gong** → gunungan → benang emas → diorama → Lawu + Candi Sukuh → canting + kain mori, siklus waktu/LUT, post-FX, partikel, shot kamera, tier kualitas, depth parallax. *Gong & gunungan sudah dimulai sejak Minggu 2.* | S1–S2 tercapai dengan semua inti 3D aktif |
+| M5 | 14 – 20 Des 2026 | Finale & polish | Boarding pass, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp, *(P2)* audio | Seluruh baris di §8 terpenuhi |
+| M6 | 21 – 27 Des 2026 | QA | Matriks perangkat, aksesibilitas, proofread, dry-run | Semua kriteria §4 (kecuali verifikasi fakta) hijau |
+| ✅ | **Senin 28 Des 2026** | **Serah terima** | Web siap kirim. Link + kode siap. | Host menyetujui |
+| — | Jan 2027 | Buffer | Revisi dari host, uji tambahan, perbaikan. Fitur P2 yang tertunda. | Selesai paling lambat 31 Jan 2027 |
+| — | Jan – Mar 2027 | Perawatan | Keep-alive Supabase, cek bulanan, update konten bila rencana berubah | |
+| — | H-14 | Verifikasi fakta pertama | Cek semua [V] | `verifiedAt` terisi |
+| — | **H-5** | **Revisi host** | Q1–Q6 dan isi itinerary final, lalu `content:publish` | |
+| — | H-4 | Verifikasi akhir | Verifikasi [V] kedua, status Supabase, uji gate & Today | |
+| M7 | **H-3** (atau lebih awal, terserah host) | Kirim ke tamu | Pesan WhatsApp + link (**kode dikirim di pesan terpisah**). Kalau dikirim lebih awal, revisi konten tetap sampai ke tamu otomatis. | Tamu berhasil masuk |
+| — | H-1 | Cek terakhir | Status Supabase, keep-alive, data hari pertama | |
 
 ---
 
@@ -854,6 +857,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 | Project Supabase gratis ter-pause karena tidak aktif | Gate gagal, tamu tidak bisa masuk | Keep-alive terjadwal (GitHub Actions), cek status di H-4 & H-1, project bisa dipulihkan lewat connector. Opsi: upgrade sementara di bulan trip. |
 | Kualitas gunungan/gong buatan kode kurang memuaskan | Objek hero terasa murah | Preview dan persetujuan host di awal M0.5, sebelum pekerjaan lain bergantung padanya. Cadangan: beli vektor gunungan berlisensi atau sewa ilustrator, lalu tetap diolah jadi 3D. |
 | Navigasi per slide terasa "melawan" trackpad/swipe | Penonton melompat slide atau merasa terjebak | Ambang & pengabaian inersia dikalibrasi di perangkat nyata. Petunjuk navigasi. Titik bab untuk lompat. Calm mode. |
+| Persetujuan host atau akses (jaringan, perangkat) terlambat | Jadwal ±7 minggu bergeser | Setiap checkpoint ditargetkan dijawab host ≤ 2 hari. Januari 2027 disiapkan sebagai buffer. |
 | Revisi besar di H-5 | Waktu mepet sebelum kirim di H-3 | Semua bisa diubah lewat data (tanpa kode). `content:publish` tanpa redeploy. Engine tidak terikat ke tempat atau tanggal tertentu. |
 | Info lapangan berubah (jam buka, harga, jadwal pertunjukan) | Tamu kecewa di lokasi | Tanda [V], verifikasi H-14 & H-4, kolom `verifiedAt`, `content:publish` tanpa redeploy |
 | Kesalahan budaya atau bahasa Jawa | Memalukan di depan tamu | Review guide/translator. Aksara Jawa hanya yang terverifikasi. Panduan etika §6.6. |
@@ -861,7 +865,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 | Tamu bingung WIB vs SGT | Telat jemput | Label "(1 hour behind Singapore)", logika berbasis Asia/Jakarta |
 | Animasi menghambat akses info | Frustrasi selama trip | Today terpisah, tanpa WebGL, default selama trip |
 | Typo atau Inggris yang kaku | Citra host turun | Proofread penutur yang fasih + spellcheck otomatis |
-| Scope 3D membengkak (6 inti 3D) | Molor | Urutan dalam M4: gong → gunungan → benang emas → diorama → Lawu → canting. Masing-masing punya versi "cukup" (mis. diorama tanpa landmark detail). Today dan film 2D jadi lebih dulu (M2–M3). |
+| Scope 3D membengkak (6 inti 3D) dalam jadwal ±7 minggu | Molor dari 28 Des | Urutan dalam M4: gong → gunungan → benang emas → diorama → Lawu → canting. Masing-masing punya versi "cukup" (mis. diorama tanpa landmark detail). Today dan film 2D jadi lebih dulu (M2–M3). |
 
 ---
 

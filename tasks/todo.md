@@ -1,12 +1,12 @@
 # Daftar Tugas: *Lakon Tiga Hari*
 
-Rencana: [`tasks/plan.md`](plan.md) · PRD: [`docs/PRD.md`](../docs/PRD.md)
+Rencana: [`tasks/plan.md`](plan.md) · PRD: [`docs/PRD.md`](../docs/PRD.md) · **Serah terima: Senin 28 Des 2026**
 Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lagi kalau perlu)
 🔑 = butuh izin atau tindakan host sebelum mulai
 
 ---
 
-## Fase 0 — Desain & Prototipe (9 Nov – 13 Des 2026)
+## Fase 0 — Desain & Prototipe (Minggu 1: 9 – 15 Nov 2026)
 
 - [ ] **Tugas 1: Preview gong ageng 3D**
   - **Deskripsi:** Prototipe three.js mandiri: badan gong (lathe) dengan pencu dan bibir, material perunggu PBR (bekas tempa, patina tipis), gayor sederhana dengan ornamen ujung, cahaya hangat blencong, dan kamera mengorbit. Ditampilkan lewat Three.js Viewer.
@@ -54,7 +54,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Verifikasi:** `content:check` (setelah Tugas 8) lolos untuk manifest
   - **Dependensi:** 5
   - **File:** `content/trips/solo/photos/manifest.json`, `content/trips/solo/photos/src/*`
-  - **Ukuran:** M (berlanjut paralel sampai Fase 3)
+  - **Ukuran:** M (berlanjut paralel, target selesai 29 Nov)
 
 ### ✅ Checkpoint 0
 - [ ] Host menyetujui gong, gunungan, rasa motion, token, dan draf konten
@@ -62,7 +62,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 1 — Fondasi & Akses (30 Nov – 20 Des 2026)
+## Fase 1 — Fondasi & Akses (12 – 22 Nov 2026)
 
 - [ ] **Tugas 7: Scaffold proyek + CI**
   - **Deskripsi:** Next.js (App Router, static export), TypeScript strict, ESLint, Vitest, Playwright, pnpm, plus GitHub Actions (lint, typecheck, test, build). Versi library dicek lewat Context7.
@@ -125,7 +125,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 2 — Today (4 – 17 Jan 2027)
+## Fase 2 — Today (23 – 29 Nov 2026)
 
 - [ ] **Tugas 14: Logika Today**
   - **Deskripsi:** Penentuan sebelum/selama/setelah trip, hari ke-N, kartu Now/Next, dan hitung mundur. Semua dihitung di zona Asia/Jakarta.
@@ -156,7 +156,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 3 — Film 2D (18 – 31 Jan 2027)
+## Fase 3 — Film 2D (26 Nov – 6 Des 2026)
 
 - [ ] **Tugas 17: Mesin slide**
   - **Deskripsi:** Input roda/swipe/trackpad/keyboard (GSAP Observer), akumulasi ambang, pengabaian inersia, antrean satu langkah, scrub dengan jari (ambang 35%), dan hash per bab.
@@ -195,7 +195,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 4 — Pipeline Aset (paralel, Des 2026 – Feb 2027)
+## Fase 4 — Pipeline Aset (paralel, 16 Nov – 6 Des 2026)
 
 - [ ] **Tugas 21: Pipeline foto + credits otomatis**
   - **Deskripsi:** `assets:build` (sharp): crop 16:9 & 9:16 sesuai focal point, AVIF/WebP berbagai ukuran, tekstur KTX2. Daftar credits dibuat otomatis dari manifest.
@@ -215,7 +215,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 5 — Film 3D (1 Feb – 14 Mar 2027)
+## Fase 5 — Film 3D (30 Nov – 18 Des 2026)
 
 - [ ] **Tugas 23: Panggung R3F + shot kamera + tier kualitas**
   - **Deskripsi:** Satu canvas R3F yang hidup sepanjang film. Setiap slide punya shot (kamera, fokus, keadaan cahaya) yang di-tween oleh mesin slide. Ditambah manajer tier (PerformanceMonitor + hysteresis), overlay FPS khusus dev, render dijeda saat tab tersembunyi, dan dispose per bab.
@@ -294,7 +294,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 6 — Finale & Polish (15 – 21 Mar 2027)
+## Fase 6 — Finale & Polish (14 – 20 Des 2026)
 
 - [ ] **Tugas 32: Boarding pass bertali + epilog**
   - **Deskripsi:** Tag dengan physics Rapier (tali), satu per tamu dari data privat, swipe antar nama, "Hosted by", serta tombol Open Today / Add to Home Screen / Message your host.
@@ -341,7 +341,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ---
 
-## Fase 7 — QA & Kirim (22 Mar – 7 Apr 2027)
+## Fase 7 — QA & Serah Terima (21 – 27 Des 2026 → serah terima Senin 28 Des) · Tugas 39–40 menjelang trip
 
 - [ ] **Tugas 37: Uji perangkat + tuning performa** 🔑 *(akses iPhone & Android flagship, Q10)*
   - **Deskripsi:** Jalankan matriks perangkat PRD §14, ukur FPS per bab, lalu tuning sampai target tercapai.
@@ -359,7 +359,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `content/trips/solo/trip.ts`, `docs/qa/proofread.md`
   - **Ukuran:** S
 
-- [ ] **Tugas 39: Verifikasi fakta pertama (H-14, 24 Mar 2027)**
+- [ ] **Tugas 39: Verifikasi fakta pertama (H-14)**
   - **Deskripsi:** Cek semua item [V] (jam buka, harga, jadwal wayang orang, aturan keraton, nomor darurat) lalu isi `verifiedAt`.
   - **Kriteria terima:** semua [V] terverifikasi atau diganti
   - **Verifikasi:** `content:check` memperingatkan field `verifiedAt` yang kosong
@@ -368,7 +368,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Ukuran:** S
 
 - [ ] **Tugas 40: Runbook peluncuran (H-5 → H-1)** 🔑 *(revisi host di H-5)*
-  - **Deskripsi:** H-5 (2 Apr): revisi host lalu `content:publish`. H-4 (3 Apr): verifikasi kedua, cek status Supabase, dry-run. H-3 (4 Apr): kirim link + kode di pesan terpisah. H-1 (6 Apr): cek terakhir.
+  - **Deskripsi:** H-5: revisi host lalu `content:publish`. H-4: verifikasi kedua, cek status Supabase, dry-run. H-3 (atau lebih awal): kirim link + kode di pesan terpisah. H-1: cek terakhir.
   - **Kriteria terima:** tamu berhasil masuk · Today menampilkan Hari 0 dengan benar
   - **Verifikasi:** checklist `docs/launch/runbook.md` tercentang semua
   - **Dependensi:** 37, 38, 39
