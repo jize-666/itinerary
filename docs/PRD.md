@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Status** | Draf v1, menunggu review host |
-| **Tanggal** | 7 November 2026 |
+| **Status** | Draf v1.1, keputusan sementara Q1–Q6 diisi penyusun; host merevisi di H-5 |
+| **Tanggal** | 7 November 2026 (trip ±5 bulan lagi, perkiraan awal April 2027) |
 | **Pemilik produk** | Host (pemilik repo) |
 | **Penyusun draf** | Claude, berdasarkan sesi tanya-jawab dengan host |
 | **Bahasa dokumen** | Indonesia (istilah teknis dibiarkan dalam bahasa Inggris) |
@@ -62,12 +62,24 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 | ID | Asumsi | Dampak kalau salah |
 |---|---|---|
 | A1 | Anggaran Rp1–1,5 jt adalah **per orang per hari, belum termasuk transport** (sesuai acuan formulir). | Pemilihan tempat makan, aktivitas, dan penginapan di draf itinerary berubah. |
-| A2 | Tamu sudah berada di Solo sebelum Hari 1 pagi. Kedatangan dan kepulangan dibahas terpisah ("Hari 0"/"Hari 4"). | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
+| A2 | Tamu tiba di **Hari 0** (sore/malam) dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
 | A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, translator, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
-| A4 | Hosting di **Vercel**. Paket gratis cocok karena penggunaan non-komersial. | Kalau di tempat lain, mekanisme cookie dan header disesuaikan. |
+| A4 | Backend memakai **Supabase** (connector yang sudah terhubung), di **project baru** yang terpisah dari project lain milik host. Frontend berupa **situs statis**, sehingga bisa di-host di mana saja (default: Vercel, lihat §13.1). | Lihat Q8. |
 | A5 | **Tanpa audio** di v1 (audio ambience gamelan masuk P2 dan baru dikerjakan kalau host setuju). | — |
 | A6 | **Tanpa analytics atau pelacakan** apa pun. | Kalau host ingin tahu kapan tamu membuka web, lihat Q9. |
 | A7 | Lokasi penginapan di area tengah kota (sekitar Mangkunegaran/Keprabon) supaya titik malam bisa dijangkau dengan mudah. | Durasi transfer di jadwal berubah. |
+
+### 2.1 Keputusan sementara (diatur penyusun, direvisi host di H-5)
+Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **default kerja**. Semua desain dan kode dibangun supaya angka-angka ini **cukup diganti di data**, tanpa mengubah kode.
+
+| # | Topik | Default sementara | Alasan |
+|---|---|---|---|
+| Q1 | Tanggal | **Hari 0 Rabu 7 Apr 2027** (tiba) · **Hari 1 Kamis 8 Apr** · **Hari 2 Jumat 9 Apr** · **Hari 3 Sabtu 10 Apr** · **Hari 4 Minggu 11 Apr** (pulang) | Di luar Ramadan/Idulfitri 2027 (perkiraan Feb–Mar) dan Iduladha (perkiraan pertengahan Mei) [V]. Keraton dikunjungi Kamis, menghindari kemungkinan tutup hari Jumat [V]. Sabtu malam cocok untuk Ngarsopuro Night Market [V]. April masuk peralihan ke musim kemarau, jadi lebih kering daripada Des–Feb, walau hujan sore masih mungkin [V]. |
+| Q2 | Kedatangan & kepulangan | Tiba Hari 0 sore/malam: SIN → Solo (Adi Soemarmo, SOC) dengan penerbangan transit, **atau** SIN → Yogyakarta (YIA) lalu kereta ke Solo [V rute]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Hari 1–3 tetap utuh dan padat sesuai preferensi |
+| Q3 | Jumlah tamu | **3 tamu** (placeholder "Guest A/B/C"). Engine mendukung 1–5. | Nama asli diisi di data privat |
+| Q4 | "Movies" | **Wayang Orang Sriwedari** sebagai "bioskop"-nya Solo (Hari 2 malam), dengan Plan B **bioskop** di mal | Lebih berkesan dan khas Solo, tapi tetap ada opsi film sungguhan |
+| Q5 | Night ride | **Dibonceng rider lokal berpengalaman** (vespa/motor, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
+| Q6 | Penginapan | Guesthouse/homestay bernuansa heritage di kawasan Mangkunegaran–Keprabon–Ngarsopuro, **kamar mandi dalam**. Kandidat dipilih paling lambat H-30 [V]. | Dekat titik malam dan sesuai syarat tamu |
 
 ---
 
@@ -75,7 +87,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 
 | Persona | Bahasa | Perangkat | Kapan | Yang dibutuhkan |
 |---|---|---|---|---|
-| **Tamu** (1–5, Singapura) | **EN** | Laptop/iPad/HP flagship (pra-trip), HP flagship (selama trip) | H-7 sampai H-1, lalu selama trip | Pengalaman sinematik, cerita kota, info praktis cepat |
+| **Tamu** (1–5, Singapura) | **EN** | Laptop/iPad/HP flagship (pra-trip), HP flagship (selama trip) | H-3 sampai H-1, lalu selama trip | Pengalaman sinematik, cerita kota, info praktis cepat |
 | **Host** | ID | HP | Semua fase | Kirim link, cek jadwal yang sama dengan tamu, catatan tim |
 | **Guide & translator** | ID | HP | Selama trip | Jadwal yang **identik** dengan yang dilihat tamu, catatan tim |
 | **Driver** | ID | HP | Selama trip | Jam dan titik jemput |
@@ -102,7 +114,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 | S6 | Kualitas konten | 0 typo (EN & ID), 0 string hilang, semua item [V] sudah terverifikasi | `content:check` + spellcheck + proofread manusia |
 | S7 | Lisensi foto | 100% foto tercatat di manifest dengan lisensi yang diizinkan | `content:check` |
 | S8 | Privasi | Tanpa kode yang valid, tidak ada data trip, nama, atau nomor yang bisa diakses. Tidak terindeks mesin pencari. | Uji e2e + cek header |
-| S9 | Pakai ulang | Trip baru cukup dengan mengganti 1 file data + folder foto + env, **tanpa mengubah kode engine** | Uji dengan data dummy trip kedua |
+| S9 | Pakai ulang | Trip baru cukup dengan mengganti 1 file data + folder foto + baris `trip_private` + secret kode, **tanpa mengubah kode engine** | Uji dengan data dummy trip kedua |
 | S10 | Kesan (kualitatif) | Host, translator, dan guide yang mencoba sebagai "tamu" menilainya terasa premium dan personal | Dry-run sebelum kirim |
 
 ---
@@ -199,9 +211,11 @@ Nuansanya **hidup, bukan suram**. Siang terang dan bersih, senja keemasan, malam
 ## 7. Struktur Pengalaman (Storyboard)
 
 ```
-[Link preview WA] → [Gate "Kulonuwun?"] → [Prolog] → [Hari 1] → [Hari 2] → [Hari 3] → [Epilog] → [End credits]
+[Link preview WA] → [Gate "Kulonuwun?"] → [Prolog + kartu Hari 0: Arrival] → [Hari 1] → [Hari 2] → [Hari 3] → [Epilog + kartu Hari 4: Departure] → [End credits]
                                                   ↘ ─────────── Mode Today (bisa diakses kapan saja) ─────────── ↗
 ```
+
+Hari 0 (kedatangan) dan Hari 4 (kepulangan) tampil sebagai **kartu ringkas** (jam, penjemputan, penginapan), bukan bab penuh.
 
 ### 7.0 Link preview (P1)
 - Gambar OG berupa gunungan berpendar di latar nila, dengan judul *"A Three-Day Lakon: Solo"*. **Tanpa nama tamu atau info pribadi.**
@@ -215,7 +229,7 @@ Nuansanya **hidup, bukan suram**. Siang terang dan bersih, senja keemasan, malam
   - **Benar:** lampu membesar, cahaya menembus lubang gunungan (volumetric), gunungan "membuka" lalu masuk ke prolog (*shared-element*: gunungan menjadi ornamen judul prolog).
 - Ketukan "Begin" setelah kode benar dipakai untuk **meminta izin gyroscope di iOS** (dan audio, kalau P2 dikerjakan).
 - **Aset film di-preload** selama animasi gate supaya tidak ada layar loading.
-- Kode cukup dimasukkan **sekali per perangkat** (cookie sesi).
+- Kode cukup dimasukkan **sekali per perangkat** (token sesi disimpan di perangkat).
 
 ### 7.2 Prolog: *"Kulonuwun, Solo"* (P0)
 Isi pengenalan kota, masing-masing satu layar yang di-pin dengan text reveal per baris:
@@ -266,7 +280,7 @@ Tampilan **terpisah dan ringan**: tanpa WebGL, tanpa intro, fokus ke informasi.
 | Setelah trip | Ucapan terima kasih (v1.1: galeri kenangan) |
 
 Isi saat trip:
-- **Header:** "Day 2 · Sat 6 Dec" [contoh], jam terbit dan terbenam matahari, catatan cuaca (statis, P2: langsung).
+- **Header:** "Day 2 · Fri 9 Apr" [contoh], jam terbit dan terbenam matahari, catatan cuaca (statis, P2: langsung).
 - **Kartu Now / Next:** tempat sekarang dan berikutnya, dengan hitung mundur ke jam berikutnya.
 - **Timeline hari itu:** jam, tempat, satu baris keterangan, chip dress code, penanda makanan (halal / tingkat manis / **tanpa pisang**).
 - Tiap tempat punya tombol **Open in Maps** dan **Copy address**.
@@ -336,7 +350,7 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 
 ## 10. Draf Itinerary & Konten
 
-> **Ini draf dari penyusun**, disusun dari preferensi tamu. Host memfinalkan isinya. Semua jam, jam buka, harga, dan nama vendor bertanda **[V]**. Urutan hari bisa ditukar menyesuaikan hari dalam minggu (lihat Q1).
+> **Ini draf dari penyusun**, disusun dari preferensi tamu dan keputusan sementara §2.1 (Hari 1 = Kamis, Hari 2 = Jumat, Hari 3 = Sabtu). Host memfinalkan isinya di H-5. Semua jam, jam buka, harga, dan nama vendor bertanda **[V]**. Kalau tanggal berubah, urutan hari bisa ditukar menyesuaikan hari dalam minggu.
 
 ### 10.1 Prinsip penyusunan
 - **Padat & ramai**: 6–9 titik per hari, dengan jeda istirahat di penginapan pada siang hari (sekalian antisipasi hujan sore di musim hujan).
@@ -344,6 +358,8 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 - **Halal & tanpa alkohol**. Guide wajib memastikan warung jelas halal, karena di beberapa area (mis. sekitar Pecinan) ada warung non-halal [V].
 - **Tanpa pisang**. Waspadai jajanan pasar seperti nagasari, pisang goreng, dan topping pisang.
 - **Sunrise/sunset & night ride** masing-masing muncul minimal sekali.
+- **Waktu ibadah:** kalau ada tamu yang menjalankan salat, guide menyisipkan jeda salat. Hari 2 jatuh di **hari Jumat**, jadi ada slot **salat Jumat** (±11.30–12.45) [V]. Slot ini otomatis dilewati kalau tidak diperlukan.
+- Perkiraan matahari di awal April: **terbit ±05.35, terbenam ±17.40 WIB** [V].
 
 ### 10.2 Hari 1: *The Royal City* (keraton, pasar, sunset, night ride)
 | Jam (WIB) | Fase | Kegiatan | Catatan |
@@ -355,21 +371,22 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 | 12.45 | Siang | **Pasar Gede Hardjonagoro** (rancangan Thomas Karsten, 1930 [V]): jajanan seperti cabuk rambak (gurih) dan es dawet telasih (manis) + **Klenteng Tien Kok Sie** di sebelahnya | Pastikan dawet tanpa pisang. Spot estetik. |
 | 14.00 | Siang | Istirahat & bebersih di penginapan | Plan B hujan |
 | 15.30 | Sore | **De Tjolomadoe**: bekas pabrik gula yang direvitalisasi | Estetik dan sebagian besar indoor, aman saat hujan [V jam buka] |
-| 17.00 | Senja | **Sunset di Waduk Cengklik** | Kadang terlihat pesawat mendarat di bandara Adi Soemarmo di dekatnya [V] |
+| 17.00 | Senja | **Sunset di Waduk Cengklik** (matahari terbenam ±17.40) | Kadang terlihat pesawat mendarat di bandara Adi Soemarmo di dekatnya [V] |
 | 19.00 | Malam | Makan malam nasi liwet (kandidat: kawasan Keprabon) | Gurih dan bersantan [V] |
 | 20.00 | Malam | **Night ride**: Jl. Slamet Riyadi → Gladag → Benteng Vastenburg → kuliner malam Galabo → Ngarsopuro → wedangan (HIK) | Kendaraan TBD (Q5) |
 
 ### 10.3 Hari 2: *Mist of Lawu* (sunrise, alam, candi, pertunjukan malam)
 | Jam (WIB) | Fase | Kegiatan | Catatan |
 |---|---|---|---|
-| 03.45 | Subuh | Berangkat ke Karanganyar (±1–1,5 jam) [V] | Jaket, karena dingin di ketinggian [V] |
-| 05.00 | Subuh | **Sunrise & kabut pagi di Kebun Teh Kemuning** | Titik pandang terbaik ditentukan guide lokal [V] |
-| 06.30 | Pagi | Sarapan & teh (kandidat: Rumah Teh Ndoro Donker) | [V jam buka] |
+| 04.00 | Subuh | Berangkat ke Karanganyar (±1–1,5 jam) [V] | Jaket, karena dingin di ketinggian [V] |
+| 05.15 | Subuh | **Sunrise & kabut pagi di Kebun Teh Kemuning** (matahari terbit ±05.35) | Titik pandang terbaik ditentukan guide lokal [V] |
+| 06.45 | Pagi | Sarapan & teh (kandidat: Rumah Teh Ndoro Donker) | [V jam buka] |
 | 08.15 | Pagi | **Candi Cetho**: candi berundak di lereng Lawu (abad ke-15 [V]) | Biasanya wajib memakai kain poleng yang disediakan [V] |
-| 10.15 | Siang | **Candi Sukuh**: bentuknya mirip piramida terpancung | [V] |
-| 12.00 | Siang | Makan siang di Tawangmangu (kandidat: sate kelinci / menu gurih lain) | Konfirmasi tamu nyaman dengan menu kelinci [V] |
-| 13.30 | Siang | **Grojogan Sewu** (air terjun) | Banyak anak tangga. Dilewati kalau hujan deras. |
-| 15.00 | Sore | Kembali ke Solo, istirahat | |
+| 10.00 | Siang | **Candi Sukuh**: bentuknya mirip piramida terpancung | [V] |
+| 11.30 | Siang | *(opsional)* Salat Jumat di masjid sekitar Tawangmangu | Hanya kalau ada tamu yang menjalankan [V] |
+| 12.45 | Siang | Makan siang di Tawangmangu (kandidat: sate kelinci / menu gurih lain) | Konfirmasi tamu nyaman dengan menu kelinci [V] |
+| 13.45 | Siang | **Grojogan Sewu** (air terjun) | Banyak anak tangga. Dilewati kalau hujan deras. |
+| 15.15 | Sore | Kembali ke Solo, istirahat | |
 | 18.30 | Malam | Makan malam selat solo (manis-gurih) | [V] |
 | 20.00 | Malam | **"Movies" versi Solo: Wayang Orang Sriwedari**, teater klasik yang berjalan sejak 1910 [V jadwal] | Alternatif: bioskop. Lihat Q4. |
 | 22.00 | Malam | Wedang jahe di wedangan | Opsional |
@@ -385,9 +402,9 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 | 15.30 | Sore | **Pasar Triwindu** (barang antik) + jalan kaki di Ngarsopuro | Estetik, oleh-oleh |
 | 17.00 | Senja | **Keliling santai naik becak** di kawasan Mangkunegaran–Keprabon saat golden hour | |
 | 19.00 | Malam | **Makan malam perpisahan** (halal, tempat istimewa, TBD) | "Worth it" boleh mahal |
-| 20.30 | Malam | Ngarsopuro Night Market (kalau jatuh di malam Minggu [V]) / wedangan terakhir | |
+| 20.30 | Malam | **Ngarsopuro Night Market** (Hari 3 = Sabtu, jadi malam Minggu [V]) / wedangan terakhir | |
 
-### 10.5 Rencana hujan (November–Desember = musim hujan)
+### 10.5 Rencana hujan (awal April = peralihan musim, hujan sore masih mungkin [V])
 | Rencana utama | Plan B |
 |---|---|
 | Sunset Waduk Cengklik | Lebih lama di De Tjolomadoe, atau "movies" di bioskop |
@@ -446,11 +463,11 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 ### Akses & sesi
 | ID | Prioritas | Requirement | Kriteria terima |
 |---|---|---|---|
-| FR-01 | P0 | Semua halaman selain gate dan aset publik hanya bisa diakses dengan sesi yang valid | Request tanpa cookie ke `/film`, `/today`, `/api/trip` → redirect ke gate atau 401 |
-| FR-02 | P0 | Kode booking dicek **di server** (hash, perbandingan constant-time) | Kode tidak ada di bundle klien maupun di repo |
-| FR-03 | P0 | Sesi berupa cookie `HttpOnly; Secure; SameSite=Lax` yang ditandatangani, berlaku sampai akhir trip + 30 hari | Setelah kode benar, tamu tidak diminta kode lagi di perangkat yang sama |
-| FR-04 | P1 | Kode tim memberi peran `team`, sehingga catatan tim ikut terkirim | Dengan kode tamu, field `teamNote`/`estCost` **tidak ada** di respons API |
-| FR-05 | P0 | Pembatasan percobaan: jeda yang makin panjang setelah salah, dan 5 kali salah → 30 dtk | Uji e2e |
+| FR-01 | P0 | **Bundle frontend tidak memuat data trip sama sekali.** Seluruh isi itinerary, nama, dan kontak hanya didapat dari Edge Function Supabase dengan token yang valid. | Membuka `/film` atau `/today` tanpa token → kembali ke gate. Isi bundle JS tidak mengandung nama tempat dari jadwal, nama tamu, atau nomor. |
+| FR-02 | P0 | Kode booking dicek **di server** (Edge Function `verify-access`: normalisasi → hash → perbandingan constant-time) | Kode tidak ada di bundle klien maupun di repo |
+| FR-03 | P0 | Kode benar → token sesi yang ditandatangani (HMAC, berisi `role` & `exp` = akhir trip + 30 hari), disimpan di perangkat | Setelah kode benar, tamu tidak diminta kode lagi di perangkat yang sama |
+| FR-04 | P1 | Kode tim memberi peran `team`, sehingga catatan tim ikut terkirim | Dengan token tamu, field `teamNote`/`estCost` **tidak ada** di respons `trip-data` |
+| FR-05 | P0 | Pembatasan percobaan dicatat di tabel `access_attempts` (hash IP + waktu): jeda bertingkat, dan 5 kali salah → 30 dtk | Uji e2e |
 | FR-06 | P0 | `noindex` lewat header `X-Robots-Tag`, meta, dan `robots.txt` | Cek header pada semua route |
 
 ### Konten & bahasa
@@ -533,9 +550,12 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 - Today lolos audit aksesibilitas Lighthouse ≥ 95.
 
 ### 12.5 Keamanan & privasi
-- **Data privat** (nama tamu, nomor WhatsApp, alamat penginapan, catatan tim, catatan medis) **tidak disimpan di repo**. Data ini disimpan di environment variable hosting (`TRIP_PRIVATE_JSON`) lalu digabung di server.
-- Kode akses disimpan sebagai **hash** di env (`ACCESS_GUEST_HASH`, `ACCESS_TEAM_HASH`), dan cookie ditandatangani dengan `SESSION_SECRET`.
-- Header: CSP ketat, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow`.
+- **Data privat** (nama tamu, nomor WhatsApp, alamat penginapan, catatan tim, catatan medis) **tidak disimpan di repo**. Data ini disimpan di **tabel Supabase `trip_private`** dan diisi lewat dashboard/SQL, tidak lewat commit.
+- **Data itinerary non-privat** ditulis di repo (supaya tervalidasi dan punya riwayat versi), lalu **dipublikasikan ke tabel Supabase `trip_content`** lewat `content:publish`. Bundle frontend tidak memuatnya (FR-01).
+- **RLS aktif di semua tabel, tanpa policy untuk `anon`/`authenticated`.** Klien tidak pernah membaca tabel langsung. Hanya Edge Function (memakai service role di server) yang membaca lalu memfilter per peran.
+- Hash kode akses dan secret penandatangan token disimpan sebagai **secret Edge Function** (`ACCESS_GUEST_HASH`, `ACCESS_TEAM_HASH`, `TOKEN_SECRET`).
+- Header: CSP ketat, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow` (lewat konfigurasi host statis). Kalau host tidak mendukung header khusus, minimal pakai meta robots + `robots.txt`.
+- **Supabase free tier bisa mem-pause project yang tidak aktif** (±7 hari) [V kebijakan terbaru]. Ada **ping keep-alive terjadwal** (GitHub Actions, tiap 2–3 hari) ke endpoint health, plus pengecekan status project di checklist H-4 dan H-1.
 - **Tanpa pihak ketiga yang melacak**: tanpa analytics, tanpa embed. Peta dibuka lewat link ke Google Maps, bukan iframe.
 - Email tamu atau pengisi formulir **tidak dipakai** di mana pun.
 - Setelah trip + 30 hari: sesi kedaluwarsa. Data bisa dihapus atau dialihkan ke mode kenangan (v1.1).
@@ -556,7 +576,8 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 ### 13.1 Stack (rekomendasi)
 | Lapisan | Pilihan | Alasan |
 |---|---|---|
-| Framework | **Next.js** (App Router) + TypeScript strict | Server rendering untuk gate dan proteksi data, route handler, `next/font`, cocok dengan Vercel |
+| Framework | **Next.js** (App Router, **static export**) + TypeScript strict | Routing, `next/font`, optimasi build. Karena semua logika server ada di Supabase, hasil build berupa situs statis yang bisa di-host di mana saja. |
+| Backend | **Supabase** (connector terhubung): Edge Functions (`verify-access`, `trip-data`, `health`), Postgres + RLS (`trip_content`, `trip_private`, `access_attempts`), Storage (v1.1 galeri kenangan) | Satu tempat untuk verifikasi kode, data privat, dan rate limit. Region **ap-southeast-1 (Singapura)**, dekat dengan tamu dan Indonesia. Revisi H-5 cukup dengan publish ulang data, tanpa redeploy frontend. |
 | 3D | **three.js** + **React Three Fiber** + **drei** | Ekosistem matang. drei menyediakan `PerformanceMonitor`, `ContactShadows`, dan lain-lain. |
 | Post-processing | **@react-three/postprocessing** | Selective bloom, DOF, LUT, noise, vignette, tone mapping |
 | Physics | **@react-three/rapier** | Tali + tag (rope/spherical joint) |
@@ -564,16 +585,31 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | Transisi halaman | View Transitions API | Shared element |
 | Validasi data | **Zod** | Schema konten + `content:check` |
 | PWA | Service worker (mis. Serwist) | Today offline |
-| Hosting | **Vercel** | Lihat A4 |
+| Hosting frontend | **Vercel** (default, gratis, cukup menautkan repo GitHub sekali) atau **GitHub Pages** (semuanya lewat connector, tapi butuh repo publik atau paket GitHub berbayar) | Karena frontend statis dan tidak memuat data, pilihan host tidak berisiko dan bisa dipindah kapan saja (Q8) |
 | Pipeline aset (offline, di mesin dev) | sharp (AVIF/WebP), toktx / gltf-transform (KTX2, Meshopt), model depth estimation (mis. *Depth Anything V2 Small*) untuk depth map, segmentasi subjek untuk mask | Dijalankan sekali per foto, hasilnya di-commit |
 
 Versi persis dipasang (*pin*) saat scaffolding. Pakai versi stabil terbaru yang sudah rilis minimal dua minggu.
 
+### 13.1b Pemakaian connector yang sudah terhubung
+Status di bawah dicek pada 7 Nov 2026.
+
+| Connector | Status | Peran di proyek ini | Fase |
+|---|---|---|---|
+| **Supabase** | Aktif. 1 organisasi, 1 project lain (`dashboard-kebun`) yang **tidak** akan disentuh. | **Backend**: project baru khusus itinerary (mis. `itinerary-solo`, region Singapura). Isinya Edge Functions, tabel + RLS, secret, dan Storage untuk v1.1. Project dibuat di M1 setelah host setuju (paket gratis). | M1 → seterusnya |
+| **Framer** | Aktif. Workspace gratis, bisa membuat project. | **Desain & prototipe motion**: mencoba rasa animasi (text reveal, stagger, mask reveal, microinteraction, shared element, horizontal gallery, timing di §9) dan styleframe per bab **sebelum** dikoding. Hasil yang disetujui menjadi acuan motion. **Bukan** untuk situs produksi, karena Framer tidak cocok untuk WebGL kustom, data yang dijaga server, dan mode offline, dan proteksi password-nya butuh paket berbayar. Project Framer yang sudah ada tidak disentuh. Dibuat project baru (mis. "Lakon Tiga Hari — Motion"). | M0.5 |
+| **Figma** | Aktif, tapi kursi akun berstatus **"View"**, sehingga kemungkinan tidak bisa mengedit file desain [cek saat M0.5] | Kalau bisa edit: design token, palet, tipografi, **vektor gunungan** (ekspor SVG), storyboard statis. Kalau tidak bisa: semuanya dipindah ke Framer atau ke kode. | M0.5 |
+| **Three.js 3D Viewer** | Tersedia | **Preview konsep 3D cepat** langsung di chat (gunungan + cahaya blencong, benang emas, siklus waktu) sebelum masuk ke engine | M0.5, M4 |
+| **Context7** | Tersedia | Memastikan API & versi library (Next.js, R3F, drei, postprocessing, GSAP, Lenis, Rapier, Supabase) sesuai dokumentasi terbaru saat implementasi | M1 → M5 |
+| **GitHub** | Aktif (repo ini) | Repo, PR, **GitHub Actions**: CI (lint, typecheck, test, `content:check`) + **keep-alive Supabase** terjadwal | M1 → seterusnya |
+| **Playwright** (plugin) | Tersedia | Uji e2e, screenshot visual, emulasi iPhone/Pixel | M1 → M6 |
+| **ElevenLabs** | Tersedia | *(P2, hanya jika Q11 disetujui)* ambience bernuansa gamelan + SFX halus (lampu menyala, sapuan gunungan). **Memakai kredit host**, jadi baru dibuat setelah disetujui. | M5 |
+| Claude Docs, Perplexity Computer | Tersedia | Tidak dipakai. PRD tinggal di repo. | — |
+
 ### 13.2 Peta kapabilitas & urutan bangun
 | Modul | Tanggung jawab | Bergantung pada |
 |---|---|---|
-| `content` | Schema, data trip, string i18n, `content:check` | — |
-| `access` | Gate, kode, sesi, API data terproteksi, header | `content` |
+| `content` | Schema, data trip, string i18n, `content:check`, `content:publish` (ke Supabase) | — |
+| `access` | Gate, project Supabase, Edge Functions (`verify-access`, `trip-data`, `health`), tabel + RLS, token, rate limit, header, keep-alive | `content` |
 | `today` | Mode Today, PWA offline, kontak, Plan B | `content`, `access` |
 | `film-core` | Scroll (Lenis + GSAP), bab, pin, snap, horizontal gallery, text/mask reveal, lapisan DOM | `content`, `access` |
 | `assets` | Manifest foto, pipeline foto (grading dasar, depth, mask, KTX2), model 3D, LUT, font | `content` (slot foto) |
@@ -593,14 +629,18 @@ content/
     trip.ts              → data trip (tanpa data privat)
     photos/manifest.json → sumber, pemilik, lisensi, editan, alt EN/ID
     photos/src/          → foto asli berlisensi
+supabase/
+  migrations/            → tabel trip_content, trip_private, access_attempts + RLS
+  functions/
+    verify-access/       → cek kode → token bertanda tangan (role, exp)
+    trip-data/           → kirim data trip, difilter per role
+    health/              → endpoint untuk keep-alive
 src/
   app/
     page.tsx             → gate
-    film/                → film (server-gated)
-    today/               → mode Today (server-gated, PWA)
+    film/                → film (data diambil dari trip-data setelah token valid)
+    today/               → mode Today (PWA, cache offline)
     credits/             → credits statis
-    api/session/         → verifikasi kode, set cookie
-    api/trip/            → data trip + gabungan data privat sesuai peran
   engine/
     scroll/              → Lenis, ScrollTrigger, snap, pin
     three/               → canvas, kamera, post-FX, tier kualitas
@@ -644,7 +684,7 @@ export const Stop = z.object({
 });
 export type Stop = z.infer<typeof Stop>;
 // Data privat (nama tamu, kontak, alamat jemput, teamNote, estCost) TIDAK ada di sini.
-// Data itu dimuat dari env di server lalu digabung sesuai peran sesi.
+// Data itu ada di tabel Supabase trip_private, digabung oleh Edge Function trip-data sesuai peran.
 ```
 
 **Konvensi:** TypeScript strict. Komponen `PascalCase`, hook `useX`, file `kebab-case`. Tidak ada angka motion yang ditulis langsung (semua dari `engine/motion/tokens.ts`). Teks yang tampil ke pengguna tidak ditulis di JSX, selalu lewat data/i18n.
@@ -656,16 +696,22 @@ export type Stop = z.infer<typeof Stop>;
 4. **Color grading akhir** dilakukan di shader (LUT per fase) agar foto dari banyak sumber menjadi satu karakter.
 5. Credits dibuat otomatis dari manifest.
 
-**Catatan lingkungan:** sesi pengembangan saat ini tidak bisa mengakses situs foto seperti Wikimedia (diblokir jaringan). Saat fase `assets`, akses jaringan perlu dibuka, atau host mengunduh foto lalu menaruhnya di `content/trips/solo/photos/src/`.
+**Catatan lingkungan:** sesi pengembangan saat ini tidak bisa mengakses situs foto seperti Wikimedia (diblokir jaringan). Hal yang sama kemungkinan berlaku untuk unduhan bobot model depth/segmentasi. Saat fase `assets`, akses jaringan perlu dibuka untuk host yang spesifik, atau host mengunduh foto lalu menaruhnya di `content/trips/solo/photos/src/`.
 
 ### 13.6 Alur akses
 ```
-Gate (publik) ── POST /api/session {code} ──► server: normalisasi → hash → bandingkan (constant-time)
-   │                                             ├─ salah → 401 + jeda bertingkat
-   │                                             └─ benar → Set-Cookie sesi (role: guest|team)
+Gate (statis) ── POST verify-access {code} ──► Edge Function: cek access_attempts → normalisasi → hash → bandingkan (constant-time)
+   │                                             ├─ salah → 401 + catat percobaan + jeda bertingkat
+   │                                             └─ benar → token HMAC {role: guest|team, exp}
    ▼
-/film, /today (server cek cookie) ──► render. Data diambil dari /api/trip (difilter per role)
+/film, /today ── GET trip-data (Authorization: token) ──► Edge Function: verifikasi token
+                                                          → baca trip_content + trip_private (service role)
+                                                          → buang field tim kalau role = guest → JSON
+Today menyimpan respons terakhir di cache service worker (offline).
 Aset publik (foto berlisensi, GLB, font) tidak memuat data pribadi.
+
+Konten:  content/trips/solo/trip.ts ── content:check ──► content:publish ──► tabel trip_content
+Privat:  diisi host/penyusun lewat dashboard atau SQL Supabase ──► tabel trip_private (tidak pernah di repo)
 ```
 
 ### 13.7 Commands (direncanakan, berlaku setelah scaffolding)
@@ -679,6 +725,9 @@ pnpm test                      # Vitest: schema, logika Today, kelengkapan i18n
 pnpm test:e2e -- --trace off   # Playwright: gate, sesi, toggle bahasa, Today, Calm mode, header
 pnpm content:check             # validasi data trip + manifest + lisensi + spellcheck (cspell, kamus istilah Jawa)
 pnpm assets:build              # proses foto → AVIF/WebP/KTX2, depth map, mask
+pnpm content:publish           # validasi lalu unggah data trip ke tabel trip_content (Supabase)
+supabase functions deploy verify-access trip-data health   # deploy Edge Functions
+supabase db push               # terapkan migrasi tabel + RLS
 ```
 
 ---
@@ -688,12 +737,12 @@ pnpm assets:build              # proses foto → AVIF/WebP/KTX2, depth map, mask
 | Level | Alat | Cakupan |
 |---|---|---|
 | Unit | Vitest | Schema & `content:check`, logika Today (jam palsu + zona Asia/Jakarta vs Asia/Singapore), filter data per role, normalisasi kode |
-| E2E | Playwright (Chromium; emulasi iPhone & Pixel) | Kode salah/benar, cookie, 401 tanpa sesi, `noindex`, toggle bahasa, Today offline, Calm/reduced-motion, credits lengkap |
+| E2E | Playwright (Chromium; emulasi iPhone & Pixel) | Kode salah/benar, token, 401 tanpa token, data tim tidak bocor ke peran tamu, `noindex`, toggle bahasa, Today offline, Calm/reduced-motion, credits lengkap |
 | Visual | Screenshot Playwright di posisi scroll tetap (seed partikel tetap) | Mencegah regresi tampilan per bab |
 | Performa | Lighthouse (gate & Today), overlay FPS di perangkat nyata | Target S1–S4 |
 | Perangkat nyata | Lihat matriks di bawah | Wajib sebelum kirim |
 | Konten | Proofread EN oleh penutur yang fasih + review istilah Jawa oleh guide/translator | S6 |
-| Fakta | Verifikasi semua [V] pada **H-14** dan **H-3** | Kolom `verifiedAt` terisi |
+| Fakta | Verifikasi semua [V] pada **H-14** dan **H-4** (setelah revisi host di H-5) | Kolom `verifiedAt` terisi |
 | Dry-run | Host, translator, dan guide mencoba sebagai "tamu" dari link WhatsApp sampai Today | S10 |
 
 **Matriks perangkat minimum:**
@@ -721,6 +770,8 @@ Ketersediaan perangkat nyata: lihat Q10.
 - Info penting selalu ada di DOM
 
 **Tanya host dulu:**
+- Membuat resource baru di connector (project Supabase, project Framer/Figma) atau memakai kredit (ElevenLabs)
+- Menyentuh project lain milik host di connector (mis. `dashboard-kebun`, project Framer yang sudah ada). Default: **tidak pernah**.
 - Menambah layanan berbayar atau dependency di luar §13.1
 - Mengubah tempat/jam itinerary yang sudah difinalkan
 - Memakai foto berlisensi NC
@@ -741,18 +792,23 @@ Ketersediaan perangkat nyata: lihat Q10.
 
 ## 16. Milestone
 
-Tanggal pasti disusun setelah tanggal trip diketahui (Q1). **Target kirim: H-7.**
+**H = Hari 0 (tiba) = Rabu 7 Apr 2027** (sementara, §2.1). Kalau tanggal trip bergeser, semua tanggal di bawah ikut bergeser. Ada ±5 bulan, jadi jadwalnya longgar dan punya buffer di setiap fase.
 
-| # | Milestone | Isi | Kriteria selesai |
-|---|---|---|---|
-| M0 | Fondasi konten | Host menjawab pertanyaan terbuka P0, itinerary v1 dikunci, sourcing foto dimulai | Q1–Q6 terjawab. ≥ 10 foto utama berlisensi tercatat. |
-| M1 | Kerangka & akses | Scaffold Next.js, schema, `content:check`, gate, sesi, i18n, deploy preview | Gate berfungsi di HP nyata. Data terproteksi. `noindex` aktif. |
-| M2 | Today | Today lengkap + offline + kontak + Plan B | Diuji di iPhone & Android. Sudah berguna walau film belum jadi. |
-| M3 | Film 2D | Struktur scroll, bab, snap, pin, horizontal gallery, text/mask reveal, panel foto dasar, Calm mode | Cerita lengkap bisa dibaca dari awal sampai akhir |
-| M4 | Film 3D & cahaya | Gunungan, benang emas, siklus waktu/LUT, post-FX, partikel, fog, kamera, tier kualitas, depth parallax | S1–S2 tercapai di perangkat uji |
-| M5 | Finale & polish | Boarding pass physics, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp | Seluruh baris di §8 terpenuhi |
-| M6 | QA & preflight | Matriks perangkat, aksesibilitas, proofread, verifikasi [V] (H-14 & H-3), dry-run | Semua kriteria di §4 hijau |
-| M7 | Kirim | Pesan WhatsApp + link (kode dikirim terpisah), standby perbaikan konten | Tamu berhasil masuk |
+| # | Periode | Milestone | Isi | Kriteria selesai |
+|---|---|---|---|---|
+| M0 | 9 Nov – 13 Des 2026 | Fondasi konten | Draf itinerary dirapikan, shot list, sourcing foto dimulai (berlanjut paralel sampai Jan) | Draf konten EN/ID lengkap. ≥ 10 kandidat foto berlisensi tercatat. |
+| M0.5 | 16 Nov – 13 Des 2026 | **Desain & prototipe motion** | **Framer**: styleframe per bab + prototipe motion (text reveal, stagger, mask, shared element, horizontal gallery, timing §9). **Figma** (kalau kursi mengizinkan): token, tipografi, vektor gunungan. **Three.js Viewer**: konsep gunungan + cahaya blencong. | Host menyetujui arah visual & rasa motion. Token motion dikunci. |
+| M1 | 30 Nov – 20 Des 2026 | Kerangka & akses | Scaffold Next.js, schema, `content:check`, **project Supabase baru** + migrasi/RLS + Edge Functions, gate, token, i18n, CI + keep-alive, deploy preview | Gate berfungsi di HP nyata. Data hanya keluar lewat token. `noindex` aktif. |
+| — | 21 Des 2026 – 3 Jan 2027 | *Buffer libur akhir tahun* | | |
+| M2 | 4 – 17 Jan 2027 | Today | Today lengkap + offline + kontak + Plan B | Diuji di iPhone & Android. Sudah berguna walau film belum jadi. |
+| M3 | 18 Jan – 7 Feb 2027 | Film 2D | Struktur scroll, bab, snap, pin, horizontal gallery, text/mask reveal, panel foto dasar, Calm mode | Cerita lengkap bisa dibaca dari awal sampai akhir |
+| M4 | 8 Feb – 7 Mar 2027 | Film 3D & cahaya | Gunungan, benang emas, siklus waktu/LUT, post-FX, partikel, fog, kamera, tier kualitas, depth parallax | S1–S2 tercapai di perangkat uji |
+| M5 | 8 – 21 Mar 2027 | Finale & polish | Boarding pass physics, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp, *(P2)* audio | Seluruh baris di §8 terpenuhi |
+| M6 | 22 Mar – 1 Apr 2027 | QA & preflight | Matriks perangkat, aksesibilitas, proofread, **verifikasi [V] pertama di H-14 (24 Mar)**, dry-run | Semua kriteria di §4 hijau |
+| — | **H-5: Jumat 2 Apr 2027** | **Revisi host** | Host merevisi Q1–Q6 dan isi itinerary. Perubahan masuk ke data, lalu `content:publish`. | |
+| — | H-4: Sabtu 3 Apr 2027 | Verifikasi akhir | Verifikasi [V] kedua, cek status Supabase, uji gate & Today sekali lagi | |
+| M7 | **H-3: Minggu 4 Apr 2027** | Kirim | Pesan WhatsApp + link (**kode dikirim di pesan terpisah**), standby perbaikan konten | Tamu berhasil masuk |
+| — | H-1: Selasa 6 Apr 2027 | Cek terakhir | Status Supabase, keep-alive, data hari pertama | |
 
 ---
 
@@ -762,10 +818,13 @@ Tanggal pasti disusun setelah tanggal trip diketahui (Q1). **Target kirim: H-7.*
 |---|---|---|
 | Foto Solo berlisensi bebas langka atau kualitasnya kurang | Visual turun | Hanya 10–15 slot. Wikimedia/Flickr CC. Minta izin fotografer. Panel tipografi/3D sebagai pengganti. Grading LUT untuk menyatukan. |
 | WebGL berat di HP | Patah-patah, panas, boros baterai | Tier adaptif, anggaran aset, uji perangkat nyata sejak M4, dispose per bab |
-| Musim hujan | Sunrise/sunset gagal | Plan B per tempat, narasi "sea of mist", toggle Rain plan |
-| Info lapangan berubah (jam buka, harga, jadwal pertunjukan) | Tamu kecewa di lokasi | Tanda [V], verifikasi H-14 & H-3, kolom `verifiedAt`, redeploy cepat |
+| Hujan (April masih peralihan musim) | Sunrise/sunset gagal | Plan B per tempat, narasi "sea of mist", toggle Rain plan |
+| Project Supabase gratis ter-pause karena tidak aktif | Gate gagal, tamu tidak bisa masuk | Keep-alive terjadwal (GitHub Actions), cek status di H-4 & H-1, project bisa dipulihkan lewat connector. Opsi: upgrade sementara di bulan trip. |
+| Kursi Figma berstatus "View" | Tidak bisa mengedit desain di Figma | Desain dan motion dipusatkan di Framer, vektor gunungan dibuat di kode/SVG |
+| Revisi besar di H-5 | Waktu mepet sebelum kirim di H-3 | Semua bisa diubah lewat data (tanpa kode). `content:publish` tanpa redeploy. Engine tidak terikat ke tempat atau tanggal tertentu. |
+| Info lapangan berubah (jam buka, harga, jadwal pertunjukan) | Tamu kecewa di lokasi | Tanda [V], verifikasi H-14 & H-4, kolom `verifiedAt`, `content:publish` tanpa redeploy |
 | Kesalahan budaya atau bahasa Jawa | Memalukan di depan tamu | Review guide/translator. Aksara Jawa hanya yang terverifikasi. Panduan etika §6.6. |
-| Link diteruskan ke orang lain | Kebocoran jadwal dan kontak | Kode di server, kode dikirim terpisah dari link, data privat di env |
+| Link diteruskan ke orang lain | Kebocoran jadwal dan kontak | Kode dicek di server, kode dikirim terpisah dari link, bundle tidak memuat data, data privat di Supabase dengan RLS |
 | Tamu bingung WIB vs SGT | Telat jemput | Label "(1 hour behind Singapore)", logika berbasis Asia/Jakarta |
 | Animasi menghambat akses info | Frustrasi selama trip | Today terpisah, tanpa WebGL, default selama trip |
 | Typo atau Inggris yang kaku | Citra host turun | Proofread penutur yang fasih + spellcheck otomatis |
@@ -775,22 +834,19 @@ Tanggal pasti disusun setelah tanggal trip diketahui (Q1). **Target kirim: H-7.*
 
 ## 18. Pertanyaan Terbuka (perlu jawaban host)
 
-| # | Pertanyaan | Berdampak ke |
-|---|---|---|
-| Q1 | **Tanggal trip pastinya** (hari dalam minggu)? | Urutan hari (hari tutup keraton, malam Minggu Ngarsopuro, jadwal wayang orang), milestone |
-| Q2 | Kedatangan & kepulangan tamu: jam, bandara/stasiun, moda? | Hari 1 & Hari 3, kemungkinan "Hari 0" |
-| Q3 | Jumlah tamu pasti & penulisan nama untuk boarding pass? | Epilog, data privat |
-| Q4 | "Movies" maksudnya apa: bioskop sungguhan, atau pertunjukan seperti wayang orang? | Malam Hari 2 |
-| Q5 | Night ride pakai apa: dibonceng motor/vespa oleh rider lokal, jip/mobil terbuka, atau becak? | Malam Hari 1, keamanan |
-| Q6 | Penginapan yang dipilih (kamar mandi dalam)? | Alamat jemput, rute |
-| Q7 | Nama host yang ditampilkan ("Hosted by …") + foto/inisial tim? | Prolog, epilog, kontak |
-| Q8 | Pakai domain sendiri (mis. ±Rp150–200 rb/tahun) atau subdomain gratis Vercel? | Kesan premium di link preview |
-| Q9 | Mau tahu kapan tamu pertama kali membuka web (log anonim tanpa pelacakan)? | Privasi vs informasi |
-| Q10 | Punya akses ke iPhone & Android flagship untuk uji (milik sendiri atau pinjam)? Kalau tidak, pakai layanan device cloud? | QA (M4, M6) |
-| Q11 | Mau audio ambience gamelan (default mati)? | P2 |
-| Q12 | Anggaran Rp1–1,5 jt itu per orang atau per rombongan? Siapa yang membayar biaya di lapangan? | Pilihan tempat, tampil-tidaknya estimasi biaya |
-| Q13 | Siapa penutur Inggris yang fasih untuk proofread? (Translator?) | S6 |
-| Q14 | Konfirmasi catatan medis (alergi paracetamol & pisang) langsung ke tamu? | Catatan tim, P3K |
+Q1–Q6 sudah punya **default sementara** di §2.1 dan direvisi host di **H-5**. Pertanyaan di bawah ini masih terbuka, tapi tidak menghalangi pekerjaan, karena masing-masing punya default.
+
+| # | Pertanyaan | Default kalau belum dijawab | Berdampak ke |
+|---|---|---|---|
+| Q1–Q6 | Tanggal, kedatangan/kepulangan, jumlah tamu, "movies", night ride, penginapan | Lihat §2.1 | Direvisi di H-5 |
+| Q7 | Nama host yang ditampilkan ("Hosted by …") + foto/inisial tim? | Inisial | Prolog, epilog, kontak |
+| Q8 | Host frontend: Vercel (gratis, sekali tautkan GitHub) atau GitHub Pages? Pakai domain sendiri (mis. ±Rp150–200 rb/tahun)? | Vercel, tanpa domain sendiri | Kesan premium di link preview |
+| Q9 | Mau tahu kapan tamu pertama kali membuka web? (Cukup catat waktu kode berhasil dimasukkan di Supabase, tanpa pelacakan lain.) | Tidak dicatat | Privasi vs informasi |
+| Q10 | Punya akses ke iPhone & Android flagship untuk uji (milik sendiri atau pinjam)? Kalau tidak, pakai layanan device cloud? | Pinjam perangkat di M4 & M6 | QA (M4, M6) |
+| Q11 | Mau audio ambience bernuansa gamelan + SFX halus dari ElevenLabs (default mati, memakai kredit host)? | Tanpa audio | P2 |
+| Q12 | Anggaran Rp1–1,5 jt itu per orang atau per rombongan? Siapa yang membayar biaya di lapangan? | Per orang, belum termasuk transport. Biaya hanya tampil di catatan tim. | Pilihan tempat |
+| Q13 | Siapa penutur Inggris yang fasih untuk proofread? | Translator | S6 |
+| Q14 | Konfirmasi catatan medis (alergi paracetamol & pisang) langsung ke tamu? | Diperlakukan sebagai benar sampai dikonfirmasi | Catatan tim, P3K |
 
 ---
 
