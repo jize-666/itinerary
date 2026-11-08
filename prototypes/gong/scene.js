@@ -4,10 +4,10 @@
 // Satu bahasa visual dengan Gunungan v3 "Murka":
 //  · kepingan bara berkumpul → gong muncul membara lalu mendingin jadi perunggu
 //  · gong punya "jantung": pencu berdenyut merah (deg-deg) seirama mata kala
-//  · mahkota palang = wajah kala murka (sama dengan gunungan), matanya menyala, tangannya mencengkeram palang
+//  · puncak gayor = Batara Kala, wayang kulit gagrak Surakarta (menyamping, bertatah), matanya menyala berdenyut
 //  · naga gayor garang: rahang menganga, taring, mulut berbara, mata merah, tanduk
 //  · KLIK GONG: tabuh menghantam → retakan bara menjalar dari pencu, riak merah, gelombang kejut,
-//    semburan bara, kedua naga menyemburkan api, mata kala menyala terang, kamera bergetar
+//    semburan bara, kedua naga menyemburkan api, mata Batara Kala menyala terang, kamera bergetar
 
 // ======================= RENDERER & SCENE =======================
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -24,9 +24,9 @@ scene.background = new THREE.Color(NIGHT);
 scene.fog = new THREE.Fog(0x080405, 4.5, 13);
 
 const camera = new THREE.PerspectiveCamera(36, width / height, 0.05, 60);
-camera.position.set(2.75, 1.2, 4.0);                         // sudut agak rendah: gayor & kala menjulang
+camera.position.set(3.0, 1.35, 4.7);                         // sudut agak rendah: gayor & kala menjulang
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1.4, 0);
+controls.target.set(0, 1.62, 0);
 controls.enableDamping = true;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.28;
@@ -191,173 +191,211 @@ const clothTex = tex(makeCanvas(512, 256, (g, w, h) => {
   g.fillStyle = '#b8924c'; [56, 136, 216].forEach((y) => g.fillRect(0, y, w, 3));
 }), true);
 
-// ======================= WAJAH KALA (sama dengan Gunungan v3) untuk mahkota gayor =======================
-// 4 kanvas: alpha, warna, metal/rough, emisi. Koordinat lokal kala: pusat wajah (0,0), lebar muka ±186.
-const KW = 860, KH = 840, KCX = 430, KCY = 430;
-const mkK = () => { const c = document.createElement('canvas'); c.width = KW; c.height = KH; return c; };
-const kA = mkK(), kC = mkK(), kM = mkK(), kE = mkK();
-{ const e = kE.getContext('2d', { willReadFrequently: true }); e.fillStyle = '#000'; e.fillRect(0, 0, KW, KH); }
-const kctxs = [[kA, 'a'], [kC, 'c'], [kM, 'm'], [kE, 'e']].map(([c, m]) => [c.getContext('2d', { willReadFrequently: true }), m]);
+// ======================= BATARA KALA, wayang kulit gagrak Surakarta, untuk puncak gayor =======================
+// Tokoh paling ditakuti di pewayangan Jawa (lakon ruwatan Murwakala). Konvensi wayang Solo: wajah menyamping
+// (menghadap kanan, kelompok kiwa/raksasa), bahu tampak depan, kaki melangkah lebar (jangkahan).
+// Atribut [V cek dalang/guide]: makutha + garuda mungkur, praba (tanda dewa), rambut gimbal, mata plelengan,
+// irung bentulan, mulut gusen bersiung, brengos & jenggot, kain bokongan bermotif parang, kuku panjang.
+// Konstruksi wayang: gapit + cempurit (tanduk) dan tuding di kedua tangan. Bertatah: lubang tembus cahaya.
+// 4 kanvas: alpha (lubang), warna (sungging + prada), metal/rough, emisi (mata menyala). Koordinat lokal: (0,0) = tapak kaki, y ke atas negatif.
+const BW = 1000, BH = 1400, BOX = 480, BOY = 1330;
+const mkB = () => { const c = document.createElement('canvas'); c.width = BW; c.height = BH; return c; };
+const bA = mkB(), bC = mkB(), bM = mkB(), bE = mkB();
+{ const e = bE.getContext('2d', { willReadFrequently: true }); e.fillStyle = '#000'; e.fillRect(0, 0, BW, BH); }
+const bctxs = [[bA, 'a'], [bC, 'c'], [bM, 'm'], [bE, 'e']].map(([c, m]) => [c.getContext('2d', { willReadFrequently: true }), m]);
 const sty = (g, mode, color, metal, hole, glow) => {
-  if (mode === 'a') return '#fff';
-  if (mode === 'e') return hole ? '#4a0c02' : glow || '#000';
+  if (mode === 'a') return hole ? '#000' : '#fff';
+  if (mode === 'e') return hole || !glow ? '#000' : glow;
   if (mode === 'c') {
-    if (hole) return '#1a0302';
+    if (hole) return '#0c0503';
     if (color && typeof color === 'object') { const gr = color.lin ? g.createLinearGradient(...color.lin) : g.createRadialGradient(...color.rad); color.stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
     return color;
   }
   return metal ? 'rgb(0,80,255)' : 'rgb(0,170,0)';
 };
 const P = () => new Path2D();
-const bez = (a, b, c, d, t) => { const u = 1 - t; return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]]; };
-const GOLD = '#c9a052', INK = '#140804', IVORY = '#eadcbc', EYE_GLOW = '#ff3a10';
-const SKIN = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#c9432c'], [1, '#5c140c']] });
+const GOLD = '#c9a052', GOLD_D = '#7a5a24', INK = '#140804', IVORY = '#eadcbc', EYE_GLOW = '#ff3a10';
+const SKIN = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#b83c26'], [0.55, '#7a1a10'], [1, '#3e0a06']] });
 const BONE = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#fff6e0'], [1, '#c4ad80']] });
+const PRADA = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#f0d488'], [1, '#8a6424']] });
 const fs = (g, s, p, col, metal, lw = 5, glow) => { g.lineJoin = 'round'; g.lineWidth = lw; g.strokeStyle = s(INK, false); g.stroke(p); g.fillStyle = s(col, metal, false, glow); g.fill(p); };
-const ukel = (g, s, x, y, r0, dir, lw) => {
-  const p = P(); for (let k = 0; k <= 36; k++) { const t = k / 36, a = dir * t * Math.PI * 2.2, r = r0 * (1 - t * 0.8); const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; k ? p.lineTo(px, py) : p.moveTo(px, py); }
+const holes = (g, s, pts, r) => { g.fillStyle = s(INK, false, true); for (const [x, y] of pts) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); } };
+const along = (path, n) => { const out = []; for (let i = 0; i < n; i++) out.push(path(i / (n - 1))); return out; };
+const quad = (a, c, b) => (t) => [(1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+const spiral = (g, s, x, y, r0, dir, lw, turns = 2.2) => {
+  const p = P(); for (let k = 0; k <= 40; k++) { const t = k / 40, a = dir * t * Math.PI * turns, r = r0 * (1 - t * 0.82); const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; k ? p.lineTo(px, py) : p.moveTo(px, py); }
   g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = lw + 5; g.stroke(p); g.strokeStyle = s(GOLD, true); g.lineWidth = lw; g.stroke(p);
 };
-const drawKala = (g, s) => {
-  // rambut api tiga lapis, lidahnya condong ke atas
-  const mane = (scaleL, stops, lw, glow) => {
-    for (let i = 0; i < 21; i++) {
-      const u = i / 20, a = Math.PI * (0.84 + 1.32 * u), sw = Math.sin(u * Math.PI);
-      const R0 = 160, L = scaleL * (58 + 80 * Math.pow(sw, 1.4)), bw = 0.11 + 0.03 * sw;
-      const up = -Math.PI / 2, tipA = a + Math.atan2(Math.sin(up - a), Math.cos(up - a)) * 0.32;
-      const pt = (ang, r) => [Math.cos(ang) * r, Math.sin(ang) * r];
-      const [b1x, b1y] = pt(a - bw, R0), [b2x, b2y] = pt(a + bw, R0), [tx, ty] = pt(tipA, R0 + L);
-      const [c1x, c1y] = pt(a - bw * 0.2, R0 + L * 0.62), [c2x, c2y] = pt(a + bw * 1.5, R0 + L * 0.42);
-      const p = P(); p.moveTo(b1x, b1y); p.quadraticCurveTo(c1x, c1y, tx, ty); p.quadraticCurveTo(c2x, c2y, b2x, b2y); p.closePath();
-      g.lineJoin = 'round'; if (lw) { g.lineWidth = lw; g.strokeStyle = s(INK, false); g.stroke(p); }
-      g.fillStyle = s({ rad: [0, 0, R0 * 0.8, 0, 0, R0 + 150], stops }, false, false, glow); g.fill(p);
-    }
-  };
-  mane(1.0, [[0, '#f0b04a'], [0.45, '#b8361a'], [1, '#2e0704']], 7);
-  mane(0.7, [[0, '#ffd27a'], [0.6, '#e0642a'], [1, '#7a1a0c']], 0);
-  mane(0.42, [[0, '#fff0b0'], [1, '#f0a540']], 0, '#3a1204');
-  // tanduk melengkung
-  for (const sd of [-1, 1]) {
-    const o = [[sd * 66, -150], [sd * 108, -236], [sd * 176, -262], [sd * 232, -280]], n = [[sd * 126, -128], [sd * 150, -198], [sd * 192, -238], [sd * 232, -280]];
-    const h = P(); h.moveTo(...o[0]); h.bezierCurveTo(...o[1], ...o[2], ...o[3]); h.bezierCurveTo(...n[2], ...n[1], ...n[0]); h.closePath();
-    fs(g, s, h, { lin: [sd * 80, -140, sd * 232, -280], stops: [[0, '#3a2410'], [0.45, '#b49a6a'], [1, '#fff4d8']] }, false, 8);
-    g.strokeStyle = s(INK, false); g.lineWidth = 3.5;
-    for (let k = 2; k < 9; k++) { const t = k / 10, a = bez(...o, t), b = bez(...n, t); g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.stroke(); }
-    { const a = bez(...o, 0.2), b = bez(...n, 0.2); g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 16; g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.stroke(); g.strokeStyle = s(GOLD, true); g.lineWidth = 9; g.stroke(); }
-  }
-  // tangan bercakar muncul dari balik api
-  const hand = (sd) => {
-    g.save(); g.scale(sd, 1);
-    const pc = [262, 50];
-    const arm = P(); arm.moveTo(232, 140); arm.bezierCurveTo(250, 110, 258, 90, 246, 70); arm.lineTo(290, 64); arm.bezierCurveTo(300, 92, 292, 124, 276, 152); arm.closePath();
-    fs(g, s, arm, SKIN(240, 60, 290, 150), false, 6);
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.lineCap = 'butt'; g.beginPath(); g.moveTo(244, 106); g.lineTo(290, 114); g.stroke();
-    const finger = (deg, len, bend) => {
-      const a = deg * Math.PI / 180, bx = pc[0] + Math.cos(a) * 24, by = pc[1] + Math.sin(a) * 24;
-      const kx = bx + Math.cos(a) * len * 0.55, ky = by + Math.sin(a) * len * 0.55, a2 = a - bend, tx = kx + Math.cos(a2) * len * 0.5, ty = ky + Math.sin(a2) * len * 0.5;
-      g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); g.moveTo(bx, by); g.lineTo(kx, ky); g.lineTo(tx, ty);
-      g.strokeStyle = s(INK, false); g.lineWidth = 22; g.stroke(); g.strokeStyle = s('#a83220', false); g.lineWidth = 14; g.stroke();
-      const a3 = a2 - 0.55, nx = tx + Math.cos(a3) * 34, ny = ty + Math.sin(a3) * 34, px = Math.cos(a2 + Math.PI / 2) * 7, py = Math.sin(a2 + Math.PI / 2) * 7;
-      const nail = P(); nail.moveTo(tx + px, ty + py); nail.quadraticCurveTo(tx + Math.cos(a2) * 24, ty + Math.sin(a2) * 24, nx, ny); nail.lineTo(tx - px, ty - py); nail.closePath();
-      fs(g, s, nail, BONE(tx, ty, nx, ny), false, 3.5);
-    };
-    [[-130, 56], [-102, 66], [-74, 62], [-46, 50]].forEach(([d, l]) => finger(d, l, 0.4));
-    finger(168, 38, -0.5);
-    const palm = P(); palm.ellipse(pc[0], pc[1], 34, 30, -0.3, 0, Math.PI * 2); fs(g, s, palm, SKIN(230, 20, 300, 90), false, 6);
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.beginPath(); g.arc(pc[0] + 4, pc[1] + 4, 16, Math.PI * 1.1, Math.PI * 1.8); g.stroke();
-    g.restore();
-  };
-  hand(-1); hand(1);
-  // muka
-  const face = P(); face.moveTo(-186, -12); face.bezierCurveTo(-200, -112, -122, -178, 0, -182); face.bezierCurveTo(122, -178, 200, -112, 186, -12);
-  face.bezierCurveTo(184, 84, 120, 216, 0, 230); face.bezierCurveTo(-120, 216, -184, 84, -186, -12); face.closePath();
-  g.lineWidth = 14; g.strokeStyle = s(INK, false); g.stroke(face);
-  g.fillStyle = s({ rad: [0, -40, 20, 0, 0, 230], stops: [[0, '#c8432b'], [0.7, '#7a1d12'], [1, '#3e0b07']] }, false); g.fill(face);
-  g.lineWidth = 8; g.strokeStyle = s(GOLD, true); g.stroke(face);
-  // jamang (ikat kepala emas) berlubang + permata
-  g.save(); g.clip(face);
-  g.strokeStyle = s(INK, false); g.lineWidth = 32; g.beginPath(); g.arc(0, 40, 205, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 24; g.stroke();
-  g.fillStyle = s(INK, false, true); for (let k = 0; k < 13; k++) { const a = Math.PI * (1.18 + k * 0.053); g.beginPath(); g.arc(Math.cos(a) * 205, 40 + Math.sin(a) * 205, 4.5, 0, Math.PI * 2); g.fill(); }
+const drawBatara = (g, s) => {
+  const F = (p, col, metal, lw = 5, glow) => fs(g, s, p, col, metal, lw, glow);
+  const sungging = (p, w = 7) => { g.save(); g.clip(p); g.strokeStyle = s(GOLD, true); g.lineWidth = w; g.stroke(p); g.restore(); };
+  const FS = (p, col, lw = 6) => { F(p, col, false, lw); sungging(p); };
+  const skin = SKIN(-200, -1100, 260, -200);
+  g.save(); g.translate(0, 80);   // tubuh atas turun: kaki lebih pendek, berdiri jangkahan
+  // --- praba: hiasan sayap di punggung (tanda dewa), menjulang dengan ujung melengkung, bertatah ---
+  const praba = P(); praba.moveTo(-80, -870); praba.bezierCurveTo(-170, -880, -260, -900, -300, -960); praba.bezierCurveTo(-330, -1010, -320, -1080, -282, -1132);
+  praba.bezierCurveTo(-256, -1168, -206, -1182, -176, -1160); praba.bezierCurveTo(-160, -1146, -168, -1124, -186, -1122); praba.bezierCurveTo(-204, -1120, -210, -1138, -198, -1146);
+  praba.bezierCurveTo(-240, -1130, -236, -1060, -196, -1010); praba.bezierCurveTo(-160, -966, -120, -930, -90, -910); praba.closePath();
+  F(praba, PRADA(-330, -1180, -80, -870), true, 6);
+  g.save(); g.clip(praba);
+  const inner = P(); inner.moveTo(-100, -892); inner.bezierCurveTo(-180, -900, -248, -920, -276, -970); inner.bezierCurveTo(-296, -1020, -286, -1080, -258, -1110); inner.bezierCurveTo(-262, -1050, -240, -1000, -200, -960); inner.bezierCurveTo(-170, -930, -130, -906, -100, -892); inner.closePath();
+  F(inner, { lin: [0, -1110, 0, -890], stops: [[0, '#8a2015'], [1, '#3e0b07']] }, false, 4);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 4;
+  for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(-110 - k * 6, -898 - k * 4); g.bezierCurveTo(-190 - k * 4, -910 - k * 14, -250 + k * 6, -940 - k * 26, -268 + k * 8, -980 - k * 22); g.stroke(); }
+  holes(g, s, along(quad([-120, -906], [-220, -930], [-266, -1000]), 9), 5);
+  holes(g, s, along(quad([-150, -930], [-220, -970], [-250, -1060]), 7), 4.5);
   g.restore();
-  g.fillStyle = s(GOLD, true); g.beginPath(); g.moveTo(0, -196); g.lineTo(20, -164); g.lineTo(0, -138); g.lineTo(-20, -164); g.closePath(); g.fill();
-  g.fillStyle = s('#b0180c', false, false, '#5a0a02'); g.beginPath(); g.arc(0, -165, 9, 0, Math.PI * 2); g.fill();
-  // alis murka menyala, bulunya lidah api
-  for (const sd of [-1, 1]) {
-    const c = [[sd * 14, -64], [sd * 62, -94], [sd * 124, -136], [sd * 182, -126]];
-    const b = P(); b.moveTo(...c[0]); b.bezierCurveTo(...c[1], ...c[2], ...c[3]); b.lineTo(sd * 176, -100);
-    b.bezierCurveTo(sd * 128, -108, sd * 70, -74, sd * 30, -42); b.closePath();
-    fs(g, s, b, { lin: [0, -130, 0, -40], stops: [[0, '#f0d080'], [1, '#8a6224']] }, true, 6);
-    for (let k = 0; k < 7; k++) {
-      const [x, y] = bez(...c, 0.1 + k * 0.13), f = P();
-      f.moveTo(x - sd * 10, y + 3); f.quadraticCurveTo(x + sd * 2, y - 22, x + sd * 18, y - 30 - k * 2); f.quadraticCurveTo(x + sd * 6, y - 10, x + sd * 10, y + 4); f.closePath();
-      fs(g, s, f, GOLD, true, 3);
-    }
+  spiral(g, s, -186, -1136, 18, 1, 5, 2);
+  // --- rambut gimbal terurai di punggung ---
+  for (let k = 0; k < 8; k++) {
+    const x0 = -40 - k * 6, y0 = -1010 + k * 12, lock = P(); lock.moveTo(x0, y0);
+    for (let i = 1; i <= 16; i++) { const t = i / 16; lock.lineTo(x0 - t * (130 + k * 14) + Math.sin(t * 10 + k * 1.7) * 9, y0 + t * (300 + k * 26)); }
+    g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 17; g.stroke(lock);
+    g.strokeStyle = s('#1c0d08', false); g.lineWidth = 11; g.stroke(lock); g.strokeStyle = s(GOLD_D, true); g.lineWidth = 2.2; g.stroke(lock);
   }
-  g.strokeStyle = s(INK, false); g.lineCap = 'round'; g.lineWidth = 6;
-  for (const x of [-14, 0, 14]) { g.beginPath(); g.moveTo(x, -116); g.quadraticCurveTo(x * 1.4, -92, x * 0.6, -70); g.stroke(); }
-  // mata melotot berurat; iris menyala; lubang tembus cahaya (pupil 3D mengambang di depannya)
-  for (const sd of [-1, 1]) {
-    const ex = sd * 88, ey = -36;
-    g.fillStyle = s({ rad: [ex, ey, 44, ex, ey, 94], stops: [[0, 'rgba(26,3,2,0.9)'], [1, 'rgba(26,3,2,0)']] }, false); g.beginPath(); g.arc(ex, ey, 94, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 6; g.beginPath(); g.arc(ex, ey + 8, 66, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
-    g.fillStyle = s(INK, false); g.beginPath(); g.arc(ex, ey, 61, 0, Math.PI * 2); g.fill();
-    g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(ex, ey, 56, 0, Math.PI * 2); g.fill();
-    g.fillStyle = s({ rad: [ex, ey, 20, ex, ey, 48], stops: [[0, '#f4ead0'], [1, '#c2a77c']] }, false); g.beginPath(); g.arc(ex, ey, 48, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = s('#a01e12', false); g.lineWidth = 2.4;
-    for (let k = 0; k < 11; k++) { const a = (k / 11) * Math.PI * 2 + 0.3; g.beginPath(); g.moveTo(ex + Math.cos(a) * 47, ey + Math.sin(a) * 47); g.quadraticCurveTo(ex + Math.cos(a + 0.22) * 41, ey + Math.sin(a + 0.22) * 41, ex + Math.cos(a - 0.08) * 35, ey + Math.sin(a - 0.08) * 35); g.stroke(); }
-    g.fillStyle = s({ rad: [ex, ey, 10, ex, ey, 35], stops: [[0, '#ff6a20'], [1, '#5a0a05']] }, false, false, EYE_GLOW); g.beginPath(); g.arc(ex, ey, 35, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = s(INK, false); g.lineWidth = 4; g.stroke();
-    g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(ex, ey, 25, 0, Math.PI * 2); g.fill();
-    // kelopak atas miring ke dalam: tatapan murka
-    g.save(); g.beginPath(); g.arc(ex, ey, 57, 0, Math.PI * 2); g.clip();
-    const lid = P(); lid.moveTo(ex + sd * 70, ey - 44); lid.lineTo(ex - sd * 70, ey - 22); lid.lineTo(ex - sd * 70, ey - 90); lid.lineTo(ex + sd * 70, ey - 90); lid.closePath();
-    g.fillStyle = s({ lin: [0, ey - 70, 0, ey - 20], stops: [[0, '#5a120b'], [1, '#a8321f']] }, false); g.fill(lid);
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 6; g.beginPath(); g.moveTo(ex + sd * 70, ey - 44); g.lineTo(ex - sd * 70, ey - 22); g.stroke();
-    g.restore();
+  // --- lengan belakang: menggantung, kuku panjang, tuding ---
+  const armB = P(); armB.moveTo(-100, -885); armB.bezierCurveTo(-150, -860, -190, -800, -200, -740); armB.bezierCurveTo(-210, -690, -222, -640, -226, -600);
+  armB.lineTo(-196, -598); armB.bezierCurveTo(-190, -650, -176, -700, -166, -742); armB.bezierCurveTo(-152, -790, -126, -830, -96, -850); armB.closePath();
+  FS(armB, skin);
+  const handB = P(); handB.ellipse(-212, -585, 26, 22, 0.4, 0, Math.PI * 2); F(handB, skin, false, 5);
+  for (let k = 0; k < 4; k++) { const n = P(), x = -228 + k * 12, y = -572 + k * 4; n.moveTo(x, y); n.quadraticCurveTo(x - 6, y + 34, x + 14, y + 52); n.quadraticCurveTo(x + 6, y + 30, x + 9, y + 2); n.closePath(); F(n, BONE(x, y, x, y + 52), false, 3); }
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.lineCap = 'butt'; g.beginPath(); g.moveTo(-232, -618); g.lineTo(-192, -612); g.stroke();
+  const kelatB = P(); kelatB.moveTo(-160, -830); kelatB.lineTo(-118, -850); kelatB.lineTo(-108, -826); kelatB.lineTo(-150, -806); kelatB.closePath(); F(kelatB, GOLD, true, 4);
+  g.restore();
+  // --- kaki belakang: lutut menekuk, betis berotot, telapak menghadap depan ---
+  const legB = P(); legB.moveTo(-100, -410); legB.bezierCurveTo(-150, -350, -176, -300, -178, -250); legB.bezierCurveTo(-184, -200, -180, -140, -176, -64);
+  legB.bezierCurveTo(-190, -40, -204, -20, -204, -4); legB.lineTo(-86, 2); legB.lineTo(-84, -10); legB.bezierCurveTo(-100, -26, -120, -34, -132, -46);
+  legB.bezierCurveTo(-134, -100, -128, -170, -116, -250); legB.bezierCurveTo(-96, -320, -70, -370, -40, -410); legB.closePath();
+  FS(legB, skin);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.lineCap = 'butt'; g.beginPath(); g.moveTo(-182, -74); g.lineTo(-130, -70); g.stroke();
+  holes(g, s, [[-170, -74], [-156, -73], [-142, -72]], 3);
+  // --- kain bokongan bermotif parang bertatah: menutup paha, menggembung di belakang pinggul ---
+  const kain = P(); kain.moveTo(-104, -530); kain.lineTo(112, -530); kain.bezierCurveTo(132, -470, 152, -400, 180, -330);
+  kain.bezierCurveTo(140, -310, 100, -302, 64, -300); kain.bezierCurveTo(30, -288, -10, -290, -44, -310); kain.bezierCurveTo(-80, -330, -110, -340, -130, -350);
+  kain.bezierCurveTo(-200, -360, -270, -390, -302, -440); kain.bezierCurveTo(-322, -480, -306, -520, -270, -534); kain.bezierCurveTo(-240, -546, -214, -526, -226, -506);
+  kain.bezierCurveTo(-236, -492, -258, -500, -252, -514); kain.bezierCurveTo(-210, -540, -150, -540, -104, -530); kain.closePath();
+  F(kain, { lin: [0, -540, 0, -300], stops: [[0, '#24525c'], [1, '#0c262c']] }, false, 6);
+  g.save(); g.clip(kain); g.strokeStyle = s(GOLD, true); g.lineCap = 'round';
+  for (let k = -560; k < 400; k += 34) {
+    g.lineWidth = 6; g.beginPath(); for (let i = 0; i <= 12; i++) { const t = i / 12, x = k + t * 280, y = -560 + t * 280 + Math.sin(t * Math.PI * 4) * 7; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
   }
-  // hidung bulat, cuping mengembang
-  const nose = P(); nose.moveTo(0, -48); nose.bezierCurveTo(26, -38, 66, 6, 60, 36); nose.bezierCurveTo(54, 58, 22, 56, 0, 48); nose.bezierCurveTo(-22, 56, -54, 58, -60, 36); nose.bezierCurveTo(-66, 6, -26, -38, 0, -48); nose.closePath();
-  fs(g, s, nose, { rad: [0, 0, 6, 0, 10, 64], stops: [[0, '#d0553a'], [1, '#5a120b']] }, false, 6); g.lineWidth = 4; g.strokeStyle = s(GOLD, true); g.stroke(nose);
-  for (const sd of [-1, 1]) { g.fillStyle = s(INK, false, true); g.beginPath(); g.ellipse(sd * 30, 38, 14, 8, sd * 0.35, 0, Math.PI * 2); g.fill(); }
-  for (const sd of [-1, 1]) {
-    g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 7;
-    g.beginPath(); g.moveTo(sd * 56, 18); g.bezierCurveTo(sd * 92, 18, sd * 118, 34, sd * 134, 62); g.stroke();
-    g.beginPath(); g.moveTo(sd * 62, -2); g.bezierCurveTo(sd * 96, -4, sd * 124, 8, sd * 146, 30); g.stroke();
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.beginPath(); g.moveTo(sd * 58, 24); g.bezierCurveTo(sd * 92, 24, sd * 114, 40, sd * 128, 64); g.stroke();
-  }
-  ukel(g, s, -172, 4, 16, -1, 5); ukel(g, s, 172, 4, 16, 1, 5);
-  // mulut menganga: berlubang, jadi di bayangan tampak mulut menyala
-  const lipY = (x) => 58 + 16 * (x / 140) ** 2;
-  const mouth = P(); mouth.moveTo(-142, lipY(142)); for (let x = -134; x <= 142; x += 8) mouth.lineTo(x, lipY(x));
-  mouth.bezierCurveTo(130, 110, 90, 196, 0, 204); mouth.bezierCurveTo(-90, 196, -130, 110, -142, lipY(142)); mouth.closePath();
-  g.lineWidth = 18; g.strokeStyle = s(INK, false); g.stroke(mouth); g.lineWidth = 9; g.strokeStyle = s(GOLD, true); g.stroke(mouth);
-  g.fillStyle = s(INK, false, true); g.fill(mouth);
-  for (let i = -3; i <= 3; i++) { const x = i * 24, y = lipY(x), t = P(); t.moveTo(x - 10, y - 2); t.lineTo(x + 10, y - 2); t.lineTo(x + 8, y + 18); t.lineTo(x, y + 25); t.lineTo(x - 8, y + 18); t.closePath(); fs(g, s, t, IVORY, false, 3); }
-  for (let i = -2; i <= 2; i++) { const x = i * 26, y = 198 - Math.abs(i) * 7, t = P(); t.moveTo(x - 9, y + 4); t.lineTo(x, y - 17); t.lineTo(x + 9, y + 4); t.closePath(); fs(g, s, t, IVORY, false, 3); }
-  for (const sd of [-1, 1]) {
-    const f = P(); f.moveTo(sd * 120, lipY(120) - 2); f.bezierCurveTo(sd * 124, 110, sd * 110, 150, sd * 92, 186); f.bezierCurveTo(sd * 92, 140, sd * 90, 106, sd * 86, lipY(86) - 2); f.closePath();
-    fs(g, s, f, BONE(0, 60, 0, 186), false, 4);
-    const tk = P(); tk.moveTo(sd * 104, 170); tk.bezierCurveTo(sd * 138, 148, sd * 154, 104, sd * 150, 40); tk.bezierCurveTo(sd * 140, 86, sd * 128, 122, sd * 118, 178); tk.closePath();
-    fs(g, s, tk, BONE(0, 178, 0, 40), false, 4);
-  }
-  // lidah menjulur keluar melewati dagu
-  const tg = P(); tg.moveTo(-48, 150); tg.bezierCurveTo(-60, 222, -40, 268, 0, 276); tg.bezierCurveTo(40, 268, 60, 222, 48, 150); tg.closePath();
-  fs(g, s, tg, { lin: [0, 150, 0, 276], stops: [[0, '#5a0f0a'], [0.4, '#c8402a'], [1, '#e8684a']] }, false, 6, '#2a0402');
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.stroke(tg);
-  g.strokeStyle = s(INK, false); g.lineWidth = 4; g.beginPath(); g.moveTo(0, 176); g.quadraticCurveTo(-4, 220, 0, 256); g.stroke();
+  const dots = []; for (let k = -543; k < 400; k += 34) for (let i = 1; i < 8; i++) { const t = i / 8; dots.push([k + t * 280, -560 + t * 280]); }
+  holes(g, s, dots, 3.5);
+  g.restore();
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 12; g.beginPath(); g.moveTo(176, -336); g.bezierCurveTo(120, -312, 40, -290, -44, -316); g.bezierCurveTo(-120, -350, -220, -370, -290, -440); g.stroke();
+  holes(g, s, along((t) => { const [x, y] = t < 0.5 ? quad([176, -336], [70, -296], [-44, -316])(t * 2) : quad([-44, -316], [-200, -360], [-290, -440])((t - 0.5) * 2); return [x, y]; }, 22), 3.2);
+  g.save(); g.translate(0, 80);
+  // sabuk (stagen) emas + timang + uncal menjuntai
+  const belt = P(); belt.moveTo(-108, -612); belt.lineTo(112, -612); belt.lineTo(112, -582); belt.lineTo(-108, -582); belt.closePath(); F(belt, PRADA(0, -612, 0, -582), true, 5);
+  holes(g, s, along((t) => [-90 + t * 190, -597], 9), 4);
+  const timang = P(); timang.ellipse(30, -597, 18, 16, 0, 0, Math.PI * 2); F(timang, '#b0180c', false, 4, '#3a0602');
+  const uncal = P(); uncal.moveTo(20, -580); uncal.lineTo(40, -580); uncal.bezierCurveTo(46, -500, 40, -420, 30, -360); uncal.bezierCurveTo(22, -420, 16, -500, 20, -580); uncal.closePath(); F(uncal, PRADA(20, -580, 40, -360), true, 4);
+  // --- badan: dada bidang, perut buncit raksasa ---
+  const body = P(); body.moveTo(-30, -912); body.lineTo(50, -912); body.bezierCurveTo(90, -905, 112, -890, 122, -862);
+  body.bezierCurveTo(146, -820, 176, -764, 178, -704); body.bezierCurveTo(180, -644, 156, -602, 112, -588); body.lineTo(-100, -588);
+  body.bezierCurveTo(-124, -640, -132, -720, -122, -800); body.bezierCurveTo(-118, -850, -96, -896, -30, -912); body.closePath();
+  FS(body, skin, 7);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(118, -800); g.bezierCurveTo(150, -760, 162, -704, 146, -646); g.stroke();
+  g.beginPath(); g.moveTo(-20, -820); g.bezierCurveTo(20, -836, 70, -834, 100, -812); g.stroke();
+  g.fillStyle = s(INK, false); g.beginPath(); g.ellipse(122, -668, 7, 5, 0, 0, Math.PI * 2); g.fill();
+  // kalung ulur-ulur + bandul
+  const kalung = P(); kalung.moveTo(-96, -880); kalung.bezierCurveTo(-40, -820, 60, -824, 120, -866); kalung.lineTo(122, -848); kalung.bezierCurveTo(60, -800, -40, -798, -104, -862); kalung.closePath();
+  F(kalung, PRADA(0, -880, 0, -800), true, 4);
+  holes(g, s, along(quad([-80, -858], [14, -808], [110, -852]), 8), 3.5);
+  const bandul = P(); bandul.moveTo(10, -812); bandul.lineTo(30, -786); bandul.lineTo(10, -754); bandul.lineTo(-10, -786); bandul.closePath(); F(bandul, '#b0180c', false, 4, '#3a0602');
+  g.restore();
+  // --- kaki depan melangkah lebar (jangkahan), lutut menekuk ke depan ---
+  const legF = P(); legF.moveTo(20, -400); legF.bezierCurveTo(70, -350, 110, -310, 128, -280); legF.bezierCurveTo(146, -220, 152, -140, 164, -64);
+  legF.bezierCurveTo(164, -40, 160, -20, 160, -4); legF.lineTo(300, 2); legF.lineTo(298, -12); legF.bezierCurveTo(270, -24, 244, -34, 222, -50);
+  legF.bezierCurveTo(214, -110, 212, -190, 206, -290); legF.bezierCurveTo(190, -360, 150, -410, 110, -440); legF.closePath();
+  FS(legF, skin);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.lineCap = 'butt'; g.beginPath(); g.moveTo(160, -76); g.lineTo(218, -70); g.stroke();
+  holes(g, s, [[174, -74], [188, -73], [202, -72]], 3);
+  for (const x of [256, 272, 288]) { const n = P(); n.moveTo(x, -6); n.quadraticCurveTo(x + 10, -10, x + 14, 2); n.lineTo(x, 2); n.closePath(); F(n, IVORY, false, 2); }
+  g.save(); g.translate(0, 80);
+  // --- lengan depan terangkat, cakar menerkam, tuding ---
+  const armF = P(); armF.moveTo(96, -890); armF.bezierCurveTo(150, -880, 200, -840, 232, -790); armF.bezierCurveTo(260, -820, 290, -858, 312, -890);
+  armF.lineTo(336, -872); armF.bezierCurveTo(316, -836, 282, -790, 246, -752); armF.bezierCurveTo(232, -742, 214, -746, 204, -760); armF.bezierCurveTo(180, -800, 140, -836, 100, -850); armF.closePath();
+  FS(armF, skin);
+  const kelatF = P(); kelatF.moveTo(150, -878); kelatF.lineTo(186, -852); kelatF.lineTo(170, -830); kelatF.lineTo(136, -856); kelatF.closePath(); F(kelatF, GOLD, true, 4);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.beginPath(); g.moveTo(296, -894); g.lineTo(326, -870); g.stroke();
+  const handF = P(); handF.ellipse(330, -902, 28, 24, -0.6, 0, Math.PI * 2); F(handF, skin, false, 5);
+  [[-115, 40], [-85, 48], [-55, 46], [-25, 38]].forEach(([deg, len]) => {
+    const a = (deg * Math.PI) / 180, bx = 330 + Math.cos(a) * 20, by = -902 + Math.sin(a) * 20, kx = bx + Math.cos(a) * len, ky = by + Math.sin(a) * len;
+    g.lineCap = 'round'; g.beginPath(); g.moveTo(bx, by); g.lineTo(kx, ky); g.strokeStyle = s(INK, false); g.lineWidth = 17; g.stroke(); g.strokeStyle = s('#b23a24', false); g.lineWidth = 11; g.stroke();
+    const a2 = a + 0.5, n = P(); n.moveTo(kx - Math.sin(a) * 6, ky + Math.cos(a) * 6); n.quadraticCurveTo(kx + Math.cos(a) * 26, ky + Math.sin(a) * 26, kx + Math.cos(a2) * 40, ky + Math.sin(a2) * 40); n.lineTo(kx + Math.sin(a) * 6, ky - Math.cos(a) * 6); n.closePath(); F(n, BONE(kx, ky, kx, ky - 40), false, 3);
+  });
+  // --- kepala menyamping, besar seperti raksasa wayang ---
+  g.save(); g.translate(40, -900); g.scale(1.22, 1.22); g.translate(-40, 900);
+  const head = P(); head.moveTo(-70, -1046); head.bezierCurveTo(-50, -1070, 20, -1078, 90, -1068); head.bezierCurveTo(112, -1062, 126, -1048, 130, -1034);
+  head.bezierCurveTo(156, -1034, 192, -1016, 194, -986); head.bezierCurveTo(196, -960, 176, -952, 158, -960); head.lineTo(160, -948);
+  head.lineTo(98, -944); head.lineTo(150, -912); head.bezierCurveTo(156, -900, 146, -886, 124, -884); head.bezierCurveTo(90, -884, 60, -888, 40, -894);
+  head.bezierCurveTo(0, -898, -40, -904, -56, -920); head.bezierCurveTo(-76, -946, -82, -1000, -70, -1046); head.closePath();
+  F(head, { lin: [-60, -1070, 180, -900], stops: [[0, '#c4442c'], [1, '#4a0e08']] }, false, 7); sungging(head, 6);
+  const mouth = P(); mouth.moveTo(98, -944); mouth.lineTo(160, -950); mouth.bezierCurveTo(168, -936, 162, -920, 150, -912); mouth.closePath();
+  g.fillStyle = s('#2a0503', false, false, '#5a0c02'); g.fill(mouth);
+  g.strokeStyle = s('#e0707a', false); g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(104, -946); g.lineTo(156, -950); g.stroke();   // gusen
+  for (let k = 0; k < 5; k++) { const x = 108 + k * 10, t = P(); t.moveTo(x, -946); t.lineTo(x + 8, -946); t.lineTo(x + 4, -936); t.closePath(); F(t, IVORY, false, 1.5); }
+  const siungA = P(); siungA.moveTo(140, -950); siungA.lineTo(150, -950); siungA.lineTo(148, -918); siungA.closePath(); F(siungA, BONE(140, -950, 148, -918), false, 2.5);
+  const siungB = P(); siungB.moveTo(130, -914); siungB.bezierCurveTo(144, -926, 156, -950, 160, -984); siungB.bezierCurveTo(150, -956, 142, -934, 124, -918); siungB.closePath(); F(siungB, BONE(130, -914, 160, -984), false, 2.5);
+  // brengos (kumis) & jenggot
+  // hidung bentulan: tonjolan bulat bergaris emas + cuping
+  const nose = P(); nose.moveTo(132, -1030); nose.bezierCurveTo(158, -1032, 188, -1016, 190, -988); nose.bezierCurveTo(192, -964, 174, -956, 158, -964); nose.bezierCurveTo(146, -972, 136, -1000, 132, -1030); nose.closePath();
+  F(nose, { rad: [176, -996, 4, 176, -990, 40], stops: [[0, '#e0603e'], [1, '#7a1d12']] }, false, 4); g.strokeStyle = s(GOLD, true); g.lineWidth = 2.5; g.stroke(nose);
+  g.fillStyle = s(INK, false, true); g.beginPath(); g.ellipse(166, -968, 8, 4.5, -0.25, 0, Math.PI * 2); g.fill();
+  // brengos: helai-helai kumis melengkung ke belakang
+  g.lineCap = 'round';
+  for (let k = 0; k < 6; k++) { const y0 = -962 + k * 2.2, b = P(); b.moveTo(148, y0); b.bezierCurveTo(126, y0 - 10 - k, 98, y0 - 8, 80 - k * 3, y0 + 4 + k * 2); g.strokeStyle = s(INK, false); g.lineWidth = 4.5; g.stroke(b); }
+  for (let k = 0; k < 7; k++) { const x0 = 120 - k * 18, y0 = -892 + k * 2, j = P(); j.moveTo(x0, y0); for (let i = 1; i <= 8; i++) { const t = i / 8; j.lineTo(x0 - t * 26 + Math.sin(t * 9 + k) * 5, y0 + t * (54 + k * 4)); } g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 8; g.stroke(j); g.strokeStyle = s('#1c0d08', false); g.lineWidth = 5; g.stroke(j); }
+  // mata plelengan menyala + alis murka berbulu api
+  g.fillStyle = s(INK, false); g.beginPath(); g.arc(78, -1006, 27, 0, Math.PI * 2); g.fill();
+  g.fillStyle = s({ rad: [74, -1012, 4, 78, -1006, 24], stops: [[0, '#fbf3df'], [1, '#cdb894']] }, false); g.beginPath(); g.arc(78, -1006, 23, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = s('#a01e12', false); g.lineWidth = 1.6; for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.beginPath(); g.moveTo(78 + Math.cos(a) * 21, -1006 + Math.sin(a) * 21); g.lineTo(78 + Math.cos(a + 0.15) * 15, -1006 + Math.sin(a + 0.15) * 15); g.stroke(); }
+  g.fillStyle = s({ rad: [84, -1006, 2, 84, -1006, 14], stops: [[0, '#ff7a28'], [1, '#6a0a05']] }, false, false, EYE_GLOW); g.beginPath(); g.arc(84, -1006, 14, 0, Math.PI * 2); g.fill();
+  g.fillStyle = s(INK, false, true); g.beginPath(); g.ellipse(86, -1006, 3.5, 9, 0, 0, Math.PI * 2); g.fill();
+  const brow = P(); brow.moveTo(40, -1040); brow.bezierCurveTo(70, -1060, 110, -1058, 132, -1036); brow.lineTo(122, -1026); brow.bezierCurveTo(104, -1040, 72, -1042, 48, -1028); brow.closePath(); F(brow, PRADA(40, -1060, 130, -1026), true, 4);
+  for (let k = 0; k < 6; k++) { const x = 52 + k * 14, y = -1046 - Math.sin((k / 5) * Math.PI) * 8, f = P(); f.moveTo(x - 6, y + 4); f.quadraticCurveTo(x, y - 18, x + 12, y - 26 - k); f.quadraticCurveTo(x + 4, y - 8, x + 7, y + 4); f.closePath(); F(f, GOLD, true, 2.5); }
+  g.strokeStyle = s(INK, false); g.lineWidth = 3; g.beginPath(); g.moveTo(112, -1000); g.quadraticCurveTo(128, -984, 132, -962); g.stroke();
+  // telinga, sumping & anting
+  const sumping = P(); sumping.moveTo(-10, -1010); sumping.bezierCurveTo(-60, -1020, -96, -990, -100, -950); sumping.bezierCurveTo(-80, -970, -54, -980, -30, -980); sumping.bezierCurveTo(-60, -960, -70, -930, -66, -900); sumping.bezierCurveTo(-40, -940, -20, -960, -4, -970); sumping.closePath();
+  F(sumping, PRADA(-100, -1020, -4, -900), true, 4);
+  holes(g, s, [[-60, -992], [-44, -968], [-56, -938]], 4);
+  const ear = P(); ear.ellipse(0, -990, 14, 20, 0.2, 0, Math.PI * 2); F(ear, skin, false, 4);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.beginPath(); g.arc(2, -960, 10, 0, Math.PI * 2); g.stroke();
+  const drop = P(); drop.moveTo(2, -950); drop.lineTo(12, -926); drop.lineTo(2, -904); drop.lineTo(-8, -926); drop.closePath(); F(drop, '#b0180c', false, 3, '#3a0602');
+  // --- makutha bertingkat + jamang + garuda mungkur ---
+  const jamang = P(); jamang.moveTo(-72, -1048); jamang.bezierCurveTo(0, -1080, 70, -1082, 116, -1060); jamang.lineTo(110, -1040); jamang.bezierCurveTo(60, -1058, 0, -1058, -66, -1028); jamang.closePath();
+  F(jamang, PRADA(0, -1082, 0, -1030), true, 5);
+  holes(g, s, along(quad([-56, -1044], [20, -1068], [100, -1054]), 9), 3.5);
+  const mk = P(); mk.moveTo(-64, -1060); mk.bezierCurveTo(-82, -1110, -78, -1170, -50, -1214); mk.bezierCurveTo(-30, -1246, 0, -1262, 24, -1258);
+  mk.bezierCurveTo(44, -1254, 58, -1238, 56, -1222); mk.bezierCurveTo(74, -1196, 92, -1150, 100, -1066); mk.closePath();
+  F(mk, PRADA(-80, -1262, 100, -1060), true, 6); sungging(mk, 8);
+  g.save(); g.clip(mk);
+  g.strokeStyle = s(INK, false); g.lineWidth = 4;
+  for (const y of [-1098, -1136, -1176]) { g.beginPath(); g.moveTo(-100, y + 8); g.quadraticCurveTo(10, y - 10, 120, y + 6); g.stroke(); }
+  g.strokeStyle = s(GOLD_D, true); g.lineWidth = 3;
+  for (let k = -3; k <= 3; k++) { g.beginPath(); g.moveTo(18 + k * 22, -1070); g.quadraticCurveTo(14 + k * 16, -1170, 6 + k * 8, -1250); g.stroke(); }
+  holes(g, s, along(quad([-56, -1084], [20, -1100], [94, -1082]), 8), 4.5);
+  holes(g, s, along(quad([-60, -1120], [16, -1138], [88, -1118]), 7), 4.2);
+  holes(g, s, along(quad([-54, -1160], [12, -1178], [74, -1158]), 6), 4);
+  holes(g, s, along(quad([-38, -1200], [8, -1216], [56, -1198]), 4), 3.6);
+  g.restore();
+  // turida: hiasan daun api di puncak depan makutha
+  const turida = P(); turida.moveTo(40, -1240); turida.bezierCurveTo(70, -1262, 96, -1256, 104, -1230); turida.bezierCurveTo(88, -1240, 70, -1236, 58, -1222); turida.closePath(); F(turida, GOLD, true, 3);
+  const gem = P(); gem.ellipse(18, -1086, 12, 10, 0, 0, Math.PI * 2); F(gem, '#b0180c', false, 3, '#5a0a02');
+  spiral(g, s, -98, -1112, 46, -1, 9, 2.3);
+  const mungkurTail = P(); mungkurTail.moveTo(-64, -1074); mungkurTail.quadraticCurveTo(-96, -1100, -130, -1086); mungkurTail.quadraticCurveTo(-110, -1072, -70, -1060); mungkurTail.closePath(); F(mungkurTail, GOLD, true, 3);
+  g.restore();   // akhir skala kepala
+  g.restore();   // akhir geser tubuh atas
+  // --- gapit (tanduk) di sepanjang badan + tuding di kedua tangan ---
+  g.lineCap = 'round'; g.strokeStyle = s('#2a160a', false); g.lineWidth = 6; g.beginPath(); g.moveTo(14, -1150); g.bezierCurveTo(18, -900, -4, -500, 0, 64); g.stroke();
+  g.strokeStyle = s('#5a3a1e', false); g.lineWidth = 2; g.stroke();
+  for (const [hx, hy, ex] of [[-212, -505, -250], [330, -822, 300]]) { g.strokeStyle = s('#2a160a', false); g.lineWidth = 5; g.beginPath(); g.moveTo(hx, hy); g.lineTo(ex, 64); g.stroke(); }
+  // mas-masan: titik emas di tepi badan
 };
-kctxs.forEach(([g, mode]) => {
-  g.save(); g.translate(KCX, KCY); const s = (col, metal, hole, glow) => sty(g, mode, col, metal, hole, glow);
-  drawKala(g, s);
-  // di mahkota, mulut & mata tidak dibolongi (di belakangnya hanya gelap): rahang berisi bara redup,
-  // pupil celah menyala ditanam di kanvas (di gunungan berupa mesh 3D)
-  for (const sd of [-1, 1]) {
-    g.fillStyle = s('#ff6a20', false, false, '#ff7a20'); g.beginPath(); g.arc(sd * 88, -36, 25, 0, Math.PI * 2); g.fill();
-    g.fillStyle = s('#120302', false); g.beginPath(); g.ellipse(sd * 88, -36, 6, 21, 0, 0, Math.PI * 2); g.fill();
-  }
-  g.restore();
-});
+bctxs.forEach(([g, mode]) => { g.save(); g.translate(BOX, BOY); drawBatara(g, (col, metal, hole, glow) => sty(g, mode, col, metal, hole, glow)); g.restore(); });
+window.__batara = { bA, bC, bE };
 
 // ======================= GONG =======================
 // Profil depan (r, z): pencu → leher → rai dengan dua punggung halus (recep) → pundak → bau
@@ -467,13 +505,20 @@ const makeNaga = (s) => {
   return grp;
 };
 gayor.add(makeNaga(-1), makeNaga(1));
-// Mahkota: wajah kala murka di tengah palang, lidahnya menjulur di depan palang
-const KPX = 0.8 / KW; // meter per piksel kanvas kala
-const kalaMat = new THREE.MeshStandardMaterial({ map: tex(kC, true), alphaMap: tex(kA), alphaTest: 0.5, metalnessMap: tex(kM), roughnessMap: tex(kM), metalness: 1, roughness: 1, emissive: 0xffffff, emissiveMap: tex(kE, true), emissiveIntensity: 1, side: THREE.DoubleSide, envMapIntensity: 1.1 });
-const kala = new THREE.Mesh(new THREE.PlaneGeometry(KW * KPX, KH * KPX), kalaMat);
-kala.position.set(0, BAR_Y + 0.058 + (KCY + 210 - KH / 2) * KPX, 0.078);   // dagu kala tepat di atas palang, lidah menjulur di depannya
-kala.castShadow = true; kala.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, alphaMap: kalaMat.alphaMap, alphaTest: 0.5 });
-gayor.add(kala);
+// Puncak: Batara Kala (wayang kulit gagrak Surakarta) ditancapkan di tengah palang lewat cempurit
+const BPX = 1.05 / 1250;   // meter per piksel: tinggi figur ±1,05 m, mengisi ruang di antara kedua naga
+const bkMat = new THREE.MeshStandardMaterial({ map: tex(bC, true), alphaMap: tex(bA), alphaTest: 0.5, metalnessMap: tex(bM), roughnessMap: tex(bM), metalness: 1, roughness: 1, emissive: 0xffffff, emissiveMap: tex(bE, true), emissiveIntensity: 1, side: THREE.DoubleSide, envMapIntensity: 1.1 });
+const FEET_Y = BAR_Y + 0.058 + 0.05;
+const batara = new THREE.Mesh(new THREE.PlaneGeometry(BW * BPX, BH * BPX), bkMat);
+batara.position.set(0, FEET_Y + (BOY - BH / 2) * BPX, 0.0); batara.geometry.translate((BW / 2 - BOX) * BPX, 0, 0); batara.rotation.y = 0.3;   // sedikit menghadap penonton
+batara.castShadow = true; batara.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, alphaMap: bkMat.alphaMap, alphaTest: 0.5, side: THREE.DoubleSide });
+gayor.add(batara);
+const auraMat = new THREE.MeshBasicMaterial({ map: radialTex([[0, 'rgba(255,90,30,0.55)'], [0.35, 'rgba(200,30,10,0.22)'], [1, 'rgba(120,10,4,0)']], 256), color: 0xffffff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+const aura = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.7), auraMat); aura.position.set(-0.02, FEET_Y + 0.56, -0.08); aura.rotation.y = 0.3; gayor.add(aura);   // aura merah samar di belakang figur
+{ // cempurit (gagang tanduk) masuk ke soket emas di atas palang
+  const rod = add(new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.006, 0.09, 10), new THREE.MeshStandardMaterial({ color: 0x2a160a, roughness: 0.4 }))); rod.position.set(0, BAR_Y + 0.058 + 0.04, 0);
+  const sock = add(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.03, 20), prada)); sock.position.set(0, BAR_Y + 0.058 + 0.015, 0);
+}
 // tali merah dari palang ke cincin di bibir gong
 const ropeMat = new THREE.MeshStandardMaterial({ color: 0x5a140c, roughness: 0.85 });
 for (const s of [-1, 1]) {
@@ -706,7 +751,8 @@ function animate() {
   bronze.emissiveIntensity = heat;
   const breathK = st >= 0 && st < 1.8 ? Math.min(1, st * 8) * Math.max(0, 1 - st / 1.8) : 0;
   breathLights.forEach((l) => { l.intensity = 2.5 * breathK * (0.8 + 0.2 * Math.sin(t * 40)); });
-  kalaMat.emissiveIntensity = 0.55 + 1.5 * hb + 3.5 * flare;
+  bkMat.emissiveIntensity = 0.55 + 1.6 * hb + 3.5 * flare;
+  auraMat.opacity = 0.35 + 0.35 * hb + 0.6 * flare;
   nagaEyeMat.color.setRGB(1, 0.16, 0.03).multiplyScalar(2 + 3 * hb + 6 * flare);
   mawMat.color.setRGB(1, 0.32, 0.06).multiplyScalar(1.4 + 1.2 * hb + 4 * flare);
   ember.intensity = (0.6 + 1.6 * hb + 2.5 * flare) * (0.88 + 0.12 * Math.sin(t * 9.1));
