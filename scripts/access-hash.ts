@@ -1,0 +1,57 @@
+/**
+ * `pnpm access:hash`: ubah kode booking menjadi nilai secret ACCESS_GUEST_HASH / ACCESS_TEAM_HASH.
+ * Kode dibaca dari stdin (bukan argumen) supaya tidak tersimpan di riwayat shell. Kode asli jangan di-commit.
+ *
+ *   pnpm -s access:hash            → ketik kode, Enter
+ *   pnpm -s access:hash --dev      → buat kode dev acak + hash + TOKEN_SECRET, tulis ke .secrets.local.md (di-gitignore)
+ */
+import { randomBytes } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
+import { hashCode, isPlausibleCode, normalizeCode } from "../supabase/functions/_shared/code.ts";
+
+if (process.argv.includes("--dev")) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // tanpa I, O, 0, 1 supaya tidak tertukar
+  const code = (prefix: string) => prefix + "-" + Array.from(randomBytes(6), (b) => alphabet[b % alphabet.length]).join("");
+  const guest = code("DEV");
+  const team = code("TIM");
+  const md = `# Secret dev Lakon (JANGAN di-commit, file ini di-gitignore)
+
+Dibuat ${new Date().toISOString()}. Hanya untuk pengembangan. Ganti dengan kode booking asli sebelum serah terima.
+
+| Untuk | Nilai |
+|---|---|
+| Kode tamu (diketik di gate) | \`${guest}\` |
+| Kode tim (diketik di gate) | \`${team}\` |
+
+Salin tiga nilai berikut ke Supabase → Edge Functions → Secrets:
+
+**ACCESS_GUEST_HASH**
+\`\`\`
+${await hashCode(guest)}
+\`\`\`
+
+**ACCESS_TEAM_HASH**
+\`\`\`
+${await hashCode(team)}
+\`\`\`
+
+**TOKEN_SECRET**
+\`\`\`
+${randomBytes(48).toString("base64url")}
+\`\`\`
+`;
+  writeFileSync(".secrets.local.md", md, { mode: 0o600 });
+  writeFileSync(".env.local", `LAKON_DEV_GUEST_CODE=${guest}\nLAKON_DEV_TEAM_CODE=${team}\n`, { mode: 0o600, flag: "a" });
+  console.log("Ditulis: .secrets.local.md (nilai secret) dan .env.local (kode dev untuk tes).");
+} else {
+  const rl = createInterface({ input: process.stdin, output: process.stderr });
+  const raw = await rl.question("Kode booking: ");
+  rl.close();
+  const n = normalizeCode(raw);
+  if (!isPlausibleCode(n)) {
+    console.error("Kode harus 6–32 huruf/angka setelah spasi dan tanda hubung dibuang.");
+    process.exit(1);
+  }
+  console.log(await hashCode(raw));
+}
