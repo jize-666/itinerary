@@ -28,8 +28,7 @@ camera.position.set(3.0, 1.35, 4.7);                         // sudut agak renda
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1.62, 0);
 controls.enableDamping = true;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.28;
+controls.autoRotate = false;   // kamera diam; yang bergerak gongnya (penonton masih bisa memutar manual)
 controls.minDistance = 1.3;
 controls.maxDistance = 7;
 controls.maxPolarAngle = Math.PI * 0.55;
@@ -688,17 +687,26 @@ for (const s of [-1, 1]) {
 }
 
 // ======================= TABUH (pemukul) =======================
-const mallet = new THREE.Group(); scene.add(mallet);
+const mallet = new THREE.Group(); scene.add(mallet); let malletHead = null;
 {
   const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.075, 32, 20), new THREE.MeshStandardMaterial({ map: clothTex, roughness: 0.9 }));
-  headMesh.scale.set(1, 1, 0.82); headMesh.castShadow = true; headMesh.name = 'malletHead'; mallet.add(headMesh);
+  headMesh.scale.set(1, 1, 0.82); headMesh.castShadow = true; headMesh.name = 'malletHead'; mallet.add(headMesh); malletHead = headMesh;
   const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.024, 0.04, 20), prada); ferrule.rotation.x = Math.PI / 2; ferrule.position.z = 0.085; mallet.add(ferrule);
   const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.016, 0.56, 16), new THREE.MeshStandardMaterial({ color: 0x2a160a, roughness: 0.55 }));
   handle.rotation.x = Math.PI / 2; handle.position.z = 0.38; handle.castShadow = true; mallet.add(handle);
   const cap = new THREE.Mesh(new THREE.SphereGeometry(0.02, 16, 10), prada); cap.position.z = 0.66; mallet.add(cap);
 }
-const M_REST = new THREE.Vector3(0.66, 0.92, 0.5), M_WIND = new THREE.Vector3(0.7, 1.32, 0.92), M_HIT = new THREE.Vector3(0.05, 1.095, 0.195);
-const M_GRIP = new THREE.Vector3(0.46, 0.3, 0.4);
+// Ayunan tabuh dari samping, seperti ayunan bisbol: poros = tangan pemain yang berdiri di sisi kanan gong.
+// Kepala tabuh bergerak melengkung (horizontal) mengelilingi tangan: load → jeda → ayunan makin cepat →
+// kena pencu menyamping (bantalan tergencet) → memantul lembut → kembali menggantung.
+const M_HIT = new THREE.Vector3(0.05, 1.095, 0.195);                 // titik kontak di depan pencu
+const SWING_V = new THREE.Vector3(-0.45, 0, -0.89).normalize();      // arah kepala saat kontak: dari kanan, masuk ke gong
+const SWING_R = 0.62, M_HAND = new THREE.Vector3(), SWING_AXIS = new THREE.Vector3(), SWING_R0 = new THREE.Vector3();
+{ const rr = new THREE.Vector3(SWING_V.z, 0, -SWING_V.x).multiplyScalar(SWING_R);   // tangan→kepala, tegak lurus arah ayunan; tangan di kanan gong
+  M_HAND.copy(M_HIT).sub(rr); SWING_R0.copy(rr); SWING_AXIS.copy(rr).cross(SWING_V).normalize(); }
+const M_REST_OFF = new THREE.Vector3(0.06, -0.58, 0.22);               // diam: tabuh menggantung di sisi tangan
+// seperti tongkat bisbol: saat ancang-ancang kepala tabuh terangkat di atas bahu, lalu turun & mendatar saat kontak
+const arcHead = (deg, out) => { out.copy(SWING_R0).applyAxisAngle(SWING_AXIS, -THREE.MathUtils.degToRad(deg)).add(M_HAND); out.y += 0.3 * Math.pow(Math.max(0, deg) / 105, 1.6); return out; };
 
 // ======================= RUANG: lantai, tikar, tiang pendopo, berkas cahaya =======================
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.55, metalness: 0, envMapIntensity: 0.5 }));
@@ -764,7 +772,7 @@ const ripples = [0, 1, 2, 3].map((i) => {
   const thin = i % 2 === 0;
   const m = new THREE.Mesh(new THREE.RingGeometry(thin ? 0.97 : 0.86, 1.0, 180),
     new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.24, 0.05).multiplyScalar(thin ? 1.5 : 0.6), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  m.position.set(0, GONG_Y, 0.13); scene.add(m); return m;
+  m.position.set(0, GONG_Y - HANG_Y, 0.13); gongPivot.add(m); return m;
 });
 const SPARKS = 220, sparkGeo = new THREE.BufferGeometry(), spos = new Float32Array(SPARKS * 3), svel = [];
 for (let i = 0; i < SPARKS; i++) { const a = rand() * Math.PI * 2, el = rand() * 1.15; svel.push(new THREE.Vector3(Math.cos(a) * Math.sin(el), Math.sin(a) * Math.sin(el), Math.cos(el)).multiplyScalar(0.5 + rand() * 1.8)); }
@@ -837,7 +845,7 @@ const clock = new THREE.Clock();
 const now = () => (window.__fixedT !== undefined ? window.__fixedT : clock.getElapsedTime());
 const T_ASSEMBLE = 2.6, T_AUTO = 4.2;
 let strikeAt = T_AUTO, userStruck = false, hovered = false, lastPointer = -10, lastT = 0;
-const strike = () => { const t = now(); if (t - strikeAt > 0.75 && t > T_ASSEMBLE + 0.6) { strikeAt = t; userStruck = true; hint.style.opacity = '0'; controls.autoRotate = false; lastPointer = t; } };
+const strike = () => { const t = now(); if (t - strikeAt > 1.5 && t > T_ASSEMBLE + 0.6) { strikeAt = t; userStruck = true; hint.style.opacity = '0'; lastPointer = t; } };
 window.__strikeGong = strike;
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const pick = (e) => { const r = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1)); ray.setFromCamera(ndc, camera); return ray.intersectObjects([gong, mallet], true).length > 0; };
@@ -853,9 +861,10 @@ if (canvas.parentElement) { if (getComputedStyle(canvas.parentElement).position 
 // ======================= ANIMASI =======================
 const ease4 = (t) => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 4);
 const easeIn3 = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * t; };
+const easeInOut = (t) => { t = Math.min(Math.max(t, 0), 1); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
 const easeOutBack = (t) => { t = Math.min(Math.max(t, 0), 1); const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
 const beat = (t) => { const ph = ((t % 2.1) + 2.1) % 2.1; return Math.exp(-(ph * ph) / 0.004) + 0.65 * Math.exp(-((ph - 0.3) ** 2) / 0.005); };
-const dummy = new THREE.Object3D(), headPos = new THREE.Vector3(), pencuScreen = new THREE.Vector3(), shakeOff = new THREE.Vector3(), fireC = new THREE.Color();
+const dummy = new THREE.Object3D(), headPos = new THREE.Vector3(), handPos = new THREE.Vector3(), restPos = new THREE.Vector3(), tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3(), pencuScreen = new THREE.Vector3(), shakeOff = new THREE.Vector3(), fireC = new THREE.Color();
 let raf = 0;
 function animate() {
   raf = requestAnimationFrame(animate);
@@ -879,24 +888,32 @@ function animate() {
   if (t > T_ASSEMBLE + 1 && !userStruck) hint.style.opacity = t > T_AUTO + 1.2 ? '1' : '0';
 
   // 2) tabuh: diam bergoyang → ancang-ancang → hantam → kembali
-  const p = t - strikeAt, IMPACT = 0.24;
-  if (p < 0 || p > 0.95) {
-    const lift = hovered ? 0.18 : 0;
-    headPos.copy(M_REST).lerp(M_WIND, lift).add(new THREE.Vector3(Math.sin(t * 1.3) * 0.01, Math.sin(t * 1.7) * 0.012, 0));
-  } else if (p < 0.16) headPos.copy(M_REST).lerp(M_WIND, ease4(p / 0.16));
-  else if (p < IMPACT) headPos.copy(M_WIND).lerp(M_HIT, easeIn3((p - 0.16) / (IMPACT - 0.16)));
-  else headPos.copy(M_HIT).lerp(M_REST, easeOutBack((p - IMPACT) / 0.7));
-  mallet.position.copy(headPos); mallet.lookAt(headPos.clone().add(M_GRIP));
+  // fase: 0–0,34 load (tarik ke belakang samping) · 0,34–0,40 jeda · 0,40–0,52 ayunan makin cepat · 0,52 kontak
+  //       0,52–0,66 pantulan lembut · 0,66–1,5 kembali menggantung
+  const p = t - strikeAt, IMPACT = 0.52, BACK = 105, BOUNCE = 22;
+  handPos.copy(M_HAND); restPos.copy(M_HAND).add(M_REST_OFF).add(tmpV.set(Math.sin(t * 1.3) * 0.008, Math.sin(t * 1.7) * 0.01, 0));
+  if (hovered && (p < 0 || p > 1.5)) arcHead(48, tmpV2), restPos.lerp(tmpV2, 0.35);   // siap: tabuh sedikit terangkat
+  let squash = 1;
+  if (p < 0 || p > 1.5) headPos.copy(restPos);
+  else if (p < 0.34) { const k = easeInOut(p / 0.34); headPos.copy(restPos).lerp(arcHead(BACK, tmpV2), k); handPos.x += 0.04 * k; handPos.z += 0.03 * k; }
+  else if (p < 0.40) { arcHead(BACK + 4 * Math.sin(((p - 0.34) / 0.06) * Math.PI), headPos); handPos.x += 0.04; handPos.z += 0.03; }
+  else if (p < IMPACT) { const k = easeIn3((p - 0.40) / (IMPACT - 0.40)); arcHead(BACK * (1 - k), headPos); handPos.x += 0.04 * (1 - k) - 0.03 * k; handPos.z += 0.03 * (1 - k); }
+  else if (p < 0.66) { const k = (p - IMPACT) / 0.14; arcHead(BOUNCE * Math.sin(k * Math.PI * 0.5), headPos); handPos.x -= 0.03; squash = 1 - 0.18 * Math.max(0, 1 - k * 3); }
+  else { const k = easeInOut((p - 0.66) / 0.84); headPos.copy(arcHead(BOUNCE, tmpV2)).lerp(restPos, k); handPos.x -= 0.03 * (1 - k); }
+  mallet.position.copy(headPos); mallet.lookAt(handPos);
+  malletHead.scale.set(1 + (1 - squash) * 0.5, 1 + (1 - squash) * 0.5, 0.82 * squash);
 
   // 3) jantung gong, mata kala & naga ikut denyut; efek setelah hantaman
   const st = p - IMPACT;
   let heat = 0.04 + 0.2 * hb + (hovered ? 0.1 : 0) + cooling, flare = 0;   // diam: hanya pencu berdenyut; retakan menyala saat dipukul
-  gongPivot.rotation.x = 0; gong.rotation.z = 0; strikeLight.intensity = 0; outMat.uniforms.uShock.value = -1; shakeOff.set(0, 0, 0);
+  gongPivot.rotation.x = 0; gong.position.z = 0; strikeLight.intensity = 0; outMat.uniforms.uShock.value = -1; shakeOff.set(0, 0, 0);
   ripples.forEach((m) => { m.material.opacity = 0; }); sparkMat.opacity = 0;
   if (st >= 0 && st < 6) {
     flare = Math.exp(-st * 1.4);
-    gongPivot.rotation.x = -0.045 * Math.exp(-st * 1.2) * Math.sin(st * 4.2);
-    gong.rotation.z = 0.006 * Math.exp(-st * 2.2) * Math.sin(st * 43);
+    // bandul fisik: gong (r ±0,5 m) tergantung ±0,54 m di bawah tali → periode ±1,6 dtk, meluruh pelan.
+    // Pukulan mendorong gong ke belakang dulu, lalu berayun maju-mundur. Tanpa gerak miring ke samping.
+    gongPivot.rotation.x = 0.07 * Math.exp(-st / 2.6) * Math.sin(st * (2 * Math.PI / 1.6));
+    gong.position.z = 0.0007 * Math.exp(-st * 1.6) * Math.sin(st * 2 * Math.PI * 38);   // dengung: getar halus maju-mundur
     heat += 2.2 * Math.exp(-st * 1.3);
     strikeLight.intensity = 2.2 * Math.exp(-st * 3);
     if (bloomPass) bloomPass.strength = 0.7 + 0.45 * Math.exp(-st * 2.2);
@@ -906,8 +923,6 @@ function animate() {
     pa.needsUpdate = true; sparkMat.opacity = 1 - life;
     if (st < 1.2) emitBreath(24);
     pencuScreen.set(0, GONG_Y, 0.11).project(camera); outMat.uniforms.uCenter.value.set(pencuScreen.x * 0.5 + 0.5, pencuScreen.y * 0.5 + 0.5); outMat.uniforms.uShock.value = st;
-    const sh = 0.02 * Math.exp(-st * 6);
-    shakeOff.set(Math.sin(st * 73) * sh, Math.cos(st * 61) * sh, 0);
   } else if (bloomPass) bloomPass.strength = 0.7;
   bronze.emissiveIntensity = heat;
   const breathK = st >= 0 && st < 1.8 ? Math.min(1, st * 8) * Math.max(0, 1 - st / 1.8) : 0;
@@ -936,13 +951,10 @@ function animate() {
   flicker.intensity = 1.5 + Math.sin(t * 7.1) * 0.25 + Math.sin(t * 13.3) * 0.15;
   for (let i = 0; i < EMB; i++) { const j = i * 3; epos[j] += Math.sin(t * 1.3 + eseed[i]) * 0.0008; epos[j + 1] += 0.002 + (eseed[i] % 1) * 0.002; if (epos[j + 1] > 2.9) spawnEmber(i, false); }
   embGeo.attributes.position.needsUpdate = true; embMat.opacity = 0.7 + 0.25 * hb;
-  if (!controls.autoRotate && t - lastPointer > 8) controls.autoRotate = true;
 
   controls.update();
-  camera.position.add(shakeOff);
   outMat.uniforms.uTime.value = t; outMat.uniforms.uBeat.value = Math.min(1, hb + flare);
   if (composer) composer.render(); else renderer.render(scene, camera);
-  camera.position.sub(shakeOff);
 }
 animate();
 if (typeof __host !== 'undefined') __host.dispose = () => { cancelAnimationFrame(raf); hint.remove(); renderer.dispose(); };
