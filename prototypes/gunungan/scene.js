@@ -811,21 +811,23 @@ function animate() {
   raf = requestAnimationFrame(animate);
   const t = now(), realT = performance.now() / 1000;
   const dtReal = Math.min(Math.max(realT - lastReal, 0), 0.1); lastReal = realT;
-  const dt = window.__fixedT !== undefined ? (Math.min(Math.max(t - lastT, 0), 0.05) || 1 / 60) : Math.min(dtReal, 0.05); lastT = t;
+  const fixed = window.__fixedT !== undefined;
+  const dtm = fixed ? Math.min(Math.max(t - lastT, 0), 0.05) : Math.min(dtReal, 0.05);   // gerak: berhenti saat waktu dikunci (uji/screenshot)
+  const dt = fixed ? (dtm || 1 / 60) : dtm; lastT = t;                                     // partikel: tetap hidup di screenshot tunggal
   const f60 = dt * 60;
   adapt(dtReal);
   const idle = realT - pointer.last > 3;
   const hb = beat(t) * (hovering ? 1.35 : 1);
-  pointer.sx += ((idle ? 0 : pointer.x) - pointer.sx) * ease(3, dt); pointer.sy += ((idle ? 0 : pointer.y) - pointer.sy) * ease(3, dt);
+  pointer.sx += ((idle ? 0 : pointer.x) - pointer.sx) * ease(3, dtm); pointer.sy += ((idle ? 0 : pointer.y) - pointer.sy) * ease(3, dtm);
   // blencong: kelip + sesekali hampir padam (bayangan di kelir melompat)
   const gust = Math.pow(Math.max(0, Math.sin(t * 0.73 + Math.sin(t * 1.9) * 1.3)), 10);
   const flick = 1 + Math.sin(t * 9.3) * 0.05 + Math.sin(t * 17.1) * 0.04 + Math.sin(t * 23.7) * 0.03 - gust * 0.5;
   const tx = (idle ? LAMP_REST.x + sway(t, 3) * 0.05 : LAMP_REST.x + pointer.x * 0.06) + gust * Math.sin(t * 31) * 0.02;
   const ty = idle ? LAMP_REST.y + sway(t, 7) * 0.03 : LAMP_REST.y + pointer.y * 0.05;
-  const kl = ease(3.6, dt); lampPos.x += (tx - lampPos.x) * kl; lampPos.y += (ty - lampPos.y) * kl;
+  const kl = ease(3.6, dtm); lampPos.x += (tx - lampPos.x) * kl; lampPos.y += (ty - lampPos.y) * kl;
   blencong.position.copy(lampPos); blencong.rotation.z = (tx - lampPos.x) * -1.2;
   flamePos.copy(FLAME_OFF).applyEuler(blencong.rotation).add(lampPos);
-  flare *= Math.exp(-5 * dt);
+  flare *= Math.exp(-5 * dtm);
   lamp.position.copy(flamePos); lamp.intensity = 60 * flick * (1 + 1.6 * flare);
   flame.position.copy(flamePos); flame.scale.set(0.7 * flick, 1.6 * (2 - flick), 0.7 * flick);
   glow.position.set(flamePos.x, flamePos.y, flamePos.z - 0.05); glow.lookAt(camera.position); glow.material.opacity = 0.6 + 0.4 * flick;
@@ -833,7 +835,7 @@ function animate() {
   if (hovering && !wasHovering) kick(t, 0.018); wasHovering = hovering;
   if (pendingTremor > 0 && t >= pendingTremor) { kick(t, 0.05); pendingTremor = -1; }
   if (t > nextTremor || t < nextTremor - 30) { if (t > 1) kick(t, 0.022 + Math.random() * 0.012); nextTremor = t + 6 + Math.random() * 4; }
-  stepSpring(flipSpring, dt, 0.95, 0.62);   // ayunan ±0,45 dtk, lewat ±8% lalu mantap dalam ±1,3 dtk
+  stepSpring(flipSpring, dtm, 0.95, 0.62);   // ayunan ±0,45 dtk, lewat ±8% lalu mantap dalam ±1,3 dtk
   const prog = THREE.MathUtils.clamp((flipSpring.x - flipSpring.from) / Math.PI, 0, 1), arc = Math.sin(prog * Math.PI);
   pivot.rotation.y = flipSpring.x + sway(t, 0) * 0.12 + pointer.sx * 0.07;
   pivot.rotation.z = sway(t, 5) * 0.028 + tremor(t) - arc * 0.1 - pointer.sx * 0.02;
@@ -852,7 +854,7 @@ function animate() {
     const stare = Math.random() < 0.35, ox = stare ? -5 : (Math.random() - 0.5) * 16, oy = stare ? 2 : (Math.random() - 0.3) * 10;
     for (const e of eyes) e.tgt.set(ox, oy); nextLook = t + 1.2 + Math.random() * 1.8;
   }
-  const ke = ease(16, dt);
+  const ke = ease(16, dtm);
   for (const e of eyes) {
     e.cur.lerp(e.tgt, ke);
     e.grp.position.set(e.base.x + e.cur.x / W, e.base.y - Math.max(-5, e.cur.y) / H, e.base.z);
@@ -870,7 +872,7 @@ function animate() {
   for (let i = 0; i < DUST; i++) { pa.array[i * 3 + 1] += (0.0005 + Math.sin(t + dseed[i]) * 0.0004) * f60; if (pa.array[i * 3 + 1] > 1.6) pa.array[i * 3 + 1] = 0; }
   pa.needsUpdate = true;
   controls.update();
-  shock *= Math.exp(-6.3 * dt); shakeV.set(Math.sin(t * 53) * 0.014, Math.sin(t * 61 + 1) * 0.011, 0).multiplyScalar(shock);
+  shock *= Math.exp(-6.3 * dtm); shakeV.set(Math.sin(t * 53) * 0.014, Math.sin(t * 61 + 1) * 0.011, 0).multiplyScalar(shock);
   camera.position.add(shakeV);
   outMat.uniforms.uTime.value = t; outMat.uniforms.uBeat.value = Math.min(1, hb); outMat.uniforms.uShock.value = shock;
   if (composer) composer.render(); else renderer.render(scene, camera);
