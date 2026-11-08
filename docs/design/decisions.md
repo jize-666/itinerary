@@ -66,6 +66,16 @@ Tetap di pakem wayang (kala/banaspati, macan-banteng, naga, raksasa penjaga, sis
 - Preview gerak: `docs/design/previews/gunungan_v3_gerak.mp4` (24 fps, klik di detik 0,5: mulai berputar → tampak tipis dari samping → kilatan saat sisi api terbuka → lewat sedikit, getar kayon, mantap). Saat waktu dikunci (`window.__fixedT`), gerak berhenti supaya uji & screenshot akurat.
 - **Performa**: resolusi adaptif (pixel ratio turun 0,25 kalau rata-rata < 45 fps, naik lagi kalau > 57 fps), peta bayangan 1536 di perangkat sentuh (2048 di desktop). `window.__fps` untuk memantau.
 
+## Revisi audit host (9 Nov 2026)
+**Gong**
+- **Cara memukul**: tabuh tidak lagi bergerak lurus seperti menombak. Diayun melengkung dari samping seperti ayunan bisbol, berporos di tangan pemain di sisi kanan gong: load (kepala tabuh terangkat di atas bahu, tangan mundur) → jeda singkat → ayunan makin cepat, turun & mendatar → kena pencu menyamping (bantalan tergencet) → pantulan lembut → kembali menggantung. Referensi: gong ageng dipukul di pencu dengan tabuh berkepala bulat berbantal tebal, pukulannya lembut; urutan ayunan bisbol load → stride → rotasi → kontak → follow-through. Arah kontak diverifikasi numerik.
+- **Kamera diam** (tanpa putar otomatis, tanpa getar; masih bisa diputar manual). Yang bergerak gongnya: **berayun maju-mundur seperti bandul** (periode ±1,6 dtk, meluruh ±2,6 dtk) + dengung halus maju-mundur. Gerak miring ke samping dihapus. Gayor & Batara Kala tetap diam (rangka kokoh). Riak menempel di muka gong.
+
+**Gunungan sebelum mode ngamuk** (sisi depan)
+- **Goyang diam diperbesar ke ±13,7°** (mode ngamuk tetap ±7°), berpindah halus saat dibalik.
+- **Koreografi sapuan dalang** tiap 7–11 dtk (tidak saat kursor di atas gunungan): disapukan ±31° ke kiri/kanan sambil condong & terangkat 6 cm → tertahan & dikibaskan ±0,4 dtk → kembali → **ditancapkan** (menukik sedikit + getar kayon). Arah bergantian, kadang acak.
+- Diukur: lompatan terbesar per frame 0,044 rad (dari getar kayon), sisanya mulus. Preview: `gunungan_v3_sapuan.mp4`.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

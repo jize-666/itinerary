@@ -765,6 +765,16 @@ const stepSpring = (sp, dt, freq, damp) => { const w = 2 * Math.PI * freq; const
   for (let i = 0; i < n; i++) { const acc = -w * w * (sp.x - sp.target) - 2 * damp * w * sp.v; sp.v += acc * h; sp.x += sp.v * h; } };
 // getar kayon: dalang menggetarkan gunungan cepat (±10 Hz) lalu meluruh — tekstur "agak kasar" yang khas
 let tremorAt = -10, tremorAmp = 0, nextTremor = 5, pendingTremor = -1;
+// koreografi dalang sebelum mode ngamuk: sesekali gunungan disapukan ke kiri/kanan, lalu ditancapkan lagi dengan getar
+let calmK = 1, sweepAt = -10, sweepDir = 1, nextSweep = 3.2, planted = true;
+const easeIO = (x) => { x = Math.min(Math.max(x, 0), 1); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const sweepPose = (t) => {   // 0–0,6 dtk menyapu keluar · 0,6–1,0 tertahan (dikibaskan) · 1,0–1,6 kembali · 1,6 ditancapkan
+  const a = t - sweepAt; if (a < 0 || a > 2.2) return { o: 0, flutter: 0, dip: 0 };
+  const o = a < 0.6 ? easeIO(a / 0.6) : a < 1.0 ? 1 : 1 - easeIO((a - 1.0) / 0.6);
+  const flutter = a > 0.55 && a < 1.05 ? 0.035 * Math.sin((a - 0.55) * Math.PI * 12) * Math.sin(((a - 0.55) / 0.5) * Math.PI) : 0;
+  const dip = -0.018 * Math.exp(-Math.pow((a - 1.62) / 0.07, 2));
+  return { o, flutter, dip };
+};
 const kick = (t, amp) => { tremorAt = t; tremorAmp = amp; };
 const tremor = (t) => { const a = t - tremorAt; if (a < 0 || a > 1.1) return 0; return tremorAmp * Math.exp(-a * 3.8) * (Math.sin(a * Math.PI * 21) + 0.35 * Math.sin(a * Math.PI * 34.6 + 1.1)); };
 // goyang organik: beberapa gelombang tak seirama, bukan sinus tunggal
@@ -835,12 +845,22 @@ function animate() {
   if (hovering && !wasHovering) kick(t, 0.018); wasHovering = hovering;
   if (pendingTremor > 0 && t >= pendingTremor) { kick(t, 0.05); pendingTremor = -1; }
   if (t > nextTremor || t < nextTremor - 30) { if (t > 1) kick(t, 0.022 + Math.random() * 0.012); nextTremor = t + 6 + Math.random() * 4; }
+  const calm = Math.cos(flipSpring.target) > 0;   // sisi depan = sebelum mode ngamuk
+  calmK += ((calm ? 1 : 0) - calmK) * ease(2.5, dtm);
+  if (t > nextSweep || t < nextSweep - 40) {
+    if (calm && !hovering && Math.abs(flipSpring.v) < 0.1 && t > 2.5) { sweepAt = t; sweepDir = sweepDir > 0 ? -1 : 1; if (Math.random() < 0.3) sweepDir = -sweepDir; planted = false; }
+    nextSweep = t + 7 + Math.random() * 4;
+  }
+  if (!planted && t - sweepAt >= 1.6) { kick(t, 0.045); planted = true; }
+  const sp = sweepPose(t);
   stepSpring(flipSpring, dtm, 0.95, 0.62);   // ayunan ±0,45 dtk, lewat ±8% lalu mantap dalam ±1,3 dtk
   const prog = THREE.MathUtils.clamp((flipSpring.x - flipSpring.from) / Math.PI, 0, 1), arc = Math.sin(prog * Math.PI);
-  pivot.rotation.y = flipSpring.x + sway(t, 0) * 0.12 + pointer.sx * 0.07;
-  pivot.rotation.z = sway(t, 5) * 0.028 + tremor(t) - arc * 0.1 - pointer.sx * 0.02;
+  // goyang diam: ±13,7° sebelum mode ngamuk, ±7° di mode ngamuk (berpindah halus)
+  const swayAmp = 0.12 + 0.12 * calmK, rollAmp = 0.028 + 0.022 * calmK;
+  pivot.rotation.y = flipSpring.x + sway(t, 0) * swayAmp + pointer.sx * 0.07 + sweepDir * 0.55 * sp.o + sp.flutter;
+  pivot.rotation.z = sway(t, 5) * rollAmp + tremor(t) - arc * 0.1 - pointer.sx * 0.02 - sweepDir * 0.13 * sp.o;
   pivot.rotation.x = sway(t, 9) * 0.012 - pointer.sy * 0.015;
-  pivot.position.set(sway(t, 17) * 0.004, sway(t, 13) * 0.005 + arc * 0.05, 0);
+  pivot.position.set(sway(t, 17) * 0.004 + sweepDir * 0.07 * sp.o, sway(t, 13) * 0.005 + arc * 0.05 + 0.06 * sp.o + sp.dip, 0);
   const showingBack = Math.cos(flipSpring.x) < 0;
   backFill.intensity = showingBack ? 0.8 + 0.6 * hb : 0; backFill.position.set(-0.6, 1.2, 1.4);
   // mata & bara ikut denyut
