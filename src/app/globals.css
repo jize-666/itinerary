@@ -1,0 +1,446 @@
+/* Token visual Lakon Tiga Hari (PRD §6.3). Satu sumber untuk warna & tipografi. */
+:root {
+  --mori: #f2ebdd;
+  --sogan: #7a4a26;
+  --sogan-deep: #3b2414;
+  --prada: #c8a25a;
+  --nila: #0a0c18;
+  --nila-2: #121833;
+  --blencong: #ffb257;
+  --lampion: #b8352b;
+  --teh: #6e8b5a;
+  --font-display: "Fraunces Variable", "Fraunces", Georgia, serif;
+  --font-ui: "Manrope Variable", "Manrope", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--nila);
+  color: var(--mori);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Gerbang ---- */
+.gate {
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(28px, 6vh, 56px);
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.gate-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(56px, 12vw, 128px);
+  line-height: 1;
+  margin: 0;
+}
+
+.begin {
+  display: grid;
+  gap: 12px;
+  width: min(320px, 100%);
+}
+
+.begin-btn {
+  display: grid;
+  gap: 2px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--prada) 70%, transparent);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.begin-btn--sound {
+  background: var(--prada);
+  color: var(--nila);
+}
+
+.begin-btn--sound:hover {
+  background: color-mix(in srgb, var(--prada) 85%, var(--mori));
+}
+
+.begin-btn--quiet {
+  background: transparent;
+  color: var(--mori);
+}
+
+.begin-btn--quiet:hover {
+  border-color: var(--prada);
+  background: color-mix(in srgb, var(--prada) 10%, transparent);
+}
+
+.begin-main {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+
+.begin-sub {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.begin-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+/* ---- Toggle suara ---- */
+.sound-toggle {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--prada) 55%, transparent);
+  background: color-mix(in srgb, var(--nila) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--prada);
+  cursor: pointer;
+}
+
+.sound-toggle[aria-pressed="false"] {
+  color: color-mix(in srgb, var(--mori) 60%, transparent);
+  border-color: color-mix(in srgb, var(--mori) 25%, transparent);
+}
+
+.gate-head {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.gate-title--sm {
+  font-size: clamp(40px, 8vw, 84px);
+}
+
+.gate-kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.gate-form {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.gate-prompt {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.8;
+}
+
+.gate-msg {
+  margin: 0;
+  min-height: 3em;
+  max-width: 34ch;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.gate-msg[data-error] {
+  color: color-mix(in srgb, var(--blencong) 80%, var(--mori));
+}
+
+.gate-hint {
+  opacity: 0.75;
+}
+
+.gate-switch {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  opacity: 0.6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.film-link {
+  text-decoration: none;
+  text-align: center;
+  width: min(320px, 100%);
+}
+
+/* ---- Kotak kode ---- */
+.code {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 16px; /* cegah zoom otomatis iOS */
+  border: 0;
+  padding: 0;
+  cursor: text;
+}
+
+.code-input:disabled {
+  cursor: progress;
+}
+
+.code-boxes {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.4vw, 8px);
+}
+
+.code-box {
+  display: grid;
+  place-items: center;
+  width: clamp(28px, 8.4vw, 44px);
+  height: clamp(40px, 11vw, 56px);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mori) 22%, transparent);
+  background: color-mix(in srgb, var(--nila-2) 70%, transparent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: clamp(17px, 4.6vw, 22px);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.code-box[data-filled] {
+  border-color: color-mix(in srgb, var(--prada) 65%, transparent);
+}
+
+.code-box[data-active] {
+  border-color: var(--prada);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--prada) 22%, transparent);
+}
+
+.code-box[data-active]::after {
+  content: "";
+  width: 2px;
+  height: 45%;
+  background: var(--prada);
+  animation: caret 1s steps(1) infinite;
+}
+
+.code:focus-within .code-box[data-active] {
+  outline: none;
+}
+
+.code-input:disabled + .code-boxes {
+  opacity: 0.55;
+}
+
+.code-sep {
+  width: 8px;
+  height: 2px;
+  background: color-mix(in srgb, var(--mori) 35%, transparent);
+}
+
+.code[data-shake] .code-boxes {
+  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  20%,
+  80% {
+    transform: translateX(-2px);
+  }
+  35%,
+  65% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-6px);
+  }
+}
+
+/* ---- Toggle bahasa ---- */
+.lang-toggle {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(16px + env(safe-area-inset-right));
+  z-index: 50;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mori) 22%, transparent);
+  background: color-mix(in srgb, var(--nila) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lang-toggle button {
+  min-width: 44px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--mori) 70%, transparent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.lang-toggle button[aria-pressed="true"] {
+  background: var(--prada);
+  color: var(--nila);
+}
+
+/* ---- Today (versi awal) ---- */
+.today {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(72px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom));
+}
+
+.today-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.today-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(36px, 7vw, 56px);
+  line-height: 1.05;
+}
+
+.today-greeting {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.today-film {
+  justify-self: start;
+  font-size: 14px;
+  color: var(--prada);
+  text-underline-offset: 3px;
+}
+
+.today-day {
+  padding: 28px 0;
+  border-top: 1px solid color-mix(in srgb, var(--mori) 14%, transparent);
+}
+
+.today-day h2 {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(22px, 4.4vw, 28px);
+}
+
+.today-daynum {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.today-sub {
+  margin: 6px 0 18px;
+  opacity: 0.7;
+  font-size: 15px;
+}
+
+.today-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.today-stops li {
+  display: grid;
+  grid-template-columns: 6.2em 1fr;
+  gap: 12px;
+}
+
+.today-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  opacity: 0.75;
+  padding-top: 2px;
+}
+
+.today-stop {
+  margin: 0;
+  font-weight: 600;
+}
+
+.today-why {
+  margin: 2px 0 0;
+  font-size: 14px;
+  opacity: 0.72;
+  line-height: 1.45;
+}
+
+.today-team {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--blencong) 75%, var(--mori));
+}
