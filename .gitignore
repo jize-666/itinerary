@@ -11,3 +11,4 @@ test-results/
 supabase/.temp/
 .publish/
 .secrets.local.md
+__pycache__/

@@ -98,6 +98,11 @@ Semua musik diolah dengan langkah yang sama: buang rumble (<26 Hz), kurangi nois
 - iOS 17+: kategori `playback`, jadi tetap berbunyi meski sakelar senyap aktif [V]. iOS lama mengikuti sakelar senyap.
 - Menyalakan suara belakangan lewat toggle langsung masuk ke keraton (sambutan hanya di gerbang).
 
+**Preview bersuara** (dicampur dengan `scripts/audio/mix_previews.py` memakai level, kurva, dan ducking yang sama dengan mesin audio; ±−16 LUFS, puncak ≤ −1 dB):
+- `gong_v3.mp4` (diperpanjang ke 10 dtk supaya gong sempat berdengung lalu gelap): **gong penutup gendhing jatuh tepat di pukulan** (4,22 dtk), dilapis pukulan gong rekaman host + napas api naga. Gong rekaman gendhing dan gong SFX disejajarkan di titik mekar frekuensi rendahnya (keduanya diukur; tanpa ini selisihnya 138 ms dan terdengar seperti dua pukulan). Inilah makna gong ageng di film: menutup satu gongan.
+- `keris.mp4`: keraton pelan di bawah; "sret" di ujung tarikan, denting bilah jatuh di 2,08 dtk (bilah lepas 2,0 → pamor menyala 2,15), dengung pamor mengikuti cahaya.
+- `gunungan_v3_suara.mp4` (sapuan + balikan disambung, 6,3 dtk): keraton tenang + kibasan & "tancap" pelan saat sapuan dalang; diklik → kibasan terkeras tepat saat gunungan tampak tipis dari samping, dentum + api saat sisi api menghadap depan, dan gendhing rapat masuk menggantikan keraton.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].
