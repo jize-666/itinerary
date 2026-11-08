@@ -4,6 +4,12 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
 const ROOT = new URL("../out/", import.meta.url).pathname;
+// Header yang sama dengan produksi (vercel.json), supaya e2e berjalan di bawah CSP & noindex yang asli.
+const RULES = JSON.parse(await readFile(new URL("../vercel.json", import.meta.url), "utf8")).headers.map((r) => ({
+  re: new RegExp(`^${r.source}$`),
+  headers: Object.fromEntries(r.headers.map((h) => [h.key.toLowerCase(), h.value])),
+}));
+const headersFor = (path) => Object.assign({}, ...RULES.filter((r) => r.re.test(path)).map((r) => r.headers));
 const PORT = Number(process.env.PORT || 4173);
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".avif": "image/avif", ".woff2": "font/woff2", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".ico": "image/x-icon", ".mp3": "audio/mpeg" };
 
@@ -15,7 +21,7 @@ createServer(async (req, res) => {
     if (s?.isDirectory()) file = join(file, "index.html");
     else if (!s) file = join(ROOT, "404.html");
     const body = await readFile(file);
-    res.writeHead(file.endsWith("404.html") && !s ? 404 : 200, { "content-type": TYPES[extname(file)] || "application/octet-stream", "x-robots-tag": "noindex, nofollow" });
+    res.writeHead(file.endsWith("404.html") && !s ? 404 : 200, { ...headersFor(path), "content-type": TYPES[extname(file)] || "application/octet-stream" });
     res.end(body);
   } catch {
     res.writeHead(500).end("error");
