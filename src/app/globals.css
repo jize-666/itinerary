@@ -1,0 +1,48 @@
+/* Token visual Lakon Tiga Hari (PRD §6.3). Satu sumber untuk warna & tipografi. */
+:root {
+  --mori: #f2ebdd;
+  --sogan: #7a4a26;
+  --sogan-deep: #3b2414;
+  --prada: #c8a25a;
+  --nila: #0a0c18;
+  --nila-2: #121833;
+  --blencong: #ffb257;
+  --lampion: #b8352b;
+  --teh: #6e8b5a;
+  --font-display: "Fraunces Variable", "Fraunces", Georgia, serif;
+  --font-ui: "Manrope Variable", "Manrope", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--nila);
+  color: var(--mori);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

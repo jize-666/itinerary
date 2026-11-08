@@ -5,9 +5,9 @@ Catatan ini merekam keputusan visual yang sudah diambil, beserta yang masih menu
 ## Status checkpoint 0 (Fase 0)
 | Item | Status | Preview |
 |---|---|---|
-| Tugas 1: Gong ageng 3D | ⏳ menunggu persetujuan host | `prototypes/gong/scene.js` · `docs/design/previews/gong_1100.png` (kepingan berkumpul), `gong_4600.png` (pukulan gong) |
-| Tugas 2: Gunungan + blencong + kelir | ⏳ menunggu persetujuan host | `prototypes/gunungan/scene.js` · `docs/design/previews/gunungan.png` |
-| Tugas 3: Prototipe motion (Framer) | ⏳ menunggu persetujuan host | Framer: https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r (tekan Preview) · `docs/design/motion-tokens.md` |
+| Tugas 1: Gong ageng 3D | ✅ disetujui host (8 Nov 2026, v2) | `prototypes/gong/scene.js` · `docs/design/previews/gong_1100.png` (kepingan berkumpul), `gong_4600.png` (pukulan gong) |
+| Tugas 2: Gunungan + blencong + kelir | ✅ disetujui host (8 Nov 2026, v2) | `prototypes/gunungan/scene.js` · `docs/design/previews/gunungan.png` |
+| Tugas 3: Prototipe motion (Framer) | ✅ disetujui host (8 Nov 2026, v2) | Framer: https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r (tekan Preview) · `docs/design/motion-tokens.md` |
 
 ## Keputusan yang sudah diambil (7 Nov 2026)
 - **Gong ageng** menjadi objek hero 3D utuh. Badan gong dibuat dengan *lathe*. Material perunggu memakai tekstur prosedural: bekas tempa, garis bubut, dan patina. **Pencu** sengaja dibuat lebih licin karena bagian itu yang sering dipukul.

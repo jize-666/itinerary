@@ -8,7 +8,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ## Fase 0 — Desain & Prototipe (Minggu 1: 9 – 15 Nov 2026)
 
-- [ ] **Tugas 1: Preview gong ageng 3D**
+- [x] **Tugas 1: Preview gong ageng 3D**
   - **Deskripsi:** Prototipe three.js mandiri: badan gong (lathe) dengan pencu dan bibir, material perunggu PBR (bekas tempa, patina tipis), gayor sederhana dengan ornamen ujung, cahaya hangat blencong, dan kamera mengorbit. Ditampilkan lewat Three.js Viewer.
   - **Kriteria terima:** gong terbaca jelas sebagai gong ageng Jawa · pantulan logam terlihat premium dari dekat · host menyetujui (atau memberi revisi)
   - **Verifikasi:** preview tampil di chat · jalan mulus di laptop · catatan revisi host tercatat di `docs/design/decisions.md`
@@ -16,7 +16,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `prototypes/gong/scene.js`, `docs/design/decisions.md`
   - **Ukuran:** S
 
-- [ ] **Tugas 2: Preview gunungan SVG + cahaya blencong**
+- [x] **Tugas 2: Preview gunungan SVG + cahaya blencong**
   - **Deskripsi:** Gambar SVG gunungan (gapura, dua raksasa penjaga, pohon kehidupan, satwa) + generator pola tatahan. Diberi ketebalan seperti kulit, lalu disinari dari belakang sehingga cahaya menembus lubang dan bayangan berpola jatuh ke bidang.
   - **Kriteria terima:** siluet dikenali sebagai gunungan · cahaya dan bayangan berpola terlihat · host menyetujui
   - **Verifikasi:** preview di Three.js Viewer · SVG valid dan ukurannya < 200 KB
@@ -24,7 +24,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `prototypes/gunungan/gunungan.svg`, `prototypes/gunungan/tatahan.js`, `prototypes/gunungan/scene.js`
   - **Ukuran:** M
 
-- [ ] **Tugas 3: Prototipe motion di Framer** 🔑 *(izin membuat project Framer baru)*
+- [x] **Tugas 3: Prototipe motion di Framer** 🔑 *(izin membuat project Framer baru)*
   - **Deskripsi:** Project Framer baru "Lakon Tiga Hari — Motion" berisi: navigasi per slide, text reveal per baris/kata, stagger, mask reveal ala sapuan gunungan, horizontal gallery, dan shared element panel → detail. Nilai timing mengikuti PRD §9.
   - **Kriteria terima:** host bisa mencoba prototipe di browser/HP · host menyetujui "rasa" gerak · nilai final tercatat
   - **Verifikasi:** link preview Framer dibagikan · `docs/design/motion-tokens.md` berisi nilai yang disetujui
@@ -57,14 +57,14 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Ukuran:** M (berlanjut paralel, target selesai 29 Nov)
 
 ### ✅ Checkpoint 0
-- [ ] Host menyetujui gong, gunungan, rasa motion, token, dan draf konten
+- [x] Host menyetujui gong, gunungan, dan rasa motion (8 Nov 2026). Token & draf konten menyusul di Tugas 4 & 8.
 - [ ] Keputusan dicatat di `docs/design/decisions.md`
 
 ---
 
 ## Fase 1 — Fondasi & Akses (12 – 22 Nov 2026)
 
-- [ ] **Tugas 7: Scaffold proyek + CI**
+- [x] **Tugas 7: Scaffold proyek + CI** ✅ 8 Nov 2026 · Next 16 static export, lint/typecheck/test/content:check/build/e2e (desktop + iPhone 14 Pro) di CI
   - **Deskripsi:** Next.js (App Router, static export), TypeScript strict, ESLint, Vitest, Playwright, pnpm, plus GitHub Actions (lint, typecheck, test, build). Versi library dicek lewat Context7.
   - **Kriteria terima:** `pnpm build` menghasilkan folder statis · CI hijau di branch
   - **Verifikasi:** `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
@@ -72,7 +72,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `package.json`, `next.config.ts`, `tsconfig.json`, `.github/workflows/ci.yml`, `vitest.config.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 8: Schema konten + `content:check` + data trip Solo**
+- [x] **Tugas 8: Schema konten + `content:check` + data trip Solo** ✅ 8 Nov 2026 · 5 hari, 35 stop, 41 fakta [V] · 16 unit test · `content:check --strict` untuk penguncian H-4 · cspell ditunda ke penguncian konten (kamus Jawa/Indonesia perlu disusun dulu)
   - **Deskripsi:** Schema Zod (PRD §13.4), skrip validasi (kelengkapan EN/ID, format dan tumpang tindih jam, foto ada di manifest, lisensi diizinkan, cspell), lalu `trip.ts` diisi dari draf Tugas 5.
   - **Kriteria terima:** data Solo lolos validasi · string yang kosong atau jam yang bentrok membuat `content:check` gagal
   - **Verifikasi:** `pnpm content:check` + unit test kasus gagal
