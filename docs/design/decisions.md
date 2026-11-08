@@ -5,8 +5,9 @@ Catatan ini merekam keputusan visual yang sudah diambil, beserta yang masih menu
 ## Status checkpoint 0 (Fase 0)
 | Item | Status | Preview |
 |---|---|---|
-| Tugas 1: Gong ageng 3D | ✅ disetujui host (8 Nov 2026, v2) | `prototypes/gong/scene.js` · `docs/design/previews/gong_1100.png` (kepingan berkumpul), `gong_4600.png` (pukulan gong) |
+| Tugas 1: Gong ageng 3D | v2 ✅ disetujui · **v3 "Murka" + Batara Kala menunggu persetujuan** | `prototypes/gong/scene.js` · v3: `docs/design/previews/gong_v3_idle.png`, `gong_v3_pukul.png`, `gong_v3_batara.png`, `gong_v3.mp4` |
 | Tugas 2: Gunungan + blencong + kelir | v2 ✅ disetujui (8 Nov 2026) · **v3 "Gunungan Murka" menunggu persetujuan** | `prototypes/gunungan/scene.js` · v3: `docs/design/previews/gunungan_v3_hero.png`, `gunungan_v3_api.png`, `gunungan_v3_flat.png`, `gunungan_v3_kala.png`, `gunungan_v3.mp4` |
+| Keris 3D "Naga Sasra" (tambahan, permintaan host) | **menunggu persetujuan** | `prototypes/keris/scene.js` · `docs/design/previews/keris_hero.png`, `keris_bangkit.png`, `keris_sarung.png`, `keris.mp4` |
 | Tugas 3: Prototipe motion (Framer) | ✅ disetujui host (8 Nov 2026, v2) | Framer: https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r (tekan Preview) · `docs/design/motion-tokens.md` |
 
 ## Keputusan yang sudah diambil (7 Nov 2026)
@@ -39,6 +40,30 @@ Tetap di pakem wayang (kala/banaspati, macan-banteng, naga, raksasa penjaga, sis
 - **Post**: vignette lebih berat, aberasi warna yang berdenyut, grade (hitam ditekan, highlight hangat, bayangan sedikit dingin), grain.
 - **Kamera** sudut rendah dengan lensa 42° supaya gunungan menjulang dan wajah bayangan utuh di kelir.
 - Teknis: kanvas tekstur memakai `willReadFrequently` (raster CPU). Tanpa itu frame pertama di renderer software butuh ±59 dtk karena ribuan path ber-clip; dengan itu ±1,5 dtk. Ada peta **emisi** keempat untuk bagian yang menyala (iris, mata satwa, lidah, permata).
+
+## Gong v3 "Murka" + Batara Kala (8 Nov 2026), atas permintaan host: gong "vibe-nya sama kaya gunungan"
+- **Pembukaan**: kepingan bara berkumpul membara, gong muncul lalu mendingin jadi perunggu gelap berpatina.
+- **Jantung gong**: pencu berdenyut merah (deg-deg) seirama mata Batara Kala. Retakan bara hanya menyala saat dipukul, supaya gong tidak terlihat pecah saat diam.
+- **Pukulan**: retakan bara menjalar dari pencu, riak merah, gelombang kejut, semburan bara, **kedua naga gayor menyemburkan api** (partikel warna-per-titik + kilatan di mulut), kamera bergetar.
+- **Naga gayor** garang: rahang menganga, gigi & taring, mulut berbara, mata merah, tanduk, sirip punggung.
+- **Puncak gayor = Batara Kala**, wayang kulit gaya Surakarta (pilihan host, menggantikan topeng kala yang lebih mirip relief candi/Bali): menyamping menghadap kanan (kelompok kiwa), makutha membulat condong ke belakang + turida, garuda mungkur, praba, rambut gimbal, mata plelengan menyala, irung bentulan, gusen bersiung, brengos & jenggot, kain bokongan parang bertatah, sungging emas di tepi dalam, gapit/cempurit & tuding, berdiri jangkahan. Tinggi ±1,05 m, aura merah berdenyut di belakangnya. **[V] ikonografi Batara Kala gagrak Surakarta perlu dicek dalang/guide.** Catatan jujur: digambar prosedural dari ingatan, jadi masih "bergaya wayang". Untuk keaslian penuh, alternatifnya foto wayang kulit asli berlisensi (butuh akses jaringan ke Wikimedia, lihat Tugas 6).
+- **Batara Kala menggenggam keris 3D** (lihat di bawah): kepalan tergambar di bidang wayang, keris dipasang tepat di belakang bidang sehingga kepalan menutupi gagangnya. Pamor keris menyala saat gong dipukul.
+- Cahaya: rim merah sorot ke gayor (bukan cahaya terarah yang menyiram lantai), bara dari bawah, grade gelap sama dengan gunungan.
+
+## Keris 3D "Naga Sasra" (8 Nov 2026), atas permintaan host: "bikin keris 3D semaksimalmu"
+- Skala asli (meter), semuanya prosedural. Pembuat model `buildKeris()` ada di antara penanda `KERIS BUILDER START/END` dan disalin identik ke adegan gong.
+- **Wilah luk 13** (dhapur Naga Sasra): penampang lensa bergigir, lebar menyempit ke pucuk, **pamor** nikel bergelombang + beras wutah. Baja doff gelap, pamornya mengilap perak (peta metal/roughness terpisah). **Naga kinatah emas** mengikuti luk di kedua muka bilah, kepala bermahkota bermata merah di gandhik. Ricikan: gandhik, kembang kacang, greneng.
+- **Ganja** terpisah (sirah cecak & buntut cecak), **mendhak** emas bermata merah, **ukiran Tunggak Semi** timoho berpelet (melengkung, tunas berukir lewat bump map), **warangka Ladrang** + **gandar berpendhok** emas bermotif lung-lungan.
+- **Adegan**: keris tersarung melayang → warangka tergeser lepas sepanjang bilah (nyabut) → **pamor menyala dari pangkal ke pucuk** (shader sapuan pada peta emisi) → semburan bara di pucuk + gelombang kejut → melayang & berputar pelan, jantungnya berdenyut. Klik keris = bangkitkan lagi.
+- **[V] perlu dicek empu/kolektor**: jumlah luk, ricikan, bentuk ukiran & warangka gaya Surakarta.
+
+## Gerak gunungan dioptimalkan (8 Nov 2026), atas permintaan host: "dibuat smooth, agak kasar dikit gapapa"
+- Semua gerak kini **berbasis waktu nyata (dt)**, bukan per frame: penghalus eksponensial `1 − e^(−k·dt)`, kecepatan bara/debu per detik. Hasilnya sama di layar 30/60/120 Hz (dulu lerp 0,06 per frame: terlalu cepat di 120 Hz, tersendat saat frame turun).
+- **Goyang organik**: gabungan beberapa gelombang tak seirama (bukan sinus tunggal), plus sedikit condong mengikuti kursor.
+- **Balikan berpegas** (frekuensi 1,15 Hz, redaman 0,62): gunungan terangkat ±5 cm dan miring saat berputar, lewat ±8% lalu mantap dalam ±1,07 dtk. Diuji numerik: identik di 30/60/120 fps.
+- **Getar kayon** — tekstur "agak kasar": dalang menggetarkan gunungan cepat (±10 Hz, meluruh dalam ±1 dtk). Muncul setelah balikan mendarat, saat kursor mulai menyentuh gunungan, dan sesekali saat diam (tiap 6–10 dtk).
+- Lirikan pupil cepat lalu berhenti (penghalus 16/dtk), blencong mengikuti kursor dengan lembut (3,6/dtk).
+- **Performa**: resolusi adaptif (pixel ratio turun 0,25 kalau rata-rata < 45 fps, naik lagi kalau > 57 fps), peta bayangan 1536 di perangkat sentuh (2048 di desktop). `window.__fps` untuk memantau.
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.

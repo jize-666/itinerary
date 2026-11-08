@@ -609,7 +609,7 @@ fCap.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGB
 gunungan.add(fCap, bCap, edges);
 gunungan.scale.set(GW, GH, 1);
 gunungan.position.set(0, 0.1, 0);
-const pivot = new THREE.Group(); pivot.add(gunungan); scene.add(pivot);
+const pivot = new THREE.Group(); pivot.add(gunungan); scene.add(pivot); window.__gunungan.pivot = pivot;
 const cempurit = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.01, 0.42, 10), new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.35, metalness: 0.2 }));
 cempurit.position.set(0, -0.06, 0); pivot.add(cempurit);
 
@@ -690,7 +690,7 @@ const FLAME_OFF = new THREE.Vector3(0, 0.045, 0.128);
 const LAMP_REST = new THREE.Vector3(-0.74, 0.53, -1.2);   // segaris dengan wajah kala & tengah kelir → mata & mulutnya menyala di kelir
 const lamp = new THREE.SpotLight(0xff9a3c, 60, 0, 0.85, 0.55, 2);
 lamp.target.position.set(0.85, 0.92, 1.25);
-lamp.castShadow = true; lamp.shadow.mapSize.set(2048, 2048); lamp.shadow.bias = -0.0003; lamp.shadow.radius = 2;
+lamp.castShadow = true; { const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; lamp.shadow.mapSize.set(coarse ? 1536 : 2048, coarse ? 1536 : 2048); } lamp.shadow.bias = -0.0003; lamp.shadow.radius = 2;
 scene.add(lamp, lamp.target);
 const flame = new THREE.Mesh(new THREE.SphereGeometry(0.018, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.55, 0.2).multiplyScalar(14) }));
 flame.scale.set(0.7, 1.6, 0.7); scene.add(flame);
@@ -754,14 +754,28 @@ try {
     render(r, w, read) { outMat.uniforms.tDiffuse.value = read.texture; r.setRenderTarget(null); r.render(qs, qc); } });
 } catch (e) { composer = null; }
 
+// ======================= GERAK DALANG: halus (berbasis waktu nyata) + getar kayon =======================
 const clock = new THREE.Clock();
 const now = () => (window.__fixedT !== undefined ? window.__fixedT : clock.getElapsedTime());
-const pointer = { x: 0, y: 0, last: -10 };
-let flipTarget = 0, flipAngle = 0, hovering = false, downAt = null, shock = 0, flare = 0, nextLook = 0;
+const pointer = { x: 0, y: 0, sx: 0, sy: 0, last: -10 };
+let hovering = false, wasHovering = false, downAt = null, shock = 0, flare = 0, nextLook = 0;
+// balikan memakai pegas teredam: terangkat, sedikit lewat lalu mantap, seperti ayunan tangan dalang
+const flipSpring = { x: 0, v: 0, target: 0, from: 0, at: -10 };
+const stepSpring = (sp, dt, freq, damp) => { const w = 2 * Math.PI * freq; const n = Math.max(1, Math.ceil(dt / (1 / 240))), h = dt / n;
+  for (let i = 0; i < n; i++) { const acc = -w * w * (sp.x - sp.target) - 2 * damp * w * sp.v; sp.v += acc * h; sp.x += sp.v * h; } };
+// getar kayon: dalang menggetarkan gunungan cepat (±10 Hz) lalu meluruh — tekstur "agak kasar" yang khas
+let tremorAt = -10, tremorAmp = 0, nextTremor = 5, pendingTremor = -1;
+const kick = (t, amp) => { tremorAt = t; tremorAmp = amp; };
+const tremor = (t) => { const a = t - tremorAt; if (a < 0 || a > 1.1) return 0; return tremorAmp * Math.exp(-a * 3.8) * (Math.sin(a * Math.PI * 21) + 0.35 * Math.sin(a * Math.PI * 34.6 + 1.1)); };
+// goyang organik: beberapa gelombang tak seirama, bukan sinus tunggal
+const sway = (t, s) => Math.sin(t * 0.37 + s) * 0.6 + Math.sin(t * 0.61 + s * 2.1) * 0.3 + Math.sin(t * 1.13 + s * 3.7) * 0.1;
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const pickG = (e) => { const r = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1)); ray.setFromCamera(ndc, camera); return ray.intersectObjects([fCap, bCap], false).length > 0; };
 const flip = (instant) => {
-  flipTarget += Math.PI; if (instant === true) flipAngle = flipTarget; hint.style.opacity = '0'; shock = 1; flare = 1;
+  const t = now();
+  flipSpring.from = flipSpring.target; flipSpring.target += Math.PI; flipSpring.at = t; pendingTremor = t + 0.55;
+  if (instant === true) { flipSpring.x = flipSpring.target; flipSpring.v = 0; }
+  hint.style.opacity = '0'; shock = 1; flare = 1;
   for (let k = 0; k < 140; k++) { const i = Math.floor(Math.random() * EMB); epos[i * 3] = (Math.random() - 0.5) * 0.9; epos[i * 3 + 1] = 0.3 + Math.random() * 1.2; epos[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
     evel[i * 3] = (Math.random() - 0.5) * 0.05; evel[i * 3 + 1] = 0.01 + Math.random() * 0.03; evel[i * 3 + 2] = (Math.random() - 0.25) * 0.05; }
 };
@@ -778,63 +792,85 @@ hint.textContent = 'Gerakkan kursor · matanya mengikutimu · Klik gunungan = si
 Object.assign(hint.style, { position: 'absolute', left: '50%', bottom: '16px', transform: 'translateX(-50%)', font: '600 11px/1.2 system-ui, sans-serif', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(242,225,210,0.7)', pointerEvents: 'none', transition: 'opacity .8s', whiteSpace: 'nowrap' });
 if (canvas.parentElement) { if (getComputedStyle(canvas.parentElement).position === 'static') canvas.parentElement.style.position = 'relative'; canvas.parentElement.appendChild(hint); }
 
+// resolusi adaptif: kalau rata-rata frame melambat, turunkan pixel ratio sedikit (dan naikkan lagi kalau longgar)
+const perf = { acc: 0, n: 0, dpr: renderer.getPixelRatio(), max: renderer.getPixelRatio() };
+const adapt = (dtReal) => {
+  if (window.__fixedT !== undefined) return;
+  perf.acc += dtReal; perf.n++; if (perf.acc < 1.2) return;
+  const avg = perf.acc / perf.n; perf.acc = perf.n = 0; window.__fps = Math.round(1 / avg);
+  let next = perf.dpr; if (avg > 1 / 45 && perf.dpr > 1) next = Math.max(1, perf.dpr - 0.25); else if (avg < 1 / 57 && perf.dpr < perf.max) next = Math.min(perf.max, perf.dpr + 0.25);
+  if (next !== perf.dpr) { perf.dpr = next; renderer.setPixelRatio(next); renderer.setSize(width, height, false); if (composer) { composer.setPixelRatio(next); composer.setSize(width, height); } }
+};
+
 // denyut jantung: dua ketukan (deg-deg) tiap 2,1 dtk
-const beat = (t) => { const ph = t % 2.1; return Math.exp(-(ph * ph) / 0.004) + 0.65 * Math.exp(-((ph - 0.3) ** 2) / 0.005); };
+const beat = (t) => { const ph = ((t % 2.1) + 2.1) % 2.1; return Math.exp(-(ph * ph) / 0.004) + 0.65 * Math.exp(-((ph - 0.3) ** 2) / 0.005); };
 const lampPos = LAMP_REST.clone(), flamePos = new THREE.Vector3(), shakeV = new THREE.Vector3();
-let raf = 0;
+const ease = (k, dt) => 1 - Math.exp(-k * dt);   // penghalus eksponensial, sama di 30/60/120 Hz
+let raf = 0, lastT = 0, lastReal = performance.now() / 1000;
 function animate() {
   raf = requestAnimationFrame(animate);
-  const t = now();
-  const idle = performance.now() / 1000 - pointer.last > 3;
+  const t = now(), realT = performance.now() / 1000;
+  const dtReal = Math.min(Math.max(realT - lastReal, 0), 0.1); lastReal = realT;
+  const dt = window.__fixedT !== undefined ? (Math.min(Math.max(t - lastT, 0), 0.05) || 1 / 60) : Math.min(dtReal, 0.05); lastT = t;
+  const f60 = dt * 60;
+  adapt(dtReal);
+  const idle = realT - pointer.last > 3;
   const hb = beat(t) * (hovering ? 1.35 : 1);
+  pointer.sx += ((idle ? 0 : pointer.x) - pointer.sx) * ease(3, dt); pointer.sy += ((idle ? 0 : pointer.y) - pointer.sy) * ease(3, dt);
   // blencong: kelip + sesekali hampir padam (bayangan di kelir melompat)
   const gust = Math.pow(Math.max(0, Math.sin(t * 0.73 + Math.sin(t * 1.9) * 1.3)), 10);
   const flick = 1 + Math.sin(t * 9.3) * 0.05 + Math.sin(t * 17.1) * 0.04 + Math.sin(t * 23.7) * 0.03 - gust * 0.5;
-  // jangkauan kecil: bayangan wajah bergoyang mengikuti kursor tapi tetap di kelir
-  const tx = (idle ? LAMP_REST.x + Math.sin(t * 0.45) * 0.05 : LAMP_REST.x + pointer.x * 0.06) + gust * Math.sin(t * 31) * 0.02;
-  const ty = idle ? LAMP_REST.y + Math.sin(t * 0.31) * 0.03 : LAMP_REST.y + pointer.y * 0.05;
-  lampPos.x += (tx - lampPos.x) * 0.06; lampPos.y += (ty - lampPos.y) * 0.06;
+  const tx = (idle ? LAMP_REST.x + sway(t, 3) * 0.05 : LAMP_REST.x + pointer.x * 0.06) + gust * Math.sin(t * 31) * 0.02;
+  const ty = idle ? LAMP_REST.y + sway(t, 7) * 0.03 : LAMP_REST.y + pointer.y * 0.05;
+  const kl = ease(3.6, dt); lampPos.x += (tx - lampPos.x) * kl; lampPos.y += (ty - lampPos.y) * kl;
   blencong.position.copy(lampPos); blencong.rotation.z = (tx - lampPos.x) * -1.2;
   flamePos.copy(FLAME_OFF).applyEuler(blencong.rotation).add(lampPos);
-  flare *= 0.92;
+  flare *= Math.exp(-5 * dt);
   lamp.position.copy(flamePos); lamp.intensity = 60 * flick * (1 + 1.6 * flare);
   flame.position.copy(flamePos); flame.scale.set(0.7 * flick, 1.6 * (2 - flick), 0.7 * flick);
   glow.position.set(flamePos.x, flamePos.y, flamePos.z - 0.05); glow.lookAt(camera.position); glow.material.opacity = 0.6 + 0.4 * flick;
-  // dalang menggoyang gunungan; klik membalik ke sisi api
-  flipAngle += (flipTarget - flipAngle) * 0.06;
-  pivot.rotation.z = Math.sin(t * 0.6) * 0.03 + (flipTarget - flipAngle) * 0.05;
-  pivot.rotation.y = Math.sin(t * 0.35) * 0.14 + flipAngle;
-  const showingBack = Math.cos(flipAngle) < 0;
+  // gerak dalang: goyang organik + condong ke kursor + balikan berpegas + getar kayon
+  if (hovering && !wasHovering) kick(t, 0.018); wasHovering = hovering;
+  if (pendingTremor > 0 && t >= pendingTremor) { kick(t, 0.05); pendingTremor = -1; }
+  if (t > nextTremor || t < nextTremor - 30) { if (t > 1) kick(t, 0.022 + Math.random() * 0.012); nextTremor = t + 6 + Math.random() * 4; }
+  stepSpring(flipSpring, dt, 1.15, 0.62);   // lewat ±8% lalu mantap dalam ±0,9 dtk
+  const prog = THREE.MathUtils.clamp((flipSpring.x - flipSpring.from) / Math.PI, 0, 1), arc = Math.sin(prog * Math.PI);
+  pivot.rotation.y = flipSpring.x + sway(t, 0) * 0.12 + pointer.sx * 0.07;
+  pivot.rotation.z = sway(t, 5) * 0.028 + tremor(t) - arc * 0.1 - pointer.sx * 0.02;
+  pivot.rotation.x = sway(t, 9) * 0.012 - pointer.sy * 0.015;
+  pivot.position.set(sway(t, 17) * 0.004, sway(t, 13) * 0.005 + arc * 0.05, 0);
+  const showingBack = Math.cos(flipSpring.x) < 0;
   backFill.intensity = showingBack ? 0.8 + 0.6 * hb : 0; backFill.position.set(-0.6, 1.2, 1.4);
   // mata & bara ikut denyut
   frontMat.emissiveIntensity = 0.5 + 1.6 * hb + (hovering ? 0.6 : 0);
   backMat.emissiveIntensity = 0.32 + 0.14 * flick + 0.3 * hb;
   pupilGlowMat.color.setRGB(1, 0.26, 0.04).multiplyScalar(2.2 + 2.6 * hb + (hovering ? 2 : 0));
   ember.intensity = (0.9 + 2.2 * hb) * (0.85 + 0.15 * flick);
-  // pupil: mengikuti kursor; kalau diam, melirik sendiri lalu menatap penonton
+  // pupil: mengikuti kursor; kalau diam, melirik sendiri lalu menatap penonton (lirikan cepat lalu berhenti)
   if (!idle) { for (const e of eyes) e.tgt.set(THREE.MathUtils.clamp(pointer.x * 1.3, -1, 1) * 8, THREE.MathUtils.clamp(-pointer.y * 1.3, -0.6, 1) * 8); }
   else if (t > nextLook || t < nextLook - 10) {
     const stare = Math.random() < 0.35, ox = stare ? -5 : (Math.random() - 0.5) * 16, oy = stare ? 2 : (Math.random() - 0.3) * 10;
     for (const e of eyes) e.tgt.set(ox, oy); nextLook = t + 1.2 + Math.random() * 1.8;
   }
+  const ke = ease(16, dt);
   for (const e of eyes) {
-    e.cur.lerp(e.tgt, 0.2);
+    e.cur.lerp(e.tgt, ke);
     e.grp.position.set(e.base.x + e.cur.x / W, e.base.y - Math.max(-5, e.cur.y) / H, e.base.z);
     e.slit.scale.x = (hovering ? 3 : 5 + 1.6 * hb) / W;
   }
-  // bara naik (dan semburan saat dibalik)
-  const ea = embGeo.attributes.position;
+  // bara naik (dan semburan saat dibalik) — kecepatan per detik, bukan per frame
+  const ea = embGeo.attributes.position, decay = Math.pow(0.95, f60);
   for (let i = 0; i < EMB; i++) {
-    const j = i * 3; epos[j] += evel[j] + Math.sin(t * 1.3 + eseed[i]) * 0.0007; epos[j + 1] += evel[j + 1] + 0.0018 + (eseed[i] % 1) * 0.0016; epos[j + 2] += evel[j + 2];
-    evel[j] *= 0.95; evel[j + 1] *= 0.95; evel[j + 2] *= 0.95;
+    const j = i * 3; epos[j] += (evel[j] + Math.sin(t * 1.3 + eseed[i]) * 0.0007) * f60; epos[j + 1] += (evel[j + 1] + 0.0018 + (eseed[i] % 1) * 0.0016) * f60; epos[j + 2] += evel[j + 2] * f60;
+    evel[j] *= decay; evel[j + 1] *= decay; evel[j + 2] *= decay;
     if (epos[j + 1] > 2.1) spawnEmber(i, false);
   }
   ea.needsUpdate = true; embMat.opacity = 0.65 + 0.3 * flick;
   const pa = dustGeo.attributes.position;
-  for (let i = 0; i < DUST; i++) { pa.array[i * 3 + 1] += 0.0005 + Math.sin(t + dseed[i]) * 0.0004; if (pa.array[i * 3 + 1] > 1.6) pa.array[i * 3 + 1] = 0; }
+  for (let i = 0; i < DUST; i++) { pa.array[i * 3 + 1] += (0.0005 + Math.sin(t + dseed[i]) * 0.0004) * f60; if (pa.array[i * 3 + 1] > 1.6) pa.array[i * 3 + 1] = 0; }
   pa.needsUpdate = true;
   controls.update();
-  shock *= 0.9; shakeV.set(Math.sin(t * 53) * 0.014, Math.sin(t * 61 + 1) * 0.011, 0).multiplyScalar(shock);
+  shock *= Math.exp(-6.3 * dt); shakeV.set(Math.sin(t * 53) * 0.014, Math.sin(t * 61 + 1) * 0.011, 0).multiplyScalar(shock);
   camera.position.add(shakeV);
   outMat.uniforms.uTime.value = t; outMat.uniforms.uBeat.value = Math.min(1, hb); outMat.uniforms.uShock.value = shock;
   if (composer) composer.render(); else renderer.render(scene, camera);

@@ -320,12 +320,13 @@ const drawBatara = (g, s) => {
   FS(armF, skin);
   const kelatF = P(); kelatF.moveTo(150, -878); kelatF.lineTo(186, -852); kelatF.lineTo(170, -830); kelatF.lineTo(136, -856); kelatF.closePath(); F(kelatF, GOLD, true, 4);
   g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.beginPath(); g.moveTo(296, -894); g.lineTo(326, -870); g.stroke();
-  const handF = P(); handF.ellipse(330, -902, 28, 24, -0.6, 0, Math.PI * 2); F(handF, skin, false, 5);
-  [[-115, 40], [-85, 48], [-55, 46], [-25, 38]].forEach(([deg, len]) => {
-    const a = (deg * Math.PI) / 180, bx = 330 + Math.cos(a) * 20, by = -902 + Math.sin(a) * 20, kx = bx + Math.cos(a) * len, ky = by + Math.sin(a) * len;
-    g.lineCap = 'round'; g.beginPath(); g.moveTo(bx, by); g.lineTo(kx, ky); g.strokeStyle = s(INK, false); g.lineWidth = 17; g.stroke(); g.strokeStyle = s('#b23a24', false); g.lineWidth = 11; g.stroke();
-    const a2 = a + 0.5, n = P(); n.moveTo(kx - Math.sin(a) * 6, ky + Math.cos(a) * 6); n.quadraticCurveTo(kx + Math.cos(a) * 26, ky + Math.sin(a) * 26, kx + Math.cos(a2) * 40, ky + Math.sin(a2) * 40); n.lineTo(kx + Math.sin(a) * 6, ky - Math.cos(a) * 6); n.closePath(); F(n, BONE(kx, ky, kx, ky - 40), false, 3);
-  });
+  // kepalan menggenggam keris (keris 3D dipasang tepat di belakang bidang: kepalan menutupi gagangnya)
+  const fist = P(); fist.moveTo(306, -930); fist.bezierCurveTo(322, -950, 352, -952, 366, -932); fist.bezierCurveTo(376, -914, 372, -888, 356, -876); fist.bezierCurveTo(338, -864, 314, -868, 304, -884); fist.bezierCurveTo(296, -898, 296, -918, 306, -930); fist.closePath();
+  FS(fist, skin, 5);
+  g.strokeStyle = s(INK, false); g.lineWidth = 3; g.lineCap = 'round';
+  for (let k = 0; k < 4; k++) { const y = -936 + k * 15; g.beginPath(); g.moveTo(344, y); g.quadraticCurveTo(360, y + 4, 366, y + 12); g.stroke(); }
+  const thumb = P(); thumb.moveTo(310, -900); thumb.bezierCurveTo(326, -914, 346, -916, 356, -904); thumb.bezierCurveTo(346, -896, 330, -892, 314, -892); thumb.closePath(); FS(thumb, skin, 4);
+  const tnail = P(); tnail.moveTo(352, -910); tnail.quadraticCurveTo(372, -916, 380, -900); tnail.lineTo(356, -900); tnail.closePath(); F(tnail, BONE(352, -910, 380, -900), false, 2.5);
   // --- kepala menyamping, besar seperti raksasa wayang ---
   g.save(); g.translate(40, -900); g.scale(1.22, 1.22); g.translate(-40, 900);
   const head = P(); head.moveTo(-70, -1046); head.bezierCurveTo(-50, -1070, 20, -1078, 90, -1068); head.bezierCurveTo(112, -1062, 126, -1048, 130, -1034);
@@ -396,6 +397,160 @@ const drawBatara = (g, s) => {
 };
 bctxs.forEach(([g, mode]) => { g.save(); g.translate(BOX, BOY); drawBatara(g, (col, metal, hole, glow) => sty(g, mode, col, metal, hole, glow)); g.restore(); });
 window.__batara = { bA, bC, bE };
+
+// ==== KERIS BUILDER START ====
+// Keris Surakarta dhapur Naga Sasra (luk 13): wilah berpamor + naga kinatah emas, ganja, mendhak bermata merah,
+// ukiran Tunggak Semi dari timoho berpelet, warangka Ladrang + gandar berpendhok emas. Satuan meter, skala asli.
+// Orientasi lokal: bilah menghadap +Y (pucuk di atas), gandhik (sisi depan) ke +X, ukiran di bawah.
+// Atribut [V cek empu/kolektor]: jumlah luk, ricikan (gandhik, kembang kacang, greneng), bentuk ukiran & warangka gaya Surakarta.
+const buildKeris = (maxAniso = 8) => {
+  const mkC = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d', { willReadFrequently: true }), w, h); return c; };
+  const T = (c, srgb, rep) => { const t = new THREE.CanvasTexture(c); t.anisotropy = maxAniso; if (srgb) t.colorSpace = THREE.SRGBColorSpace; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); } return t; };
+  let sd = 77; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+
+  // --- pamor: lapisan nikel bergelombang di baja hitam (u = panjang bilah, v = keliling penampang) ---
+  const PW = 2048, PH = 512, strata = [];
+  for (let i = 0; i < 52; i++) strata.push({ y0: r() * PH, a: [8 + r() * 26, r() * 12, r() * 5], f: [1 + r() * 2, 4 + r() * 5, 12 + r() * 10], p: [r() * 6, r() * 6, r() * 6], w: 0.8 + r() * 2.2, al: 0.22 + r() * 0.45 });
+  const specks = Array.from({ length: 2600 }, () => [r() * PW, r() * PH, 0.6 + r() * 1.8, 0.2 + r() * 0.6]);
+  const drawPamor = (g, mode) => { // 'c' warna, 'r' roughness(G)/metal(B), 'e' emisi
+    g.fillStyle = mode === 'c' ? '#43464e' : mode === 'r' ? 'rgb(0,118,110)' : '#000'; g.fillRect(0, 0, PW, PH);
+    for (const s of strata) {
+      g.beginPath();
+      for (let x = 0; x <= PW; x += 8) { const t = (x / PW) * Math.PI * 2; const y = s.y0 + s.a[0] * Math.sin(t * s.f[0] + s.p[0]) + s.a[1] * Math.sin(t * s.f[1] + s.p[1]) + s.a[2] * Math.sin(t * s.f[2] + s.p[2]); x ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.lineWidth = s.w * (mode === 'e' ? 1.5 : 1);
+      g.strokeStyle = mode === 'c' ? `rgba(226,230,236,${s.al})` : mode === 'r' ? `rgba(0,35,255,${s.al})` : `rgba(255,255,255,${s.al})`;
+      g.stroke();
+    }
+    for (const [x, y, rr, al] of specks) { g.fillStyle = mode === 'c' ? `rgba(215,220,226,${al})` : mode === 'r' ? 'rgba(0,50,230,0.5)' : `rgba(255,255,255,${al})`; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill(); }
+  };
+  const pamorRM = T(mkC(PW, PH, (g) => drawPamor(g, 'r')));
+  const sweep = { value: 1.3 };
+  const pamorMat = new THREE.MeshPhysicalMaterial({
+    map: T(mkC(PW, PH, (g) => drawPamor(g, 'c')), true), roughnessMap: pamorRM, metalnessMap: pamorRM, metalness: 1, roughness: 1,
+    envMapIntensity: 1.6, emissive: new THREE.Color(1, 0.36, 0.08), emissiveMap: T(mkC(PW, PH, (g) => drawPamor(g, 'e')), true), emissiveIntensity: 0,
+    clearcoat: 0.35, clearcoatRoughness: 0.3,
+  });
+  // sapuan bara: pamor menyala dari pangkal (u=0) sampai uSweep, dengan pinggiran terang di depan sapuan
+  pamorMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uSweep = sweep;
+    sh.fragmentShader = 'uniform float uSweep;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', `#ifdef USE_EMISSIVEMAP
+      vec4 emissiveColor = texture2D( emissiveMap, vEmissiveMapUv );
+      float filled = 1.0 - smoothstep( uSweep, uSweep + 0.06, vEmissiveMapUv.x );
+      float edge = exp( -pow( ( vEmissiveMapUv.x - uSweep ) / 0.03, 2.0 ) );
+      totalEmissiveRadiance *= emissiveColor.rgb * ( filled + edge * 2.6 );
+    #endif`);
+  };
+  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xe2b65c, metalness: 1, roughness: 0.2, envMapIntensity: 1.45, clearcoat: 0.25 });
+  const rubyMat = new THREE.MeshPhysicalMaterial({ color: 0x8a0606, roughness: 0.04, metalness: 0, emissive: 0xff1a06, emissiveIntensity: 0.5, clearcoat: 1, clearcoatRoughness: 0.02 });
+  const steelMat = new THREE.MeshPhysicalMaterial({ map: pamorMat.map, roughnessMap: pamorRM, metalnessMap: pamorRM, metalness: 1, roughness: 1, envMapIntensity: 1.2, color: 0x9a9aa0 });
+
+  const root = new THREE.Group(), keris = new THREE.Group(); root.add(keris);
+
+  // --- wilah (bilah) luk 13: penampang lensa bergigir (ada-ada), lebar menyempit ke pucuk ---
+  const L = 0.36, NU = 280, NV = 32, LUK = 13;
+  const hwAt = (u) => { const b = 0.0205 * (1 - 0.52 * u); return u < 0.86 ? b : b * Math.sqrt(Math.max(0, (1 - u) / 0.14)); };
+  const thAt = (u) => 0.0062 * Math.pow(1 - u, 0.75) + 0.0006;
+  const cxAt = (u) => { if (u < 0.13) return 0; const uu = (u - 0.13) / 0.87, env = Math.min(1, (u - 0.13) / 0.08) * (1 - 0.45 * uu); return 0.0064 * env * Math.sin(LUK * Math.PI * uu); };
+  const gandhik = (u) => (u < 0.12 ? 0.0036 * Math.cos((u / 0.12) * Math.PI * 0.5) : 0);                 // depan pangkal menebal
+  const greneng = (u) => (u < 0.09 ? 0.0019 * Math.abs(Math.sin((u / 0.09) * Math.PI * 5)) : 0);        // gerigi di belakang pangkal
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= NU; i++) {
+    const u = i / NU, y = u * L, cx = cxAt(u), hw = hwAt(u), th = thAt(u);
+    for (let k = 0; k <= NV; k++) {
+      const a = (k / NV) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+      const w = c >= 0 ? hw + gandhik(u) : hw - greneng(u);
+      pos.push(cx + w * c, y, (th / 2) * Math.sign(s) * Math.pow(Math.abs(s), 0.6)); uv.push(u, k / NV);
+    }
+  }
+  for (let i = 0; i < NU; i++) for (let k = 0; k < NV; k++) { const a = i * (NV + 1) + k, b = a + NV + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  const bc = pos.length / 3; pos.push(0, 0, 0); uv.push(0, 0.5); for (let k = 0; k < NV; k++) idx.push(bc, k + 1, k);
+  const bladeGeo = new THREE.BufferGeometry();
+  bladeGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); bladeGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); bladeGeo.setIndex(idx); bladeGeo.computeVertexNormals();
+  const blade = new THREE.Mesh(bladeGeo, pamorMat); keris.add(blade);
+
+  // --- naga kinatah emas di kedua muka bilah, kepala bermahkota di gandhik ---
+  const taper = (curve, segs, r0, r1, radial = 10) => {
+    const g = new THREE.TubeGeometry(curve, segs, 1, radial, false), p = g.attributes.position;
+    for (let i = 0; i <= segs; i++) { const u = i / segs, P = curve.getPointAt(u), rr = r0 + (r1 - r0) * Math.pow(u, 0.8); for (let j = 0; j <= radial; j++) { const k = i * (radial + 1) + j; const v = new THREE.Vector3().fromBufferAttribute(p, k).sub(P).multiplyScalar(rr).add(P); p.setXYZ(k, v.x, v.y, v.z); } }
+    g.computeVertexNormals(); return g;
+  };
+  for (const side of [1, -1]) {
+    const pts = []; for (let i = 0; i <= 80; i++) { const u = 0.07 + (i / 80) * 0.63; pts.push(new THREE.Vector3(cxAt(u) + hwAt(u) * 0.12 + (u < 0.12 ? 0.004 * (1 - u / 0.12) : 0), u * L, side * (thAt(u) / 2) * 0.9)); }
+    keris.add(new THREE.Mesh(taper(new THREE.CatmullRomCurve3(pts), 160, 0.0024, 0.0004), goldMat));
+    for (let i = 1; i < 14; i++) { const u = 0.08 + i * 0.042, sc = new THREE.Mesh(new THREE.SphereGeometry(0.0011 * (1 - i / 16), 8, 6), goldMat); sc.position.set(cxAt(u) + hwAt(u) * 0.34, u * L, side * thAt(u) * 0.34); keris.add(sc); }
+  }
+  const head = new THREE.Group(); head.position.set(hwAt(0.05) + gandhik(0.05) + 0.0012, 0.026, 0); head.rotation.z = -0.25; head.scale.setScalar(1.45); keris.add(head);
+  { const sk = new THREE.Mesh(new THREE.SphereGeometry(0.0056, 18, 12), goldMat); sk.scale.set(0.8, 1.5, 0.95); head.add(sk);
+    const sn = new THREE.Mesh(new THREE.SphereGeometry(0.004, 14, 10), goldMat); sn.scale.set(0.75, 1.4, 0.8); sn.position.set(0.0012, 0.0085, 0); head.add(sn);
+    const jw = new THREE.Mesh(new THREE.SphereGeometry(0.0032, 12, 8), goldMat); jw.scale.set(0.7, 1.3, 0.7); jw.position.set(0.0034, 0.0068, 0); jw.rotation.z = -0.5; head.add(jw);
+    for (let k = 0; k < 5; k++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.0013, 0.0065 + (k === 2 ? 0.0025 : 0), 8), goldMat); const a = (k - 2) * 0.4; c.position.set(-0.002 - Math.cos(a) * 0.002, -0.004 + Math.sin(a) * 0.0035, 0); c.rotation.z = Math.PI * 0.62 + a * 0.5; head.add(c); }
+    for (const e of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(0.0011, 10, 8), rubyMat); ey.position.set(0.0018, 0.0035, e * 0.0045); head.add(ey); } }
+  // kembang kacang: lengkung belalai di depan pangkal
+  { const p = []; for (let i = 0; i <= 30; i++) { const t = i / 30, a = Math.PI * 0.5 + t * Math.PI * 1.7, rr = 0.0042 * (1 - t * 0.7); p.push(new THREE.Vector3(hwAt(0) + 0.0042 + Math.cos(a) * rr, 0.0075 + Math.sin(a) * rr, 0)); }
+    keris.add(new THREE.Mesh(taper(new THREE.CatmullRomCurve3(p), 40, 0.0016, 0.0007), steelMat)); }
+
+  // --- ganja: bilah pelintang terpisah, sirah cecak di depan, buntut cecak runcing di belakang ---
+  { const s = new THREE.Shape(); s.moveTo(-0.034, 0.0022); s.quadraticCurveTo(-0.02, 0, 0, 0); s.lineTo(0.026, 0); s.quadraticCurveTo(0.035, 0.002, 0.035, 0.007); s.quadraticCurveTo(0.031, 0.0122, 0.024, 0.0122); s.lineTo(-0.012, 0.0122); s.quadraticCurveTo(-0.027, 0.011, -0.034, 0.0022);
+    const g = new THREE.ExtrudeGeometry(s, { depth: 0.0084, bevelEnabled: true, bevelSize: 0.0006, bevelThickness: 0.0006, bevelSegments: 2, curveSegments: 18 }); g.translate(0, -0.0122, -0.0042);
+    keris.add(new THREE.Mesh(g, steelMat)); }
+  // --- mendhak: cincin emas bermata merah ---
+  { const mb = new THREE.Mesh(new THREE.CylinderGeometry(0.0084, 0.0094, 0.011, 36), goldMat); mb.position.y = -0.0185; keris.add(mb);
+    for (const [y, rr] of [[-0.0131, 0.0089], [-0.0239, 0.0096]]) { const t = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.0011, 8, 44), goldMat); t.rotation.x = Math.PI / 2; t.position.y = y; keris.add(t); }
+    for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2, gm = new THREE.Mesh(new THREE.SphereGeometry(0.0017, 12, 8), rubyMat); gm.position.set(Math.cos(a) * 0.0094, -0.0185, Math.sin(a) * 0.0094); keris.add(gm); } }
+
+  // --- ukiran Tunggak Semi: timoho berpelet, melengkung, berukir tunas ---
+  const timoho = (g, w, h, bump) => {
+    g.fillStyle = bump ? 'rgb(128,128,128)' : '#26160b'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 70; i++) { // pelet: noda kayu terang berkelok
+      const x = r() * w, y = r() * h, rx = 20 + r() * 70, ry = 8 + r() * 26;
+      g.fillStyle = bump ? 'rgba(140,140,140,0.3)' : `rgba(${150 + r() * 40},${108 + r() * 30},${58 + r() * 20},${0.4 + r() * 0.35})`;
+      g.beginPath(); for (let k = 0; k <= 24; k++) { const a = (k / 24) * Math.PI * 2, rr = 1 + 0.35 * Math.sin(a * 3 + i); const px = x + Math.cos(a) * rx * rr, py = y + Math.sin(a) * ry * rr; k ? g.lineTo(px, py) : g.moveTo(px, py); } g.fill();
+    }
+    for (let x = 0; x < w; x += 3) { g.strokeStyle = bump ? `rgba(100,100,100,${0.2 + r() * 0.3})` : `rgba(10,5,2,${0.12 + r() * 0.2})`; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); for (let y = 0; y <= h; y += 32) g.lineTo(x + Math.sin(y * 0.02 + x) * 3, y); g.stroke(); }
+  };
+  const hiltBump = mkC(512, 1024, (g, w, h) => {
+    timoho(g, w, h, true);
+    g.strokeStyle = 'rgb(220,220,220)'; g.fillStyle = 'rgb(210,210,210)'; g.lineWidth = 9; g.lineCap = 'round';
+    for (let k = 0; k < 4; k++) { const x0 = (k + 0.5) * (w / 4); // tunas (semi) bersulur di bagian atas & bawah
+      for (const [y0, dir] of [[150, 1], [820, -1]]) { g.beginPath(); g.moveTo(x0, y0); g.bezierCurveTo(x0 + 40, y0 + dir * 60, x0 - 30, y0 + dir * 120, x0 + 20, y0 + dir * 170); g.stroke();
+        g.beginPath(); g.ellipse(x0 + 26, y0 + dir * 80, 26, 12, -0.6 * dir, 0, Math.PI * 2); g.fill(); g.beginPath(); g.ellipse(x0 - 22, y0 + dir * 120, 22, 10, 0.6 * dir, 0, Math.PI * 2); g.fill(); } }
+    g.lineWidth = 14; for (const y of [60, 480, 960]) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+  });
+  const woodMat = (rep) => new THREE.MeshPhysicalMaterial({ map: T(mkC(512, 1024, (g, w, h) => timoho(g, w, h, false)), true, rep), roughness: 0.55, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.3, envMapIntensity: 0.45 });
+  { const prof = [[0.0074, 0], [0.0094, -0.008], [0.0118, -0.019], [0.0134, -0.033], [0.0116, -0.049], [0.0104, -0.061], [0.0124, -0.075], [0.0146, -0.087], [0.0138, -0.094], [0.0001, -0.0955]].map(([x, y]) => new THREE.Vector2(x, y));
+    const g = new THREE.LatheGeometry(prof, 48), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const y = p.getY(i), t = -y / 0.0955; p.setX(i, p.getX(i) - 0.013 * Math.pow(t, 1.6)); p.setZ(i, p.getZ(i) * 0.82); }
+    g.computeVertexNormals(); g.translate(0, -0.0245, 0);
+    const m = woodMat(); m.bumpMap = T(hiltBump); m.bumpScale = 2.2;
+    keris.add(new THREE.Mesh(g, m)); }
+
+  // --- warangka Ladrang + gandar berpendhok emas (sarung lurus walau bilah ber-luk) ---
+  const sheath = new THREE.Group(); root.add(sheath);
+  { const s = new THREE.Shape();   // bentuk perahu ladrang, dibalik karena bilah menghadap atas
+    const P2 = [[-0.094, -0.034], [-0.07, -0.012, -0.04, -0.004], [-0.01, 0.001, 0.03, 0], [0.066, -0.002, 0.084, -0.016], [0.096, -0.026, 0.09, -0.036], [0.08, -0.03, 0.07, -0.024], [0.04, -0.016, 0.0, -0.018], [-0.05, -0.02, -0.075, -0.026], [-0.088, -0.03, -0.094, -0.034]];
+    s.moveTo(P2[0][0], P2[0][1]); for (let i = 1; i < P2.length; i++) s.quadraticCurveTo(...P2[i]);
+    const g = new THREE.ExtrudeGeometry(s, { depth: 0.024, bevelEnabled: true, bevelSize: 0.0018, bevelThickness: 0.0018, bevelSegments: 3, curveSegments: 20 }); g.translate(0, 0.016, -0.012);
+    sheath.add(new THREE.Mesh(g, woodMat([0.4, 0.15]))); }
+  const stadium = (w, t) => { const s = new THREE.Shape(), rr = t / 2; s.moveTo(-w / 2 + rr, -rr); s.lineTo(w / 2 - rr, -rr); s.absarc(w / 2 - rr, 0, rr, -Math.PI / 2, Math.PI / 2); s.lineTo(-w / 2 + rr, rr); s.absarc(-w / 2 + rr, 0, rr, Math.PI / 2, Math.PI * 1.5); return s; };
+  const sleeve = (w, t, len, y0, mat) => {
+    const g = new THREE.ExtrudeGeometry(stadium(w, t), { depth: len, bevelEnabled: false, curveSegments: 14, steps: 24 }); g.rotateX(-Math.PI / 2);
+    const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 - 0.28 * (p.getY(i) / len); p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * (0.85 + 0.15 * k)); }
+    g.computeVertexNormals(); g.translate(0.003, y0, 0); const m = new THREE.Mesh(g, mat); sheath.add(m); return m;
+  };
+  sleeve(0.033, 0.016, 0.35, 0.012, woodMat([1, 0.6]));
+  const pendhokBump = mkC(256, 1024, (g, w, h) => {
+    g.fillStyle = 'rgb(110,110,110)'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgb(220,220,220)'; g.fillStyle = 'rgb(210,210,210)'; g.lineCap = 'round';
+    g.lineWidth = 10; [24, h - 24].forEach((y) => { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); });
+    for (let k = 0; k < 9; k++) { const y0 = 90 + k * 104; g.lineWidth = 6; g.beginPath(); for (let x = 0; x <= w; x += 6) { const y = y0 + Math.sin((x / w) * Math.PI * 4) * 22; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+      for (let j = 0; j < 4; j++) { const x = (j + 0.5) * (w / 4), y = y0 + Math.sin(((x / w) * Math.PI * 4)) * 22; g.beginPath(); g.ellipse(x + 10, y - 16, 14, 6, -0.6, 0, Math.PI * 2); g.fill(); } }
+  });
+  const pendhokMat = new THREE.MeshPhysicalMaterial({ color: 0x8e6c36, metalness: 1, roughness: 0.42, bumpMap: T(pendhokBump), bumpScale: 2, envMapIntensity: 0.55, clearcoat: 0.1 });
+  sleeve(0.0352, 0.0178, 0.3, 0.052, pendhokMat);
+  { const cap = new THREE.Mesh(new THREE.SphereGeometry(0.009, 20, 12), pendhokMat); cap.scale.set(1, 0.7, 0.65); cap.position.set(0.003, 0.362, 0); sheath.add(cap); }
+
+  return { root, keris, sheath, blade, pamorMat, rubyMat, goldMat, sweep, L, tip: new THREE.Vector3(cxAt(1), L, 0) };
+};
+// ==== KERIS BUILDER END ====
 
 // ======================= GONG =======================
 // Profil depan (r, z): pencu → leher → rai dengan dua punggung halus (recep) → pundak → bau
@@ -513,6 +668,12 @@ const batara = new THREE.Mesh(new THREE.PlaneGeometry(BW * BPX, BH * BPX), bkMat
 batara.position.set(0, FEET_Y + (BOY - BH / 2) * BPX, 0.0); batara.geometry.translate((BW / 2 - BOX) * BPX, 0, 0); batara.rotation.y = 0.3;   // sedikit menghadap penonton
 batara.castShadow = true; batara.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, alphaMap: bkMat.alphaMap, alphaTest: 0.5, side: THREE.DoubleSide });
 gayor.add(batara);
+const KB = buildKeris(renderer.capabilities.getMaxAnisotropy()); KB.sheath.visible = false;
+{ const fx = 334, fy = -822, s = 0.95;   // titik kepalan (koordinat figur, setelah tubuh atas digeser)
+  KB.root.scale.setScalar(s); KB.root.rotation.z = -0.5;
+  const ax = Math.sin(0.5), ay = Math.cos(0.5);   // arah sumbu keris yang miring
+  KB.root.position.set(fx * BPX + ax * 0.05 * s, (BH / 2 - BOY - fy) * BPX + ay * 0.05 * s, -0.008);
+  batara.add(KB.root); }
 const auraMat = new THREE.MeshBasicMaterial({ map: radialTex([[0, 'rgba(255,90,30,0.55)'], [0.35, 'rgba(200,30,10,0.22)'], [1, 'rgba(120,10,4,0)']], 256), color: 0xffffff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
 const aura = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.7), auraMat); aura.position.set(-0.02, FEET_Y + 0.56, -0.08); aura.rotation.y = 0.3; gayor.add(aura);   // aura merah samar di belakang figur
 { // cempurit (gagang tanduk) masuk ke soket emas di atas palang
@@ -752,6 +913,9 @@ function animate() {
   const breathK = st >= 0 && st < 1.8 ? Math.min(1, st * 8) * Math.max(0, 1 - st / 1.8) : 0;
   breathLights.forEach((l) => { l.intensity = 2.5 * breathK * (0.8 + 0.2 * Math.sin(t * 40)); });
   bkMat.emissiveIntensity = 0.55 + 1.6 * hb + 3.5 * flare;
+  KB.sweep.value = st >= 0 ? Math.min(1.15, (st / 0.8) * 1.15) : 1.15;
+  KB.pamorMat.emissiveIntensity = 0.05 + 0.25 * hb + (st >= 0 ? 2.6 * Math.exp(-Math.max(0, st - 0.8) * 1.2) : 0);
+  KB.rubyMat.emissiveIntensity = 0.4 + 1.5 * hb + 3 * flare;
   auraMat.opacity = 0.35 + 0.35 * hb + 0.6 * flare;
   nagaEyeMat.color.setRGB(1, 0.16, 0.03).multiplyScalar(2 + 3 * hb + 6 * flare);
   mawMat.color.setRGB(1, 0.32, 0.06).multiplyScalar(1.4 + 1.2 * hb + 4 * flare);
