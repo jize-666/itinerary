@@ -21,10 +21,16 @@ Catatan ini merekam keputusan visual yang sudah diambil, beserta yang masih menu
 
 - **Prototipe motion di Framer** berisi 7 bagian: gate "Kulonuwun?" (reveal per huruf, kotak kode bertahap, pendar blencong), prolog (reveal per baris dan per kata, angka bertahap), kartu bab (letterbox, foto tirai, sapuan gunungan), horizontal gallery Hari 1 (panggung sticky dengan langit pagi → senja → malam yang ikut scroll), Stop Card yang bisa dibuka-tutup (shared element), gong dengan riak, dan boarding pass yang bisa ditarik lalu kembali sendiri.
 
+## Upgrade v2 (8 Nov 2026), atas masukan host: "efforts maks"
+- **Gong v2:** bisa diklik (tabuh berayun, riak, gelombang kejut layar dengan aberasi warna, percikan emas, kamera bergetar). Gayor lak merah dengan relief lung-lungan emas, **kepala naga** di kedua ujung palang, cincin kuningan di tali, tiang pendopo, tikar pandan, berkas cahaya + debu. Kilau saat dipukul sengaja diredam supaya gong tidak berubah jadi gumpalan putih.
+- **Gunungan v2:** **dua raksasa penjaga** (mahkota bertingkat, jamang, sumping, ukel emas, gada), **6 burung** di dahan, warna sungging bergradasi, batang bertatah, titik inten di renda, **sisi belakang bergambar api** yang berpendar dan bisa dibalik dengan klik, **lampu blencong** perunggu berbentuk garuda yang terlihat, kelir kain anyam dalam gawangan kayu.
+- Perbaikan teknis: `shadowSide = DoubleSide` supaya bayangan tatahan tetap jatuh di kelir saat gunungan dibalik.
+- **Framer:** semua teks diganti komponen kode `KineticText` (6 efek + kilau emas), angka pakai `RollingNumber`, ditambah pita `VelocityMarquee`, dan gong diganti `GongStrike` yang bisa dipukul. Tiket epilog jadi **BELITUNG (TJQ) → SOLO (SOC)**.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
-- **Dua raksasa penjaga gapura** serta **satwa** (banteng, macan, kera, burung) pada gunungan. Bentuk figuratif butuh iterasi gambar tersendiri.
-- **Sisi belakang gunungan bergambar api.** Detailnya perlu dicek oleh guide/translator [V].
-- Model blencong yang terlihat (saat ini nyala api hanya berupa titik cahaya).
+- ~~Dua raksasa penjaga & burung~~ (sudah di v2). **Banteng, macan, dan kera** masih belum: butuh iterasi gambar tersendiri.
+- Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].
+- ~~Model blencong yang terlihat~~ (sudah di v2).
 
 ## Cara menjalankan preview secara lokal
 Skrip prototipe memakai global yang sama dengan Three.js Viewer: `THREE`, `OrbitControls`, `EffectComposer`, `RenderPass`, `UnrealBloomPass`, `canvas`, `width`, `height`. Untuk uji tangkapan layar, `window.__fixedT` bisa diisi untuk mengunci waktu animasi.

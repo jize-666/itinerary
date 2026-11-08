@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draf v1.3 (jadwal dipadatkan: selesai 28 Des 2026). v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
+| **Status** | Draf v1.4 (rute Belitung → Solo, katalog teks kinetik, gong & gunungan interaktif). v1.3: jadwal dipadatkan, selesai 28 Des 2026. v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
 | **Tanggal** | 7 November 2026 (trip ±5 bulan lagi, perkiraan awal April 2027) |
 | **Pemilik produk** | Host (pemilik repo) |
 | **Penyusun draf** | Claude, berdasarkan sesi tanya-jawab dengan host |
@@ -62,7 +62,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 | ID | Asumsi | Dampak kalau salah |
 |---|---|---|
 | A1 | Anggaran Rp1–1,5 jt adalah **per orang per hari, belum termasuk transport** (sesuai acuan formulir). | Pemilihan tempat makan, aktivitas, dan penginapan di draf itinerary berubah. |
-| A2 | Tamu tiba di **Hari 0** (sore/malam) dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
+| A2 | Tamu terbang dari Singapura ke **Belitung pada H-7** untuk menjemput host. Mereka lalu berangkat bersama dari Belitung ke Solo pada **Hari 0** (sore/malam), dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
 | A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, translator, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
 | A4 | Backend memakai **Supabase** (connector yang sudah terhubung), di **project baru** yang terpisah dari project lain milik host. Frontend berupa **situs statis**, sehingga bisa di-host di mana saja (default: Vercel, lihat §13.1). | Lihat Q8. |
 | A5 | **Tanpa audio** di v1 (audio ambience gamelan masuk P2 dan baru dikerjakan kalau host setuju). | — |
@@ -75,7 +75,7 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 | # | Topik | Default sementara | Alasan |
 |---|---|---|---|
 | Q1 | Tanggal | **Hari 0 Rabu 7 Apr 2027** (tiba) · **Hari 1 Kamis 8 Apr** · **Hari 2 Jumat 9 Apr** · **Hari 3 Sabtu 10 Apr** · **Hari 4 Minggu 11 Apr** (pulang) | Di luar Ramadan/Idulfitri 2027 (perkiraan Feb–Mar) dan Iduladha (perkiraan pertengahan Mei) [V]. Keraton dikunjungi Kamis, menghindari kemungkinan tutup hari Jumat [V]. Sabtu malam cocok untuk Ngarsopuro Night Market [V]. April masuk peralihan ke musim kemarau, jadi lebih kering daripada Des–Feb, walau hujan sore masih mungkin [V]. |
-| Q2 | Kedatangan & kepulangan | Tiba Hari 0 sore/malam: SIN → Solo (Adi Soemarmo, SOC) dengan penerbangan transit, **atau** SIN → Yogyakarta (YIA) lalu kereta ke Solo [V rute]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Hari 1–3 tetap utuh dan padat sesuai preferensi |
+| Q2 | Kedatangan & kepulangan | **H-7:** tamu SIN → Belitung (TJQ, Tanjung Pandan) dan menjemput host (dikonfirmasi host, 8 Nov 2026). **Hari 0:** host dan tamu berangkat bersama Belitung → Solo, kemungkinan transit di Jakarta (TJQ → CGK → SOC) atau via Yogyakarta (YIA) lalu kereta ke Solo [V rute & jadwal]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Host ikut sepanjang perjalanan. Web bisa diperkenalkan langsung oleh host ke tamu saat masih di Belitung. |
 | Q3 | Jumlah tamu | **3 tamu** (placeholder "Guest A/B/C"). Engine mendukung 1–5. | Nama asli diisi di data privat |
 | Q4 | "Movies" | **Wayang Orang Sriwedari** sebagai "bioskop"-nya Solo (Hari 2 malam), dengan Plan B **bioskop** di mal | Lebih berkesan dan khas Solo, tapi tetap ada opsi film sungguhan |
 | Q5 | Night ride | **Dibonceng rider lokal berpengalaman** (vespa/motor, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
@@ -276,7 +276,7 @@ Setiap bab punya struktur yang sama:
 
 ### 7.4 Epilog: *"Sampai jumpa"* (P0)
 - Dibuka dengan gong terakhir yang bergaung pelan, lalu gunungan ditancapkan kembali di tengah layar, seperti penutup pertunjukan wayang [V].
-- **Boarding pass/luggage tag bertali** dengan physics (bisa ditarik dan diayun). Satu tag per tamu (swipe antar nama). Isinya nama tamu, "SIN → SOLO", tanggal, dan **"Hosted by [nama host]"**.
+- **Boarding pass/luggage tag bertali** dengan physics (bisa ditarik dan diayun). Satu tag per tamu (swipe antar nama). Isinya nama tamu, rute **"BELITUNG (TJQ) → SOLO (SOC)"**, tanggal, dan **"Hosted by [nama host]"**.
 - Tombol: **Open Today**, **Add to Home Screen** (dengan panduan iOS/Android), **Message your host**.
 - **Contact shadow** di bawah tag dan grain yang lembut.
 
@@ -328,7 +328,7 @@ Isi saat trip:
 | **Horizontal gallery (wajib)** | Setiap bab hari: 5–8 slide menyamping | Satu hari = satu perjalanan menyamping | Slide menyamping dengan crossfade |
 | Smooth scrolling | Transisi slide yang halus + scroll halus di sheet detail dan credits | Kelembutan gerak | Scroll native |
 | Section snapping | **Setiap slide** (satu gerakan = satu slide) | Pemberhentian yang tegas, terasa seperti presentasi sinematik | Tetap |
-| Text reveal (baris/kata) | Judul bab, prolog, cerita tempat | Membaca dengan jeda | Fade per paragraf |
+| Text reveal (baris/kata/huruf) | **Katalog teks kinetik:** 3D flip per huruf + kilau emas ("Kulonuwun?"), tirai per kata dengan skew (judul), blur-rise per kata (subjudul), scramble/decode (kicker & tanggal), scroll-scrub per kata (paragraf prolog), tracking collapse + kilau (judul bab & "Sampai jumpa."), odometer (angka), marquee kinetik yang ikut kecepatan scroll | Membaca dengan jeda, terasa "dipertunjukkan" | Teks statis langsung tampil |
 | Stagger | Penghitung prolog, timeline, kartu tim | Mengarahkan mata | Muncul bersamaan |
 | Mask reveal | Gunungan menyapu antar bab, foto panel | Transisi bermakna (kayon = ganti babak) | Crossfade |
 | Shared-element transition | Gunungan gate → prolog, panel → detail, kartu bab → header Today, kartu tim → kontak | Kesinambungan | Crossfade (browser tanpa View Transitions) |
@@ -352,6 +352,14 @@ Isi saat trip:
 | Jeda antar blok teks | — | — | 250–400 ms | Memberi napas |
 | Stagger daftar/kartu | 0,6 dtk | `power3.out` | 60–100 ms | Maks 8 item per grup |
 | Mask reveal gunungan | 1,2 dtk | `expo.inOut` | — | Transisi antar bab |
+| 3D flip per huruf | 1,1 dtk per huruf | `expo.out` | 60 ms antar huruf | rotateX −100° → 0, naik 0,35em, blur 8 px → 0, perspektif 900 px |
+| Tirai per kata | 0,9–1,0 dtk | `expo.out` | 55–70 ms antar kata | Kata naik dari 115% di dalam mask + skewY 8° → 0 |
+| Scramble/decode | 0,6 dtk per huruf | — | 20–50 ms antar huruf | Glif acak berganti tiap 45 ms sampai huruf asli terkunci |
+| Scroll-scrub per kata | mengikuti scroll | linear | — | Opacity 0,14 → 1, blur 4 px → 0, naik 0,18em per kata |
+| Tracking collapse | 1,6 dtk | `expo.out` | — | Letter-spacing +0,55em → normal, blur 14 px → 0 |
+| Kilau emas | 2,4 dtk, ulang tiap 5,6 dtk | ease-in-out | mulai setelah reveal selesai | Sapuan gradien emas menyilang teks |
+| Odometer | 1,8 dtk | `expo.out` | 120–150 ms antar digit | Digit berputar 2 putaran lalu berhenti di angka target |
+| Marquee kinetik | terus-menerus | — | — | Kecepatan dasar ±2–3%/dtk, makin cepat & berbalik arah sesuai kecepatan scroll |
 | Shared-element | 0,5–0,7 dtk | `power4.inOut` | — | |
 | Microinteraction | 120–200 ms | `power2.out` | — | Hover, tekan, toggle |
 | **Transisi slide (sesama bab)** | 1,0–1,2 dtk | `power3.inOut` (kamera), `expo.out` (teks masuk) | Teks lama keluar 0–300 ms, kamera 0–1,2 dtk, teks baru masuk mulai 450 ms | Input berikutnya ditahan sampai ±80% transisi |
@@ -509,7 +517,8 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | FR-26 | P0 | Boarding pass/luggage tag ber-physics, 1 per tamu, berisi nama dari data privat | Bisa di-drag di desktop dan disentuh di HP |
 | FR-27 | P0 | Diorama 3D Solo (prolog & Hari 1, siang sampai malam) + medan Lawu dengan kebun teh dan Candi Sukuh (Hari 2), dengan kamera berpindah shot | Landmark dapat dikenali. Lolos anggaran §12.1. |
 | FR-28 | P0 | Canting + kain mori (Hari 3): torehan malam membentuk motif dan mengungkap benang emas | — |
-| FR-28a | P0 | **Gong ageng 3D utuh** (badan lathe + pencu + gayor berornamen, perunggu PBR): momen hero di prolog (terbentuk dari kepingan), pukulan gong di akhir setiap hari (gelombang cahaya + partikel + getaran), gong terakhir di epilog | Preview disetujui host di M0.5. Close-up tetap tajam di layar retina. |
+| FR-28a | P0 | **Gong ageng 3D utuh** (badan lathe + pencu + gayor berornamen, perunggu PBR): momen hero di prolog (terbentuk dari kepingan), pukulan gong di akhir setiap hari (gelombang cahaya + partikel + getaran), gong terakhir di epilog. **Gong bisa diklik/disentuh kapan pun untuk memukul**: tabuh berayun, riak, gelombang kejut layar, percikan emas, kamera bergetar. | Preview disetujui host di M0.5. Close-up tetap tajam di layar retina. Klik/tap/Enter memicu pukulan. |
+| FR-28b | P0 | **Gunungan bisa diklik untuk dibalik** ke sisi belakang bergambar api (geni). Cahaya blencong mengikuti kursor (gyroscope di HP). Bayangan tetap jatuh di kelir dari kedua sisi. | Uji klik/tap di desktop & HP |
 | FR-29 | P0 | Pointer: cahaya ikut kursor (gate), tilt panel. Di HP: gyroscope setelah izin. | Tetap jalan kalau izin ditolak (fallback sentuh) |
 
 ### Today

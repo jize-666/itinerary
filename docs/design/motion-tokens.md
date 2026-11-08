@@ -19,6 +19,20 @@ Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Mot
 | `scroll.smooth` | spring stiffness 260, damping 50 | spring | Horizontal gallery + perubahan langit pagi → senja → malam |
 | `drag.snapBack` | inertia stiffness 300, damping 22 | inertia | Boarding pass |
 
+## v2 (8 Nov 2026): katalog teks kinetik (komponen kode Framer `KineticText`, `RollingNumber`, `VelocityMarquee`)
+| Token | Nilai | Dipakai di |
+|---|---|---|
+| `text.flip3d` | 1,1 dtk/huruf, jeda 60 ms, rotateX −100° → 0, blur 8 → 0, perspektif 900 px, `expo.out` | "Kulonuwun?" (+ kilau emas) |
+| `text.curtain` | 0,9–1,0 dtk/kata, jeda 55–70 ms, naik 115% di dalam mask + skewY 8° → 0 | Judul prolog, gallery, detail, gong |
+| `text.blurRise` | 0,7–0,8 dtk/kata, jeda 40–70 ms, naik 0,6em, blur 10 → 0 | Subjudul gate, kartu bab, gong |
+| `text.scramble` | glif acak tiap 45 ms, huruf terkunci tiap 20–50 ms | Kicker gate, "PROLOGUE", tanggal bab |
+| `text.scrub` | per kata mengikuti scroll: opacity 0,14 → 1, blur 4 → 0 | Paragraf prolog (Fraunces 30) |
+| `text.track` | 1,6 dtk, letter-spacing +0,55em → normal, blur 14 → 0 | "The Royal City", "Sampai jumpa." (+ kilau emas) |
+| `text.shine` | sapuan emas 2,4 dtk, ulang tiap 5,6 dtk, setelah reveal selesai | Judul utama |
+| `num.odometer` | 1,8 dtk, jeda 120–150 ms/digit, 2 putaran | 3 · 20 · 1 |
+| `marquee.velocity` | dasar −2 / +3 %/dtk, dikali kecepatan scroll (spring 400/50) | Pita "Solo · Surakarta · The Spirit of Java" |
+| `gong.strike` | tabuh 1 dtk (ancang 0,16 → hantam 0,24), gong bergoyang 1,8 dtk, 3 riak + gelombang kejut + 22 percikan | Komponen `GongStrike` (klik/tap/Enter) |
+
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
 - Foto di prototipe adalah **placeholder dari pencarian gambar Framer (Unsplash)**. Beberapa diambil di Yogyakarta, bukan Solo (Taman Sari, abdi dalem). Foto final mengikuti manifest lisensi (Tugas 6).
