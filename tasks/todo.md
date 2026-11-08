@@ -104,7 +104,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `supabase/functions/trip-data/index.ts`, `supabase/functions/health/index.ts`, `scripts/content-publish.ts`, `tests/unit/role-filter.test.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 12: Gate UI dasar + token + toggle bahasa + noindex**
+- [x] **Tugas 12: Gate UI dasar + token + toggle bahasa + noindex** ✅ 8 Nov 2026 · 9 kotak (format `XXX-XXXXXX`), tempel/huruf kecil/tanda hubung dimaafkan, goyang + pesan EN/ID, hitung mundur saat terkunci · token di perangkat → kunjungan ulang langsung ke tombol Begin · tamu → `/film`, tim → `/today` · `/today` versi awal (jadwal sebagai teks dari trip-data) · EN/ID tanpa reload & tersimpan · 18 e2e baru (backend di-mock) + uji langsung ke Supabase dengan kode dev
   - **Deskripsi:** Halaman gate fungsional (belum sinematik): input kode per karakter, pesan EN/ID, token disimpan, redirect ke `/film` atau `/today`, toggle bahasa, meta robots + `robots.txt`.
   - **Kriteria terima:** alur kode salah/benar berjalan · **hasil build tidak mengandung nama tempat, nama tamu, atau nomor** · bahasa tersimpan
   - **Verifikasi:** e2e Playwright (gate, token, bahasa) + tes grep pada folder build

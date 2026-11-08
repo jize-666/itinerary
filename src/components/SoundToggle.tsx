@@ -1,18 +1,20 @@
 "use client";
 import { getAudio } from "@/engine/audio/AudioEngine";
+import { useI18n } from "@/engine/i18n/useI18n";
 import { useAudioState } from "./useAudio";
 
 /** Tombol speaker mengambang. Muncul setelah tamu memilih di gerbang. */
 export function SoundToggle() {
   const { started, enabled } = useAudioState();
+  const { t } = useI18n();
   if (!started) return null;
   return (
     <button
       type="button"
       className="sound-toggle"
       aria-pressed={enabled}
-      aria-label="Gamelan sound"
-      title={enabled ? "Gamelan on" : "Gamelan off"}
+      aria-label={t("sound.label")}
+      title={t(enabled ? "sound.on" : "sound.off")}
       onClick={() => getAudio().setEnabled(!enabled)}
     >
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">

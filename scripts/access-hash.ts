@@ -11,6 +11,7 @@ import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { hashCode, isPlausibleCode, normalizeCode } from "../supabase/functions/_shared/code.ts";
+import { CODE_LENGTH } from "../src/lib/code.ts";
 
 if (process.argv.includes("--dev")) {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // tanpa I, O, 0, 1 supaya tidak tertukar
@@ -48,6 +49,10 @@ ${await hashCode(team)}
   const n = normalizeCode(raw);
   if (!isPlausibleCode(n)) {
     console.error("Kode harus 6–32 huruf/angka setelah spasi dan tanda hubung dibuang.");
+    process.exit(1);
+  }
+  if (n.length !== CODE_LENGTH) {
+    console.error(`Gerbang punya ${CODE_LENGTH} kotak, kode ini ${n.length} karakter. Pakai ${CODE_LENGTH} huruf/angka (mis. SLO-7K2P9Q), atau build dengan NEXT_PUBLIC_CODE_LENGTH=${n.length}.`);
     process.exit(1);
   }
   console.log(await hashCode(raw));

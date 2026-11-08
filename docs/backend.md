@@ -90,6 +90,9 @@ select vault.update_secret(id, translate(encode(extensions.gen_random_bytes(48),
   from vault.secrets where name = 'TOKEN_SECRET';
 ```
 
+**Panjang kode: 9 huruf/angka** (tanda hubung boleh, mis. `SLO-7K2P9Q`), karena gerbang menampilkan 9 kotak. `pnpm -s access:hash`
+menolak kode dengan panjang lain. Kalau ingin panjang lain, build dengan `NEXT_PUBLIC_CODE_LENGTH`.
+
 Untuk pengembangan: `pnpm -s access:hash --dev` membuat kode dev acak dan menulis hash-nya ke `.secrets.local.md`
 (di-gitignore). Sekarang terpasang kode dev (`DEV-…` / `TIM-…`). **Sebelum serah terima, ganti dengan kode booking asli.**
 

@@ -1,9 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
+import { seedSession } from "./helpers";
 
 type Debug = { started: boolean; enabled: boolean; ctx: string; bed: string | null };
 const audioDebug = (page: Page) =>
   page.evaluate(() => (window as unknown as { __lakonAudio?: { debug: () => Debug } }).__lakonAudio?.debug() ?? null);
 const pref = (page: Page) => page.evaluate(() => localStorage.getItem("lakon.sound"));
+
+// Tombol Begin muncul setelah kode benar; di sini sesi sudah ada di perangkat.
+test.beforeEach(async ({ page }) => seedSession(page));
 
 test("gerbang menawarkan dua pilihan suara", async ({ page }) => {
   await page.goto("/");
@@ -20,7 +24,7 @@ test("Begin quietly: hening, tidak mengunduh audio, pilihan diingat", async ({ p
   });
   await page.goto("/");
   await page.getByRole("button", { name: /Begin quietly/ }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sugeng rawuh.");
+  await expect(page).toHaveURL(/\/film\/$/);
   expect(await pref(page)).toBe("off");
   const toggle = page.getByRole("button", { name: "Gamelan sound" });
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
