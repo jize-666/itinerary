@@ -833,7 +833,7 @@ function animate() {
   if (hovering && !wasHovering) kick(t, 0.018); wasHovering = hovering;
   if (pendingTremor > 0 && t >= pendingTremor) { kick(t, 0.05); pendingTremor = -1; }
   if (t > nextTremor || t < nextTremor - 30) { if (t > 1) kick(t, 0.022 + Math.random() * 0.012); nextTremor = t + 6 + Math.random() * 4; }
-  stepSpring(flipSpring, dt, 1.15, 0.62);   // lewat ±8% lalu mantap dalam ±0,9 dtk
+  stepSpring(flipSpring, dt, 0.95, 0.62);   // ayunan ±0,45 dtk, lewat ±8% lalu mantap dalam ±1,3 dtk
   const prog = THREE.MathUtils.clamp((flipSpring.x - flipSpring.from) / Math.PI, 0, 1), arc = Math.sin(prog * Math.PI);
   pivot.rotation.y = flipSpring.x + sway(t, 0) * 0.12 + pointer.sx * 0.07;
   pivot.rotation.z = sway(t, 5) * 0.028 + tremor(t) - arc * 0.1 - pointer.sx * 0.02;

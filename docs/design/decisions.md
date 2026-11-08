@@ -60,7 +60,7 @@ Tetap di pakem wayang (kala/banaspati, macan-banteng, naga, raksasa penjaga, sis
 ## Gerak gunungan dioptimalkan (8 Nov 2026), atas permintaan host: "dibuat smooth, agak kasar dikit gapapa"
 - Semua gerak kini **berbasis waktu nyata (dt)**, bukan per frame: penghalus eksponensial `1 − e^(−k·dt)`, kecepatan bara/debu per detik. Hasilnya sama di layar 30/60/120 Hz (dulu lerp 0,06 per frame: terlalu cepat di 120 Hz, tersendat saat frame turun).
 - **Goyang organik**: gabungan beberapa gelombang tak seirama (bukan sinus tunggal), plus sedikit condong mengikuti kursor.
-- **Balikan berpegas** (frekuensi 1,15 Hz, redaman 0,62): gunungan terangkat ±5 cm dan miring saat berputar, lewat ±8% lalu mantap dalam ±1,07 dtk. Diuji numerik: identik di 30/60/120 fps.
+- **Balikan berpegas** (frekuensi 0,95 Hz, redaman 0,62): gunungan terangkat ±5 cm dan miring saat berputar, lewat ±8% lalu mantap dalam ±1,3 dtk (setengah putaran ±0,2 dtk). Diuji numerik: identik di 30/60/120 fps.
 - **Getar kayon** — tekstur "agak kasar": dalang menggetarkan gunungan cepat (±10 Hz, meluruh dalam ±1 dtk). Muncul setelah balikan mendarat, saat kursor mulai menyentuh gunungan, dan sesekali saat diam (tiap 6–10 dtk).
 - Lirikan pupil cepat lalu berhenti (penghalus 16/dtk), blencong mengikuti kursor dengan lembut (3,6/dtk).
 - **Performa**: resolusi adaptif (pixel ratio turun 0,25 kalau rata-rata < 45 fps, naik lagi kalau > 57 fps), peta bayangan 1536 di perangkat sentuh (2048 di desktop). `window.__fps` untuk memantau.
