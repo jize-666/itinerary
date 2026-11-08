@@ -101,6 +101,12 @@ describe("CORS", () => {
     expect(corsHeaders("https://evil.example", allowed)["Access-Control-Allow-Origin"]).toBeUndefined();
     expect(corsHeaders(null, allowed)["Access-Control-Allow-Origin"]).toBeUndefined();
   });
+
+  it("domain produksi selalu diizinkan, situs Vercel lain tidak", () => {
+    const allowed = allowedOrigins(undefined);
+    expect(corsHeaders("https://kulonuwun-solo.vercel.app", allowed)["Access-Control-Allow-Origin"]).toBe("https://kulonuwun-solo.vercel.app");
+    expect(corsHeaders("https://kulonuwun-solo-evil.vercel.app", allowed)["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
 });
 
 describe("sumber secret akses (Vault / Secret dashboard)", () => {

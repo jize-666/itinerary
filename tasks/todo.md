@@ -112,7 +112,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/app/page.tsx`, `src/components/CodeInput.tsx`, `src/engine/i18n/*`, `src/lib/session.ts`, `e2e/gate.spec.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 13: Deploy preview + keep-alive** 🔑 *(host menautkan repo ke Vercel, atau memilih GitHub Pages)* · disiapkan 8 Nov 2026: `vercel.json` (noindex, CSP, header keamanan; e2e berjalan di bawahnya), `keep-alive.yml`, `docs/deploy.md` · **menunggu:** merge ke `main` + import di Vercel + domain dimasukkan ke CORS
+- [x] **Tugas 13: Deploy preview + keep-alive** ✅ 8 Nov 2026 · produksi **https://kulonuwun-solo.vercel.app** (Vercel Hobby, dari `main`) · `vercel.json` (noindex, CSP, header keamanan; e2e berjalan di bawahnya) · domain masuk CORS Edge Functions (dites: diizinkan, domain lain ditolak) · `keep-alive.yml` aktif di `main` · sisa: uji di HP nyata oleh host
   - **Deskripsi:** Hosting statis dengan header `noindex` dan CSP, deploy Edge Functions, dan GitHub Actions terjadwal yang mem-ping `health` tiap 2–3 hari.
   - **Kriteria terima:** URL preview bisa dibuka di HP · header benar · job keep-alive sukses
   - **Verifikasi:** cek header lewat curl · log run GitHub Actions

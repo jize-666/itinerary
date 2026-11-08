@@ -1,6 +1,6 @@
 # Deploy (Tugas 13)
 
-Hosting: **Vercel Hobby** (gratis, sesuai PRD Q8). Situsnya statis (`next build` → `out/`); semua logika server ada di
+Hosting: **Vercel Hobby** (gratis, sesuai PRD Q8). Produksi: **https://kulonuwun-solo.vercel.app** (project `kulonuwun-solo`, tim `jixx`). Situsnya statis (`next build` → `out/`); semua logika server ada di
 Supabase Edge Functions, jadi Vercel hanya menyajikan file.
 
 ## Sekali saja (host)
