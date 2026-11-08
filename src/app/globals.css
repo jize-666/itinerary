@@ -46,3 +46,100 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Gerbang ---- */
+.gate {
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(28px, 6vh, 56px);
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.gate-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(56px, 12vw, 128px);
+  line-height: 1;
+  margin: 0;
+}
+
+.begin {
+  display: grid;
+  gap: 12px;
+  width: min(320px, 100%);
+}
+
+.begin-btn {
+  display: grid;
+  gap: 2px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--prada) 70%, transparent);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.begin-btn--sound {
+  background: var(--prada);
+  color: var(--nila);
+}
+
+.begin-btn--sound:hover {
+  background: color-mix(in srgb, var(--prada) 85%, var(--mori));
+}
+
+.begin-btn--quiet {
+  background: transparent;
+  color: var(--mori);
+}
+
+.begin-btn--quiet:hover {
+  border-color: var(--prada);
+  background: color-mix(in srgb, var(--prada) 10%, transparent);
+}
+
+.begin-en {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+
+.begin-id {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.begin-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+/* ---- Toggle suara ---- */
+.sound-toggle {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--prada) 55%, transparent);
+  background: color-mix(in srgb, var(--nila) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--prada);
+  cursor: pointer;
+}
+
+.sound-toggle[aria-pressed="false"] {
+  color: color-mix(in srgb, var(--mori) 60%, transparent);
+  border-color: color-mix(in srgb, var(--mori) 25%, transparent);
+}

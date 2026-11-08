@@ -120,6 +120,13 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `vercel.json`, `.github/workflows/keep-alive.yml`
   - **Ukuran:** S
 
+- [x] **Tugas 13a: Mesin audio + gerbang dua tombol** ✅ 8 Nov 2026 · atas persetujuan host (Q11, opsi b)
+  - **Deskripsi:** Rekaman gamelan host diolah (`scripts/audio/build-audio.sh`: buang rumble & noise, EQ, −16 LUFS) jadi MP3; SFX keris dari ElevenLabs + sintesis. `AudioEngine` (Web Audio): Kebo Giro sekali → crossfade ke keraton yang diulang tanpa jeda, efek di atas gendhing dengan ducking, jeda saat tab disembunyikan, kategori `playback` di iOS. Gerbang: "Begin with gamelan" / "Begin quietly" + toggle speaker.
+  - **Kriteria terima:** "Begin quietly" → 0 request audio · "with gamelan" → Kebo Giro berbunyi, toggle mematikan & menyalakan · pilihan diingat · tidak ada bunyi tanpa klik
+  - **Verifikasi:** `tests/unit/audio.test.ts` (preferensi, matematika loop, jadwal BedPlayer) + `e2e/sound.spec.ts` (desktop + iPhone)
+  - **File:** `src/engine/audio/*`, `src/components/{Gate,BeginChoice,SoundToggle}.tsx`, `public/audio/*`, `scripts/audio/*`
+  - **Ukuran:** M
+
 ### ✅ Checkpoint 1
 - [ ] Gate berfungsi di HP nyata · data hanya keluar lewat token · CI hijau · keep-alive jalan
 
@@ -328,12 +335,12 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `public/og.png`, `src/app/layout.tsx`, `docs/launch/whatsapp-message.md`
   - **Ukuran:** S
 
-- [ ] **Tugas 36 (P2): Audio ambience** 🔑 *(persetujuan Q11 + kredit ElevenLabs)*
-  - **Deskripsi:** Ambience bernuansa gamelan + SFX halus (lampu menyala, sapuan, gong), default mati, toggle jelas.
-  - **Kriteria terima:** tidak pernah bunyi tanpa aksi pengguna · ukuran ≤ 1,5 MB
-  - **Verifikasi:** uji manual iOS/Android
-  - **Dependensi:** 24, 25
-  - **File:** `public/audio/*`, `src/engine/audio.ts`
+- [ ] **Tugas 36: Audio per adegan** *(dasar selesai 8 Nov 2026 di Tugas 13a)*
+  - **Deskripsi:** Pasang `playSfx`/`playBed` ke adegan: gong dipukul → `gong` + `api-naga` di frame tumbukan; gunungan dibalik → `gunungan-balik` + pindah ke `gendhing`; keris bangkit → `keris-bangkit`; penutup → `gendhing` sampai gong akhir. Opsional: ganti SFX sintesis dengan versi ElevenLabs.
+  - **Kriteria terima:** efek jatuh ≤ 50 ms dari visual · tidak pernah bunyi tanpa aksi pengguna · sambutan ≤ 1,5 MB sebelum mulai berbunyi
+  - **Verifikasi:** uji manual iPhone (sakelar senyap on/off) & Android · e2e `sound.spec.ts`
+  - **Dependensi:** 13a, 24, 25
+  - **File:** `src/engine/audio/*`, adegan terkait
   - **Ukuran:** S
 
 ### ✅ Checkpoint 6

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draf v1.4 (rute Belitung → Solo, katalog teks kinetik, gong & gunungan interaktif). v1.3: jadwal dipadatkan, selesai 28 Des 2026. v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
+| **Status** | Draf v1.5 (audio gamelan masuk lingkup: rekaman host, gerbang dua tombol). v1.4: rute Belitung → Solo, katalog teks kinetik, gong & gunungan interaktif). v1.3: jadwal dipadatkan, selesai 28 Des 2026. v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
 | **Tanggal** | 7 November 2026 (trip ±5 bulan lagi, perkiraan awal April 2027) |
 | **Pemilik produk** | Host (pemilik repo) |
 | **Penyusun draf** | Claude, berdasarkan sesi tanya-jawab dengan host |
@@ -65,7 +65,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 | A2 | Tamu terbang dari Singapura ke **Belitung pada H-7** untuk menjemput host. Mereka lalu berangkat bersama dari Belitung ke Solo pada **Hari 0** (sore/malam), dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
 | A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, translator, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
 | A4 | Backend memakai **Supabase** (connector yang sudah terhubung), di **project baru** yang terpisah dari project lain milik host. Frontend berupa **situs statis**, sehingga bisa di-host di mana saja (default: Vercel, lihat §13.1). | Lihat Q8. |
-| A5 | **Tanpa audio** di v1 (audio ambience gamelan masuk P2 dan baru dikerjakan kalau host setuju). | — |
+| A5 | **Audio gamelan masuk v1** (disetujui host 8 Nov 2026, Q11). Gendhing berasal dari **rekaman gamelan Solo milik host sendiri** (diolah supaya jernih), bukan hasil AI. Tamu memilih sendiri di gerbang: **"Begin with gamelan"** atau **"Begin quietly"**. Web tidak pernah berbunyi tanpa klik tamu. | Kalau host berubah pikiran, cukup sembunyikan tombol "with gamelan"; tanpa audio, tidak ada byte audio yang diunduh. |
 | A6 | **Tanpa analytics atau pelacakan** apa pun. | Kalau host ingin tahu kapan tamu membuka web, lihat Q9. |
 | A7 | Lokasi penginapan di area tengah kota (sekitar Mangkunegaran/Keprabon) supaya titik malam bisa dijangkau dengan mudah. | Durasi transfer di jadwal berubah. |
 
@@ -136,7 +136,7 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 | P0 | **Inti 3D per bab:** diorama kota Solo (prolog & Hari 1), lereng Lawu + kebun teh + Candi Sukuh (Hari 2), canting + kain mori (Hari 3), dengan kamera berpindah antar shot |
 | P1 | Kode tim + catatan tim |
 | P1 | Gambar OG (link preview WhatsApp) + template pesan pengantar |
-| P2 | Audio ambience gamelan (default mati) |
+| P1 | Audio gamelan (rekaman host) + efek suara adegan; tamu memilih di gerbang, toggle selalu ada |
 | P2 | Cuaca langsung di Today |
 
 ### 5.2 Tidak termasuk (v1)
@@ -239,7 +239,7 @@ Film **bukan halaman panjang yang di-scroll bebas**. Film adalah **rangkaian ±4
 - Input kode berupa kotak per karakter. Mendukung paste, tidak peka huruf besar/kecil, dan mengabaikan spasi atau tanda hubung.
   - **Salah:** goyangan halus + pesan EN/ID. Setelah 5 kali salah, ada jeda 30 detik.
   - **Benar:** lampu membesar, cahaya menembus lubang gunungan (volumetric), gunungan "membuka" lalu masuk ke prolog (*shared-element*: gunungan menjadi ornamen judul prolog).
-- Ketukan "Begin" setelah kode benar dipakai untuk **meminta izin gyroscope di iOS** (dan audio, kalau P2 dikerjakan).
+- Ketukan "Begin" setelah kode benar berupa **dua tombol: "Begin with gamelan" dan "Begin quietly"** (subjudul ID: "Mulai dengan gamelan" / "Mulai tanpa suara"). Ketukan ini dipakai untuk **meminta izin gyroscope di iOS** sekaligus **membuka audio** (kebijakan autoplay browser). Pilihan diingat di perangkat; tombol speaker mengambang bisa mengubahnya kapan saja.
 - **Aset film di-preload** selama animasi gate supaya tidak ada layar loading.
 - Kode cukup dimasukkan **sekali per perangkat** (token sesi disimpan di perangkat).
 
@@ -538,7 +538,7 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | FR-40 | P0 | Credits dibuat otomatis dari manifest foto + daftar font/data |
 | FR-41 | P1 | Gambar OG + metadata link preview yang netral |
 | FR-42 | P1 | Template pesan WhatsApp pengantar (EN) untuk host |
-| FR-43 | P2 | Audio ambience (default mati, toggle jelas) |
+| FR-43 | P1 | Audio gamelan: dua tombol di gerbang (dengan gamelan / tanpa suara), pilihan diingat di perangkat, toggle speaker selalu terlihat, berhenti saat tab disembunyikan. Sambutan Kebo Giro sekali → bersambung ke gendhing keraton yang diulang tanpa jeda (crossfade). Efek gong/api naga/gunungan/keris di atas gendhing (gendhing direndahkan sebentar). "Begin quietly" tidak mengunduh audio sama sekali. |
 
 ---
 
@@ -632,7 +632,7 @@ Status di bawah dicek pada 7 Nov 2026.
 | **Context7** | Tersedia | Memastikan API & versi library (Next.js, R3F, drei, postprocessing, GSAP, Lenis, Rapier, Supabase) sesuai dokumentasi terbaru saat implementasi | M1 → M5 |
 | **GitHub** | Aktif (repo ini) | Repo, PR, **GitHub Actions**: CI (lint, typecheck, test, `content:check`) + **keep-alive Supabase** terjadwal | M1 → seterusnya |
 | **Playwright** (plugin) | Tersedia | Uji e2e, screenshot visual, emulasi iPhone/Pixel | M1 → M6 |
-| **ElevenLabs** | Tersedia | *(P2, hanya jika Q11 disetujui)* ambience bernuansa gamelan + SFX halus (lampu menyala, sapuan gunungan). **Memakai kredit host**, jadi baru dibuat setelah disetujui. | M5 |
+| **ElevenLabs** | Aktif, paket gratis (tanpa tagihan) | **Hanya SFX.** Gendhing tidak dari ElevenLabs: rekaman asli host. Sudah dipakai: "sret" keris (±50 kredit). SFX api naga & balikan gunungan disintesis di kode (`scripts/audio/synth_sfx.py`) karena antrean gratis sedang penuh; bisa diganti versi ElevenLabs kapan saja. | M1, M5 |
 | Claude Docs, Perplexity Computer | Tersedia | Tidak dipakai. PRD tinggal di repo. | — |
 
 ### 13.2 Peta kapabilitas & urutan bangun
@@ -818,7 +818,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 - Memakai foto berlisensi NC
 - Mengubah mekanisme akses
 - Menambah analytics
-- Mengaktifkan audio
+- Membuat audio berbunyi otomatis tanpa pilihan tamu, atau mengganti gendhing rekaman host
 - Memakai aksara Jawa yang belum diverifikasi
 
 **Jangan pernah:**
@@ -843,7 +843,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 | M2 | 23 – 29 Nov 2026 | Today | Today lengkap + offline + kontak + Plan B | Diuji di iPhone & Android |
 | M3 | 26 Nov – 6 Des 2026 | Film 2D | Mesin slide, bab, horizontal gallery, text/mask reveal, panel foto, Calm mode | Cerita lengkap bisa diikuti slide demi slide. FR-20a lolos. |
 | M4 | 30 Nov – 18 Des 2026 | Film 3D & cahaya | **Gong** → gunungan → benang emas → diorama → Lawu + Candi Sukuh → canting + kain mori, siklus waktu/LUT, post-FX, partikel, shot kamera, tier kualitas, depth parallax. *Gong & gunungan sudah dimulai sejak Minggu 2.* | S1–S2 tercapai dengan semua inti 3D aktif |
-| M5 | 14 – 20 Des 2026 | Finale & polish | Boarding pass, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp, *(P2)* audio | Seluruh baris di §8 terpenuhi |
+| M5 | 14 – 20 Des 2026 | Finale & polish | Boarding pass, microinteraction, pointer/gyro, shared element, end credits, letterbox, OG, template WhatsApp, audio per adegan (mesin & gerbang sudah di M1) | Seluruh baris di §8 terpenuhi |
 | M6 | 21 – 27 Des 2026 | QA | Matriks perangkat, aksesibilitas, proofread, dry-run | Semua kriteria §4 (kecuali verifikasi fakta) hijau |
 | ✅ | **Senin 28 Des 2026** | **Serah terima** | Web siap kirim. Link + kode siap. | Host menyetujui |
 | — | Jan 2027 | Buffer | Revisi dari host, uji tambahan, perbaikan. Fitur P2 yang tertunda. | Selesai paling lambat 31 Jan 2027 |
@@ -889,7 +889,7 @@ Q1–Q6 sudah punya **default sementara** di §2.1 dan direvisi host di **H-5**.
 | Q8 | Host frontend: Vercel (gratis, sekali tautkan GitHub) atau GitHub Pages? Pakai domain sendiri (mis. ±Rp150–200 rb/tahun)? | Vercel, tanpa domain sendiri | Kesan premium di link preview |
 | Q9 | Mau tahu kapan tamu pertama kali membuka web? (Cukup catat waktu kode berhasil dimasukkan di Supabase, tanpa pelacakan lain.) | Tidak dicatat | Privasi vs informasi |
 | Q10 | Punya akses ke iPhone & Android flagship untuk uji (milik sendiri atau pinjam)? Kalau tidak, pakai layanan device cloud? | Pinjam perangkat di M4 & M6 | QA (M4, M6) |
-| Q11 | Mau audio ambience bernuansa gamelan + SFX halus dari ElevenLabs (default mati, memakai kredit host)? | Tanpa audio | P2 |
+| Q11 | ~~Mau audio ambience bernuansa gamelan + SFX halus dari ElevenLabs?~~ **Dijawab 8 Nov 2026:** ya, dengan rekaman gamelan Solo milik host (3 gendhing + 1 pukulan gong, izin aman) + SFX ElevenLabs paket gratis; gerbang dua tombol. | — | FR-43 |
 | Q12 | Anggaran Rp1–1,5 jt itu per orang atau per rombongan? Siapa yang membayar biaya di lapangan? | Per orang, belum termasuk transport. Biaya hanya tampil di catatan tim. | Pilihan tempat |
 | Q13 | Siapa penutur Inggris yang fasih untuk proofread? | Translator | S6 |
 | Q14 | Konfirmasi catatan medis (alergi paracetamol & pisang) langsung ke tamu? | Diperlakukan sebagai benar sampai dikonfirmasi | Catatan tim, P3K |

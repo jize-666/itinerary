@@ -3,6 +3,7 @@ import "@fontsource-variable/fraunces/full.css";
 import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/manrope";
 import "./globals.css";
+import { SoundToggle } from "@/components/SoundToggle";
 
 // Situs privat: jangan pernah diindeks (PRD FR-06). Link preview netral tanpa data pribadi.
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SoundToggle />
+      </body>
     </html>
   );
 }
