@@ -3,7 +3,9 @@
  * Kode dibaca dari stdin (bukan argumen) supaya tidak tersimpan di riwayat shell. Kode asli jangan di-commit.
  *
  *   pnpm -s access:hash            → ketik kode, Enter
- *   pnpm -s access:hash --dev      → buat kode dev acak + hash + TOKEN_SECRET, tulis ke .secrets.local.md (di-gitignore)
+ *   pnpm -s access:hash --dev      → buat kode dev acak + hash, tulis ke .secrets.local.md (di-gitignore)
+ *
+ * Hash disimpan di Supabase Vault (docs/backend.md → "Secret akses"). TOKEN_SECRET dibuat acak di database.
  */
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
@@ -24,7 +26,7 @@ Dibuat ${new Date().toISOString()}. Hanya untuk pengembangan. Ganti dengan kode 
 | Kode tamu (diketik di gate) | \`${guest}\` |
 | Kode tim (diketik di gate) | \`${team}\` |
 
-Salin tiga nilai berikut ke Supabase → Edge Functions → Secrets:
+Simpan kedua hash berikut di Supabase Vault (lihat docs/backend.md → "Secret akses"). TOKEN_SECRET dibuat acak di database.
 
 **ACCESS_GUEST_HASH**
 \`\`\`
@@ -34,11 +36,6 @@ ${await hashCode(guest)}
 **ACCESS_TEAM_HASH**
 \`\`\`
 ${await hashCode(team)}
-\`\`\`
-
-**TOKEN_SECRET**
-\`\`\`
-${randomBytes(48).toString("base64url")}
 \`\`\`
 `;
   writeFileSync(".secrets.local.md", md, { mode: 0o600 });

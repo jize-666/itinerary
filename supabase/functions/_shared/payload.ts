@@ -47,5 +47,15 @@ export function buildTripPayload(row: ContentRow, priv: PrivateRow, role: Role) 
   return body;
 }
 
+/**
+ * If-None-Match dibandingkan secara lemah (RFC 9110 §13.1.2): gateway Supabase mengompres respons
+ * dan mengubah ETag menjadi W/"…", lalu browser mengirim bentuk itu kembali.
+ */
+export function etagMatches(ifNoneMatch: string | null, etag: string): boolean {
+  if (!ifNoneMatch) return false;
+  const bare = (t: string) => t.trim().replace(/^W\//, "");
+  return ifNoneMatch.split(",").some((t) => t.trim() === "*" || bare(t) === bare(etag));
+}
+
 /** ETag beda per peran & per versi data, supaya cache Today ikut berganti saat H-5 revisi. */
 export const etagFor = (row: ContentRow, priv: PrivateRow, role: Role) => `"${row.checksum.slice(0, 16)}-${(priv?.updated_at ?? "0").replace(/\D/g, "").slice(0, 14)}-${role}"`;

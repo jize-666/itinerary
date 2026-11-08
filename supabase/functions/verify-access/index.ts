@@ -1,6 +1,7 @@
 /**
  * POST { code } → { token, role, exp }   (PRD FR-02, FR-03, FR-05)
- * Kode dinormalisasi → PBKDF2 → dibandingkan waktu-konstan dengan ACCESS_GUEST_HASH dan ACCESS_TEAM_HASH.
+ * Kode dinormalisasi → PBKDF2 → dibandingkan waktu-konstan dengan ACCESS_GUEST_HASH dan ACCESS_TEAM_HASH
+ * (dari Vault, atau Secret Edge Function bila diisi).
  * Percobaan dicatat di access_attempts (IP di-HMAC), jeda bertingkat, 5 kali salah → terkunci 30 detik.
  */
 import { hmac, toB64url } from "../_shared/b64.ts";
@@ -8,6 +9,7 @@ import { isPlausibleCode, normalizeCode, verifyCode } from "../_shared/code.ts";
 import { rest } from "../_shared/db.ts";
 import { allowedOrigins, clientIp, corsHeaders, json } from "../_shared/http.ts";
 import { type Attempt, failDelayMs, LOCK_MS, MAX_FAILS, rateState, WINDOW_MS } from "../_shared/rate.ts";
+import { getAccessConfig } from "../_shared/secrets.ts";
 import { expiryFor, type Role, signToken } from "../_shared/token.ts";
 
 const TRIP_ID = Deno.env.get("TRIP_ID") ?? "solo-2027";
@@ -19,13 +21,12 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405, { ...cors, Allow: "POST, OPTIONS" });
 
-  const guestHash = Deno.env.get("ACCESS_GUEST_HASH");
-  const teamHash = Deno.env.get("ACCESS_TEAM_HASH");
-  const secret = Deno.env.get("TOKEN_SECRET");
-  if (!guestHash || !teamHash || !secret || secret.length < 32) {
-    console.error("verify-access: secret ACCESS_GUEST_HASH / ACCESS_TEAM_HASH / TOKEN_SECRET belum lengkap");
+  const cfg = await getAccessConfig();
+  if (!cfg) {
+    console.error("verify-access: ACCESS_GUEST_HASH / ACCESS_TEAM_HASH / TOKEN_SECRET belum ada di Vault maupun Secret");
     return json({ error: "not_configured" }, 503, cors);
   }
+  const { guestHash, teamHash, tokenSecret: secret } = cfg;
 
   let code = "";
   try {

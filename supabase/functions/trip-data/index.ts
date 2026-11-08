@@ -5,7 +5,8 @@
  */
 import { rest } from "../_shared/db.ts";
 import { allowedOrigins, corsHeaders, json } from "../_shared/http.ts";
-import { buildTripPayload, type ContentRow, etagFor, type PrivateRow } from "../_shared/payload.ts";
+import { buildTripPayload, type ContentRow, etagFor, etagMatches, type PrivateRow } from "../_shared/payload.ts";
+import { getAccessConfig } from "../_shared/secrets.ts";
 import { verifyToken } from "../_shared/token.ts";
 
 const ORIGINS = allowedOrigins(Deno.env.get("ALLOWED_ORIGINS"));
@@ -15,8 +16,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "GET") return json({ error: "method_not_allowed" }, 405, { ...cors, Allow: "GET, OPTIONS" });
 
-  const secret = Deno.env.get("TOKEN_SECRET");
-  if (!secret || secret.length < 32) return json({ error: "not_configured" }, 503, cors);
+  const secret = (await getAccessConfig())?.tokenSecret;
+  if (!secret) return json({ error: "not_configured" }, 503, cors);
 
   const m = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") ?? "");
   if (!m?.[1]) return json({ error: "no_token" }, 401, cors);
@@ -38,7 +39,7 @@ Deno.serve(async (req) => {
 
     const etag = etagFor(row, priv, role);
     const cache = { ...cors, ETag: etag, "Cache-Control": "private, no-cache" };
-    if (req.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers: cache });
+    if (etagMatches(req.headers.get("if-none-match"), etag)) return new Response(null, { status: 304, headers: cache });
     return json(buildTripPayload(row, priv, role), 200, cache);
   } catch (e) {
     console.error("trip-data", e);

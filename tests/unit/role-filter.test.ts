@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTripPayload, type ContentRow, etagFor, type PrivateRow } from "../../supabase/functions/_shared/payload.ts";
+import { buildTripPayload, type ContentRow, etagFor, etagMatches, type PrivateRow } from "../../supabase/functions/_shared/payload.ts";
 import { trip } from "@content/trips/solo/trip";
 import { Trip } from "@content/schema";
 
@@ -51,5 +51,15 @@ describe("filter peran trip-data", () => {
   it("ETag berbeda per peran dan per versi data privat", () => {
     expect(etagFor(row, priv, "guest")).not.toBe(etagFor(row, priv, "team"));
     expect(etagFor(row, priv, "guest")).not.toBe(etagFor(row, { ...priv!, updated_at: "2026-11-09T00:00:00Z" }, "guest"));
+  });
+
+  it("If-None-Match cocok walau gateway mengubah ETag jadi lemah (W/)", () => {
+    const tag = etagFor(row, priv, "guest");
+    expect(etagMatches(tag, tag)).toBe(true);
+    expect(etagMatches(`W/${tag}`, tag)).toBe(true);
+    expect(etagMatches(`"lain", W/${tag}`, tag)).toBe(true);
+    expect(etagMatches("*", tag)).toBe(true);
+    expect(etagMatches(etagFor(row, priv, "team"), tag)).toBe(false);
+    expect(etagMatches(null, tag)).toBe(false);
   });
 });

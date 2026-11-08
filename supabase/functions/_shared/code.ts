@@ -1,7 +1,7 @@
 import { fromB64url, timingSafeEqual, toB64url, utf8 } from "./b64.ts";
 
 /**
- * Kode akses (kode booking) → hash PBKDF2-SHA256 yang disimpan sebagai secret Edge Function
+ * Kode akses (kode booking) → hash PBKDF2-SHA256 yang disimpan di Supabase Vault
  * (ACCESS_GUEST_HASH / ACCESS_TEAM_HASH). Kode asli tidak pernah ada di repo maupun di bundle klien.
  * Format: pbkdf2-sha256$<iterasi>$<salt b64url>$<hash b64url>
  */

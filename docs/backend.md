@@ -62,18 +62,36 @@ Kode bersama ada di `supabase/functions/_shared/` dan tanpa dependency (Web Cryp
 - Token: HMAC-SHA256 `{v, role, trip, iat, exp}`, berlaku sampai `ends_on` 23:59 WIB + 30 hari.
 - CORS: hanya origin di `DEFAULT_ORIGINS` (`_shared/http.ts`) atau secret `ALLOWED_ORIGINS` (dipisah koma).
 
-## Secret Edge Function
+## Secret akses (Supabase Vault)
 
-| Nama | Isi |
+Hash kode dan kunci token disimpan di **Supabase Vault** (terenkripsi di database). Edge Function membacanya lewat RPC
+`public.access_config()` yang hanya bisa dipanggil service role (anon/authenticated ditolak, sudah dites), lalu menyimpannya
+60 dtk per instance. Jadi perubahan di Vault berlaku **≤ 1 menit**, tanpa deploy ulang.
+
+| Nama di Vault | Isi |
 |---|---|
 | `ACCESS_GUEST_HASH` | hasil `pnpm -s access:hash` untuk kode booking tamu |
 | `ACCESS_TEAM_HASH` | hasil `pnpm -s access:hash` untuk kode tim |
-| `TOKEN_SECRET` | string acak ≥ 32 karakter. Mengganti nilainya = mencabut semua token |
-| `ALLOWED_ORIGINS` | opsional, domain produksi (Tugas 13) |
-| `TRIP_ID` | opsional, default `solo-2027` |
+| `TOKEN_SECRET` | dibuat acak **di dalam database** (tidak pernah tampil di mana pun). Mengganti nilainya = mencabut semua token |
 
-Untuk pengembangan: `pnpm -s access:hash --dev` membuat kode dev acak dan menulis nilai secret-nya ke `.secrets.local.md`
-(di-gitignore). **Sebelum serah terima, ganti dengan kode booking asli** lewat `pnpm -s access:hash`.
+Secret Edge Function dengan nama yang sama (dashboard → Edge Functions → Secrets) tetap dibaca dan **menang** atas Vault,
+untuk keadaan darurat. Saat ini kosong. Secret lain yang opsional: `ALLOWED_ORIGINS` (domain produksi, Tugas 13) dan
+`TRIP_ID` (default `solo-2027`).
+
+Mengganti kode (SQL Editor di dashboard, atau lewat connector):
+
+```sql
+-- Kode tamu baru: tempel hasil `pnpm -s access:hash` (kode aslinya sendiri tidak pernah disimpan).
+select vault.update_secret(id, 'pbkdf2-sha256$210000$…') from vault.secrets where name = 'ACCESS_GUEST_HASH';
+-- Kode tim baru:
+select vault.update_secret(id, 'pbkdf2-sha256$210000$…') from vault.secrets where name = 'ACCESS_TEAM_HASH';
+-- Cabut semua token (semua perangkat harus memasukkan kode lagi):
+select vault.update_secret(id, translate(encode(extensions.gen_random_bytes(48), 'base64'), '+/=', '-_'))
+  from vault.secrets where name = 'TOKEN_SECRET';
+```
+
+Untuk pengembangan: `pnpm -s access:hash --dev` membuat kode dev acak dan menulis hash-nya ke `.secrets.local.md`
+(di-gitignore). Sekarang terpasang kode dev (`DEV-…` / `TIM-…`). **Sebelum serah terima, ganti dengan kode booking asli.**
 
 ## Operasional
 
@@ -81,7 +99,7 @@ Untuk pengembangan: `pnpm -s access:hash --dev` membuat kode dev acak dan menuli
 pnpm content:check          # validasi
 pnpm content:publish        # dengan .env.local berisi SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY → upsert langsung
                             # tanpa env → menulis .publish/trip_content.sql untuk SQL Editor
-pnpm -s access:hash         # ketik kode → nilai untuk ACCESS_*_HASH
+pnpm -s access:hash         # ketik kode → hash untuk ACCESS_*_HASH di Vault
 ```
 
 Checklist H-4 dan H-1: status project ACTIVE (`health` 200), kode asli sudah dipasang, `content:check --strict` lolos.

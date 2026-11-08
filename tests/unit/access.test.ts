@@ -3,6 +3,7 @@ import { hashCode, isPlausibleCode, normalizeCode, verifyCode } from "../../supa
 import { expiryFor, signToken, verifyToken } from "../../supabase/functions/_shared/token.ts";
 import { failDelayMs, LOCK_MS, rateState, WINDOW_MS } from "../../supabase/functions/_shared/rate.ts";
 import { allowedOrigins, corsHeaders } from "../../supabase/functions/_shared/http.ts";
+import { isComplete, resolveConfig } from "../../supabase/functions/_shared/config.ts";
 
 const SECRET = "test-secret-yang-panjangnya-lebih-dari-32-karakter";
 const FAST = 10_000; // iterasi kecil khusus tes; produksi 210k
@@ -99,5 +100,28 @@ describe("CORS", () => {
     expect(corsHeaders("http://localhost:4173", allowed)["Access-Control-Allow-Origin"]).toBe("http://localhost:4173");
     expect(corsHeaders("https://evil.example", allowed)["Access-Control-Allow-Origin"]).toBeUndefined();
     expect(corsHeaders(null, allowed)["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
+});
+
+describe("sumber secret akses (Vault / Secret dashboard)", () => {
+  const vault = { guestHash: "pbkdf2-g", teamHash: "pbkdf2-t", tokenSecret: SECRET };
+
+  it("Vault saja sudah cukup", () => {
+    expect(resolveConfig({}, vault)).toEqual(vault);
+  });
+
+  it("Secret dashboard menang per kunci", () => {
+    expect(resolveConfig({ guestHash: "pbkdf2-override" }, vault)).toEqual({ ...vault, guestHash: "pbkdf2-override" });
+  });
+
+  it("belum lengkap atau kunci token terlalu pendek → null", () => {
+    expect(resolveConfig({}, { ...vault, teamHash: null })).toBeNull();
+    expect(resolveConfig({}, { ...vault, tokenSecret: "pendek" })).toBeNull();
+    expect(resolveConfig({ guestHash: "  " }, { teamHash: "x", tokenSecret: SECRET })).toBeNull();
+  });
+
+  it("isComplete hanya benar bila ketiganya terisi", () => {
+    expect(isComplete(vault)).toBe(true);
+    expect(isComplete({ guestHash: "a", teamHash: "b" })).toBe(false);
   });
 });

@@ -80,7 +80,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `content/schema.ts`, `content/trips/solo/trip.ts`, `scripts/content-check.ts`, `tests/unit/content.test.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 9: Project Supabase + migrasi + RLS** 🔑 *(izin membuat project Supabase baru, paket gratis)*
+- [x] **Tugas 9: Project Supabase + migrasi + RLS** ✅ 8 Nov 2026 · `itinerary-solo` (ap-southeast-1), migrasi `init` + `access_config_vault`; anon ditolak di tabel & RPC (dites); advisor hanya INFO `rls_enabled_no_policy` (disengaja)
   - **Deskripsi:** Project `itinerary-solo` di ap-southeast-1. Tabel `trip_content`, `trip_private`, `access_attempts`. RLS aktif tanpa policy untuk anon/authenticated.
   - **Kriteria terima:** anon key tidak bisa membaca tabel mana pun · security advisor Supabase tanpa peringatan
   - **Verifikasi:** query uji pakai anon key → kosong/ditolak · `get_advisors` bersih
@@ -88,7 +88,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `supabase/migrations/0001_init.sql`, `supabase/config.toml`
   - **Ukuran:** S
 
-- [ ] **Tugas 10: Edge Function `verify-access`**
+- [x] **Tugas 10: Edge Function `verify-access`** ✅ 8 Nov 2026 · secret di Supabase Vault · dites langsung: kode salah 401, kode tamu (huruf kecil pun) → token guest, kode tim → token team · rate limit per IP terbukti di `access_attempts` (egress cloud memakai banyak IP, jadi kunci 5× tidak bisa direproduksi dari sini; logika dites unit)
   - **Deskripsi:** Normalisasi kode → hash → perbandingan constant-time terhadap secret, rate limit via `access_attempts`, lalu terbitkan token HMAC `{role, exp}`.
   - **Kriteria terima:** kode salah → 401 · kode tamu/tim → token dengan role yang benar · 5 kali salah → terkunci 30 dtk
   - **Verifikasi:** unit test Deno + uji curl ke fungsi yang sudah di-deploy
@@ -96,7 +96,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `supabase/functions/verify-access/index.ts`, `supabase/functions/_shared/token.ts`, `supabase/functions/verify-access/test.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 11: Edge Function `trip-data` + `health` + `content:publish`**
+- [x] **Tugas 11: Edge Function `trip-data` + `health` + `content:publish`** ✅ 8 Nov 2026 · tanpa token/token palsu 401 · tamu tanpa kunci `team` · tim dengan `team` · ETag → 304 (bug diperbaiki: gateway mengubah ETag jadi `W/`) · `health` 200 · data privat belum diisi host
   - **Deskripsi:** `trip-data` memverifikasi token, menggabungkan konten dan data privat, lalu membuang field tim kalau role = guest. `health` untuk keep-alive. Skrip `content:publish` mengunggah konten yang sudah tervalidasi.
   - **Kriteria terima:** tanpa token → 401 · token tamu → tanpa `teamNote`/`estCost` · token tim → lengkap
   - **Verifikasi:** unit test filter role + uji ke fungsi yang sudah di-deploy
