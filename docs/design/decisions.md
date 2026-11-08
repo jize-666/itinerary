@@ -1,13 +1,14 @@
 # Catatan Keputusan Desain
 
-Catatan ini merekam keputusan visual yang sudah diambil, beserta yang masih menunggu persetujuan host.
+Catatan ini merekam keputusan visual & audio yang sudah diambil, beserta yang masih menunggu persetujuan host.
 
 ## Status checkpoint 0 (Fase 0)
 | Item | Status | Preview |
 |---|---|---|
-| Tugas 1: Gong ageng 3D | v2 ✅ disetujui · **v3 "Murka" + Batara Kala menunggu persetujuan** | `prototypes/gong/scene.js` · v3: `docs/design/previews/gong_v3_idle.png`, `gong_v3_pukul.png`, `gong_v3_batara.png`, `gong_v3.mp4` |
-| Tugas 2: Gunungan + blencong + kelir | v2 ✅ disetujui (8 Nov 2026) · **v3 "Gunungan Murka" menunggu persetujuan** | `prototypes/gunungan/scene.js` · v3: `docs/design/previews/gunungan_v3_hero.png`, `gunungan_v3_api.png`, `gunungan_v3_flat.png`, `gunungan_v3_kala.png`, `gunungan_v3.mp4` |
-| Keris 3D "Naga Sasra" (tambahan, permintaan host) | **menunggu persetujuan** | `prototypes/keris/scene.js` · `docs/design/previews/keris_hero.png`, `keris_bangkit.png`, `keris_sarung.png`, `keris.mp4` |
+| Tugas 1: Gong ageng 3D | ✅ **v3 "Murka" + Batara Kala disetujui host (8 Nov 2026)**, termasuk ayunan tabuh dari samping & suaranya | `prototypes/gong/scene.js` · v3: `docs/design/previews/gong_v3_idle.png`, `gong_v3_pukul.png`, `gong_v3_batara.png`, `gong_v3.mp4` (bersuara) |
+| Tugas 2: Gunungan + blencong + kelir | ✅ **v3 "Gunungan Murka" disetujui host (8 Nov 2026)**, termasuk gerak (balikan, goyang, sapuan dalang) & suaranya | `prototypes/gunungan/scene.js` · v3: `docs/design/previews/gunungan_v3_hero.png`, `gunungan_v3_api.png`, `gunungan_v3_flat.png`, `gunungan_v3_kala.png`, `gunungan_v3_gerak.mp4`, `gunungan_v3_sapuan.mp4`, `gunungan_v3_suara.mp4` (bersuara) |
+| Keris 3D "Naga Sasra" (tambahan, permintaan host) | ✅ disetujui host (8 Nov 2026) | `prototypes/keris/scene.js` · `docs/design/previews/keris_hero.png`, `keris_bangkit.png`, `keris_sarung.png`, `keris.mp4` (bersuara) |
+| Audio gamelan + gerbang dua tombol | ✅ disetujui host (8 Nov 2026) | `public/audio/*`, `src/engine/audio/*` · lihat "Audio gamelan" di bawah |
 | Tugas 3: Prototipe motion (Framer) | ✅ disetujui host (8 Nov 2026, v2) | Framer: https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r (tekan Preview) · `docs/design/motion-tokens.md` |
 
 ## Keputusan yang sudah diambil (7 Nov 2026)

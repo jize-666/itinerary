@@ -58,7 +58,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ### ✅ Checkpoint 0
 - [x] Host menyetujui gong, gunungan, dan rasa motion (8 Nov 2026). Token & draf konten menyusul di Tugas 4 & 8.
-- [ ] Keputusan dicatat di `docs/design/decisions.md`
+- [x] Keputusan dicatat di `docs/design/decisions.md` · v3 gong, gunungan, keris, gerak, dan audio disetujui host (8 Nov 2026)
 
 ---
 
