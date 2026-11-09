@@ -1,8 +1,9 @@
 /**
  * CORS + respons JSON. Origin bukan rahasia, jadi daftarnya ditulis di kode.
- * Tambahkan domain produksi di sini saat Tugas 13 (atau set secret ALLOWED_ORIGINS, dipisah koma).
+ * Domain lain (mis. domain sendiri nanti) bisa ditambah di sini atau lewat secret ALLOWED_ORIGINS (dipisah koma).
  */
-export const DEFAULT_ORIGINS = ["http://localhost:3000", "http://localhost:4173"];
+export const PRODUCTION_ORIGIN = "https://kulonuwun-solo.vercel.app";
+export const DEFAULT_ORIGINS = [PRODUCTION_ORIGIN, "http://localhost:3000", "http://localhost:4173"];
 
 export function allowedOrigins(env: string | undefined): string[] {
   const extra = (env ?? "").split(",").map((s) => s.trim()).filter(Boolean);

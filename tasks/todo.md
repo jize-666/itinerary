@@ -112,7 +112,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/app/page.tsx`, `src/components/CodeInput.tsx`, `src/engine/i18n/*`, `src/lib/session.ts`, `e2e/gate.spec.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 13: Deploy preview + keep-alive** 🔑 *(host menautkan repo ke Vercel, atau memilih GitHub Pages)* · disiapkan 8 Nov 2026: `vercel.json` (noindex, CSP, header keamanan; e2e berjalan di bawahnya), `keep-alive.yml`, `docs/deploy.md` · **menunggu:** merge ke `main` + import di Vercel + domain dimasukkan ke CORS
+- [x] **Tugas 13: Deploy preview + keep-alive** ✅ 8 Nov 2026 · produksi **https://kulonuwun-solo.vercel.app** (Vercel Hobby, dari `main`) · `vercel.json` (noindex, CSP, header keamanan; e2e berjalan di bawahnya) · domain masuk CORS Edge Functions (dites: diizinkan, domain lain ditolak) · `keep-alive.yml` aktif di `main` · sisa: uji di HP nyata oleh host
   - **Deskripsi:** Hosting statis dengan header `noindex` dan CSP, deploy Edge Functions, dan GitHub Actions terjadwal yang mem-ping `health` tiap 2–3 hari.
   - **Kriteria terima:** URL preview bisa dibuka di HP · header benar · job keep-alive sukses
   - **Verifikasi:** cek header lewat curl · log run GitHub Actions
@@ -126,6 +126,9 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Verifikasi:** `tests/unit/audio.test.ts` (preferensi, matematika loop, jadwal BedPlayer) + `e2e/sound.spec.ts` (desktop + iPhone)
   - **File:** `src/engine/audio/*`, `src/components/{Gate,BeginChoice,SoundToggle}.tsx`, `public/audio/*`, `scripts/audio/*`
   - **Ukuran:** M
+
+- [x] **Tugas 13b: Ditulis untuk satu tamu** ✅ 9 Nov 2026 · kabar host: tamu tinggal satu · gerbang bernada undangan pribadi (tanpa nama sebelum kode) · setelah kode: sapaan nama + tiket pribadi berayun masuk · Today: sapaan, hitung mundur ke Solo, tiket · Film: "for [nama]" · nama hanya di `trip_private.guest.party` (dicek: tidak ada di bundle/repo)
+  - **File:** `src/components/{Gate,Ticket,TodayPreview,FilmPlaceholder}.tsx`, `src/lib/trip.ts`, `tests/unit/trip.test.ts`, `e2e/*`
 
 ### ✅ Checkpoint 1
 - [ ] Gate berfungsi di HP nyata · data hanya keluar lewat token · CI hijau · keep-alive jalan
@@ -303,8 +306,8 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ## Fase 6 — Finale & Polish (14 – 20 Des 2026)
 
-- [ ] **Tugas 32: Boarding pass bertali + epilog**
-  - **Deskripsi:** Tag dengan physics Rapier (tali), satu per tamu dari data privat, swipe antar nama, "Hosted by", serta tombol Open Today / Add to Home Screen / Message your host.
+- [ ] **Tugas 32: Boarding pass bertali + epilog** · prototipe 3D disiapkan 9 Nov 2026 (`prototypes/boarding-pass/`, tali verlet, satu tamu, nama dari runtime)
+  - **Deskripsi:** Tag dengan physics Rapier (tali), satu tamu (nama dari data privat), "Hosted by", serta tombol Open Today / Add to Home Screen / Message your host.
   - **Kriteria terima:** bisa ditarik dan diayun di desktop dan HP · nama dari data privat (tidak ada di bundle)
   - **Verifikasi:** uji manual + tes grep bundle tetap lolos
   - **Dependensi:** 23, 11

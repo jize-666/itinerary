@@ -444,3 +444,275 @@ a {
   font-size: 13px;
   color: color-mix(in srgb, var(--blencong) 75%, var(--mori));
 }
+
+.gate-name {
+  color: var(--prada);
+  animation: name-in 0.9s ease-out both;
+}
+
+@keyframes name-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+/* ---- Gerbang: undangan pribadi ---- */
+.gate {
+  position: relative;
+  overflow-x: clip; /* pendar blencong boleh lebih lebar dari layar tanpa membuat halaman bergeser */
+  padding-top: calc(64px + env(safe-area-inset-top)); /* bebas dari toggle bahasa */
+}
+
+.gate--welcome {
+  gap: clamp(16px, 3vh, 30px);
+}
+
+.gate--welcome .gate-title {
+  font-size: clamp(44px, 11vw, 108px);
+}
+
+.gate-head--invite {
+  position: relative;
+  isolation: isolate;
+}
+
+/* pendar blencong (token loop.blencong: 2,4 dtk bolak-balik, opacity 0,55, skala 1,08) */
+.gate-head--invite::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 58%;
+  width: min(560px, 120vw);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--blencong) 20%, transparent) 0%, transparent 62%);
+  animation: blencong 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes blencong {
+  from {
+    opacity: 0.55;
+    scale: 1;
+  }
+  to {
+    opacity: 1;
+    scale: 1.08;
+  }
+}
+
+/* benang emas turun dari atas layar ke undangan */
+.gate-thread {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  width: 1px;
+  height: 100vh;
+  background: linear-gradient(to top, var(--prada), transparent 85%);
+  animation: thread-in 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: bottom;
+}
+
+.gate-thread::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--prada);
+}
+
+@keyframes thread-in {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.film-for {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--prada);
+}
+
+/* ---- Tiket pribadi ---- */
+.ticket {
+  --cut: 16px;
+  position: relative;
+  width: min(340px, 100%);
+  padding: 34px 22px 0;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  color: var(--mori);
+  background: linear-gradient(180deg, var(--nila-2), #0c1126);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%, 0 var(--cut));
+  border-radius: 0 0 12px 12px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--prada) 75%, transparent),
+    inset 0 0 0 5px var(--nila-2),
+    inset 0 0 0 6px color-mix(in srgb, var(--prada) 45%, transparent);
+  transform-origin: 50% 0;
+  animation: ticket-in 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* lubang tali bermata kuningan */
+.ticket::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  translate: -50% 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--nila);
+  box-shadow: 0 0 0 2px var(--prada);
+}
+
+@keyframes ticket-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) rotate(-4deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-2px) rotate(1.6deg);
+  }
+  78% {
+    transform: rotate(-0.6deg);
+  }
+}
+
+.ticket-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--prada);
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--prada) 50%, transparent);
+  margin-bottom: 8px;
+}
+
+.ticket-label,
+.ticket-grid dt {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.ticket-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.ticket-route {
+  list-style: none;
+  margin: 10px 0 8px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+}
+
+.ticket-route li:not(:last-child)::after {
+  content: "";
+  display: inline-block;
+  width: 26px;
+  margin: 0 9px;
+  vertical-align: middle;
+  border-top: 2px dotted var(--prada);
+}
+
+.ticket-route li:last-child {
+  color: var(--prada);
+}
+
+.ticket-grid {
+  margin: 4px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ticket-grid dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ticket-foil {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  color: var(--prada);
+}
+
+.ticket-stub {
+  margin-top: 14px;
+  padding: 12px 0 16px;
+  border-top: 2px dashed color-mix(in srgb, var(--mori) 22%, transparent);
+}
+
+.ticket-stub::after {
+  content: "";
+  display: block;
+  width: 58%;
+  height: 22px;
+  background: repeating-linear-gradient(90deg, var(--prada) 0 2px, transparent 2px 5px, var(--prada) 5px 6px, transparent 6px 10px, var(--prada) 10px 13px, transparent 13px 16px);
+  opacity: 0.85;
+}
+
+.ticket[data-compact] {
+  padding-top: 30px;
+}
+
+.ticket[data-compact] .ticket-name {
+  font-size: 26px;
+}
+
+.ticket[data-compact] .ticket-stub {
+  margin-top: 10px;
+  padding: 8px 0 12px;
+}
+
+.ticket[data-compact] .ticket-stub::after {
+  height: 16px;
+}
+
+/* ---- Today: hitung mundur ---- */
+.today-count {
+  justify-self: start;
+  margin: 4px 0 6px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--prada) 60%, transparent);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--prada);
+  font-variant-numeric: tabular-nums;
+}
+
+.today-head .ticket {
+  margin: 10px 0 6px;
+}

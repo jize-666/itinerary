@@ -8,6 +8,7 @@ Catatan ini merekam keputusan visual & audio yang sudah diambil, beserta yang ma
 | Tugas 1: Gong ageng 3D | ✅ **v3 "Murka" + Batara Kala disetujui host (8 Nov 2026)**, termasuk ayunan tabuh dari samping & suaranya | `prototypes/gong/scene.js` · v3: `docs/design/previews/gong_v3_idle.png`, `gong_v3_pukul.png`, `gong_v3_batara.png`, `gong_v3.mp4` (bersuara) |
 | Tugas 2: Gunungan + blencong + kelir | ✅ **v3 "Gunungan Murka" disetujui host (8 Nov 2026)**, termasuk gerak (balikan, goyang, sapuan dalang) & suaranya | `prototypes/gunungan/scene.js` · v3: `docs/design/previews/gunungan_v3_hero.png`, `gunungan_v3_api.png`, `gunungan_v3_flat.png`, `gunungan_v3_kala.png`, `gunungan_v3_gerak.mp4`, `gunungan_v3_sapuan.mp4`, `gunungan_v3_suara.mp4` (bersuara) |
 | Keris 3D "Naga Sasra" (tambahan, permintaan host) | ✅ disetujui host (8 Nov 2026) | `prototypes/keris/scene.js` · `docs/design/previews/keris_hero.png`, `keris_bangkit.png`, `keris_sarung.png`, `keris.mp4` (bersuara) |
+| Boarding pass "Tiket Lakon" (Tugas 32, satu tamu) | **menunggu persetujuan** | `prototypes/boarding-pass/scene.js` · `docs/design/previews/boarding_pass_wide.png`, `boarding_pass_ayun.png`, `boarding_pass_belakang.png`, `boarding_pass.mp4` (bersuara; nama "Your Name", versi bernama hanya dikirim ke host) |
 | Audio gamelan + gerbang dua tombol | ✅ disetujui host (8 Nov 2026) | `public/audio/*`, `src/engine/audio/*` · lihat "Audio gamelan" di bawah |
 | Tugas 3: Prototipe motion (Framer) | ✅ disetujui host (8 Nov 2026, v2) | Framer: https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r (tekan Preview) · `docs/design/motion-tokens.md` |
 
@@ -103,6 +104,15 @@ Semua musik diolah dengan langkah yang sama: buang rumble (<26 Hz), kurangi nois
 - `gong_v3.mp4` (diperpanjang ke 10 dtk supaya gong sempat berdengung lalu gelap): **gong penutup gendhing jatuh tepat di pukulan** (4,22 dtk), dilapis pukulan gong rekaman host + napas api naga. Gong rekaman gendhing dan gong SFX disejajarkan di titik mekar frekuensi rendahnya (keduanya diukur; tanpa ini selisihnya 138 ms dan terdengar seperti dua pukulan). Inilah makna gong ageng di film: menutup satu gongan.
 - `keris.mp4`: keraton pelan di bawah; "sret" di ujung tarikan, denting bilah jatuh di 2,08 dtk (bilah lepas 2,0 → pamor menyala 2,15), dengung pamor mengikuti cahaya.
 - `gunungan_v3_suara.mp4` (sapuan + balikan disambung, 6,3 dtk): keraton tenang + kibasan & "tancap" pelan saat sapuan dalang; diklik → kibasan terkeras tepat saat gunungan tampak tipis dari samping, dentum + api saat sisi api menghadap depan, dan gendhing rapat masuk menggantikan keraton.
+
+## Satu tamu (9 Nov 2026), kabar host: "2 rekan tamunya tidak jadi ikut"
+Permintaan host: masuk kode dan halaman utama harus terasa istimewa untuk satu orang.
+
+- **Aturan privasi tetap:** nama tamu hanya di `trip_private.guest.party` (Supabase), tidak di repo, PRD, maupun bundle. Gerbang publik tidak boleh tahu namanya.
+- **Gerbang sebelum kode:** *A private invitation* · *Enter the code written for you*. Benang emas turun dari atas layar ke judul (motif benang emas film) dan pendar blencong bernapas di belakang "Kulonuwun?" (token `loop.blencong`).
+- **Setelah kode benar:** trip-data langsung diunduh (sekalian preload untuk Today). "Sugeng rawuh, **[nama]**." (nama berwarna prada, muncul dari blur), *This lakon was written for one guest.*, lalu **tiket pribadi** berayun masuk seperti tag yang digantung: *Admit one*, nama, TJQ → CGK → SOC, tanggal, kursi *With the host*, gate *Kulonuwun*. Kunjungan berikutnya: *Welcome back. Your seat is still saved.* Tim tidak disapa dengan nama tamu.
+- **Today:** sapaan dari data privat (*Welcome, [nama]. This lakon was written for you.*), **hitung mundur** menurut kalender WIB (*N days until Solo* → *Tomorrow, Solo.* → *Today, Solo.*), tiket yang sama.
+- **Boarding pass 3D** (`prototypes/boarding-pass/`): satu tag pada benang emas (tali verlet 18 titik + kartu kaku 4 titik; produksi: Rapier). Kartu nila 7,4 × 15 cm dengan cetak foil emas (metalness + timbul), tepi bersepuh, mata ayam kuningan, simpul benang melewati lubang. Depan: nama (pas satu baris otomatis), rute dengan benang bertitik dan pesawat kecil, info 2 × 2, perforasi, barcode foil, *Hosted by*. Belakang: kawung foil + **monogram inisial** + *Matur nuwun*. Bisa diseret; ditarik lalu dilepas → berayun, berputar memperlihatkan belakang, lalu tenang menghadap depan (puntir benang). Nama dibaca dari `window.__guestName` saat runtime, jadi preview bernama tidak di-commit; preview di repo memakai "Your Name".
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
