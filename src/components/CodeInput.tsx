@@ -34,6 +34,18 @@ export function CodeInput({ length, label, disabled, state, enter, onComplete, o
     if (v.length === length) onComplete(v);
   };
 
+  // Saat kode benar, kotak merapat jadi satu benang di tengah: geser tiap kotak sebesar celah (--sg) & pemisah (--ss)
+  // yang ada di antara posisinya dan susunan rapat. Lihat @keyframes box-ok.
+  const seps = CODE_GROUPS.length - 1;
+  const sepsBefore = (idx: number) => {
+    let acc = 0, n = 0;
+    for (let g = 0; g < CODE_GROUPS.length - 1; g++) {
+      acc += CODE_GROUPS[g]!;
+      if (idx >= acc) n++;
+    }
+    return n;
+  };
+  const shift = (idx: number) => ({ "--sg": (length + seps - 1) / 2 - idx - sepsBefore(idx), "--ss": seps / 2 - sepsBefore(idx) });
   const boxes: React.ReactNode[] = [];
   let i = 0;
   CODE_GROUPS.forEach((size, g) => {
@@ -42,7 +54,7 @@ export function CodeInput({ length, label, disabled, state, enter, onComplete, o
       const ch = value[i];
       const active = focused && !disabled && i === Math.min(value.length, length - 1) && value.length < length;
       boxes.push(
-        <span key={i} className="code-box" style={{ "--i": i } as React.CSSProperties} data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
+        <span key={i} className="code-box" style={{ "--i": i, ...shift(i) } as React.CSSProperties} data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
           {ch && (
             <span key={`${i}${ch}`} className="code-char">
               {ch}

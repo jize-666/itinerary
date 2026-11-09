@@ -127,6 +127,8 @@ Permintaan host: masuk kode dan halaman utama harus terasa istimewa untuk satu o
 
 Stop itinerary "dirangkai" ke benang: titik fase meletup dulu, lalu isinya meluncur keluar dari benang. Semua teks tetap utuh di DOM (spasi biasa, bukan non-breaking) untuk pembaca layar, terjemahan, dan tes.
 
+**Performa (9 Nov 2026), masukan host: "reveal-nya kurang smooth".** Diukur tanpa perekam (Long Animation Frames + jeda rAF, render 3× tanpa GPU): sebelum optimasi, momen kode benar → "Sugeng rawuh" punya 9 frame tersendat beruntun (67–100 ms) dan judul Today 2 frame (70–91 ms). Penyebab: animasi blur per huruf, `text-shadow`, warna, `clip-path`, `left`, `gap`, `background-position`. Sesudah: **0 frame > 50 ms** di keempat momen (sambutan, tekan Begin, judul Film, judul Today), diukur dua kali. Aturannya sekarang: **hanya opacity & transform yang dianimasikan**; efek mahal (blur bayangan, garis canting, kilau) digambar sekali di lapisannya sendiri, dan "membuka" teks memakai jendela geser (overflow hidden + translate berlawanan). Patah yang masih terlihat di video berasal dari perekam di server tanpa GPU; rekaman preview memakai teknik gerak lambat (waktu halaman diperlambat 4×, lalu video dipercepat kembali).
+
 Yang tetap dari putaran pertama:
 - **Kotak kode:** muncul berurutan; huruf meletup saat diketik; gelombang cahaya saat memeriksa; goyang + kilat merah saat salah; kode benar → kotak menyala, memipih jadi benang emas, kilat blencong membuka ke sambutan.
 - **Sambutan:** tiket berayun + kilau foil; tempat tiket disiapkan (layout tidak meloncat).

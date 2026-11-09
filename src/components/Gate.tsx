@@ -182,7 +182,7 @@ function GateHead({ kicker }: { kicker: string }) {
       <span className="gate-thread" aria-hidden="true" />
       <Benang className="gate-kicker" text={kicker} delay={500} />
       <h1 className="gate-title">
-        <Bayang text="Kulonuwun?" delay={700} glint />
+        <Bayang text="Kulonuwun?" delay={700} />
       </h1>
     </div>
   );
