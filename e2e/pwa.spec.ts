@@ -56,7 +56,7 @@ test("manifest & ikon Home Screen", async ({ page, request }) => {
   expect(res.status()).toBe(200);
   const m = await res.json();
   expect(m).toMatchObject({ name: "A Three-Day Lakon", short_name: "Lakon", start_url: "/today/", display: "standalone" });
-  expect(JSON.stringify(m)).not.toMatch(/Mira|Herlin|Aprianti|April/);
+  expect(JSON.stringify(m)).not.toMatch(/Mira|Santoso/); // tanpa data tamu (nama fixture)
   for (const icon of m.icons as { src: string; sizes: string; type: string }[]) {
     const r = await request.get(icon.src);
     expect(r.status(), icon.src).toBe(200);
