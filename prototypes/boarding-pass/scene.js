@@ -184,7 +184,7 @@ const GUEST_NAME = (typeof window !== 'undefined' && window.__guestName) || 'You
 const GUEST = {
   name: GUEST_NAME,
   initials: window.__guestName ? GUEST_NAME.split(/\s+/).map((w) => w[0]).join(' · ').toUpperCase() : '',
-  note: 'Guest of honour · Singapore → Solo', host: '[host]', ref: 'LKN · SOC · 0407 · 1/1',
+  note: 'Guest of honour · Belitung → Solo', host: '[host]', ref: 'LKN · SOC · 0407 · 1/1',
 };
 const GUESTS = [GUEST];
 const backC = { c: mkCanvas(), r: mkCanvas(), b: mkCanvas() };

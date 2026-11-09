@@ -16,7 +16,7 @@
 
 ## 0. Ringkasan
 
-Kita membuat **satu web privat** untuk **satu tamu penting dari Singapura** (engine tetap mendukung 1–5) yang akan menjalani trip 3 hari di Solo (Surakarta). Web ini hanya punya **dua fungsi: jadwal trip dan pengenalan kota Solo**. Keduanya dikemas sebagai "film pendek" yang **dijalankan per slide**: satu scroll atau swipe memindahkan penonton ke satu shot berikutnya. Isinya prolog, tiga bab hari yang masing-masing bergerak dari **subuh sampai malam**, lalu epilog. Gunungan wayang membuka setiap babak, **gong ageng 3D** menutupnya, dan **benang emas** menjadi garis perjalanan yang menyambung semuanya. Bagian-bagian intinya **3D sungguhan**: gong, diorama kota Solo, lereng Lawu dengan Candi Sukuh, canting dan kain batik, serta boarding pass.
+Kita membuat **satu web privat** untuk **satu tamu penting** (engine tetap mendukung 1–5) yang akan menjalani trip 3 hari di Solo (Surakarta). Web ini hanya punya **dua fungsi: jadwal trip dan pengenalan kota Solo**. Keduanya dikemas sebagai "film pendek" yang **dijalankan per slide**: satu scroll atau swipe memindahkan penonton ke satu shot berikutnya. Isinya prolog, tiga bab hari yang masing-masing bergerak dari **subuh sampai malam**, lalu epilog. Gunungan wayang membuka setiap babak, **gong ageng 3D** menutupnya, dan **benang emas** menjadi garis perjalanan yang menyambung semuanya. Bagian-bagian intinya **3D sungguhan**: gong, diorama kota Solo, lereng Lawu dengan Candi Sukuh, canting dan kain batik, serta boarding pass.
 
 Web ini punya dua momen pakai:
 1. **Sebelum berangkat (momen "wow")**: tamu membuka web di laptop, iPad, atau HP flagship dan menonton "film"-nya dengan efek penuh.
@@ -29,7 +29,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 ## 1. Latar Belakang & Tujuan
 
 ### 1.1 Konteks
-- Host menjamu tamu dari Singapura sebagai bentuk **balas budi**. **Tidak ada transaksi** apa pun, baik di web maupun di trip.
+- Host menjamu tamunya sebagai bentuk **balas budi**. **Tidak ada transaksi** apa pun, baik di web maupun di trip.
 - Tamu lancar berbahasa Inggris. Selama trip mereka didampingi **translator** dan **guide** lokal, karena banyak orang lokal di Solo (keraton, pasar, kampung batik) tidak lancar berbahasa Inggris.
 - Host saat ini berada di Bangka Belitung dan baru ke Solo saat mengantar tamu. Karena itu **foto tidak bisa diambil sendiri**.
 - Preferensi tamu (dari formulir yang diisi teman host berdasarkan info dari translator, lalu dikonfirmasi host):
@@ -62,7 +62,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 | ID | Asumsi | Dampak kalau salah |
 |---|---|---|
 | A1 | Anggaran Rp1–1,5 jt adalah **per orang per hari, belum termasuk transport** (sesuai acuan formulir). | Pemilihan tempat makan, aktivitas, dan penginapan di draf itinerary berubah. |
-| A2 | Tamu terbang dari Singapura ke **Belitung pada H-7** untuk menjemput host. Mereka lalu berangkat bersama dari Belitung ke Solo pada **Hari 0** (sore/malam), dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
+| A2 | Tamu sudah berada di **Belitung** sebelum Hari 0, lalu tamu dan host berangkat bersama dari Belitung ke Solo pada **Hari 0** (sore/malam), dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
 | A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, translator, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
 | A4 | Backend memakai **Supabase** (connector yang sudah terhubung), di **project baru** yang terpisah dari project lain milik host. Frontend berupa **situs statis**, sehingga bisa di-host di mana saja (default: Vercel, lihat §13.1). | Lihat Q8. |
 | A5 | **Audio gamelan masuk v1** (disetujui host 8 Nov 2026, Q11). Gendhing berasal dari **rekaman gamelan Solo milik host sendiri** (diolah supaya jernih), bukan hasil AI. Tamu memilih sendiri di gerbang: **"Begin with gamelan"** atau **"Begin quietly"**. Web tidak pernah berbunyi tanpa klik tamu. | Kalau host berubah pikiran, cukup sembunyikan tombol "with gamelan"; tanpa audio, tidak ada byte audio yang diunduh. |
@@ -75,7 +75,7 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 | # | Topik | Default sementara | Alasan |
 |---|---|---|---|
 | Q1 | Tanggal | **Hari 0 Rabu 7 Apr 2027** (tiba) · **Hari 1 Kamis 8 Apr** · **Hari 2 Jumat 9 Apr** · **Hari 3 Sabtu 10 Apr** · **Hari 4 Minggu 11 Apr** (pulang) | Di luar Ramadan/Idulfitri 2027 (perkiraan Feb–Mar) dan Iduladha (perkiraan pertengahan Mei) [V]. Keraton dikunjungi Kamis, menghindari kemungkinan tutup hari Jumat [V]. Sabtu malam cocok untuk Ngarsopuro Night Market [V]. April masuk peralihan ke musim kemarau, jadi lebih kering daripada Des–Feb, walau hujan sore masih mungkin [V]. |
-| Q2 | Kedatangan & kepulangan | **H-7:** tamu SIN → Belitung (TJQ, Tanjung Pandan) dan menjemput host (dikonfirmasi host, 8 Nov 2026). **Hari 0:** host dan tamu terbang bersama **Belitung → Jakarta → Solo (TJQ → CGK → SOC)**, rute dikonfirmasi host 8 Nov 2026 [V jadwal & maskapai]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Host ikut sepanjang perjalanan. Web bisa diperkenalkan langsung oleh host ke tamu saat masih di Belitung. |
+| Q2 | Kedatangan & kepulangan | Perjalanan dimulai dari **Belitung (TJQ, Tanjung Pandan)**. **Hari 0:** host dan tamu terbang bersama **Belitung → Jakarta → Solo (TJQ → CGK → SOC)**, rute dikonfirmasi host 8 Nov 2026 [V jadwal & maskapai]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Host ikut sepanjang perjalanan. Web bisa diperkenalkan langsung oleh host ke tamu saat masih di Belitung. |
 | Q3 | Jumlah tamu | **1 tamu** (dikonfirmasi host 9 Nov 2026: dua rekan batal). Engine tetap mendukung 1–5. | Nama asli **hanya** di data privat Supabase (`trip_private.guest.party`), tidak pernah di repo, PRD, atau bundle |
 | Q4 | "Movies" | **Wayang Orang Sriwedari** sebagai "bioskop"-nya Solo (Hari 2 malam), dengan Plan B **bioskop** di mal | Lebih berkesan dan khas Solo, tapi tetap ada opsi film sungguhan |
 | Q5 | Night ride | **Dibonceng rider lokal berpengalaman** (vespa/motor, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
@@ -87,7 +87,7 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 
 | Persona | Bahasa | Perangkat | Kapan | Yang dibutuhkan |
 |---|---|---|---|---|
-| **Tamu** (1–5, Singapura) | **EN** | Laptop/iPad/HP flagship (pra-trip), HP flagship (selama trip) | H-3 sampai H-1, lalu selama trip | Pengalaman sinematik, cerita kota, info praktis cepat |
+| **Tamu** (1 orang, berangkat dari Belitung) | **EN** | Laptop/iPad/HP flagship (pra-trip), HP flagship (selama trip) | H-3 sampai H-1, lalu selama trip | Pengalaman sinematik, cerita kota, info praktis cepat |
 | **Host** | ID | HP | Semua fase | Kirim link, cek jadwal yang sama dengan tamu, catatan tim |
 | **Guide & translator** | ID | HP | Selama trip | Jadwal yang **identik** dengan yang dilihat tamu, catatan tim |
 | **Driver** | ID | HP | Selama trip | Jam dan titik jemput |
@@ -302,7 +302,7 @@ Isi saat trip:
 - **Bilah kontak sticky:** WhatsApp host / guide / translator dan tombol telepon. Pesan WhatsApp sudah terisi otomatis dalam EN.
 - **Plan B:** toggle "Rain plan" untuk melihat alternatif kalau hujan.
 - **Darurat:** sheet berisi nomor darurat Indonesia (112, ambulans 118/119, polisi 110) [V] dan alamat penginapan.
-- Semua jam memakai **WIB** dengan label **"(1 hour behind Singapore)"**. Penentuan "hari ini" dihitung di zona **Asia/Jakarta**, berapa pun zona waktu HP tamu.
+- Semua jam memakai **WIB** (sama dengan Belitung). **Web tidak menyebut Singapura sama sekali** (permintaan host 9 Nov 2026: tamu sudah jarang ke Singapura; asal yang ditampilkan Belitung). Penentuan "hari ini" dihitung di zona **Asia/Jakarta**, berapa pun zona waktu HP tamu.
 - **Offline:** service worker men-cache shell, data trip, dan gambar Today. Ada indikator "Last updated".
 
 ### 7.7 Navigasi global
@@ -442,7 +442,7 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 Setiap tempat di data punya kolom `planB` yang tampil di Today lewat toggle "Rain plan".
 
 ### 10.6 Info praktis: *Before you go* (EN di web)
-- **Zona waktu:** Solo memakai WIB, **1 jam lebih lambat dari Singapura**.
+- **Zona waktu:** Solo memakai WIB, **sama dengan Belitung**.
 - **Pakaian:** sopan untuk keraton dan pura (bahu & lutut tertutup), **jaket** untuk subuh di Kemuning, **payung atau jas hujan**, alas kaki yang nyaman.
 - **Uang:** siapkan **tunai rupiah** karena banyak pedagang pasar hanya menerima tunai. Ketersediaan pembayaran QR lintas negara tergantung bank/aplikasi tamu [V].
 - **Koneksi:** eSIM/roaming. Sinyal bisa lemah di lereng Lawu, tapi Today tetap jalan offline.
@@ -872,7 +872,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 | Info lapangan berubah (jam buka, harga, jadwal pertunjukan) | Tamu kecewa di lokasi | Tanda [V], verifikasi H-14 & H-4, kolom `verifiedAt`, `content:publish` tanpa redeploy |
 | Kesalahan budaya atau bahasa Jawa | Memalukan di depan tamu | Review guide/translator. Aksara Jawa hanya yang terverifikasi. Panduan etika §6.6. |
 | Link diteruskan ke orang lain | Kebocoran jadwal dan kontak | Kode dicek di server, kode dikirim terpisah dari link, bundle tidak memuat data, data privat di Supabase dengan RLS |
-| Tamu bingung WIB vs SGT | Telat jemput | Label "(1 hour behind Singapore)", logika berbasis Asia/Jakarta |
+| Jam HP tamu masih di zona lain | Telat jemput | Semua jam berlabel WIB, logika berbasis Asia/Jakarta |
 | Animasi menghambat akses info | Frustrasi selama trip | Today terpisah, tanpa WebGL, default selama trip |
 | Typo atau Inggris yang kaku | Citra host turun | Proofread penutur yang fasih + spellcheck otomatis |
 | Scope 3D membengkak (6 inti 3D) dalam jadwal ±7 minggu | Molor dari 28 Des | Urutan dalam M4: gong → gunungan → benang emas → diorama → Lawu → canting. Masing-masing punya versi "cukup" (mis. diorama tanpa landmark detail). Today dan film 2D jadi lebih dulu (M2–M3). |

@@ -37,7 +37,7 @@ export const trip: TripInput = {
   },
 
   beforeYouGo: [
-    { id: "time", title: { en: "Time zone", id: "Zona waktu" }, body: { en: "Solo runs on WIB, one hour behind Singapore. Every time on this page is local.", id: "Solo memakai WIB, satu jam lebih lambat dari Singapura. Semua jam di halaman ini adalah waktu lokal." } },
+    { id: "time", title: { en: "Time zone", id: "Zona waktu" }, body: { en: "Solo runs on WIB, the same time as Belitung. Every time on this page is local.", id: "Solo memakai WIB, sama dengan Belitung. Semua jam di halaman ini adalah waktu lokal." } },
     { id: "dress", title: { en: "What to wear", id: "Pakaian" }, body: { en: "Covered shoulders and knees for the palaces, a light jacket for dawn on the tea hills, and an umbrella just in case.", id: "Bahu dan lutut tertutup untuk keraton dan pura, jaket tipis untuk subuh di kebun teh, dan payung untuk berjaga-jaga." } },
     { id: "cash", title: { en: "Cash", id: "Uang tunai" }, body: { en: "Many market stalls only take cash in rupiah. Your host can help you exchange.", id: "Banyak pedagang pasar hanya menerima tunai rupiah. Host bisa membantu menukar uang." } },
     { id: "manners", title: { en: "Small courtesies", id: "Sopan santun kecil" }, body: { en: "Give and receive with your right hand, point with your thumb, and ask before photographing people.", id: "Memberi dan menerima dengan tangan kanan, menunjuk dengan ibu jari, dan minta izin sebelum memotret orang." } },
