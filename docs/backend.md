@@ -24,7 +24,7 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
 ```jsonc
 // guest
 {
-  "party":   { "greeting": { "en": "Welcome, …", "id": "Selamat datang, …" } },
+  "party":   { "name": "…", "short": "…", "size": 1, "greeting": { "en": "Welcome, …", "id": "Selamat datang, …" } },
   "lodging": { "name": "…", "address": "…", "mapsUrl": "https://maps.google.com/…" },
   "contacts": [ { "label": { "en": "Your host", "id": "Host" }, "whatsapp": "+62…" } ],
   "stops": { "check-in": { "pickup": "18:30, lobby" } }
@@ -38,6 +38,9 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
   "stops": { "keraton-kasunanan": { "teamNote": "Beli tiket di loket timur", "estCost": 50000 } }
 }
 ```
+
+`party.name` tampil di tiket pribadi, `party.short` di sapaan gerbang ("Sugeng rawuh, …"), `party.greeting` di Today.
+Nama tamu hanya ada di sini (bukan di repo/bundle).
 
 Di respons `trip-data`, isi `guest.stops[id]` muncul sebagai `stop.private`, dan `team.stops[id]` muncul sebagai `stop.teamNote` / `stop.estCost` (khusus tim).
 Ubah `updated_at` ke `now()` setiap kali mengedit, supaya ETag berganti dan Today mengambil data baru.

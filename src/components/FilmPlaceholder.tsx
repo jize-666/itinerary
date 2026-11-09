@@ -1,17 +1,32 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
+import { guestShortName, loadTrip } from "@/lib/trip";
 import { useRequireSession } from "./useRequireSession";
 
 /** Tempat film (Fase 3–5). Sementara: judul + jalan ke Today. */
 export function FilmPlaceholder() {
   const session = useRequireSession();
   const { t } = useI18n();
+  const [name, setName] = useState<string | null>(null);
+  const token = session?.token;
+  useEffect(() => {
+    if (!token) return;
+    let alive = true;
+    loadTrip(token).then((r) => {
+      if (alive && r.kind === "ok") setName(guestShortName(r.data));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [token]);
   if (!session) return null;
   return (
     <main className="gate">
       <div className="gate-head">
         <h1 className="gate-title gate-title--sm">{t("film.title")}</h1>
+        {name && <p className="film-for">{t("film.for", { name })}</p>}
         <p className="gate-prompt">{t("film.soon")}</p>
       </div>
       <Link className="begin-btn begin-btn--quiet film-link" href="/today/">

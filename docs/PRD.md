@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draf v1.5 (audio gamelan masuk lingkup: rekaman host, gerbang dua tombol). v1.4: rute Belitung → Solo, katalog teks kinetik, gong & gunungan interaktif). v1.3: jadwal dipadatkan, selesai 28 Des 2026. v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
+| **Status** | Draf v1.6 (**satu tamu**: gerbang, tiket pribadi, dan Today ditulis untuk satu orang). v1.5: audio gamelan masuk lingkup (rekaman host, gerbang dua tombol). v1.4: rute Belitung → Solo, katalog teks kinetik, gong & gunungan interaktif). v1.3: jadwal dipadatkan, selesai 28 Des 2026. v1.2: navigasi per slide, gong ageng sebagai objek hero 3D, inti 3D per bab, Figma tidak dipakai. Keputusan sementara Q1–Q6 direvisi host di H-5. |
 | **Tanggal** | 7 November 2026 (trip ±5 bulan lagi, perkiraan awal April 2027) |
 | **Pemilik produk** | Host (pemilik repo) |
 | **Penyusun draf** | Claude, berdasarkan sesi tanya-jawab dengan host |
@@ -16,7 +16,7 @@
 
 ## 0. Ringkasan
 
-Kita membuat **satu web privat** untuk 1–5 tamu penting dari Singapura yang akan menjalani trip 3 hari di Solo (Surakarta). Web ini hanya punya **dua fungsi: jadwal trip dan pengenalan kota Solo**. Keduanya dikemas sebagai "film pendek" yang **dijalankan per slide**: satu scroll atau swipe memindahkan penonton ke satu shot berikutnya. Isinya prolog, tiga bab hari yang masing-masing bergerak dari **subuh sampai malam**, lalu epilog. Gunungan wayang membuka setiap babak, **gong ageng 3D** menutupnya, dan **benang emas** menjadi garis perjalanan yang menyambung semuanya. Bagian-bagian intinya **3D sungguhan**: gong, diorama kota Solo, lereng Lawu dengan Candi Sukuh, canting dan kain batik, serta boarding pass.
+Kita membuat **satu web privat** untuk **satu tamu penting dari Singapura** (engine tetap mendukung 1–5) yang akan menjalani trip 3 hari di Solo (Surakarta). Web ini hanya punya **dua fungsi: jadwal trip dan pengenalan kota Solo**. Keduanya dikemas sebagai "film pendek" yang **dijalankan per slide**: satu scroll atau swipe memindahkan penonton ke satu shot berikutnya. Isinya prolog, tiga bab hari yang masing-masing bergerak dari **subuh sampai malam**, lalu epilog. Gunungan wayang membuka setiap babak, **gong ageng 3D** menutupnya, dan **benang emas** menjadi garis perjalanan yang menyambung semuanya. Bagian-bagian intinya **3D sungguhan**: gong, diorama kota Solo, lereng Lawu dengan Candi Sukuh, canting dan kain batik, serta boarding pass.
 
 Web ini punya dua momen pakai:
 1. **Sebelum berangkat (momen "wow")**: tamu membuka web di laptop, iPad, atau HP flagship dan menonton "film"-nya dengan efek penuh.
@@ -76,7 +76,7 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 |---|---|---|---|
 | Q1 | Tanggal | **Hari 0 Rabu 7 Apr 2027** (tiba) · **Hari 1 Kamis 8 Apr** · **Hari 2 Jumat 9 Apr** · **Hari 3 Sabtu 10 Apr** · **Hari 4 Minggu 11 Apr** (pulang) | Di luar Ramadan/Idulfitri 2027 (perkiraan Feb–Mar) dan Iduladha (perkiraan pertengahan Mei) [V]. Keraton dikunjungi Kamis, menghindari kemungkinan tutup hari Jumat [V]. Sabtu malam cocok untuk Ngarsopuro Night Market [V]. April masuk peralihan ke musim kemarau, jadi lebih kering daripada Des–Feb, walau hujan sore masih mungkin [V]. |
 | Q2 | Kedatangan & kepulangan | **H-7:** tamu SIN → Belitung (TJQ, Tanjung Pandan) dan menjemput host (dikonfirmasi host, 8 Nov 2026). **Hari 0:** host dan tamu terbang bersama **Belitung → Jakarta → Solo (TJQ → CGK → SOC)**, rute dikonfirmasi host 8 Nov 2026 [V jadwal & maskapai]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Host ikut sepanjang perjalanan. Web bisa diperkenalkan langsung oleh host ke tamu saat masih di Belitung. |
-| Q3 | Jumlah tamu | **3 tamu** (placeholder "Guest A/B/C"). Engine mendukung 1–5. | Nama asli diisi di data privat |
+| Q3 | Jumlah tamu | **1 tamu** (dikonfirmasi host 9 Nov 2026: dua rekan batal). Engine tetap mendukung 1–5. | Nama asli **hanya** di data privat Supabase (`trip_private.guest.party`), tidak pernah di repo, PRD, atau bundle |
 | Q4 | "Movies" | **Wayang Orang Sriwedari** sebagai "bioskop"-nya Solo (Hari 2 malam), dengan Plan B **bioskop** di mal | Lebih berkesan dan khas Solo, tapi tetap ada opsi film sungguhan |
 | Q5 | Night ride | **Dibonceng rider lokal berpengalaman** (vespa/motor, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
 | Q6 | Penginapan | Guesthouse/homestay bernuansa heritage di kawasan Mangkunegaran–Keprabon–Ngarsopuro, **kamar mandi dalam**. Kandidat dipilih paling lambat H-30 [V]. | Dekat titik malam dan sesuai syarat tamu |
@@ -242,6 +242,7 @@ Film **bukan halaman panjang yang di-scroll bebas**. Film adalah **rangkaian ±4
 - Ketukan "Begin" setelah kode benar berupa **dua tombol: "Begin with gamelan" dan "Begin quietly"** (subjudul ID: "Mulai dengan gamelan" / "Mulai tanpa suara"). Ketukan ini dipakai untuk **meminta izin gyroscope di iOS** sekaligus **membuka audio** (kebijakan autoplay browser). Pilihan diingat di perangkat; tombol speaker mengambang bisa mengubahnya kapan saja.
 - **Aset film di-preload** selama animasi gate supaya tidak ada layar loading.
 - Kode cukup dimasukkan **sekali per perangkat** (token sesi disimpan di perangkat).
+- **Ditulis untuk satu orang.** Sebelum kode benar, nama tamu tidak boleh tampil (bundle publik), jadi nadanya undangan pribadi: *"A private invitation"*, *"Enter the code written for you"*, benang emas turun ke judul, pendar blencong. Setelah kode benar: **"Sugeng rawuh, [nama]."** muncul perlahan, *"This lakon was written for one guest."*, lalu **tiket pribadi** (nama, rute, tanggal, kursi) berayun masuk sebelum tombol Begin. Kunjungan berikutnya: *"Welcome back. Your seat is still saved."* Peran tim tidak disapa dengan nama tamu.
 
 ### 7.2 Prolog: *"Kulonuwun, Solo"* (P0)
 Isi pengenalan kota, masing-masing satu slide dengan text reveal per baris:
@@ -276,7 +277,7 @@ Setiap bab punya struktur yang sama:
 
 ### 7.4 Epilog: *"Sampai jumpa"* (P0)
 - Dibuka dengan gong terakhir yang bergaung pelan, lalu gunungan ditancapkan kembali di tengah layar, seperti penutup pertunjukan wayang [V].
-- **Boarding pass/luggage tag bertali** dengan physics (bisa ditarik dan diayun). Satu tag per tamu (swipe antar nama). Isinya nama tamu, rute **"BELITUNG (TJQ) → SOLO (SOC)"**, tanggal, dan **"Hosted by [nama host]"**.
+- **Boarding pass/luggage tag bertali** dengan physics (bisa ditarik dan diayun), digantung pada **benang emas**. Satu tag untuk satu tamu ("Admit one"). Depan: nama tamu (foil emas), rute **TJQ → CGK → SOC**, tanggal, gate *Kulonuwun*, kursi *With the host*, **"Hosted by [nama host]"**. Belakang: kawung foil + **monogram inisial tamu** + "Matur nuwun".
 - Tombol: **Open Today**, **Add to Home Screen** (dengan panduan iOS/Android), **Message your host**.
 - **Contact shadow** di bawah tag dan grain yang lembut.
 

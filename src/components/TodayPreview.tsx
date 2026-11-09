@@ -3,13 +3,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import type { Lang } from "@/engine/i18n/lang";
-import { fetchTrip, type Role, sessionStore, type TripResult } from "@/lib/session";
+import { sessionStore, type TripResult } from "@/lib/session";
+import { daysUntil, loadTrip, type TripView } from "@/lib/trip";
+import { Ticket } from "./Ticket";
 import { useRequireSession } from "./useRequireSession";
-
-type L = { en: string; id: string };
-type StopView = { id: string; start: string; end?: string; title: L; why?: L; teamNote?: string; estCost?: number };
-type DayView = { n: number; date: string; title: L; subtitle: L; stops: StopView[] };
-export type TripView = { role: Role; trip: { title: L; days: DayView[] }; private?: { party?: { greeting?: L } } };
 
 type State = { kind: "loading" } | Exclude<TripResult<TripView>, { kind: "unauthorized" }>;
 
@@ -33,7 +30,7 @@ export function TodayPreview() {
   useEffect(() => {
     if (!token) return;
     let alive = true;
-    fetchTrip<TripView>(token).then((r) => {
+    loadTrip(token, reload > 0).then((r) => {
       if (!alive) return;
       if (r.kind === "unauthorized") sessionStore.clear(); // token kedaluwarsa/dicabut → kembali ke gerbang
       else setState(r);
@@ -70,12 +67,16 @@ export function TodayPreview() {
 
   const { trip } = state.data;
   const greeting = tx(state.data.private?.party?.greeting);
+  const left = trip.days[0] ? daysUntil(trip.days[0].date) : -1;
+  const countdown = left > 1 ? t("today.countdown", { n: left }) : left === 1 ? t("today.tomorrow") : left === 0 ? t("today.today") : "";
   return (
     <main className="today">
       <header className="today-head">
         <p className="gate-kicker">{t("today.title")}</p>
         <h1 className="today-title">{tx(trip.title)}</h1>
         {greeting && <p className="today-greeting">{greeting}</p>}
+        {countdown && <p className="today-count">{countdown}</p>}
+        <Ticket data={state.data} />
         <Link className="today-film" href="/film/">
           {t("today.toFilm")}
         </Link>

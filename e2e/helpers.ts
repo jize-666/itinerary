@@ -32,8 +32,12 @@ export function tripFixture(role: "guest" | "team") {
   };
   return {
     role,
-    trip: { title: L("A Three-Day Lakon", "Lakon Tiga Hari"), days: [{ n: 1, date: "2027-04-08", title: L("The royal day", "Hari keraton"), subtitle: L("Slow and grand", "Pelan dan agung"), stops: [stop] }] },
-    private: { party: { greeting: L("Welcome, friends", "Selamat datang, kawan") } },
+    trip: {
+      title: L("A Three-Day Lakon", "Lakon Tiga Hari"),
+      route: { label: L("Isle → Capital → City", "Pulau → Ibu kota → Kota"), legs: ["AAA", "BBB", "CCC"] },
+      days: [{ n: 1, date: "2027-04-08", title: L("The royal day", "Hari keraton"), subtitle: L("Slow and grand", "Pelan dan agung"), stops: [stop] }],
+    },
+    private: { party: { name: "Mira Santoso", short: "Mira", size: 1, greeting: L("Welcome, Mira. This lakon was written for you.", "Selamat datang, Mira.") } },
     ...(role === "team" ? { team: {} } : {}),
   };
 }

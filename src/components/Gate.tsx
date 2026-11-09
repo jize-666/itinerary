@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { CODE_LENGTH } from "@/lib/code";
 import { type AccessResult, type Session, sessionStore, UNKNOWN, verifyAccess } from "@/lib/session";
+import { guestShortName, loadTrip, type TripView } from "@/lib/trip";
 import { BeginChoice } from "./BeginChoice";
 import { CodeInput } from "./CodeInput";
+import { Ticket } from "./Ticket";
 import { useSession } from "./useSession";
 
 type Status = { kind: "idle" } | { kind: "checking" } | Exclude<AccessResult, { kind: "ok" }>;
@@ -60,7 +62,7 @@ export function Gate() {
   if (session === UNKNOWN) {
     return (
       <main className="gate">
-        <h1 className="gate-title">Kulonuwun?</h1>
+        <GateHead kicker={t("gate.kicker")} />
       </main>
     );
   }
@@ -82,7 +84,7 @@ export function Gate() {
 
   return (
     <main className="gate">
-      <h1 className="gate-title">Kulonuwun?</h1>
+      <GateHead kicker={t("gate.kicker")} />
       <div className="gate-form">
         <p className="gate-prompt" id="gate-prompt">
           {t("gate.prompt")}
@@ -114,19 +116,43 @@ export function Gate() {
 
 function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean; onBegin: () => void }) {
   const { t } = useI18n();
+  const [data, setData] = useState<TripView | null>(null);
+  const name = data ? guestShortName(data) : null;
+  // Data trip mulai diunduh di sini (dipakai lagi oleh Today); nama tamu hanya datang dari data privat.
+  useEffect(() => {
+    let alive = true;
+    loadTrip(session.token).then((r) => {
+      if (alive && r.kind === "ok") setData(r.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [session.token]);
   return (
-    <main className="gate">
+    <main className="gate gate--welcome">
       <div className="gate-head">
         {session.role === "team" && <p className="gate-kicker">{t("gate.team")}</p>}
         <h1 className="gate-title" lang="jv">
-          Sugeng rawuh.
+          Sugeng rawuh{name && <span className="gate-name">, {name}</span>}.
         </h1>
-        <p className="gate-prompt">{fresh ? t("gate.welcome") : t("gate.welcomeBack")}</p>
+        <p className="gate-prompt">{session.role === "guest" ? t(fresh ? "gate.forOne" : "gate.forOneBack") : t(fresh ? "gate.welcome" : "gate.welcomeBack")}</p>
       </div>
+      {data && <Ticket data={data} compact />}
       <BeginChoice onBegin={onBegin} />
       <button type="button" className="gate-switch" onClick={() => sessionStore.clear()}>
         {t("gate.switch")}
       </button>
     </main>
+  );
+}
+
+/** Judul gerbang: benang emas turun dari atas, pendar blencong di belakang "Kulonuwun?". */
+function GateHead({ kicker }: { kicker: string }) {
+  return (
+    <div className="gate-head gate-head--invite">
+      <span className="gate-thread" aria-hidden="true" />
+      <p className="gate-kicker">{kicker}</p>
+      <h1 className="gate-title">Kulonuwun?</h1>
+    </div>
   );
 }

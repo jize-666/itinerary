@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { seedSession } from "./helpers";
+import { json, seedSession, TRIP, tripFixture } from "./helpers";
 
 type Debug = { started: boolean; enabled: boolean; ctx: string; bed: string | null };
 const audioDebug = (page: Page) =>
@@ -7,7 +7,10 @@ const audioDebug = (page: Page) =>
 const pref = (page: Page) => page.evaluate(() => localStorage.getItem("lakon.sound"));
 
 // Tombol Begin muncul setelah kode benar; di sini sesi sudah ada di perangkat.
-test.beforeEach(async ({ page }) => seedSession(page));
+test.beforeEach(async ({ page }) => {
+  await seedSession(page);
+  await page.route(TRIP, (r) => json(r, 200, tripFixture("guest")));
+});
 
 test("gerbang menawarkan dua pilihan suara", async ({ page }) => {
   await page.goto("/");

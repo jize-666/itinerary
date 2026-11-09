@@ -127,6 +127,9 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/engine/audio/*`, `src/components/{Gate,BeginChoice,SoundToggle}.tsx`, `public/audio/*`, `scripts/audio/*`
   - **Ukuran:** M
 
+- [x] **Tugas 13b: Ditulis untuk satu tamu** ✅ 9 Nov 2026 · kabar host: tamu tinggal satu · gerbang bernada undangan pribadi (tanpa nama sebelum kode) · setelah kode: sapaan nama + tiket pribadi berayun masuk · Today: sapaan, hitung mundur ke Solo, tiket · Film: "for [nama]" · nama hanya di `trip_private.guest.party` (dicek: tidak ada di bundle/repo)
+  - **File:** `src/components/{Gate,Ticket,TodayPreview,FilmPlaceholder}.tsx`, `src/lib/trip.ts`, `tests/unit/trip.test.ts`, `e2e/*`
+
 ### ✅ Checkpoint 1
 - [ ] Gate berfungsi di HP nyata · data hanya keluar lewat token · CI hijau · keep-alive jalan
 
@@ -303,8 +306,8 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ## Fase 6 — Finale & Polish (14 – 20 Des 2026)
 
-- [ ] **Tugas 32: Boarding pass bertali + epilog**
-  - **Deskripsi:** Tag dengan physics Rapier (tali), satu per tamu dari data privat, swipe antar nama, "Hosted by", serta tombol Open Today / Add to Home Screen / Message your host.
+- [ ] **Tugas 32: Boarding pass bertali + epilog** · prototipe 3D disiapkan 9 Nov 2026 (`prototypes/boarding-pass/`, tali verlet, satu tamu, nama dari runtime)
+  - **Deskripsi:** Tag dengan physics Rapier (tali), satu tamu (nama dari data privat), "Hosted by", serta tombol Open Today / Add to Home Screen / Message your host.
   - **Kriteria terima:** bisa ditarik dan diayun di desktop dan HP · nama dari data privat (tidak ada di bundle)
   - **Verifikasi:** uji manual + tes grep bundle tetap lolos
   - **Dependensi:** 23, 11
