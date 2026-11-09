@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useSyncExternalStore } from "react";
-import { type Lang, langStore, pick, translate } from "./lang";
-import type { StringKey } from "./strings";
+import { type Lang, langStore, pick } from "./lang";
+import { type StringKey, translate } from "./strings";
 
 export function useI18n() {
   const lang = useSyncExternalStore(langStore.subscribe, langStore.get, langStore.getServer);

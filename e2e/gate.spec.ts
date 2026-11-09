@@ -99,14 +99,14 @@ test("Today tamu: jadwal sebagai teks, tanpa catatan tim, ikut bahasa", async ({
   await seedSession(page);
   await page.route(TRIP, (r) => json(r, 200, tripFixture("guest")));
   await page.goto("/today/");
-  await expect(page.getByText("Morning walk")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 4, name: "Morning walk" })).toBeVisible();
   await expect(page.getByText("Welcome, Mira. This lakon was written for you.")).toBeVisible();
   await expect(page.getByText(/\d+ days until Solo/)).toBeVisible();
   await expect(page.getByRole("article", { name: /Mira Santoso/ })).toBeVisible();
   await expect(page.getByText(/Day 1 ·/)).toBeVisible();
   await expect(page.getByText("Team note")).toHaveCount(0);
   await page.getByRole("button", { name: "Bahasa Indonesia" }).click();
-  await expect(page.getByText("Jalan pagi")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 4, name: "Jalan pagi" })).toBeVisible();
   await expect(page.getByText(/Hari 1 ·/)).toBeVisible();
 });
 

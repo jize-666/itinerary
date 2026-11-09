@@ -26,8 +26,12 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
 {
   "party":   { "name": "…", "short": "…", "size": 1, "greeting": { "en": "Welcome, …", "id": "Selamat datang, …" } },
   "lodging": { "name": "…", "address": "…", "mapsUrl": "https://maps.google.com/…" },
-  "contacts": [ { "label": { "en": "Your host", "id": "Host" }, "whatsapp": "+62…" } ],
-  "stops": { "check-in": { "pickup": "18:30, lobby" } }
+  "contacts": [
+    { "label": { "en": "Host", "id": "Host" }, "whatsapp": "+62…" },
+    { "label": { "en": "Guide", "id": "Guide" }, "whatsapp": "+62…", "phone": "+62…" },
+    { "label": { "en": "Translator", "id": "Penerjemah" }, "phone": "+62…" }
+  ],
+  "stops": { "check-in": { "pickup": "18:30 · lobby", "address": "…", "mapsUrl": "https://maps.google.com/…" } }
 }
 
 // team
@@ -40,10 +44,26 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
 ```
 
 `party.name` tampil di tiket pribadi, `party.short` di sapaan gerbang ("Sugeng rawuh, …"), `party.greeting` di Today.
+
+Dipakai Today (Fase 2):
+- `contacts` → bilah kontak di bawah layar (maks. 3). `whatsapp` membuka wa.me dengan pesan EN yang sudah terisi
+  ("Hi! It’s [panggilan], messaging from the Today page."); tanpa `whatsapp`, tombolnya menelepon `phone`.
+  Nomor boleh ditulis `08…` atau `+62…`. Semua kontak juga muncul sebagai tombol telepon di sheet darurat.
+- `lodging` → sheet darurat ("Where you’re staying") dengan tombol Maps & salin alamat.
+- `stops[id].pickup` → tampil langsung di kartu Next ("Pickup 18:30 · lobby"), tanpa ketukan.
+  `stops[id].address` / `mapsUrl` menggantikan query Maps publik untuk tombol Maps & salin alamat.
+- Kolom yang kosong cukup tidak tampil (mis. tanpa `contacts`, bilah hanya berisi tombol Emergency).
+
+`team` (hanya token tim): `medical`, `partyNote`, `preferences` (string) tampil di kartu "Catatan tim" di Today.
 Nama tamu hanya ada di sini (bukan di repo/bundle).
 
 Di respons `trip-data`, isi `guest.stops[id]` muncul sebagai `stop.private`, dan `team.stops[id]` muncul sebagai `stop.teamNote` / `stop.estCost` (khusus tim).
 Ubah `updated_at` ke `now()` setiap kali mengedit, supaya ETag berganti dan Today mengambil data baru.
+
+Today menyimpan respons trip-data terakhir di perangkat (`localStorage["lakon.trip"]`, terikat ke token), mengirim
+`If-None-Match` saat membuka lagi (304 → salinan dipakai), dan menampilkan salinan itu bila offline ("Offline · saved …").
+Salinan dihapus bersama sesi (tombol *Use a different code*) atau bila token ditolak (401). Service worker
+(`public/sw.js`) sengaja tidak menyimpan respons trip-data, supaya data peran tim tidak pernah tersaji untuk peran tamu.
 
 ## Edge Functions
 

@@ -139,15 +139,15 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ## Fase 2 — Today (23 – 29 Nov 2026)
 
-- [ ] **Tugas 14: Logika Today**
+- [x] **Tugas 14: Logika Today** · selesai 9 Nov 2026 (19 skenario jam palsu, 7 zona perangkat)
   - **Deskripsi:** Penentuan sebelum/selama/setelah trip, hari ke-N, kartu Now/Next, dan hitung mundur. Semua dihitung di zona Asia/Jakarta.
-  - **Kriteria terima:** hasil benar untuk perangkat ber-zona Singapura maupun Jakarta · pergantian hari tepat di 00.00 WIB
+  - **Kriteria terima:** hasil benar untuk perangkat ber-zona luar Jakarta (UTC+8, Eropa, Amerika, +14, −11) maupun Jakarta · pergantian hari tepat di 00.00 WIB
   - **Verifikasi:** unit test dengan jam palsu (≥ 10 skenario)
   - **Dependensi:** 11
   - **File:** `src/engine/today/schedule.ts`, `tests/unit/today.test.ts`
   - **Ukuran:** S
 
-- [ ] **Tugas 15: UI Today**
+- [x] **Tugas 15: UI Today** · selesai 9 Nov 2026 (Lighthouse a11y 100, jam jemput 0 ketukan; link Maps per tempat tetap perlu dicek manual oleh host)
   - **Deskripsi:** Header hari, Now/Next, timeline, tombol Maps dan copy alamat, chip dress code dan penanda makanan, toggle Plan B, sheet darurat, bilah kontak WhatsApp.
   - **Kriteria terima:** dari layar Today ke jam jemput ≤ 1 ketukan · semua link Maps membuka tempat yang benar · Lighthouse a11y ≥ 95
   - **Verifikasi:** e2e + cek manual setiap link Maps + Lighthouse
@@ -155,12 +155,12 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/app/today/page.tsx`, `src/components/today/*` (≤ 5 komponen), `e2e/today.spec.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 16: PWA offline + Add to Home Screen**
+- [x] **Tugas 16: PWA offline + Add to Home Screen** · selesai 9 Nov 2026 (e2e mode pesawat lulus; uji nyata iPhone & Android menunggu host)
   - **Deskripsi:** Service worker (cache shell, respons `trip-data` terakhir, dan gambar Today), manifest dan ikon PWA, panduan iOS/Android, indikator "Last updated".
   - **Kriteria terima:** Today terbuka dalam mode pesawat setelah kunjungan pertama · ikon dan nama benar di Home Screen
   - **Verifikasi:** e2e offline (Playwright) + uji nyata di iPhone & Android
   - **Dependensi:** 15
-  - **File:** `src/sw.ts`, `public/manifest.webmanifest`, `public/icons/*`, `src/components/InstallGuide.tsx`
+  - **File:** `public/sw.js` (ditulis tangan, tanpa dependency; versi build lewat `?v=`), `public/manifest.webmanifest`, `public/icons/*`, `src/components/InstallGuide.tsx`, `src/lib/pwa.ts`
   - **Ukuran:** M
 
 ### ✅ Checkpoint 2

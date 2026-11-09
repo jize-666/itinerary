@@ -1,6 +1,6 @@
 "use client";
 import { getAudio } from "@/engine/audio/AudioEngine";
-import { translate } from "@/engine/i18n/lang";
+import { translate } from "@/engine/i18n/strings";
 import { useI18n } from "@/engine/i18n/useI18n";
 
 /**

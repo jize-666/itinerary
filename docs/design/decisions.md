@@ -136,6 +136,19 @@ Yang tetap dari putaran pertama:
 - **Today:** hitung mundur bergulir, benang emas menjalar di antara stop dengan titik berwarna menurut fase.
 - Reduced motion mematikan semuanya.
 
+## Today, Fase 2 (9 Nov 2026), "lanjut fase 2, kerjakan semaksimal mungkin"
+Today adalah layar yang dibuka tamu di jalan, jadi informasi datang dulu, seremoni belakangan.
+
+- **Tiga wajah menurut kalender WIB** (`src/engine/today/schedule.ts`): *sebelum trip* = hitung mundur + tiket + checklist *Before you go* (dicentang di perangkat) + panduan Add to Home Screen; *selama trip* = kepala hari (Day N · tanggal, terbit/terbenam, dress code), kartu **Now / Next**, jadwal; *setelah trip* = epilog + tiket sebagai kenang-kenangan. Gerbang mengarahkan kunjungan ulang selama trip langsung ke Today, dan ikon Home Screen membuka Today.
+- **Now / Next** berbentuk tiket kecil berlubang dengan pendar blencong: yang sedang berlangsung + sisa waktu + garis kemajuan; berikutnya + hitung mundur ("in 45 min", "Tomorrow, 04:00") + **jam jemput** dari data privat, terlihat tanpa ketukan. Malam hari, jadwal yang disorot otomatis pindah ke hari esok (subuh Hari 2 berangkat 04.00).
+- **Jadwal**: pilihan hari (hari ini bertitik blencong), benang emas dengan titik fase, stop lewat diredupkan lewat warna (kontras tetap ≥ 4,5:1), chip dress code & makanan (Halal · tingkat manis · *No banana*), tombol Maps & salin alamat. Di HP, jam ditulis di atas judul supaya isi stop selebar layar.
+- **Rain plan**: toggle; rencana hujan per stop muncul, dan hujan tipis turun di belakang jadwal (pola digambar sekali, yang bergerak hanya transform).
+- **Bilah kontak** gaya tab-bar (ikon di atas, label di bawah): WhatsApp host/guide/translator dengan pesan EN terisi, telepon, dan **Emergency** (sheet bawah memakai `<dialog>` bawaan: fokus terkunci, Escape menutup, fokus kembali ke tombol). Isi sheet: 112/119/110, telepon kontak, alamat penginapan.
+- **Offline**: service worker menyimpan halaman, JS/CSS, font Latin, manifest & ikon; data disimpan aplikasi per token. Indikator "Updated just now" / "Offline · saved …".
+- **Pratinjau**: `/today/?at=2027-04-08T10:45` memutar Today ke momen itu (jam WIB) supaya host bisa melihat wajah "selama trip" sebelum April.
+- **Ikon Home Screen**: gunungan prada di atas nila dengan pendar blencong (`public/icons/`), aman untuk masker ikon Android.
+- **Anggaran JS**: 150 KB gz / 129 KB br. Target PRD 120 KB gz lebih kecil dari kerangka React + Next sendiri (≈ 119 KB gz), jadi yang dijaga adalah kode aplikasi (≈ 20 KB br): mesin audio dan kamus lengkap dikeluarkan dari chunk layout.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

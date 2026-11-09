@@ -2,18 +2,13 @@ import { BedPlayer } from "./bed";
 import { BED_LEVEL, BEDS, type BedName, DUCK_LEVEL, SFX, SFX_LEVEL, type SfxName } from "./catalog";
 import { LOOP_LOOKAHEAD } from "./loop";
 import { writeSoundPref } from "./preference";
+import { type AudioState, audioStatus, INITIAL_AUDIO } from "./status";
 
-export type AudioState = Readonly<{
-  /** Tamu sudah memilih di gerbang ("Begin with gamelan" / "Begin quietly"). */
-  started: boolean;
-  /** Suara menyala (toggle). */
-  enabled: boolean;
-}>;
+export type { AudioState };
 
 export type PlayBedOptions = { loop?: boolean; fadeIn?: number; xfade?: number; then?: BedName };
 export type PlaySfxOptions = { gain?: number; delay?: number; duck?: boolean };
 
-const INITIAL: AudioState = { started: false, enabled: false };
 /** Efek yang datang lebih telat dari ini (masih diunduh) dibuang: bunyi gong yang tertinggal visual lebih mengganggu daripada hening. */
 const SFX_LATE = 0.4;
 
@@ -26,7 +21,7 @@ type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext; __lakonA
  * AudioContext hanya dibuat di dalam gesture tamu (klik), jadi aman terhadap kebijakan autoplay.
  */
 class AudioEngine {
-  private state: AudioState = INITIAL;
+  private state: AudioState = INITIAL_AUDIO;
   private readonly listeners = new Set<() => void>();
   private ctx: AudioContext | null = null;
   private master!: GainNode;
@@ -45,7 +40,7 @@ class AudioEngine {
 
   // ---- status untuk React (useSyncExternalStore) ----
   getState = () => this.state;
-  getServerState = () => INITIAL;
+  getServerState = () => INITIAL_AUDIO;
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -53,6 +48,7 @@ class AudioEngine {
   private set(patch: Partial<AudioState>) {
     this.state = { ...this.state, ...patch };
     for (const fn of this.listeners) fn();
+    audioStatus.publish(this.state, this);
   }
 
   /** Pilihan di gerbang. HARUS dipanggil langsung dari handler klik. */

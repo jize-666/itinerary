@@ -1,5 +1,3 @@
-import { STRINGS, type StringKey } from "./strings";
-
 /** Bahasa UI (PRD FR-11): default EN, ganti tanpa reload, diingat di perangkat. */
 export type Lang = "en" | "id";
 export const LANGS: readonly Lang[] = ["en", "id"];
@@ -35,8 +33,6 @@ export function writeLang(lang: Lang, store: Pick<Storage, "setItem"> | undefine
 /** "{n} tries" + {n: 3} → "3 tries". Placeholder yang tidak diisi dibiarkan apa adanya. */
 export const format = (template: string, vars: Record<string, string | number> = {}) =>
   template.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
-
-export const translate = (lang: Lang, key: StringKey, vars?: Record<string, string | number>) => format(STRINGS[key][lang], vars);
 
 /** Teks dua bahasa dari data (bentuk {en, id}). */
 export const pick = (lang: Lang, text: { en: string; id: string } | undefined) => (text ? text[lang] || text.en : "");

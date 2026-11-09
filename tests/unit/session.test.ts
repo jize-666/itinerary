@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CODE_GROUPS, CODE_LENGTH, normalizeCode } from "@/lib/code";
-import { clearSession, fetchTrip, parseSession, readSession, SESSION_KEY, verifyAccess, writeSession } from "@/lib/session";
+import { clearSession, fetchTrip, parseSession, readSession, SESSION_KEY, TRIP_KEY, verifyAccess, writeSession } from "@/lib/session";
 import { normalizeCode as serverNormalize } from "../../supabase/functions/_shared/code.ts";
 
 describe("kode di gerbang", () => {
@@ -24,8 +24,10 @@ describe("sesi di perangkat (FR-03)", () => {
     const s = mem();
     writeSession(good, s);
     expect(readSession(s, 1_000)).toEqual(good);
+    s.setItem(TRIP_KEY, "{}");
     clearSession(s);
     expect(readSession(s, 1_000)).toBeNull();
+    expect(s.m.has(TRIP_KEY)).toBe(false); // salinan Today offline ikut hilang saat ganti kode
   });
 
   it("kedaluwarsa, rusak, atau peran asing → null", () => {

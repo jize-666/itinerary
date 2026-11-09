@@ -5,6 +5,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import { LangToggle } from "@/components/LangToggle";
 import { Curtain } from "@/components/motion/Curtain";
+import { Pwa } from "@/components/Pwa";
 import { SoundToggle } from "@/components/SoundToggle";
 
 // Situs privat: jangan pernah diindeks (PRD FR-06). Link preview netral tanpa data pribadi.
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
   description: "A private invitation.",
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
   referrer: "no-referrer",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Lakon", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -31,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <LangToggle />
         <SoundToggle />
         <Curtain />
+        <Pwa />
       </body>
     </html>
   );

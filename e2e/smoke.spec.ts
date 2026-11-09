@@ -32,7 +32,7 @@ test("CSP tidak memblokir apa pun di alur utama", async ({ page }) => {
   await page.getByRole("button", { name: /Begin with gamelan/ }).click();
   await audio;
   await page.getByRole("link", { name: "Open Today" }).click();
-  await expect(page.getByText("Morning walk")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 4, name: "Morning walk" })).toBeVisible();
   expect(blocked).toEqual([]);
 });
 

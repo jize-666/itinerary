@@ -565,7 +565,7 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | Item | Anggaran |
 |---|---|
 | Gate: JS (gz) | ≤ 80 KB sebelum kode benar. Bundle 3D baru dimuat setelahnya. |
-| Today: JS (gz) | ≤ 120 KB, tanpa WebGL |
+| Today: JS (gz) | ≤ 120 KB, tanpa WebGL. *Terukur 9 Nov 2026: 150 KB gz / 129 KB brotli, tanpa WebGL. Kerangka React 19 + Next 16 sendiri ≈ 119 KB gz / 106 KB br, jadi kode aplikasi Today ≈ 20 KB br. Mesin audio & kamus lengkap sudah dikeluarkan dari chunk layout. Lighthouse mobile (Slow 4G): performa 99, TTI 1,7 dtk.* |
 | Aset per bab (setelah kompresi) | ≤ 6 MB. Total film ≤ 25 MB, dimuat bertahap per bab. |
 | Tekstur | KTX2 (Basis), maks 2048 px. Model GLB dengan kompresi Meshopt/Draco. |
 | Foto DOM | AVIF/WebP, ukuran responsif |
@@ -631,7 +631,7 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | Pemodelan 3D | **Prosedural di kode** (three.js: lathe untuk gong & canting, extrude SVG untuk gunungan & ornamen gayor, data OSM untuk diorama, heightmap DEM untuk lereng Lawu). Opsional: **Blender headless** (skrip Python) untuk model yang lebih rumit, diekspor ke GLB. | Tidak bergantung pada aset 3D pihak ketiga, lisensi bersih, mudah disesuaikan |
 | Transisi halaman | View Transitions API | Shared element |
 | Validasi data | **Zod** | Schema konten + `content:check` |
-| PWA | Service worker (mis. Serwist) | Today offline |
+| PWA | Service worker ditulis sendiri (`public/sw.js`, ±150 baris, tanpa dependency) + salinan trip-data per token di perangkat | Today offline |
 | Hosting frontend | **Vercel** (default, gratis, cukup menautkan repo GitHub sekali) atau **GitHub Pages** (semuanya lewat connector, tapi butuh repo publik atau paket GitHub berbayar) | Karena frontend statis dan tidak memuat data, pilihan host tidak berisiko dan bisa dipindah kapan saja (Q8) |
 | Pipeline aset (offline, di mesin dev) | sharp (AVIF/WebP), toktx / gltf-transform (KTX2, Meshopt), model depth estimation (mis. *Depth Anything V2 Small*) untuk depth map, segmentasi subjek untuk mask | Dijalankan sekali per foto, hasilnya di-commit |
 
@@ -794,7 +794,7 @@ supabase db push               # terapkan migrasi tabel + RLS
 
 | Level | Alat | Cakupan |
 |---|---|---|
-| Unit | Vitest | Schema & `content:check`, logika Today (jam palsu + zona Asia/Jakarta vs Asia/Singapore), filter data per role, normalisasi kode |
+| Unit | Vitest | Schema & `content:check`, logika Today (jam palsu + zona Asia/Jakarta vs zona perangkat lain: UTC+8, Eropa, Amerika, +14, −11), filter data per role, normalisasi kode |
 | E2E | Playwright (Chromium; emulasi iPhone & Pixel) | Kode salah/benar, token, 401 tanpa token, data tim tidak bocor ke peran tamu, `noindex`, toggle bahasa, Today offline, Calm/reduced-motion, credits lengkap |
 | Visual | Screenshot Playwright di posisi scroll tetap (seed partikel tetap) | Mencegah regresi tampilan per bab |
 | Performa | Lighthouse (gate & Today), overlay FPS di perangkat nyata | Target S1–S4 |

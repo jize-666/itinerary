@@ -1,21 +1,22 @@
 "use client";
-import { getAudio } from "@/engine/audio/AudioEngine";
-import { useI18n } from "@/engine/i18n/useI18n";
+import { audioStatus } from "@/engine/audio/status";
+import { CHROME } from "@/engine/i18n/chrome";
+import { useLang } from "@/engine/i18n/useLang";
 import { useAudioState } from "./useAudio";
 
 /** Tombol speaker mengambang. Muncul setelah tamu memilih di gerbang. */
 export function SoundToggle() {
   const { started, enabled } = useAudioState();
-  const { t } = useI18n();
+  const lang = useLang();
   if (!started) return null;
   return (
     <button
       type="button"
       className="sound-toggle"
       aria-pressed={enabled}
-      aria-label={t("sound.label")}
-      title={t(enabled ? "sound.on" : "sound.off")}
-      onClick={() => getAudio().setEnabled(!enabled)}
+      aria-label={CHROME["sound.label"][lang]}
+      title={CHROME[enabled ? "sound.on" : "sound.off"][lang]}
+      onClick={() => audioStatus.setEnabled(!enabled)}
     >
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" fillOpacity="0.18" />

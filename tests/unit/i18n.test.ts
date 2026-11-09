@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { format, LANG_KEY, pick, readLang, translate, writeLang } from "@/engine/i18n/lang";
+import { format, LANG_KEY, pick, readLang, writeLang } from "@/engine/i18n/lang";
+import { translate } from "@/engine/i18n/strings";
 import { STRINGS } from "@/engine/i18n/strings";
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
