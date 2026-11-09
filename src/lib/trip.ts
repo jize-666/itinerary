@@ -2,7 +2,8 @@ import { fetchTrip, type Role, type TripResult } from "./session";
 
 /** Bentuk respons trip-data yang dipakai UI (sisanya dibiarkan apa adanya). */
 export type L = { en: string; id: string };
-export type StopView = { id: string; start: string; end?: string; title: L; why?: L; teamNote?: string; estCost?: number };
+export type Phase = "dawn" | "day" | "dusk" | "night";
+export type StopView = { id: string; start: string; end?: string; phase?: Phase; title: L; why?: L; teamNote?: string; estCost?: number };
 export type DayView = { n: number; date: string; title: L; subtitle: L; stops: StopView[] };
 export type TripView = {
   role: Role;

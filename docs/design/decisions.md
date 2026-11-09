@@ -114,6 +114,15 @@ Permintaan host: masuk kode dan halaman utama harus terasa istimewa untuk satu o
 - **Today:** sapaan dari data privat (*Welcome, [nama]. This lakon was written for you.*), **hitung mundur** menurut kalender WIB (*N days until Solo* → *Tomorrow, Solo.* → *Today, Solo.*), tiket yang sama.
 - **Boarding pass 3D** (`prototypes/boarding-pass/`): satu tag pada benang emas (tali verlet 18 titik + kartu kaku 4 titik; produksi: Rapier). Kartu nila 7,4 × 15 cm dengan cetak foil emas (metalness + timbul), tepi bersepuh, mata ayam kuningan, simpul benang melewati lubang. Depan: nama (pas satu baris otomatis), rute dengan benang bertitik dan pesawat kecil, info 2 × 2, perforasi, barcode foil, *Hosted by*. Belakang: kawung foil + **monogram inisial** + *Matur nuwun*. Bisa diseret; ditarik lalu dilepas → berayun, berputar memperlihatkan belakang, lalu tenang menghadap depan (puntir benang). Nama dibaca dari `window.__guestName` saat runtime, jadi preview bernama tidak di-commit; preview di repo memakai "Your Name".
 
+## Animasi masuk kode, transisi, dan itinerary (9 Nov 2026), atas masukan host: "animasinya kurang banget"
+Semua memakai token gerak dari prototipe Framer yang sudah disetujui; reduced motion mematikan semuanya (durasi & jeda jadi nol).
+
+- **Gerbang (intro ±2,3 dtk):** benang emas turun → kicker teracak lalu terkunci (`text.scramble`) → "Kulonuwun?" membalik huruf demi huruf (`text.flip3d`) lalu kilau emas berulang (`text.shine`) → ajakan naik dari blur (`text.blurRise`) → 9 kotak muncul berurutan (`stagger.item`).
+- **Mengetik:** tiap huruf meletup ke kotaknya dengan kilau. **Memeriksa:** gelombang cahaya blencong menyusuri kotak. **Salah:** goyang + kilat merah lampion. **Benar (1,15 dtk):** kotak menyala emas berurutan, memipih & merapat jadi satu benang emas, layar memudar, kilat blencong membuka ke sambutan.
+- **Sambutan:** sisa cahaya memudar, "Sugeng rawuh" membalik huruf, nama berkilau, tiket berayun masuk lalu disapu kilau foil tiap 6,5 dtk, tombol naik berurutan. Tempat tiket disiapkan sejak awal (layout tidak meloncat).
+- **Masuk ke itinerary:** tekan Begin → **stempel "Admitted"** mendarat di tiket → semuanya memudar → **tirai letterbox** menutup dengan garis emas di tengah → halaman berganti → tirai membuka. Dengan gamelan: **pukulan gong** membuka lakon. Tirai yang sama dipakai Film ↔ Today.
+- **Today:** judul naik dari balik tirai (`text.curtain`), sapaan dari blur, hitung mundur bergulir (`num.odometer`), tiket berayun. Tiap hari muncul saat di-scroll: angka hari besar bergaris, label hari merapat (`text.track`), **benang emas menjalar** di antara stop, titik berwarna menurut fase (subuh merah muda, siang emas, senja jingga, malam biru) meletup satu per satu, stop naik berurutan.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

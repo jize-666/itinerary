@@ -1,4 +1,6 @@
-# Token Motion (usulan, menunggu persetujuan host)
+# Token Motion (disetujui host lewat prototipe Framer, 8 Nov 2026)
+
+**Sudah dipakai di web (9 Nov 2026):** `src/engine/motion/tokens.ts` + variabel `--ease-*` di `src/app/globals.css`; komponen `src/components/motion/` (FlipText, Words, Scramble, CountUp, Curtain, useReveal).
 
 Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Motion"** (https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r). Setelah host menyetujui rasa geraknya, nilai ini dikunci ke `src/engine/motion/tokens.ts` saat Fase 3.
 

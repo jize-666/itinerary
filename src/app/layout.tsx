@@ -4,6 +4,7 @@ import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/manrope";
 import "./globals.css";
 import { LangToggle } from "@/components/LangToggle";
+import { Curtain } from "@/components/motion/Curtain";
 import { SoundToggle } from "@/components/SoundToggle";
 
 // Situs privat: jangan pernah diindeks (PRD FR-06). Link preview netral tanpa data pribadi.
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <LangToggle />
         <SoundToggle />
+        <Curtain />
       </body>
     </html>
   );

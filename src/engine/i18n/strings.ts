@@ -40,6 +40,7 @@ export const STRINGS = {
   "ticket.seat": { en: "Seat", id: "Kursi" },
   "ticket.seatValue": { en: "With the host", id: "Bersama host" },
   "ticket.gate": { en: "Gate", id: "Gerbang" },
+  "ticket.stamp": { en: "Admitted", id: "Diterima" },
   "today.countdown": { en: "{n} days until Solo", id: "{n} hari lagi menuju Solo" },
   "today.tomorrow": { en: "Tomorrow, Solo.", id: "Besok, Solo." },
   "today.today": { en: "Today, Solo.", id: "Hari ini, Solo." },

@@ -6,8 +6,10 @@ type Props = {
   length: number;
   label: string;
   disabled: boolean;
-  /** Goyang halus setelah kode salah (CSS; mati otomatis saat reduced motion). */
-  shake: boolean;
+  /** idle · checking (gelombang cahaya) · error (goyang + kilat merah) · success (menyala & menyatu jadi benang) */
+  state: "idle" | "checking" | "error" | "success";
+  /** Kotak muncul berurutan (hanya kunjungan pertama, bukan setelah salah). */
+  enter: boolean;
   onComplete: (code: string) => void;
   onInput?: () => void;
 };
@@ -16,7 +18,7 @@ type Props = {
  * Kotak per karakter (PRD §7.1). Di baliknya satu <input> asli yang transparan: paste, isi otomatis,
  * keyboard HP, dan pembaca layar tetap bekerja normal. Huruf kecil, spasi, dan tanda hubung dimaafkan.
  */
-export function CodeInput({ length, label, disabled, shake, onComplete, onInput }: Props) {
+export function CodeInput({ length, label, disabled, state, enter, onComplete, onInput }: Props) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
@@ -40,15 +42,19 @@ export function CodeInput({ length, label, disabled, shake, onComplete, onInput 
       const ch = value[i];
       const active = focused && !disabled && i === Math.min(value.length, length - 1) && value.length < length;
       boxes.push(
-        <span key={i} className="code-box" data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
-          {ch ?? ""}
+        <span key={i} className="code-box" style={{ "--i": i } as React.CSSProperties} data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
+          {ch && (
+            <span key={`${i}${ch}`} className="code-char">
+              {ch}
+            </span>
+          )}
         </span>,
       );
     }
   });
 
   return (
-    <div className="code" data-shake={shake ? "" : undefined}>
+    <div className="code" data-state={state} data-enter={enter ? "" : undefined}>
       <input
         ref={ref}
         className="code-input"

@@ -130,6 +130,8 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 - [x] **Tugas 13b: Ditulis untuk satu tamu** ✅ 9 Nov 2026 · kabar host: tamu tinggal satu · gerbang bernada undangan pribadi (tanpa nama sebelum kode) · setelah kode: sapaan nama + tiket pribadi berayun masuk · Today: sapaan, hitung mundur ke Solo, tiket · Film: "for [nama]" · nama hanya di `trip_private.guest.party` (dicek: tidak ada di bundle/repo)
   - **File:** `src/components/{Gate,Ticket,TodayPreview,FilmPlaceholder}.tsx`, `src/lib/trip.ts`, `tests/unit/trip.test.ts`, `e2e/*`
 
+- [x] **Tugas 13c: Animasi masuk kode, transisi, itinerary** ✅ 9 Nov 2026 · token gerak Framer jadi kode (`src/engine/motion/tokens.ts`) · gerbang: intro, huruf meletup, gelombang cek, kilat salah, kotak jadi benang + kilat blencong · sambutan: tiket + kilau foil · stempel "Admitted" + tirai letterbox + gong · Today: judul tirai, hitung mundur bergulir, benang emas & titik fase saat di-scroll · reduced motion: semua mati
+
 ### ✅ Checkpoint 1
 - [ ] Gate berfungsi di HP nyata · data hanya keluar lewat token · CI hijau · keep-alive jalan
 
