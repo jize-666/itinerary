@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { guestShortName, loadTrip } from "@/lib/trip";
-import { FlipText, Words } from "./motion/Kinetic";
+import { Canting, Gamelan, Gunungan } from "./motion/Kinetic";
 import { CurtainLink, useCurtainOpen } from "./motion/Curtain";
 import { useRequireSession } from "./useRequireSession";
 
@@ -27,11 +27,13 @@ export function FilmPlaceholder() {
   return (
     <main className="gate">
       <div className="gate-head">
-        <h1 className="gate-title gate-title--sm">
-          <FlipText text={t("film.title")} delay={250} shine />
-        </h1>
-        {name && <Words as="p" className="film-for" text={t("film.for", { name })} delay={900} />}
-        <Words as="p" className="gate-prompt" text={t("film.soon")} delay={1150} />
+        <Gunungan as="h1" className="gate-title gate-title--sm" text={t("film.title")} delay={300} />
+        {name && (
+          <p className="film-for">
+            <Canting tone="gold" text={t("film.for", { name })} delay={1400} />
+          </p>
+        )}
+        <Gamelan as="p" className="gate-prompt" text={t("film.soon")} delay={2100} />
       </div>
       <CurtainLink className="begin-btn begin-btn--quiet film-link k-late" href="/today/">
         <span className="begin-main">{t("film.toToday")}</span>

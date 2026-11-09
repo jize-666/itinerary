@@ -115,13 +115,24 @@ Permintaan host: masuk kode dan halaman utama harus terasa istimewa untuk satu o
 - **Boarding pass 3D** (`prototypes/boarding-pass/`): satu tag pada benang emas (tali verlet 18 titik + kartu kaku 4 titik; produksi: Rapier). Kartu nila 7,4 × 15 cm dengan cetak foil emas (metalness + timbul), tepi bersepuh, mata ayam kuningan, simpul benang melewati lubang. Depan: nama (pas satu baris otomatis), rute dengan benang bertitik dan pesawat kecil, info 2 × 2, perforasi, barcode foil, *Hosted by*. Belakang: kawung foil + **monogram inisial** + *Matur nuwun*. Bisa diseret; ditarik lalu dilepas → berayun, berputar memperlihatkan belakang, lalu tenang menghadap depan (puntir benang). Nama dibaca dari `window.__guestName` saat runtime, jadi preview bernama tidak di-commit; preview di repo memakai "Your Name".
 
 ## Animasi masuk kode, transisi, dan itinerary (9 Nov 2026), atas masukan host: "animasinya kurang banget"
-Semua memakai token gerak dari prototipe Framer yang sudah disetujui; reduced motion mematikan semuanya (durasi & jeda jadi nol).
+**Revisi (9 Nov 2026), masukan host: "text reveal-nya masih template".** Blur-naik, flip per huruf, dan huruf acak diganti reveal yang lahir dari dunia lakon (`src/components/motion/Kinetic.tsx`):
 
-- **Gerbang (intro ±2,3 dtk):** benang emas turun → kicker teracak lalu terkunci (`text.scramble`) → "Kulonuwun?" membalik huruf demi huruf (`text.flip3d`) lalu kilau emas berulang (`text.shine`) → ajakan naik dari blur (`text.blurRise`) → 9 kotak muncul berurutan (`stagger.item`).
-- **Mengetik:** tiap huruf meletup ke kotaknya dengan kilau. **Memeriksa:** gelombang cahaya blencong menyusuri kotak. **Salah:** goyang + kilat merah lampion. **Benar (1,15 dtk):** kotak menyala emas berurutan, memipih & merapat jadi satu benang emas, layar memudar, kilat blencong membuka ke sambutan.
-- **Sambutan:** sisa cahaya memudar, "Sugeng rawuh" membalik huruf, nama berkilau, tiket berayun masuk lalu disapu kilau foil tiap 6,5 dtk, tombol naik berurutan. Tempat tiket disiapkan sejak awal (layout tidak meloncat).
-- **Masuk ke itinerary:** tekan Begin → **stempel "Admitted"** mendarat di tiket → semuanya memudar → **tirai letterbox** menutup dengan garis emas di tengah → halaman berganti → tirai membuka. Dengan gamelan: **pukulan gong** membuka lakon. Tirai yang sama dipakai Film ↔ Today.
-- **Today:** judul naik dari balik tirai (`text.curtain`), sapaan dari blur, hitung mundur bergulir (`num.odometer`), tiket berayun. Tiap hari muncul saat di-scroll: angka hari besar bergaris, label hari merapat (`text.track`), **benang emas menjalar** di antara stop, titik berwarna menurut fase (subuh merah muda, siang emas, senja jingga, malam biru) meletup satu per satu, stop naik berurutan.
+| Reveal | Gerak | Dipakai di |
+|---|---|---|
+| **Bayang** | Huruf lahir sebagai bayangan wayang di kelir (hitam, besar, kabur) yang berkedip oleh blencong, menajam saat "didekatkan dalang", lalu dibalik ke sisi bercat dengan pendar emas. Urutan dari tengah ke luar. | "Kulonuwun?", "Sugeng rawuh", judul tiap hari (dengan kilat kelir kecil di belakangnya) |
+| **Canting** | Kata digambar garis emas oleh ujung canting yang menyala (dengan tetes malam di belakangnya), lalu warna meresap naik seperti pewarna di kain mori. | Nama panggilan tamu, "for [nama]" |
+| **Gamelan** | Kata dipukul masuk mengikuti irama tabuhan (ketukan tidak rata, aksen tiap empat ketuk), kata terakhir ditutup **riak gong**. | Ajakan gerbang, sapaan, subjudul hari, kalimat Film |
+| **Benang** | Benang emas terjahit di bawah teks, tiap huruf ditarik naik saat benang lewat; benang tinggal sebagai garis tipis. | Kicker ("A private invitation", "Today"), label hari |
+| **Gunungan** | Siluet kayon menyapu dari kiri ke kanan dan membuka judul di belakangnya (`wipe.gunungan`). | Judul Today & Film |
+
+Stop itinerary "dirangkai" ke benang: titik fase meletup dulu, lalu isinya meluncur keluar dari benang. Semua teks tetap utuh di DOM (spasi biasa, bukan non-breaking) untuk pembaca layar, terjemahan, dan tes.
+
+Yang tetap dari putaran pertama:
+- **Kotak kode:** muncul berurutan; huruf meletup saat diketik; gelombang cahaya saat memeriksa; goyang + kilat merah saat salah; kode benar → kotak menyala, memipih jadi benang emas, kilat blencong membuka ke sambutan.
+- **Sambutan:** tiket berayun + kilau foil; tempat tiket disiapkan (layout tidak meloncat).
+- **Masuk ke itinerary:** stempel **"Admitted"** → tirai letterbox dengan garis emas → halaman berganti → tirai membuka; pukulan **gong** bila gamelan menyala.
+- **Today:** hitung mundur bergulir, benang emas menjalar di antara stop dengan titik berwarna menurut fase.
+- Reduced motion mematikan semuanya.
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.

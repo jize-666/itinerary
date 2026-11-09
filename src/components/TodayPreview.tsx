@@ -4,7 +4,7 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import type { Lang } from "@/engine/i18n/lang";
 import { sessionStore, type TripResult } from "@/lib/session";
 import { type DayView, daysUntil, loadTrip, type TripView } from "@/lib/trip";
-import { CountUp, Scramble, Words } from "./motion/Kinetic";
+import { Bayang, Benang, CountUp, Gamelan, Gunungan } from "./motion/Kinetic";
 import { CurtainLink, useCurtainOpen } from "./motion/Curtain";
 import { useReveal } from "./motion/useReveal";
 import { Ticket } from "./Ticket";
@@ -79,17 +79,17 @@ export function TodayPreview() {
   return (
     <main className="today">
       <header className="today-head">
-        <Scramble className="gate-kicker" text={t("today.title")} />
-        <Words as="h1" className="today-title" mode="curtain" text={tx(trip.title)} delay={150} />
-        {greeting && <Words as="p" className="today-greeting" text={greeting} delay={550} />}
+        <Benang className="gate-kicker" text={t("today.title")} delay={100} />
+        <Gunungan as="h1" className="today-title" text={tx(trip.title)} delay={250} />
+        {greeting && <Gamelan as="p" className="today-greeting" text={greeting} delay={1150} />}
         {(before || after) && (
           <p className="today-count">
             {before}
-            {left > 1 && <CountUp value={left} delay={850} />}
+            {left > 1 && <CountUp value={left} delay={1450} />}
             {after}
           </p>
         )}
-        <Ticket data={state.data} delay={1000} />
+        <Ticket data={state.data} delay={1600} />
         <CurtainLink className="today-film" href="/film/">
           {t("today.toFilm")}
         </CurtainLink>
@@ -109,13 +109,18 @@ function Day({ d }: { d: DayView }) {
       <span className="today-bignum" aria-hidden="true">
         {String(d.n).padStart(2, "0")}
       </span>
+      {/* sebelum terlihat: teks sama persis tapi diam (tempat sudah disiapkan); saat terlihat: reveal-nya diputar */}
       <h2 id={`day-${d.n}`}>
-        <span className="today-daynum">
-          {t("today.day", { n: d.n })} · {dayDate(d.date, lang)}
-        </span>
-        <span className="today-dtitle">{tx(d.title)}</span>
+        {shown ? (
+          <Benang className="today-daynum" text={`${t("today.day", { n: d.n })} · ${dayDate(d.date, lang)}`} />
+        ) : (
+          <span className="today-daynum k-wait">
+            {t("today.day", { n: d.n })} · {dayDate(d.date, lang)}
+          </span>
+        )}
+        <span className="today-dtitle">{shown ? <Bayang text={tx(d.title)} delay={250} /> : <span className="k-wait">{tx(d.title)}</span>}</span>
       </h2>
-      <p className="today-sub">{tx(d.subtitle)}</p>
+      {shown ? <Gamelan as="p" className="today-sub" text={tx(d.subtitle)} delay={900} /> : <p className="today-sub k-wait">{tx(d.subtitle)}</p>}
       <ol className="today-stops" style={{ "--n": d.stops.length } as Var}>
         {d.stops.map((s, i) => (
           <li key={s.id} data-phase={s.phase ?? "day"} style={{ "--i": i } as Var}>

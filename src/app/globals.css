@@ -444,16 +444,9 @@ a {
   color: color-mix(in srgb, var(--blencong) 75%, var(--mori));
 }
 
+/* nama tamu: ditulis canting emas (lihat .k-canting) */
 .gate-name {
   color: var(--prada);
-  animation: name-in 0.9s ease-out both;
-}
-
-@keyframes name-in {
-  from {
-    opacity: 0;
-    filter: blur(8px);
-  }
 }
 
 /* ---- Gerbang: undangan pribadi ---- */
@@ -726,44 +719,63 @@ a {
   --glint: #fff1d2;
 }
 
-/* text.flip3d: huruf membalik dari bawah, blur hilang */
-.k-flip {
-  display: inline-block;
-  perspective: 900px;
+/* ---------- Reveal teks lakon (src/components/motion/Kinetic.tsx) ---------- */
+:root {
+  --shadow-ink: #020107; /* bayangan wayang di kelir */
 }
 
-.k-char {
+/* BAYANG: bayangan wayang di kelir → menajam saat didekatkan dalang → dibalik ke sisi bercat */
+.k-bayang {
   display: inline-block;
-  transform-origin: 50% 100%;
-  animation: k-flip 1.1s var(--ease-expo-out) both;
-  animation-delay: calc(var(--d, 0ms) + var(--i) * 60ms);
 }
 
-@keyframes k-flip {
-  from {
+.k-bayang .k-char {
+  display: inline-block;
+  animation: bayang 1.6s var(--ease-expo-out) both;
+  animation-delay: calc(var(--d, 0ms) + var(--o) * 70ms);
+}
+
+@keyframes bayang {
+  0% {
     opacity: 0;
-    transform: rotateX(-100deg) translateY(0.12em);
-    filter: blur(8px);
+    color: var(--shadow-ink);
+    transform: scale(1.8) translateY(-10%);
+    filter: blur(14px);
   }
-  55% {
+  22% {
+    opacity: 0.55;
+  }
+  30% {
     opacity: 1;
   }
+  36% {
+    opacity: 0.7;
+  }
+  44% {
+    opacity: 1;
+  }
+  52% {
+    color: var(--shadow-ink);
+    transform: none;
+    filter: blur(0);
+    text-shadow: 0 0 0 transparent;
+  }
+  66% {
+    color: var(--shadow-ink);
+  }
+  80% {
+    text-shadow: 0 0 24px color-mix(in srgb, var(--blencong) 85%, transparent);
+  }
 }
 
-/* text.shine: kilau emas menyapu huruf demi huruf setelah reveal, berulang tiap 5,6 dtk */
-.k-shine .k-char {
+/* kilau emas menyapu huruf demi huruf setelah bayang selesai, berulang tiap 5,6 dtk (text.shine) */
+.k-bayang.k-glint .k-char {
   animation:
-    k-flip 1.1s var(--ease-expo-out) both,
+    bayang 1.6s var(--ease-expo-out) both,
     k-glint 5.6s linear infinite;
   animation-delay:
-    calc(var(--d, 0ms) + var(--i) * 60ms),
-    calc(var(--d, 0ms) + 1700ms + var(--i) * 45ms);
-}
-
-.gate-name.k-shine {
-  animation:
-    name-in 0.9s ease-out both,
-    k-glint 5.6s linear 1.4s infinite;
+    calc(var(--d, 0ms) + var(--o) * 70ms),
+    calc(var(--d, 0ms) + 2200ms + var(--i) * 45ms);
 }
 
 @keyframes k-glint {
@@ -778,49 +790,278 @@ a {
   }
 }
 
-/* text.blurRise & text.curtain per kata */
-.k-word {
+/* CANTING: garis emas digambar ujung canting yang menyala, lalu warna meresap naik seperti pewarna di mori */
+.k-canting {
+  --fill: var(--mori);
+}
+
+.k-canting--gold {
+  --fill: var(--prada);
+}
+
+.k-cword {
+  position: relative;
   display: inline-block;
 }
 
-.k-word-in {
+.k-cw {
   display: inline-block;
-  animation-fill-mode: both;
+  padding: 0 0.06em 0.08em 0;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--prada);
+  background: linear-gradient(to top, var(--fill) 50%, transparent 50%) 0 0 / 100% 200% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation:
+    canting-draw var(--cd) linear both,
+    canting-dye 0.9s var(--ease-power3-out) both,
+    canting-set 0.6s ease-out both;
+  animation-delay:
+    calc(var(--d, 0ms) + var(--t)),
+    calc(var(--d, 0ms) + var(--t) + var(--cd) - 120ms),
+    calc(var(--d, 0ms) + var(--t) + var(--cd) + 500ms);
 }
 
-.k-words--rise .k-word-in {
-  animation-name: k-rise;
-  animation-duration: 0.75s;
-  animation-timing-function: var(--ease-expo-out);
-  animation-delay: calc(var(--d, 0ms) + var(--i) * 55ms);
+/* ujung canting yang menyala, dengan tetes malam di belakangnya */
+.k-cword::after {
+  content: "";
+  position: absolute;
+  top: 56%;
+  left: 0;
+  width: 0.16em;
+  height: 0.16em;
+  border-radius: 50%;
+  background: var(--glint);
+  box-shadow:
+    0 0 0.45em var(--blencong),
+    -0.32em 0.06em 0 -0.04em color-mix(in srgb, var(--prada) 75%, transparent),
+    -0.62em -0.02em 0 -0.05em color-mix(in srgb, var(--prada) 45%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  animation: canting-tip var(--cd) linear both;
+  animation-delay: calc(var(--d, 0ms) + var(--t));
 }
 
-.k-words--curtain .k-word {
-  overflow: hidden;
-  vertical-align: top;
-  padding: 0 0.06em 0.1em 0;
-  margin-right: -0.06em;
+@keyframes canting-draw {
+  from {
+    clip-path: inset(-30% 100% -30% 0);
+  }
+  to {
+    clip-path: inset(-30% -6% -30% 0);
+  }
 }
 
-.k-words--curtain .k-word-in {
-  animation-name: k-curtain;
-  animation-duration: 0.95s;
-  animation-timing-function: var(--ease-expo-out);
-  animation-delay: calc(var(--d, 0ms) + var(--i) * 62ms);
+@keyframes canting-tip {
+  0% {
+    left: 0;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
 }
 
-@keyframes k-rise {
+@keyframes canting-dye {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+
+@keyframes canting-set {
+  to {
+    -webkit-text-stroke-color: transparent;
+  }
+}
+
+/* GAMELAN: kata dipukul masuk mengikuti irama tabuhan; aksen lebih keras; kata terakhir ditutup riak gong */
+.k-gw {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  animation: strike 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation-delay: calc(var(--d, 0ms) + var(--t));
+}
+
+.k-gw[data-accent] {
+  animation-name: strike-accent;
+}
+
+@keyframes strike {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.4em);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04, 0.92);
+  }
+}
+
+@keyframes strike-accent {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.6em);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.09, 0.84);
+    color: var(--glint);
+  }
+}
+
+.k-gw[data-gong] {
+  position: relative;
+}
+
+.k-gw[data-gong]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1.4em;
+  height: 0.38em;
+  translate: -50% -30%;
+  border-radius: 50%;
+  border: 1px solid var(--prada);
+  opacity: 0;
+  pointer-events: none;
+  animation: gong-ring 1.7s var(--ease-expo-out) both;
+  animation-delay: calc(var(--d, 0ms) + var(--t) + 160ms);
+}
+
+@keyframes gong-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* BENANG: benang emas terjahit di bawah teks, huruf ditarik naik saat benang lewat */
+.k-benang {
+  position: relative;
+  display: inline-block;
+}
+
+.k-benang::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.45em;
+  height: 1px;
+  background: linear-gradient(90deg, var(--prada), color-mix(in srgb, var(--prada) 10%, transparent));
+  transform-origin: left;
+  animation:
+    benang-thread var(--sd) var(--ease-power3-out) both,
+    benang-fade 0.9s ease-out both;
+  animation-delay: var(--d, 0ms), calc(var(--d, 0ms) + var(--sd));
+}
+
+.k-benang .k-char {
+  display: inline-block;
+  animation: benang-pull 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc(var(--d, 0ms) + var(--i) * var(--sp));
+}
+
+@keyframes benang-thread {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes benang-fade {
+  to {
+    opacity: 0.3;
+  }
+}
+
+@keyframes benang-pull {
   from {
     opacity: 0;
     transform: translateY(0.6em);
-    filter: blur(10px);
   }
 }
 
-@keyframes k-curtain {
+/* GUNUNGAN: siluet kayon menyapu dan membuka judul di belakangnya (wipe.gunungan, 1,25 dtk expo.inOut) */
+.k-gunungan {
+  position: relative;
+  display: inline-block;
+}
+
+.k-gunungan-text {
+  display: inline-block;
+  animation: gunungan-open 1.25s var(--ease-expo-in-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.k-kayon {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 1.9em;
+  width: auto;
+  aspect-ratio: 60 / 100;
+  translate: -50% -54%;
+  fill: var(--nila);
+  stroke: var(--prada);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 0.3em color-mix(in srgb, var(--blencong) 55%, transparent));
+  opacity: 0;
+  pointer-events: none;
+  animation: gunungan-sweep 1.25s var(--ease-expo-in-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.k-kayon-tree {
+  fill: none;
+  stroke-width: 1;
+}
+
+@keyframes gunungan-open {
   from {
-    transform: translateY(115%) skewY(8deg);
+    clip-path: inset(-25% 100% -25% 0);
   }
+  to {
+    clip-path: inset(-25% -3% -25% 0);
+  }
+}
+
+@keyframes gunungan-sweep {
+  0% {
+    left: 0;
+    opacity: 0;
+    rotate: -10deg;
+  }
+  12%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+    rotate: 10deg;
+  }
+}
+
+/* spasi di teks yang dipecah per huruf: spasi biasa (teks tetap utuh untuk pencarian & terjemahan), lebarnya dijaga */
+.k-space {
+  white-space: pre;
+}
+
+/* teks yang belum gilirannya: tempat sudah disiapkan, belum terlihat */
+.k-wait {
+  opacity: 0;
 }
 
 @keyframes k-fadein {
@@ -830,18 +1071,59 @@ a {
   }
 }
 
-.gate-head--invite .gate-kicker {
-  animation: k-fadein 0.6s var(--ease-power3-out) 0.4s both;
+/* blencong berkedip selama bayang lahir di gerbang */
+.gate-head--invite::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 60%;
+  width: min(420px, 100vw);
+  height: 180px;
+  translate: -50% -50%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--blencong) 34%, transparent), transparent 70%);
+  pointer-events: none;
+  animation: blencong-flicker 2.6s steps(1) 0.6s both;
+}
+
+@keyframes blencong-flicker {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  14% {
+    opacity: 0.55;
+  }
+  20% {
+    opacity: 1;
+  }
+  31% {
+    opacity: 0.7;
+  }
+  40% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 0.8;
+  }
+  64% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ---- Kotak kode ---- */
 .code[data-enter] .code-box {
   animation: box-in 0.6s var(--ease-power3-out) both;
-  animation-delay: calc(1500ms + var(--i) * 80ms);
+  animation-delay: calc(2300ms + var(--i) * 80ms);
 }
 
 .code[data-enter] .code-sep {
-  animation: k-fadein 0.6s var(--ease-power3-out) 1.9s both;
+  animation: k-fadein 0.6s var(--ease-power3-out) 2.6s both;
 }
 
 @keyframes box-in {
@@ -1005,11 +1287,11 @@ a {
 
 .gate--welcome .begin-btn {
   animation: k-fadein 0.7s var(--ease-power3-out) both;
-  animation-delay: calc(1250ms + var(--i) * 90ms);
+  animation-delay: calc(2300ms + var(--i) * 90ms);
 }
 
 .gate--welcome :is(.begin-note, .gate-switch) {
-  animation: k-fadein 0.7s var(--ease-power3-out) 1.6s both;
+  animation: k-fadein 0.7s var(--ease-power3-out) 2.7s both;
 }
 
 .ticket-shine {
@@ -1181,12 +1463,12 @@ a {
 
 /* ---- Film (sementara) ---- */
 .k-late {
-  animation: k-fadein 0.7s var(--ease-power3-out) 1.5s both;
+  animation: k-fadein 0.7s var(--ease-power3-out) 2.6s both;
 }
 
 /* ---- Today: kepala halaman ---- */
 .today-count {
-  animation: k-fadein 0.7s var(--ease-power3-out) 0.8s both;
+  animation: k-fadein 0.7s var(--ease-power3-out) 1.4s both;
 }
 
 .k-num {
@@ -1197,7 +1479,7 @@ a {
 }
 
 .today-film {
-  animation: k-fadein 0.7s var(--ease-power3-out) 1.5s both;
+  animation: k-fadein 0.7s var(--ease-power3-out) 2.2s both;
 }
 
 .today-loading {
@@ -1233,25 +1515,11 @@ a {
   display: inline-block;
 }
 
-.today-day:not([data-shown]) :is(.today-daynum, .today-dtitle, .today-sub, .today-stops li) {
-  opacity: 0;
-}
 
 .today-day[data-shown] .today-bignum {
   animation: bignum-in 1.4s var(--ease-expo-out) forwards;
 }
 
-.today-day[data-shown] .today-daynum {
-  animation: k-track 1.2s var(--ease-expo-out) both;
-}
-
-.today-day[data-shown] .today-dtitle {
-  animation: k-rise 0.9s var(--ease-expo-out) 0.12s both;
-}
-
-.today-day[data-shown] .today-sub {
-  animation: k-rise 0.8s var(--ease-expo-out) 0.25s both;
-}
 
 @keyframes bignum-in {
   from {
@@ -1264,14 +1532,6 @@ a {
   }
 }
 
-/* text.track: jarak huruf melebar lalu merapat */
-@keyframes k-track {
-  from {
-    opacity: 0;
-    letter-spacing: 0.55em;
-    filter: blur(8px);
-  }
-}
 
 .today-stops {
   position: relative;
@@ -1291,7 +1551,7 @@ a {
 }
 
 .today-day[data-shown] .today-stops::before {
-  animation: thread-grow calc(var(--n) * 140ms + 600ms) var(--ease-power3-out) 0.3s forwards;
+  animation: thread-grow calc(var(--n) * 140ms + 600ms) var(--ease-power3-out) 1s forwards;
 }
 
 @keyframes thread-grow {
@@ -1332,14 +1592,30 @@ a {
   scale: 0;
 }
 
+.today-day:not([data-shown]) .today-stops li {
+  opacity: 0;
+}
+
+/* stop "dirangkai" ke benang: titik meletup dulu, lalu isinya meluncur keluar dari benang */
 .today-day[data-shown] .today-stops li {
-  animation: k-rise 0.7s var(--ease-power3-out) both;
-  animation-delay: calc(0.4s + var(--i) * 140ms);
+  animation: thread-in 0.75s var(--ease-expo-out) both;
+  animation-delay: calc(1.1s + var(--i) * 140ms);
+}
+
+@keyframes thread-in {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 -10% 0 0);
+  }
 }
 
 .today-day[data-shown] .today-stops li::before {
   animation: dot-pop 0.55s var(--ease-expo-out) forwards;
-  animation-delay: calc(0.35s + var(--i) * 140ms);
+  animation-delay: calc(1.05s + var(--i) * 140ms);
 }
 
 @keyframes dot-pop {
@@ -1356,4 +1632,41 @@ a {
 
 .today-time {
   color: color-mix(in srgb, var(--phase) 65%, var(--mori));
+}
+
+/* kelir kecil di belakang judul hari: blencong menyala sebentar supaya bayang wayang terlihat, lalu meredup */
+.today-dtitle {
+  position: relative;
+  isolation: isolate;
+}
+
+.today-day[data-shown] .today-dtitle::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -12%;
+  right: -12%;
+  top: -55%;
+  bottom: -55%;
+  background: radial-gradient(ellipse at 40% 50%, color-mix(in srgb, var(--blencong) 30%, transparent), transparent 70%);
+  pointer-events: none;
+  animation: kelir-glow 2.4s var(--ease-sine) 0.15s both;
+}
+
+@keyframes kelir-glow {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  18% {
+    opacity: 0.6;
+  }
+  26% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.12;
+  }
 }

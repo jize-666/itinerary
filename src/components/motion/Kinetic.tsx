@@ -1,39 +1,96 @@
 "use client";
 import { type CSSProperties, type ElementType, useEffect, useState } from "react";
-import { expoOut, MOTION, prefersReducedMotion, randomGlyph } from "@/engine/motion/tokens";
-
-type Var = CSSProperties & Record<`--${string}`, string | number>;
+import { expoOut, MOTION, prefersReducedMotion } from "@/engine/motion/tokens";
 
 /**
- * Huruf membalik 3D satu per satu + kilau emas (text.flip3d + text.shine).
- * Pembaca layar dan tes membaca teks utuh (textContent sama persis dengan `text`).
+ * Reveal teks yang lahir dari dunia lakon (bukan blur-naik/flip pasaran):
+ * Bayang (wayang kulit), Canting (batik), Gamelan (irama tabuhan + riak gong), Benang (benang emas), Gunungan (sapuan kayon).
+ * Semua menjaga textContent sama persis dengan teks aslinya (pembaca layar, terjemahan, tes).
  */
-export function FlipText({ text, delay = 0, shine = false, className }: { text: string; delay?: number; shine?: boolean; className?: string }) {
+type Var = CSSProperties & Record<`--${string}`, string | number>;
+const ms = (n: number) => `${Math.round(n)}ms`;
+const chars = (text: string) => Array.from(text);
+const charClass = (c: string) => (c === " " ? "k-char k-space" : "k-char");
+const isGap = (w: string) => !w || /^\s+$/.test(w);
+
+/** Jadwal canting per kata: kata berikutnya mulai saat kata sebelumnya 85% tergambar. */
+function cantingTimeline(text: string, delay: number) {
+  let t = delay;
+  return text.split(/(\s+)/).map((w) => {
+    if (isGap(w)) return { w, t: 0, dur: 0 };
+    const dur = MOTION.canting.base + Array.from(w).length * MOTION.canting.perChar;
+    const item = { w, t, dur };
+    t += dur * 0.85;
+    return item;
+  });
+}
+
+/** Jadwal tabuhan per kata: ketukan rata, jeda sebelum aksen tiap empat ketuk, kata terakhir menunggu gong. */
+function gamelanTimeline(text: string) {
+  const parts = text.split(/(\s+)/);
+  const words = parts.filter((w) => !isGap(w)).length;
+  let k = 0;
+  return parts.map((w) => {
+    if (isGap(w)) return { w, t: 0, accent: false, last: false };
+    const last = k === words - 1;
+    const t = k * MOTION.gamelan.beat + Math.floor((k + 1) / 4) * MOTION.gamelan.hold + (last ? MOTION.gamelan.gongWait : 0);
+    const item = { w, t, accent: k % 4 === 3 || last, last };
+    k++;
+    return item;
+  });
+}
+
+/**
+ * Bayang: huruf lahir sebagai bayangan wayang di kelir (hitam, besar, kabur, berkedip oleh blencong),
+ * menajam saat "didekatkan dalang", lalu dibalik ke sisi bercatnya dengan kilau emas. Urutan dari tengah ke luar.
+ */
+export function Bayang({ text, delay = 0, glint = false, className }: { text: string; delay?: number; glint?: boolean; className?: string }) {
+  const cs = chars(text);
+  const mid = (cs.length - 1) / 2;
   return (
-    <span className={`k-flip${shine ? " k-shine" : ""}${className ? ` ${className}` : ""}`} style={{ "--d": `${delay}ms` } as Var}>
-      {Array.from(text).map((ch, i) => (
-        <span key={i} className="k-char" style={{ "--i": i } as Var}>
-          {ch === " " ? " " : ch}
+    <span className={`k-bayang${glint ? " k-glint" : ""}${className ? ` ${className}` : ""}`} style={{ "--d": ms(delay) } as Var}>
+      {cs.map((ch, i) => (
+        <span key={i} className={charClass(ch)} style={{ "--o": Math.round(Math.abs(i - mid)), "--i": i } as Var}>
+          {ch}
         </span>
       ))}
     </span>
   );
 }
 
-/** Kata demi kata: "rise" = naik dari blur (text.blurRise), "curtain" = naik dari balik tirai (text.curtain). */
-export function Words({ text, mode = "rise", delay = 0, as: Tag = "span", className }: { text: string; mode?: "rise" | "curtain"; delay?: number; as?: ElementType; className?: string }) {
-  const words = text.split(/(\s+)/);
-  let n = 0;
+/**
+ * Canting: kata demi kata digambar garis emas oleh ujung canting yang menyala, lalu warnanya meresap naik
+ * seperti pewarna di kain mori. `tone="gold"` untuk nama tamu.
+ */
+export function Canting({ text, delay = 0, tone = "mori", className }: { text: string; delay?: number; tone?: "mori" | "gold"; className?: string }) {
   return (
-    <Tag className={`k-words k-words--${mode}${className ? ` ${className}` : ""}`} style={{ "--d": `${delay}ms` } as Var}>
-      {words.map((w, i) =>
-        /^\s+$/.test(w) ? (
+    <span className={`k-canting k-canting--${tone}${className ? ` ${className}` : ""}`}>
+      {cantingTimeline(text, delay).map(({ w, t, dur }, i) =>
+        isGap(w) ? (
           w
         ) : (
-          <span key={i} className="k-word">
-            <span className="k-word-in" style={{ "--i": n++ } as Var}>
-              {w}
-            </span>
+          <span key={i} className="k-cword" style={{ "--t": ms(t), "--cd": ms(dur) } as Var}>
+            <span className="k-cw">{w}</span>
+          </span>
+        ),
+      )}
+    </span>
+  );
+}
+
+/**
+ * Gamelan: kata "dipukul" masuk mengikuti irama tabuhan (ketukan tidak rata, aksen tiap empat ketuk),
+ * dan kata terakhir ditutup riak gong, seperti gong yang menutup satu gongan.
+ */
+export function Gamelan({ text, delay = 0, as: Tag = "span", className }: { text: string; delay?: number; as?: ElementType; className?: string }) {
+  return (
+    <Tag className={`k-gamelan${className ? ` ${className}` : ""}`} style={{ "--d": ms(delay) } as Var}>
+      {gamelanTimeline(text).map(({ w, t, accent, last }, i) =>
+        isGap(w) ? (
+          w
+        ) : (
+          <span key={i} className="k-gw" data-accent={accent ? "" : undefined} data-gong={last ? "" : undefined} style={{ "--t": ms(t) } as Var}>
+            {w}
           </span>
         ),
       )}
@@ -41,37 +98,33 @@ export function Words({ text, mode = "rise", delay = 0, as: Tag = "span", classN
   );
 }
 
-/** Huruf diacak lalu terkunci satu per satu (text.scramble). Teks akhir selalu sama dengan `text`. */
-export function Scramble({ text, delay = 0, className }: { text: string; delay?: number; className?: string }) {
-  const [shown, setShown] = useState(text);
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const chars = Array.from(text);
-    let locked = 0, timer: ReturnType<typeof setInterval> | undefined, nextLock = 0;
-    const start = setTimeout(() => {
-      timer = setInterval(() => {
-        const t = performance.now();
-        if (t >= nextLock) {
-          locked++;
-          nextLock = t + MOTION.scramble.lockMin + Math.random() * (MOTION.scramble.lockMax - MOTION.scramble.lockMin);
-        }
-        if (locked >= chars.length) {
-          clearInterval(timer);
-          setShown(text);
-          return;
-        }
-        setShown(chars.map((c, i) => (i < locked || c === " " ? c : randomGlyph())).join(""));
-      }, MOTION.scramble.tick);
-    }, delay);
-    return () => {
-      clearTimeout(start);
-      if (timer) clearInterval(timer);
-    };
-  }, [text, delay]);
+/** Benang emas: benang terjahit di bawah teks, tiap huruf ditarik naik saat benang melewatinya. */
+export function Benang({ text, delay = 0, className }: { text: string; delay?: number; className?: string }) {
+  const cs = chars(text);
   return (
-    <span className={className} aria-label={text}>
-      <span aria-hidden="true">{shown}</span>
+    <span
+      className={`k-benang${className ? ` ${className}` : ""}`}
+      style={{ "--d": ms(delay), "--sp": ms(MOTION.benang.perChar), "--sd": ms(cs.length * MOTION.benang.perChar + 220) } as Var}
+    >
+      {cs.map((ch, i) => (
+        <span key={i} className={charClass(ch)} style={{ "--i": i } as Var}>
+          {ch}
+        </span>
+      ))}
     </span>
+  );
+}
+
+/** Gunungan: siluet kayon menyapu dari kiri ke kanan dan membuka judul di belakangnya (token wipe.gunungan). */
+export function Gunungan({ text, delay = 0, as: Tag = "span", className }: { text: string; delay?: number; as?: ElementType; className?: string }) {
+  return (
+    <Tag className={`k-gunungan${className ? ` ${className}` : ""}`} style={{ "--d": ms(delay) } as Var}>
+      <span className="k-gunungan-text">{text}</span>
+      <svg className="k-kayon" viewBox="0 0 60 100" aria-hidden="true" focusable="false">
+        <path d="M30 2C36 14 50 26 54 44C58 62 50 78 40 84V93L47 98H13L20 93V84C10 78 2 62 6 44C10 26 24 14 30 2Z" />
+        <path className="k-kayon-tree" d="M30 18V84M30 36C25 42 19 42 14 48M30 36C35 42 41 42 46 48M30 54C25 60 18 60 13 66M30 54C35 60 42 60 47 66M24 84H36V93H24Z" />
+      </svg>
+    </Tag>
   );
 }
 

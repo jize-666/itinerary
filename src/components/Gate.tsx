@@ -8,7 +8,7 @@ import { type AccessResult, type Session, sessionStore, UNKNOWN, verifyAccess } 
 import { guestShortName, loadTrip, type TripView } from "@/lib/trip";
 import { BeginChoice } from "./BeginChoice";
 import { CodeInput } from "./CodeInput";
-import { FlipText, Scramble, Words } from "./motion/Kinetic";
+import { Bayang, Benang, Canting, Gamelan } from "./motion/Kinetic";
 import { useCurtainNav } from "./motion/Curtain";
 import { Ticket } from "./Ticket";
 import { useSession } from "./useSession";
@@ -105,7 +105,7 @@ export function Gate() {
       <span className="gate-flare" aria-hidden="true" />
       <GateHead kicker={t("gate.kicker")} />
       <div className="gate-form">
-        <Words as="p" className="gate-prompt" text={t("gate.prompt")} delay={1250} />
+        <Gamelan as="p" className="gate-prompt" text={t("gate.prompt")} delay={1900} />
         <CodeInput
           key={attempt}
           length={CODE_LENGTH}
@@ -153,15 +153,15 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
   return (
     <main className="gate gate--welcome" data-leaving={leaving ? "" : undefined}>
       <div className="gate-head">
-        {session.role === "team" && <Scramble className="gate-kicker" text={t("gate.team")} />}
+        {session.role === "team" && <Benang className="gate-kicker" text={t("gate.team")} />}
         <h1 className="gate-title" lang="jv">
-          <FlipText text="Sugeng rawuh" />
-          {name && <span className="gate-name k-shine">, {name}</span>}.
+          <Bayang text="Sugeng rawuh" delay={150} />
+          {name && <Canting className="gate-name" tone="gold" text={`, ${name}`} delay={900} />}.
         </h1>
-        <Words as="p" className="gate-prompt" delay={650} text={session.role === "guest" ? t(fresh ? "gate.forOne" : "gate.forOneBack") : t(fresh ? "gate.welcome" : "gate.welcomeBack")} />
+        <Gamelan as="p" className="gate-prompt" delay={1250} text={session.role === "guest" ? t(fresh ? "gate.forOne" : "gate.forOneBack") : t(fresh ? "gate.welcome" : "gate.welcomeBack")} />
       </div>
       {/* tempat tiket disiapkan sejak awal supaya judul & tombol tidak meloncat saat tiket datang */}
-      {!failed && <div className="ticket-slot">{data && <Ticket data={data} compact delay={750} />}</div>}
+      {!failed && <div className="ticket-slot">{data && <Ticket data={data} compact delay={1500} />}</div>}
       <BeginChoice
         onBegin={(withSound) => {
           setLeaving(true);
@@ -180,9 +180,9 @@ function GateHead({ kicker }: { kicker: string }) {
   return (
     <div className="gate-head gate-head--invite">
       <span className="gate-thread" aria-hidden="true" />
-      <Scramble className="gate-kicker k-fade" text={kicker} delay={450} />
+      <Benang className="gate-kicker" text={kicker} delay={500} />
       <h1 className="gate-title">
-        <FlipText text="Kulonuwun?" delay={600} shine />
+        <Bayang text="Kulonuwun?" delay={700} glint />
       </h1>
     </div>
   );

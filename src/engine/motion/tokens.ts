@@ -10,14 +10,14 @@ export const EASE = {
 } as const;
 
 export const MOTION = {
-  /** text.flip3d: per huruf rotateX −100° → 0, blur 8 → 0 */
-  flipChar: { dur: 1100, stagger: 60 },
-  /** text.blurRise: per kata naik 0,6em, blur 10 → 0 */
-  blurRise: { dur: 750, stagger: 55 },
-  /** text.curtain: per kata naik 115% di dalam mask + skewY 8° → 0 */
-  curtain: { dur: 950, stagger: 62 },
-  /** text.scramble: glif acak tiap 45 ms, huruf terkunci tiap 20–50 ms */
-  scramble: { tick: 45, lockMin: 20, lockMax: 50 },
+  /** bayang: bayangan wayang di kelir menajam lalu dibalik ke sisi bercat (CSS: k-bayang, 1,6 dtk, 70 ms dari tengah) */
+  bayang: { dur: 1600, stagger: 70 },
+  /** canting: garis emas digambar per kata (dasar + per huruf), lalu warna meresap */
+  canting: { base: 260, perChar: 55 },
+  /** gamelan: ketukan per kata, jeda sebelum aksen tiap empat ketuk, tunggu sebelum gong (kata terakhir) */
+  gamelan: { beat: 150, hold: 70, gongWait: 140 },
+  /** benang: benang emas lewat di bawah teks, satu huruf tiap 38 ms */
+  benang: { perChar: 38 },
   /** stagger.item: kotak kode, stop itinerary */
   item: { dur: 600, stagger: 80 },
   /** num.odometer → hitung naik */
@@ -27,9 +27,6 @@ export const MOTION = {
   /** jeda dari kode benar sampai sambutan (kotak menyala → menyatu jadi benang → kilat blencong) */
   unlock: { dur: 1150 },
 } as const;
-
-const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789·•";
-export const randomGlyph = (rnd = Math.random) => GLYPHS[Math.floor(rnd() * GLYPHS.length)]!;
 
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
