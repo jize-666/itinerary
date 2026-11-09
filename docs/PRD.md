@@ -77,9 +77,25 @@ Host masih menyusun rencana untuk Q1–Q6, jadi nilai di bawah ini menjadi **def
 | Q1 | Tanggal | **Hari 0 Rabu 7 Apr 2027** (tiba) · **Hari 1 Kamis 8 Apr** · **Hari 2 Jumat 9 Apr** · **Hari 3 Sabtu 10 Apr** · **Hari 4 Minggu 11 Apr** (pulang) | Di luar Ramadan/Idulfitri 2027 (perkiraan Feb–Mar) dan Iduladha (perkiraan pertengahan Mei) [V]. Keraton dikunjungi Kamis, menghindari kemungkinan tutup hari Jumat [V]. Sabtu malam cocok untuk Ngarsopuro Night Market [V]. April masuk peralihan ke musim kemarau, jadi lebih kering daripada Des–Feb, walau hujan sore masih mungkin [V]. |
 | Q2 | Kedatangan & kepulangan | Perjalanan dimulai dari **Belitung (TJQ, Tanjung Pandan)**. **Hari 0:** host dan tamu terbang bersama **Belitung → Jakarta → Solo (TJQ → CGK → SOC)**, rute dikonfirmasi host 8 Nov 2026 [V jadwal & maskapai]. Hari 0: check-in + wedangan sambutan yang ringan (opsional). Pulang Hari 4 pagi. | Host ikut sepanjang perjalanan. Web bisa diperkenalkan langsung oleh host ke tamu saat masih di Belitung. |
 | Q3 | Jumlah tamu | **1 tamu** (dikonfirmasi host 9 Nov 2026: dua rekan batal). Engine tetap mendukung 1–5. | Nama asli **hanya** di data privat Supabase (`trip_private.guest.party`), tidak pernah di repo, PRD, atau bundle |
-| Q4 | "Movies" | **Wayang Orang Sriwedari** sebagai "bioskop"-nya Solo (Hari 2 malam), dengan Plan B **bioskop** di mal | Lebih berkesan dan khas Solo, tapi tetap ada opsi film sungguhan |
-| Q5 | Night ride | **Dibonceng rider lokal berpengalaman** (vespa/motor, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
+| Q4 | "Movies" | **Malam film di bioskop** (Hari 2 malam; host: tamu masih menimbang tapi **condong ke bioskop**, 9 Nov 2026), dengan **Wayang Orang Sriwedari** sebagai pilihan tukar | Sesuai selera tamu, tanpa menutup pengalaman khas Solo |
+| Q5 | Night ride | **Dibonceng motor oleh rider lokal berpengalaman** (jenis motor menyusul, helm disediakan) di rute pendek tengah kota, ±60–90 menit. Tamu **tidak menyetir sendiri**. Plan B: mobil. | Seru, aman, dan tidak bergantung pada SIM tamu |
 | Q6 | Penginapan | Guesthouse/homestay bernuansa heritage di kawasan Mangkunegaran–Keprabon–Ngarsopuro, **kamar mandi dalam**. Kandidat dipilih paling lambat H-30 [V]. | Dekat titik malam dan sesuai syarat tamu |
+
+### 2.2 Profil selera tamu (form dari teman tamu, versi terakhir 9 Nov 2026 + koreksi host di chat)
+Tanpa identitas. Nama, nama panggilan, dan catatan kesehatan hanya ada di data privat Supabase.
+
+| Topik | Jawaban | Dampak |
+|---|---|---|
+| Sapaan | Nama panggilan (bukan nama depan) | Gerbang & Today menyapa dengan nama panggilan; tiket memakai nama lengkap |
+| Makan | Halal tidak wajib · manis **sedang** · pedas **sedang** · lihat catatan tim untuk pantangan | Pilihan kuliner & level sambal |
+| Tempo | **Sedang** · kuat jalan kaki 30–60 menit sekali jalan · tahan panas "lumayan" · **kuat bangun subuh** | Sunrise tetap di jadwal; jeda teduh di siang hari, tidak ada jalan kaki > 1 jam |
+| Minat | Sejarah & keraton, kuliner, batik & belanja, alam & kebun teh, foto, nongkrong malam (hampir semua) | Jadwal yang sekarang sudah cocok; malam boleh diperpanjang |
+| "Movies" & night ride | Dua-duanya, **condong ke bioskop** (wayang: "coba saja"); night ride naik motor, **semangat** | Q4, Q5 |
+| Budget | **Harus lebih hemat** dari Rp1–1,5 jt/hari · biaya di lapangan **dibayar host dulu, diganti nanti** | Q12 direvisi: angka target menyusul; `estCost` di catatan tim jadi dasar rekap penggantian |
+| Penginapan | Guesthouse heritage | Q6 |
+| Jadwal | **Tunjukkan semua** (tanpa kejutan tersembunyi) | Semua stop terlihat di film & Today |
+| Perangkat | iPhone + laptop | Uji utama Safari iOS (sakelar senyap, gyroscope) dan desktop |
+| Momen spesial | **Belum diketahui** | Kalau ada (mis. ulang tahun di tanggal trip): momen khusus di film + kejutan di hari itu |
 
 ---
 
@@ -400,7 +416,7 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 | 15.30 | Sore | **De Tjolomadoe**: bekas pabrik gula yang direvitalisasi | Estetik dan sebagian besar indoor, aman saat hujan [V jam buka] |
 | 17.00 | Senja | **Sunset di Waduk Cengklik** (matahari terbenam ±17.40) | Kadang terlihat pesawat mendarat di bandara Adi Soemarmo di dekatnya [V] |
 | 19.00 | Malam | Makan malam nasi liwet (kandidat: kawasan Keprabon) | Gurih dan bersantan [V] |
-| 20.00 | Malam | **Night ride**: Jl. Slamet Riyadi → Gladag → Benteng Vastenburg → kuliner malam Galabo → Ngarsopuro → wedangan (HIK) | Kendaraan TBD (Q5) |
+| 20.00 | Malam | **Night ride** naik motor: Jl. Slamet Riyadi → Gladag → Benteng Vastenburg → kuliner malam Galabo → Ngarsopuro → wedangan (HIK) | Jenis motor TBD (Q5) |
 
 ### 10.3 Hari 2: *Mist of Lawu* (sunrise, alam, candi, pertunjukan malam)
 | Jam (WIB) | Fase | Kegiatan | Catatan |
@@ -415,7 +431,7 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 | 13.45 | Siang | **Grojogan Sewu** (air terjun) | Banyak anak tangga. Dilewati kalau hujan deras. |
 | 15.15 | Sore | Kembali ke Solo, istirahat | |
 | 18.30 | Malam | Makan malam selat solo (manis-gurih) | [V] |
-| 20.00 | Malam | **"Movies" versi Solo: Wayang Orang Sriwedari**, teater klasik yang berjalan sejak 1910 [V jadwal] | Alternatif: bioskop. Lihat Q4. |
+| 20.00 | Malam | **Malam film di bioskop** (film pilihan tamu) [V bioskop & jadwal] | Pilihan tukar: **Wayang Orang Sriwedari**, teater klasik sejak 1910 [V jadwal]. Lihat Q4. |
 | 22.00 | Malam | Wedang jahe di wedangan | Opsional |
 
 ### 10.4 Hari 3: *Threads of Batik* (batik, istana kedua, perpisahan)
