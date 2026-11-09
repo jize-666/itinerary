@@ -110,6 +110,23 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const offline = stale || !online;
+  const during = s.phase === "during";
+  const meta = (
+    <>
+      <p className="td-status" data-offline={offline ? "" : undefined}>
+        <span className="td-dot" aria-hidden="true" />
+        <span>{offline ? t("today.offlineSaved", { t: fmtAgo(savedAt, at, lang) }) : t("today.updated", { t: fmtAgo(savedAt, at, lang) })}</span>
+        {offline && online && (
+          <button type="button" className="td-refresh" onClick={onRefresh}>
+            {t("today.refresh")}
+          </button>
+        )}
+      </p>
+      <CurtainLink className="today-film" href="/film/">
+        {t("today.toFilm")}
+      </CurtainLink>
+    </>
+  );
   return (
     <main className="td" data-phase={s.phase}>
       {isPreview() && (
@@ -118,18 +135,16 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
         </p>
       )}
       <header className="td-head">
-        {s.phase === "during" ? (
+        {during ? (
           <>
             <Benang className="td-kicker" text={s.day ? `${t("today.day", { n: s.day.n })} · ${fmtDay(s.date, lang)}` : fmtDay(s.date, lang)} />
             <Gunungan as="h1" className="td-title" text={s.day ? tx(s.day.title) : tx(trip.title)} delay={80} />
-            {s.day && <p className="td-sub">{tx(s.day.subtitle)}</p>}
             {(s.day?.sunrise || s.day?.sunset) && (
               <p className="td-sun">
                 {s.day.sunrise && <span data-sun="rise">{t("today.sunrise", { t: s.day.sunrise })}</span>}
                 {s.day.sunset && <span data-sun="set">{t("today.sunset", { t: s.day.sunset })}</span>}
               </p>
             )}
-            {s.day?.dressCode && <p className="td-dress">{tx(s.day.dressCode)}</p>}
           </>
         ) : s.phase === "before" ? (
           <>
@@ -148,22 +163,20 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
             <Ticket data={data} delay={1200} />
           </>
         )}
-        <p className="td-status" data-offline={offline ? "" : undefined}>
-          <span className="td-dot" aria-hidden="true" />
-          <span>{offline ? t("today.offlineSaved", { t: fmtAgo(savedAt, at, lang) }) : t("today.updated", { t: fmtAgo(savedAt, at, lang) })}</span>
-          {offline && online && (
-            <button type="button" className="td-refresh" onClick={onRefresh}>
-              {t("today.refresh")}
-            </button>
-          )}
-        </p>
-        <CurtainLink className="today-film" href="/film/">
-          {t("today.toFilm")}
-        </CurtainLink>
+        {!during && meta}
       </header>
 
+      {/* selama trip: Now/Next langsung di bawah judul (terlihat tanpa scroll), catatan hari menyusul */}
+      {during && <NowNext s={s} />}
+      {during && (
+        <div className="td-meta">
+          {s.day && <p className="td-sub">{tx(s.day.subtitle)}</p>}
+          {s.day?.dressCode && <p className="td-dress">{tx(s.day.dressCode)}</p>}
+          {meta}
+        </div>
+      )}
       {data.role === "team" && data.team && <TeamNotes team={data.team} />}
-      {s.phase !== "after" && (s.now || s.next || s.phase === "during") && <NowNext s={s} />}
+      {s.phase === "before" && s.next && <NowNext s={s} />}
       {s.phase === "before" && <BeforeYouGo items={trip.beforeYouGo ?? []} />}
       {s.phase === "before" && <InstallGuide />}
       <DayPlan days={trip.days} s={s} at={at} onCopied={onCopied} />
