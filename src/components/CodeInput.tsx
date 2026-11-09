@@ -6,8 +6,10 @@ type Props = {
   length: number;
   label: string;
   disabled: boolean;
-  /** Goyang halus setelah kode salah (CSS; mati otomatis saat reduced motion). */
-  shake: boolean;
+  /** idle · checking (gelombang cahaya) · error (goyang + kilat merah) · success (menyala & menyatu jadi benang) */
+  state: "idle" | "checking" | "error" | "success";
+  /** Kotak muncul berurutan (hanya kunjungan pertama, bukan setelah salah). */
+  enter: boolean;
   onComplete: (code: string) => void;
   onInput?: () => void;
 };
@@ -16,7 +18,7 @@ type Props = {
  * Kotak per karakter (PRD §7.1). Di baliknya satu <input> asli yang transparan: paste, isi otomatis,
  * keyboard HP, dan pembaca layar tetap bekerja normal. Huruf kecil, spasi, dan tanda hubung dimaafkan.
  */
-export function CodeInput({ length, label, disabled, shake, onComplete, onInput }: Props) {
+export function CodeInput({ length, label, disabled, state, enter, onComplete, onInput }: Props) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
@@ -32,6 +34,18 @@ export function CodeInput({ length, label, disabled, shake, onComplete, onInput 
     if (v.length === length) onComplete(v);
   };
 
+  // Saat kode benar, kotak merapat jadi satu benang di tengah: geser tiap kotak sebesar celah (--sg) & pemisah (--ss)
+  // yang ada di antara posisinya dan susunan rapat. Lihat @keyframes box-ok.
+  const seps = CODE_GROUPS.length - 1;
+  const sepsBefore = (idx: number) => {
+    let acc = 0, n = 0;
+    for (let g = 0; g < CODE_GROUPS.length - 1; g++) {
+      acc += CODE_GROUPS[g]!;
+      if (idx >= acc) n++;
+    }
+    return n;
+  };
+  const shift = (idx: number) => ({ "--sg": (length + seps - 1) / 2 - idx - sepsBefore(idx), "--ss": seps / 2 - sepsBefore(idx) });
   const boxes: React.ReactNode[] = [];
   let i = 0;
   CODE_GROUPS.forEach((size, g) => {
@@ -40,15 +54,19 @@ export function CodeInput({ length, label, disabled, shake, onComplete, onInput 
       const ch = value[i];
       const active = focused && !disabled && i === Math.min(value.length, length - 1) && value.length < length;
       boxes.push(
-        <span key={i} className="code-box" data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
-          {ch ?? ""}
+        <span key={i} className="code-box" style={{ "--i": i, ...shift(i) } as React.CSSProperties} data-filled={ch ? "" : undefined} data-active={active ? "" : undefined}>
+          {ch && (
+            <span key={`${i}${ch}`} className="code-char">
+              {ch}
+            </span>
+          )}
         </span>,
       );
     }
   });
 
   return (
-    <div className="code" data-shake={shake ? "" : undefined}>
+    <div className="code" data-state={state} data-enter={enter ? "" : undefined}>
       <input
         ref={ref}
         className="code-input"

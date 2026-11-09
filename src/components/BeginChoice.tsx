@@ -17,10 +17,10 @@ export function BeginChoice({ onBegin }: { onBegin: (withSound: boolean) => void
   };
   return (
     <div className="begin">
-      {([true, false] as const).map((withSound) => {
+      {([true, false] as const).map((withSound, i) => {
         const key = withSound ? "begin.sound" : "begin.quiet";
         return (
-          <button key={key} type="button" className={`begin-btn begin-btn--${withSound ? "sound" : "quiet"}`} onClick={() => choose(withSound)}>
+          <button key={key} type="button" style={{ "--i": i } as React.CSSProperties} className={`begin-btn begin-btn--${withSound ? "sound" : "quiet"}`} onClick={() => choose(withSound)}>
             <span className="begin-main">{t(key)}</span>
             <span className="begin-sub" lang={other}>
               {translate(other, key)}

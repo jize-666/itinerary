@@ -12,14 +12,15 @@ const fmtDate = (date: string, lang: Lang) =>
  * Tiket pribadi (versi DOM dari boarding pass 3D). Semua isinya dari trip-data setelah kode benar:
  * nama tamu dari data privat, rute & tanggal dari konten trip. Tidak ada yang tertanam di bundle.
  */
-export function Ticket({ data, compact = false }: { data: TripView; compact?: boolean }) {
+export function Ticket({ data, compact = false, delay = 0 }: { data: TripView; compact?: boolean; delay?: number }) {
   const { lang, t, tx } = useI18n();
   const party = data.private?.party;
   const legs = data.trip.route?.legs ?? [];
   const first = data.trip.days[0];
   if (!party?.name || legs.length < 2 || !first) return null;
   return (
-    <article className="ticket" data-compact={compact ? "" : undefined} aria-label={`${t("ticket.kicker")}: ${party.name}`}>
+    <article className="ticket" data-compact={compact ? "" : undefined} style={{ "--d": `${delay}ms` } as React.CSSProperties} aria-label={`${t("ticket.kicker")}: ${party.name}`}>
+      <span className="ticket-shine" aria-hidden="true" />
       <div className="ticket-top">
         <span>{t("ticket.kicker")}</span>
         <span>{t("ticket.admit")}</span>
@@ -48,6 +49,9 @@ export function Ticket({ data, compact = false }: { data: TripView; compact?: bo
         </div>
       </dl>
       <div className="ticket-stub" aria-hidden="true" />
+      <span className="ticket-stamp" aria-hidden="true">
+        {t("ticket.stamp")}
+      </span>
     </article>
   );
 }

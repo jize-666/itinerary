@@ -1,4 +1,6 @@
-# Token Motion (usulan, menunggu persetujuan host)
+# Token Motion (disetujui host lewat prototipe Framer, 8 Nov 2026)
+
+**Sudah dipakai di web (9 Nov 2026):** `src/engine/motion/tokens.ts` + variabel `--ease-*` di `src/app/globals.css`; komponen `src/components/motion/` (FlipText, Words, Scramble, CountUp, Curtain, useReveal).
 
 Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Motion"** (https://framer.com/projects/JFpFbDKBsfnsgzvi6f8r). Setelah host menyetujui rasa geraknya, nilai ini dikunci ke `src/engine/motion/tokens.ts` saat Fase 3.
 
@@ -32,6 +34,15 @@ Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Mot
 | `num.odometer` | 1,8 dtk, jeda 120–150 ms/digit, 2 putaran | 3 · 20 · 1 |
 | `marquee.velocity` | dasar −2 / +3 %/dtk, dikali kecepatan scroll (spring 400/50) | Pita "Solo · Surakarta · The Spirit of Java" |
 | `gong.strike` | tabuh 1 dtk (ancang 0,16 → hantam 0,24), gong bergoyang 1,8 dtk, 3 riak + gelombang kejut + 22 percikan | Komponen `GongStrike` (klik/tap/Enter) |
+
+## v3 (9 Nov 2026): reveal teks lakon (menggantikan blur-naik, flip, dan scramble yang terasa template)
+| Token | Nilai | Dipakai di |
+|---|---|---|
+| `text.bayang` | 1,6 dtk/huruf, jeda 70 ms dari tengah ke luar; 0–52%: bayangan `#020107` skala 1,8 → 1, blur 14 → 0, berkedip; 52–66%: siluet tajam; → warna asli + pendar blencong | Judul gerbang, sambutan, judul hari |
+| `text.canting` | per kata 260 ms + 55 ms/huruf (kata berikutnya mulai di 85%), garis emas 1 px digambar linear, lalu pewarna naik 0,9 dtk `power3.out` | Nama tamu |
+| `text.gamelan` | ketukan 150 ms/kata, +70 ms sebelum aksen tiap empat ketuk, kata terakhir +140 ms lalu riak gong 1,7 dtk | Kalimat pendek |
+| `text.benang` | 38 ms/huruf, benang 1 px tumbuh `power3.out`, huruf naik 0,6em dengan pantulan, benang meredup ke 30% | Kicker, label hari |
+| `wipe.gunungan` | 1,25 dtk `expo.inOut`, kayon (tinggi 1,9em) menyapu, teks dibuka `clip-path` sejalan | Judul halaman |
 
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
