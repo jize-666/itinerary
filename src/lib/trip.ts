@@ -15,7 +15,12 @@ export type StopView = {
   kind?: string;
   optional?: boolean;
   title: L;
+  /** Pengenalan tempat: satu fakta + satu rasa (sheet detail film). */
+  story?: L;
   why?: L;
+  /** Bentuk panel di gallery film; `photo` menunjuk id di manifest foto. */
+  panel?: "photo" | "type" | "object";
+  photo?: string;
   tips?: L;
   dressCode?: L;
   maps?: { query: string; url: string };
@@ -25,19 +30,27 @@ export type StopView = {
   teamNote?: string;
   estCost?: number;
 };
-export type DayView = { n: number; date: string; kind?: string; title: L; subtitle: L; dressCode?: L; sunrise?: string; sunset?: string; stops: StopView[] };
+export type DayView = { n: number; date: string; kind?: string; slug?: string; theme?: string; title: L; subtitle: L; dressCode?: L; sunrise?: string; sunset?: string; stops: StopView[] };
 export type Contact = { label: L; whatsapp?: string; phone?: string };
+export type FactView = { id: string; title: L; body: L };
+export type PhraseView = { jv: string; en: string; id: string };
+/** Entri manifest foto (PRD §13.5): cukup untuk menampilkan foto dan menulis kreditnya. */
+export type PhotoView = { id: string; file: string; author: string; license: string; licenseUrl?: string; sourceUrl?: string; alt?: L; focalPoint?: [number, number] };
 export type Lodging = { name?: string; address?: string; mapsUrl?: string };
 export type TripView = {
   role: Role;
   trip: {
     title: L;
+    city?: string;
     route?: { label: L; legs: string[] };
+    prologue?: { kicker?: L; headline?: L; intro?: L; facts?: FactView[]; phrases?: PhraseView[] };
     beforeYouGo?: { id: string; title: L; body: L }[];
     emergency?: { label: L; number: string }[];
     epilogue?: { title: L; body: L };
     days: DayView[];
   };
+  /** Manifest foto berlisensi (kosong sampai Tugas 6). */
+  manifest?: PhotoView[];
   private?: { party?: { name?: string; short?: string; size?: number; greeting?: L }; lodging?: Lodging; contacts?: Contact[] };
   /** Hanya untuk token tim. */
   team?: { medical?: string; partyNote?: string; preferences?: string };
