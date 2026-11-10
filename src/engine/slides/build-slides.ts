@@ -120,11 +120,11 @@ export function buildFilm(data: TripView): Film {
   facts.forEach((fact, i) => push({ id: `fact-${fact.id}`, kind: "fact", fact, n: i + 1, of: facts.length, sky: "night", theme: "travel" }));
   const panelTotal = [...panelsByDay.values()].reduce((n, p) => n + p.length, 0);
   if (chapterDays.length && (trip.route?.legs?.length ?? 0) >= 2) {
-    push({ id: "route", kind: "route", days: chapterDays.length, stops: panelTotal, sky: "dawn", theme: "travel" });
+    push({ id: "route", kind: "route", days: chapterDays.length, stops: panelTotal, sky: "night", theme: "travel" });
   }
   const contacts = (data.private?.contacts ?? []).filter((c) => c.label && (c.whatsapp || c.phone));
-  if (contacts.length) push({ id: "team", kind: "team", contacts, sky: "dawn", theme: "travel" });
-  if (pro?.phrases?.length) push({ id: "phrases", kind: "phrases", phrases: pro.phrases, sky: "dawn", theme: "travel" });
+  if (contacts.length) push({ id: "team", kind: "team", contacts, sky: "night", theme: "travel" });
+  if (pro?.phrases?.length) push({ id: "phrases", kind: "phrases", phrases: pro.phrases, sky: "night", theme: "travel" });
   for (const day of before) push({ id: `card-${daySlug(day)}`, kind: "daycard", day, sky: skyOf(day.stops[0], "dusk"), theme: themeOf(day) });
 
   // ---- bab hari ----

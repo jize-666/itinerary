@@ -70,15 +70,15 @@ test("Begin: gamelan langsung berbunyi (Kebo Giro), toggle bisa mematikan", asyn
   expect((await audioDebug(page))?.bed).toBe("kebo-giro");
 });
 
-test("klik tombol berbunyi saat gamelan menyala (pop/tok), hening setelah di-mute", async ({ page }) => {
+test("klik tombol berbunyi saat gamelan menyala (click/tok), hening setelah di-mute", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Begin the lakon" }).click();
   await expect(page).toHaveURL(/\/film\/$/);
   await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("kebo-giro");
-  // tombol emas → pop
+  // tombol Today di pojok film (nada-emas, sekunder) → click
   await page.getByRole("link", { name: "Open Today" }).click();
   await expect(page).toHaveURL(/\/today\/$/);
-  await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 5_000 }).toBe("ui-pop");
+  await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 5_000 }).toBe("ui-click");
   // sakelar bahasa → tok keprak
   await page.getByRole("button", { name: /Bahasa Indonesia/ }).click();
   await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 5_000 }).toBe("ui-tok");
