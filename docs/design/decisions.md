@@ -178,6 +178,47 @@ Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonj
   - `ui-tok` (sakelar: EN/ID, Rain plan, pilihan hari, checklist, speaker): ketukan keprak dalang, dibuat dengan ElevenLabs (paket gratis, 50 kredit).
 - Masing-masing < 4 KB, dimuat bersama SFX lain setelah sambutan berbunyi; volume 0,45 dan tidak merendahkan gendhing. Bisa ditimpa per tombol lewat `data-sfx`.
 
+## Film 2D, F1 (10–11 Nov 2026), "lanjut F1"
+Film kini bisa ditonton dari prolog sampai credits di `/film/`. Lapisan ini sekaligus menjadi tier **Static** dan **Calm**; panggung 3D (F2) nanti dipasang di belakangnya dan digerakkan oleh sumber kemajuan yang sama.
+
+**Susunan.** `buildFilm()` (`src/engine/slides/build-slides.ts`) memetakan respons trip-data menjadi ±50 slide: prolog (hero, pembuka, 5 fakta kota, rute + penghitung, tim, frasa Jawa, kartu kedatangan) → tiap hari (kartu judul berletterbox, intro, gallery menyamping, gong penutup yang menunjuk hari berikutnya) → epilog (penutup, kartu kepulangan, tiket + Open Today / Add to Home Screen / pesan ke host) → credits. Tidak ada teks itinerary di bundle.
+
+**Mesin.** Tiga bagian murni yang dites tanpa browser:
+- `controller.ts`: state machine diam / scrub / transisi. Maksimal satu langkah diantrekan (sisa transisi dipercepat 1,8×); roda dan trackpad dibuang sampai transisi 80%; arah berlawanan membalik transisi di tempat; scrub jari lanjut di 35% atau sentakan searah.
+- `input.ts`: `WheelGestures` mengenali gerakan dari amplop kecepatan (naik → puncak → meluruh), bukan sekadar kunci waktu. Langkah baru hanya dari jeda, balik arah, atau dorongan yang naik jelas di atas dasar peluruhan (paling cepat 450 ms setelah langkah sebelumnya). Event yang digabung browser saat thread utama tersendat dikenali dari kecepatan rata-ratanya dan tidak dihitung gerakan baru.
+- `timeline.ts`: transisi di atas Web Animations dengan lintasan berupa angka, sehingga bisa mengikuti jari, dilanjutkan dari posisi jari, dibalik di tengah jalan, dan kemajuannya dibaca dari jam yang sama (`progress()`, untuk kamera 3D).
+
+**Empat rupa transisi** (`src/components/film/transitions.ts`), semuanya hanya `opacity` dan `transform`:
+| Rupa | Kapan | Gerak |
+|---|---|---|
+| slide | antar slide dalam satu bab | lapisan lama memudar naik, lapisan baru masuk dari arah perjalanan, 1,1 dtk `power3.inOut` |
+| inner | di dalam gallery | rel kartu bergeser satu kartu, kartu aktif menyala, tetangganya meredup, 0,9 dtk |
+| wipe | antar bab dan lompatan | bayangan kayon (gapura, pohon hayat, tatahan) menyapu layar; isi berganti saat intinya menutup, 1,6 dtk |
+| fade | Calm / reduced motion | crossfade 0,45 dtk, tanpa scrub dan tanpa reveal |
+
+**Keputusan yang berbeda dari PRD** (alasan teknis, sesuai §8 serah-terima):
+- **Tanpa GSAP dan Lenis di F1** (hibrida, disetujui host 10 Nov). Transisi DOM lewat Web Animations berjalan di compositor, jadi teks tetap mulus saat WebGL membebani thread utama. GSAP masuk di F2 untuk koreografi kamera dan adegan 3D. Scroll sheet detail dan credits memakai scroll bawaan.
+- **Scrub hanya untuk sentuhan.** Browser tidak memberi tahu kapan jari terangkat dari trackpad, jadi gesekan trackpad dihitung satu langkah (dengan pengenalan inersia di atas), bukan diikuti seperti jari di layar.
+- **Sapuan gunungan memakai bayangan yang menutup layar**, bukan mask `clip-path`: aturan performa hanya mengizinkan opacity dan transform.
+- **Shared element panel → sheet memakai FLIP**, bukan View Transitions. View Transitions memotret seluruh halaman dan terukur 83 ms per frame tanpa GPU; FLIP (satu animasi transform pada judul, selaras dengan gerak sheet) 33 ms dan jalan di semua browser.
+- **Gallery 9, 8, dan 9 panel** (PRD: 5–8). Tamu minta semua stop tampil; istirahat, transfer, dan ibadah dilebur sebagai catatan "First / Then" di panel tetangganya.
+- **Panel tanpa foto.** Foto masih 0 (Tugas 6), jadi semua panel berbentuk poster tipografi: jam besar, lukisan garis fase (matahari naik / tinggi / turun, bulan sabit), nama, alasan, chip. Bila manifest berisi foto untuk `stop.photo`, foto itu tampil di kepala kartu.
+- **Bayang kini mengelompokkan huruf per kata** (komponen bersama gerbang dan Today): judul panjang hanya patah di spasi. `textContent` tetap sama.
+
+**Langit per fase** (gerbang, subuh, siang, senja, malam) digambar sekali dan hanya opacity-nya yang berganti, jadi satu hari di gallery bergerak dari subuh ke malam. Slide berteks rendah mendapat bidang gelap lembut supaya kontras terjaga di langit terang.
+
+**Reveal teks** baru berjalan saat penonton tiba (±450 ms setelah transisi dimulai; saat sapuan kayon lewat tengah layar). Lapisan tetangga dipasang lebih dulu dalam keadaan tersembunyi supaya transisi bisa langsung mulai.
+
+**Kehalusan** (`node scripts/preview/measure-film.cjs`, Chromium tanpa GPU, 11 Nov 2026): **0 frame > 50 ms** di 10 momen desktop dan 11 momen iPhone (hero, slide maju/mundur, sapuan kayon, masuk gallery, geser panel, scrub jari, buka/tutup sheet, gong → bab berikutnya). Frame terpanjang 33 ms. Dua perbaikan yang membuatnya tercapai: lapisan slide tanpa `will-change` (sebelumnya 60–78 ms saat reveal teks mulai), dan FLIP menggantikan View Transitions.
+
+**Uji.** 80 unit test baru (mesin slide, jejak roda/trackpad tiruan, lintasan, pemetaan data termasuk konten Solo: tiap stop tampil tepat sekali) dan 39 e2e (`e2e/film.spec.ts`, desktop + iPhone).
+
+**Belum, dan perlu perangkat nyata:**
+- Kalibrasi ambang di trackpad MacBook dan Safari iPhone (jejak di tes adalah model, bukan rekaman). Semua ambang ada di `SLIDE` dan `INPUT` (`src/engine/motion/tokens.ts`).
+- Web Animations di Safari belum teruji di sini (hanya Chromium tersedia).
+- Lighthouse a11y untuk film belum dijalankan.
+- Gong masih cakram 2D tanpa bunyi (F3); audio per adegan (Tugas 36); slide tim hanya muncul bila kontak sudah diisi di `trip_private`.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

@@ -44,6 +44,25 @@ Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Mot
 | `text.benang` | 38 ms/huruf, benang 1 px tumbuh `power3.out`, huruf naik 0,6em dengan pantulan, benang meredup ke 30% | Kicker, label hari |
 | `wipe.gunungan` | 1,25 dtk `expo.inOut`, kayon (tinggi 1,9em) menyapu, teks dibuka `clip-path` sejalan | Judul halaman |
 
+## v4 (11 Nov 2026): navigasi slide film (`SLIDE` dan `INPUT` di `src/engine/motion/tokens.ts`)
+Nilai awal dari PRD §9; dikalibrasi lagi di perangkat nyata.
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `SLIDE.dur` | 1,1 dtk, `power3.inOut` | Transisi sesama bab (gallery: 0,9 dtk) |
+| `SLIDE.wipeDur` | 1,6 dtk, sine in-out | Sapuan kayon antar bab |
+| `SLIDE.calmDur` | 0,45 dtk | Crossfade Calm mode |
+| `SLIDE.returnDur` / `releaseMin` | 0,4 dtk / 0,3 dtk, `power3.out` | Scrub dilepas: kembali / sisa perjalanan tercepat |
+| `SLIDE.textIn` | 450 ms | Teks slide baru mulai masuk |
+| `SLIDE.holdUntil` | 80% | Roda/trackpad diabaikan sampai transisi sejauh ini |
+| `SLIDE.scrubCommit` | 35% | Scrub dilepas di sini atau lebih → lanjut |
+| `SLIDE.hurryRate` | 1,8× | Sisa transisi dipercepat bila ada langkah menunggu |
+| `INPUT.wheelThreshold` | 50 px | Akumulasi roda untuk satu langkah (satu takik mouse langsung dihitung) |
+| `INPUT.wheelGap` / `wheelRefire` | 160 ms / 450 ms | Jeda yang mengakhiri gerakan / dorongan baru tercepat saat ekor inersia |
+| `INPUT.touchSlop` | 10 px | Batas ketuk vs geser |
+| `INPUT.swipeMin` / `swipeMaxMs` / `flickVelocity` | 40 px / 320 ms / 0,45 px/ms | Sentakan: geser pendek yang cepat, atau kecepatan lepas |
+| `INPUT.scrubSpan` | 60% tinggi layar | Jarak jari untuk satu slide penuh (gallery: selebar satu kartu) |
+
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
 - Foto di prototipe adalah **placeholder dari pencarian gambar Framer (Unsplash)**. Beberapa diambil di Yogyakarta, bukan Solo (Taman Sari, abdi dalem). Foto final mengikuti manifest lisensi (Tugas 6).
