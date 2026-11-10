@@ -1,11 +1,11 @@
 "use client";
-import { createContext, type CSSProperties, type ReactNode, useContext, useState, useSyncExternalStore } from "react";
+import { createContext, type CSSProperties, type ReactNode, useContext, useRef, useState, useSyncExternalStore } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import type { Slide } from "@/engine/slides/build-slides";
 import type { LiveStore } from "@/engine/slides/live";
 import { fmtDay, fmtSpan, waLink, waNumber } from "@/engine/today/format";
 import { guestShortName, type TripView } from "@/lib/trip";
-import { IconChat, IconGong, IconHomeAdd, IconToday } from "../Icons";
+import { IconChat, IconClose, IconGong, IconHomeAdd, IconToday } from "../Icons";
 import { InstallGuide } from "../InstallGuide";
 import { CurtainLink } from "../motion/Curtain";
 import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
@@ -288,7 +288,7 @@ function GongClose({ slide }: Ctx) {
   return (
     <div className="fl-body fl-body--center fs-gongclose">
       {/* pukulan gong menutup satu hari (gongan). Gong 3D + bunyinya menyusul di F3; ini versi panggung 2D. */}
-      <button type="button" className="fs-strike" data-sfx="ui-pop" data-struck={strikes || undefined} aria-label={t("film.gong")} onClick={() => setStrikes((n) => n + 1)}>
+      <button type="button" className="fs-strike" data-press="" data-sfx="ui-pop" data-struck={strikes || undefined} aria-label={t("film.gong")} onClick={() => setStrikes((n) => n + 1)}>
         <span key={strikes} className="fs-gong fs-gong--small" aria-hidden="true">
           <i />
           <i />
@@ -330,12 +330,12 @@ function Epilogue({ data }: Ctx) {
 
 function Pass({ data }: Ctx) {
   const { t } = useI18n();
-  const [install, setInstall] = useState(false);
+  const guide = useRef<HTMLDialogElement>(null);
   const host = (data.private?.contacts ?? []).find((c) => waNumber(c.whatsapp));
   const short = guestShortName(data);
   const message = data.role === "team" ? t("today.waTeam") : short ? t("today.waGuest", { name: short }) : t("today.waGuestNoName");
   return (
-    <div className="fl-body fl-body--center fs-pass" data-scroll="">
+    <div className="fl-body fl-body--center fs-pass">
       <Ticket data={data} compact delay={200} />
       <div className="fs-actions f-rise" style={d(700)}>
         <CurtainLink className="pb pb--gold pb--kawung pb--lg" data-haptic="" href="/today/">
@@ -344,7 +344,7 @@ function Pass({ data }: Ctx) {
             <span>{t("film.toToday")}</span>
           </span>
         </CurtainLink>
-        <button type="button" className="pb pb--glass" aria-expanded={install} onClick={() => setInstall((v) => !v)}>
+        <button type="button" className="pb pb--glass" aria-haspopup="dialog" onClick={() => guide.current?.showModal()}>
           <span className="pb-face">
             <IconHomeAdd />
             <span>{t("install.add")}</span>
@@ -359,7 +359,28 @@ function Pass({ data }: Ctx) {
           </a>
         )}
       </div>
-      {install && <InstallGuide />}
+      {/* panduan Home Screen dibuka sebagai sheet: slide tetap pas selayar, jadi geser & roda tetap memindah slide */}
+      <dialog
+        ref={guide}
+        className="sheet fl-sheet"
+        aria-label={t("install.add")}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) e.currentTarget.close(); // ketuk latar
+        }}
+      >
+        <div className="sheet-body" data-scroll="">
+          <span className="sheet-grip" aria-hidden="true" />
+          <div className="sheet-head">
+            <p className="fl-sheet-when">{t("install.add")}</p>
+            <button type="button" className="pb pb--glass pb--sm pb--icon sheet-x" aria-label={t("today.close")} onClick={() => guide.current?.close()}>
+              <span className="pb-face">
+                <IconClose />
+              </span>
+            </button>
+          </div>
+          <InstallGuide onDismiss={() => guide.current?.close()} />
+        </div>
+      </dialog>
     </div>
   );
 }
@@ -369,7 +390,7 @@ function Credits({ data }: Ctx) {
   const photos = data.manifest ?? [];
   const people = (data.private?.contacts ?? []).map((c) => tx(c.label)).filter(Boolean);
   return (
-    <div className="fl-body fl-body--center fs-credits" data-scroll="">
+    <div className="fl-body fl-body--center fs-credits">
       <h2 className="fs-kicker">
         <Benang text={t("film.credits")} />
       </h2>

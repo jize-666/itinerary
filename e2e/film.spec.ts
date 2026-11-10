@@ -132,6 +132,20 @@ test.describe("navigasi per slide (FR-20a)", () => {
     expect(await index(page)).toBe(2);
   });
 
+  test("roda di slide tiket (penuh tombol) tetap memindah slide", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "roda mouse hanya di desktop");
+    await open(page, "#epilogue");
+    await goTo(page, "pass");
+    await page.getByLabel("Boarding pass: Mira Santoso").hover();
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => slide(page)).toBe("credits");
+    await settled(page);
+    await page.waitForTimeout(250);
+    await page.getByText("Thank you for watching.").hover();
+    await page.mouse.wheel(0, -100);
+    await expect.poll(() => slide(page)).toBe("pass");
+  });
+
   test("mundur dari slide pertama dan maju dari slide terakhir tidak berpindah", async ({ page }) => {
     await open(page);
     await page.keyboard.press("ArrowUp");
@@ -215,6 +229,16 @@ test.describe("geser dengan jari", () => {
     await expect.poll(() => slide(page)).toBe("day-1/market");
   });
 
+  test("geser di slide tiket dan credits tetap memindah slide (tidak terjebak)", async ({ page }) => {
+    await open(page, "#epilogue");
+    await goTo(page, "pass");
+    await drag(page, [200, 430], [200, 210], 140);
+    await expect.poll(() => slide(page)).toBe("credits");
+    await settled(page);
+    await drag(page, [200, 240], [200, 460], 140);
+    await expect.poll(() => slide(page)).toBe("pass");
+  });
+
   test("geser menyamping di luar gallery tidak memindah slide; ketukan tetap klik", async ({ page }) => {
     await open(page);
     await drag(page, [320, 420], [60, 425], 140);
@@ -291,6 +315,12 @@ test.describe("isi film", () => {
     await expect(page.getByLabel("Boarding pass: Mira Santoso")).toBeVisible();
     await expect(page.locator(".fs-actions").getByRole("link", { name: "Open Today" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Message your host" })).toHaveAttribute("href", /wa\.me\/6280000000001\?/);
+    // panduan Home Screen terbuka sebagai sheet dan menutup lagi
+    await page.getByRole("button", { name: "Add to Home Screen" }).click();
+    await expect(page.getByRole("dialog", { name: "Add to Home Screen" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Keep Today on your Home Screen" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Add to Home Screen" })).toBeHidden();
     await goTo(page, "credits");
     await expect(page.getByText("Thank you for watching.")).toBeVisible();
   });

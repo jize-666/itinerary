@@ -756,13 +756,10 @@ html.film-on body {
   gap: clamp(18px, 3.4vh, 36px);
 }
 
+/* tiket & credits pas selayar (tanpa scroll di dalam slide): isi panjang dibuka sebagai sheet */
 .fs-pass,
 .fs-credits {
   align-content: safe center;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  scrollbar-width: none;
 }
 
 .fs-pass {
@@ -780,7 +777,8 @@ html.film-on body {
   width: 100%;
 }
 
-.fs-pass .ig {
+.fl-sheet .ig {
+  margin: 0;
   text-align: left;
 }
 
