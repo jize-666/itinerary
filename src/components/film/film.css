@@ -161,9 +161,9 @@ html.film-on body {
   opacity: 0;
 }
 
-.fl-layer:is([data-pos="in"], [data-pos="out"]) {
-  will-change: transform, opacity;
-}
+/* Sengaja tanpa will-change di lapisan slide: transisi WAAPI sudah menaikkannya ke compositor selama bergerak.
+   Dengan will-change, lapisan selayar itu harus digambar ulang saat reveal teks di dalamnya mulai (terukur
+   60–78 ms per frame tanpa GPU); tanpanya tidak ada frame > 50 ms. */
 
 /* reveal teks menunggu sampai penonton tiba di slide/kartu ini */
 .film [data-unit]:not([data-live]) *,
@@ -192,9 +192,9 @@ html.film-on body {
 .fl-body--low::before {
   content: "";
   position: absolute;
-  inset: 28% 0 0;
+  inset: 22% 0 0;
   z-index: -1;
-  background: linear-gradient(180deg, transparent, rgb(7 9 18 / 0.62) 38%, rgb(7 9 18 / 0.86));
+  background: linear-gradient(180deg, transparent, rgb(7 9 18 / 0.6) 30%, rgb(7 9 18 / 0.84) 62%, rgb(7 9 18 / 0.9));
   pointer-events: none;
 }
 
@@ -875,7 +875,9 @@ html.film-on body {
   display: grid;
   align-content: end;
   gap: clamp(9px, 1.5vh, 15px);
-  min-height: min(100%, clamp(360px, 58vh, 580px));
+  /* tinggi poster mengikuti layar yang terlihat (svh: toolbar Safari ikut dihitung), tidak pernah melebihi ruangnya */
+  min-height: min(clamp(300px, 56vh, 580px), 100vh - 226px);
+  min-height: min(clamp(300px, 56svh, 580px), 100svh - 226px);
   max-height: 100%;
   padding: clamp(20px, 3.2vh, 34px) clamp(20px, 2.6vw, 36px) clamp(18px, 2.8vh, 30px);
   overflow: hidden;
@@ -945,6 +947,28 @@ html.film-on body {
     right: 8px;
     width: 42%;
     opacity: 0.42;
+  }
+}
+
+/* layar sangat pendek (HP mendatar): isi dipadatkan supaya tetap muat */
+@media (max-height: 520px) {
+  .gal-paper {
+    gap: 6px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .gal-paper > .gal-art,
+  .gal-notes {
+    display: none;
+  }
+
+  .gal-time {
+    font-size: 30px;
+  }
+
+  .gal-title {
+    font-size: 24px;
   }
 }
 
@@ -1083,22 +1107,48 @@ html.film-on body {
 }
 
 .fl-wipe svg {
-  height: min(88vh, 150vw);
+  height: min(90vh, 150vw);
   overflow: visible;
+  filter: drop-shadow(0 0 10px rgb(255 178 87 / 0.42));
 }
 
 .fl-wipe-body {
-  fill: #0b0e22;
+  fill: url("#fl-kayon-fill");
   stroke: var(--prada);
-  stroke-width: 0.5;
-  filter: drop-shadow(0 0 2.4px rgb(255 178 87 / 0.5));
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.fl-wipe-rim,
+.fl-wipe-dots,
+.fl-wipe-tree,
+.fl-wipe-stick {
+  fill: none;
+  stroke: var(--prada);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fl-wipe-rim {
+  stroke-width: 0.3;
+  opacity: 0.6;
+}
+
+/* tatahan: deret titik emas di dalam tepi */
+.fl-wipe-dots {
+  stroke: var(--blencong);
+  stroke-width: 0.9;
+  stroke-dasharray: 0.1 3.1;
+  opacity: 0.72;
 }
 
 .fl-wipe-tree {
-  fill: none;
-  stroke: color-mix(in srgb, var(--prada) 70%, transparent);
-  stroke-width: 0.45;
-  stroke-linecap: round;
+  stroke-width: 0.5;
+  opacity: 0.86;
+}
+
+.fl-wipe-stick {
+  stroke-width: 1.6;
 }
 
 /* ---- krom: kiri atas, petunjuk, indikator bab ---- */
@@ -1315,25 +1365,14 @@ html.film-on body {
   color: #a9b8ff;
 }
 
-/* shared element panel → sheet (View Transitions API; browser lain cukup animasi sheet biasa) */
-.film:not([data-sheet]) .fl-layer[data-pos="cur"] .gal-card[data-cur] .gal-title {
-  view-transition-name: fl-stop;
+/* shared element panel → sheet: judul sheet terbang dari judul kartu (FLIP, transform saja; lihat DetailSheet.tsx).
+   Selama sheet terbuka, judul di kartu disembunyikan supaya tidak ada dua judul. */
+.film[data-sheet] .fl-layer[data-pos="cur"] .gal-card[data-cur] .gal-title {
+  visibility: hidden;
 }
 
-.fl-sheet[open] .sheet-title {
-  view-transition-name: fl-stop;
-}
-
-::view-transition-group(fl-stop) {
-  animation-duration: 0.5s;
-  animation-timing-function: var(--ease-expo-out);
-}
-
-::view-transition-old(fl-stop),
-::view-transition-new(fl-stop) {
-  height: 100%;
-  object-fit: contain;
-  object-position: left center;
+.fl-sheet .sheet-title {
+  transform-origin: 0 0;
 }
 
 /* ---- Calm mode (dan reduced motion): tanpa reveal, tanpa riak; transisi hanya crossfade ---- */

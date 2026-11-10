@@ -106,7 +106,7 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   }
 
   // slide: lapisan lama memudar sambil bergeser tipis; lapisan baru masuk dari arah perjalanan
-  if (out) tracks.push({ el: out, unit: "%", opacity: [[0, 1], [0.34, 0]], y: [[0, 0], [0.5, -7 * dir]] });
-  if (inn) tracks.push({ el: inn, unit: "%", opacity: [[0.3, 0], [0.74, 1]], y: [[0.3, 10 * dir], [1, 0]] });
+  if (out) tracks.push({ el: out, unit: "%", opacity: [[0, 1], [0.4, 0]], y: [[0, 0], [0.5, -7 * dir]] });
+  if (inn) tracks.push({ el: inn, unit: "%", opacity: [[0.24, 0], [0.72, 1]], y: [[0.24, 10 * dir], [1, 0]] });
   return { kind, tracks, dur: SLIDE.dur, ease: "power3InOut", textAt: SLIDE.textIn };
 }

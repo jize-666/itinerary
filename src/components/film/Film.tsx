@@ -12,7 +12,7 @@ import { IconRefresh } from "../Icons";
 import { useCurtainOpen } from "../motion/Curtain";
 import { useRequireSession } from "../useRequireSession";
 import { Corner, Hint, Rail, useChapterLabel } from "./Chrome";
-import { DetailSheet } from "./DetailSheet";
+import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
@@ -142,6 +142,42 @@ const Layer = memo(function Layer({ data, id, slides, pos, step, onOpen }: { dat
   );
 });
 
+/** Siluet gunungan (kayon) untuk sapuan antar bab: gapura, pohon hayat, tatahan di tepi. Digambar sekali. */
+const KAYON = "M60 3C62 14 70 26 78 40C90 58 103 80 103 104C103 124 95 140 84 152V160L96 166V176H90V184H30V176H24V166L36 160V152C25 140 17 124 17 104C17 80 30 58 42 40C50 26 58 14 60 3Z";
+/** Dahan pohon hayat: [tinggi pangkal, jangkauan]; makin pendek ke puncak supaya tetap di dalam tatahan. */
+const BRANCHES: readonly [y: number, reach: number][] = [
+  [112, 27],
+  [97, 24],
+  [82, 19],
+  [67, 13],
+  [52, 7],
+];
+function Kayon() {
+  return (
+    <svg viewBox="0 0 120 200" focusable="false">
+      <defs>
+        <radialGradient id="fl-kayon-fill" cx="50%" cy="46%" r="62%">
+          <stop offset="0" stopColor="#1c2450" />
+          <stop offset="1" stopColor="#090b1c" />
+        </radialGradient>
+      </defs>
+      <path className="fl-wipe-stick" d="M60 184V199" />
+      <path className="fl-wipe-body" d={KAYON} />
+      <path className="fl-wipe-rim" d={KAYON} transform="translate(60 100) scale(0.93) translate(-60 -100)" />
+      <path className="fl-wipe-dots" d={KAYON} transform="translate(60 100) scale(0.86) translate(-60 -100)" />
+      <g className="fl-wipe-tree">
+        {/* gapura */}
+        <path d="M40 160H80M48 160V139H72V160M60 139V160M44 139H76L71 131H49ZM50 131L60 122L70 131M40 160V148M80 160V148M38 148H42M78 148H82" />
+        {/* pohon hayat: batang + dahan berpilin, makin pendek ke puncak */}
+        <path d="M60 122V20" />
+        {BRANCHES.map(([y, reach]) => (
+          <path key={y} d={`M60 ${y}C${60 + reach * 0.32} ${y - 2} ${60 + reach * 0.7} ${y - 7} ${60 + reach} ${y - 15}c2.6-3 6.4-.6 4.4 2.6M60 ${y}C${60 - reach * 0.32} ${y - 2} ${60 - reach * 0.7} ${y - 7} ${60 - reach} ${y - 15}c-2.6-3-6.4-.6-4.4 2.6`} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
 function Stage({ data }: { data: TripView }) {
   const { t, tx } = useI18n();
   const film = useMemo(() => buildFilm(data), [data]);
@@ -152,7 +188,7 @@ function Stage({ data }: { data: TripView }) {
   const [live] = useState(createLiveStore);
   const [calm, setCalm] = useState(() => (readFlag(CALM_KEY) ?? (prefersReducedMotion() ? "1" : "0")) === "1");
   const [hint, setHint] = useState(() => readFlag(HINT_KEY) === null);
-  const [sheet, setSheet] = useState<PanelSlide | null>(null);
+  const [sheet, setSheet] = useState<{ slide: PanelSlide; origin: SheetOrigin | null } | null>(null);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const filmNow = useRef(film);
@@ -231,17 +267,16 @@ function Stage({ data }: { data: TripView }) {
     [t],
   );
 
-  /** Panel → sheet detail sebagai shared element (View Transitions); browser tanpa dukungan: langsung terbuka. */
-  const withTransition = useCallback(
-    (change: () => void) => {
-      const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-      if (calm || prefersReducedMotion() || typeof doc.startViewTransition !== "function") return change();
-      doc.startViewTransition(() => flushSync(change));
+  /** Panel → sheet detail: catat letak judul kartu supaya judul sheet bisa "terbang" dari sana (shared element). */
+  const openSheet = useCallback(
+    (s: PanelSlide) => {
+      const title = calm ? null : (root.current?.querySelector<HTMLElement>(".fl-layer[data-pos='cur'] .gal-card[data-cur] .gal-title") ?? null);
+      const origin: SheetOrigin | null = title ? { rect: title.getBoundingClientRect(), fontSize: parseFloat(getComputedStyle(title).fontSize) || 0 } : null;
+      setSheet({ slide: s, origin });
     },
     [calm],
   );
-  const openSheet = useCallback((s: PanelSlide) => withTransition(() => setSheet(s)), [withTransition]);
-  const closeSheet = useCallback(() => withTransition(() => setSheet(null)), [withTransition]);
+  const closeSheet = useCallback(() => setSheet(null), []);
 
   const scenes = scenesFor(film, view);
   const slide = film.slides[view.index];
@@ -275,10 +310,7 @@ function Stage({ data }: { data: TripView }) {
         </div>
       </LiveContext>
       <div className="fl-wipe" aria-hidden="true">
-        <svg viewBox="0 0 60 100" focusable="false">
-          <path className="fl-wipe-body" d="M30 2C36 14 50 26 54 44C58 62 50 78 40 84V93L47 98H13L20 93V84C10 78 2 62 6 44C10 26 24 14 30 2Z" />
-          <path className="fl-wipe-tree" d="M30 14V84M30 30C26 35 21 36 17 41M30 30C34 35 39 36 43 41M30 44C25 50 18 51 13 57M30 44C35 50 42 51 47 57M30 60C25 65 19 66 14 71M30 60C35 65 41 66 46 71M24 84H36V93H24Z" />
-        </svg>
+        <Kayon />
       </div>
       <div className="fl-chrome">
         <Corner calm={calm} onCalm={onCalm} />
@@ -288,7 +320,7 @@ function Stage({ data }: { data: TripView }) {
       <p className="sr-only" role="status" aria-live="polite">
         {chapter ? t("film.position", { chapter: label(chapter, true), n: view.index + 1, total: film.slides.length }) : ""}
       </p>
-      <DetailSheet slide={sheet} onClose={closeSheet} onCopied={onCopied} />
+      <DetailSheet slide={sheet?.slide ?? null} origin={sheet?.origin ?? null} onClose={closeSheet} onCopied={onCopied} />
       <p className="toast" role="status" aria-live="polite" data-shown={toast ? "" : undefined}>
         {toast}
       </p>
