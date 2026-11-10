@@ -30,7 +30,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 
 ### 1.1 Konteks
 - Host menjamu tamunya sebagai bentuk **balas budi**. **Tidak ada transaksi** apa pun, baik di web maupun di trip.
-- Tamu lancar berbahasa Inggris. Selama trip mereka didampingi **translator** dan **guide** lokal, karena banyak orang lokal di Solo (keraton, pasar, kampung batik) tidak lancar berbahasa Inggris.
+- Tamu lancar berbahasa Inggris. Selama trip didampingi host dan guide lokal. **Tanpa translator** (keputusan host 10 Nov 2026: rekan tamu tidak jadi berangkat, host sendiri yang menerjemahkan).
 - Host saat ini berada di Bangka Belitung dan baru ke Solo saat mengantar tamu. Karena itu **foto tidak bisa diambil sendiri**.
 - Preferensi tamu (dari formulir yang diisi teman host berdasarkan info dari translator, lalu dikonfirmasi host):
   - **Aktivitas:** night ride, berburu sunrise/sunset, "movies", keliling santai
@@ -63,7 +63,7 @@ Tamu ini **berpengaruh ke karir host**. Karena itu web ini juga menjadi cerminan
 |---|---|---|
 | A1 | Anggaran Rp1–1,5 jt adalah **per orang per hari, belum termasuk transport** (sesuai acuan formulir). | Pemilihan tempat makan, aktivitas, dan penginapan di draf itinerary berubah. |
 | A2 | Tamu sudah berada di **Belitung** sebelum Hari 0, lalu tamu dan host berangkat bersama dari Belitung ke Solo pada **Hari 0** (sore/malam), dan pulang di **Hari 4** (pagi), sehingga Hari 1–3 utuh. | Hari 1 atau Hari 3 perlu dipotong untuk perjalanan. |
-| A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, translator, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
+| A3 | **Satu kode booking** untuk semua tamu, plus **satu kode tim** untuk host, guide, dan driver. | Kalau perlu kode per orang, mekanisme gate berubah sedikit. |
 | A4 | Backend memakai **Supabase** (connector yang sudah terhubung), di **project baru** yang terpisah dari project lain milik host. Frontend berupa **situs statis**, sehingga bisa di-host di mana saja (default: Vercel, lihat §13.1). | Lihat Q8. |
 | A5 | **Audio gamelan masuk v1** (disetujui host 8 Nov 2026, Q11). Gendhing berasal dari **rekaman gamelan Solo milik host sendiri** (diolah supaya jernih), bukan hasil AI. Tamu memilih sendiri di gerbang: **"Begin with gamelan"** atau **"Begin quietly"**. Web tidak pernah berbunyi tanpa klik tamu. | Kalau host berubah pikiran, cukup sembunyikan tombol "with gamelan"; tanpa audio, tidak ada byte audio yang diunduh. |
 | A6 | **Tanpa analytics atau pelacakan** apa pun. | Kalau host ingin tahu kapan tamu membuka web, lihat Q9. |
@@ -105,7 +105,7 @@ Tanpa identitas. Nama, nama panggilan, dan catatan kesehatan hanya ada di data p
 |---|---|---|---|---|
 | **Tamu** (1 orang, berangkat dari Belitung) | **EN** | Laptop/iPad/HP flagship (pra-trip), HP flagship (selama trip) | H-3 sampai H-1, lalu selama trip | Pengalaman sinematik, cerita kota, info praktis cepat |
 | **Host** | ID | HP | Semua fase | Kirim link, cek jadwal yang sama dengan tamu, catatan tim |
-| **Guide & translator** | ID | HP | Selama trip | Jadwal yang **identik** dengan yang dilihat tamu, catatan tim |
+| **Guide** (translator dihapus 10 Nov 2026) | ID | HP | Selama trip | Jadwal yang **identik** dengan yang dilihat tamu, catatan tim |
 | **Driver** | ID | HP | Selama trip | Jam dan titik jemput |
 
 **Perjalanan pengguna (tamu):**
@@ -131,7 +131,7 @@ Tanpa identitas. Nama, nama panggilan, dan catatan kesehatan hanya ada di data p
 | S7 | Lisensi foto | 100% foto tercatat di manifest dengan lisensi yang diizinkan | `content:check` |
 | S8 | Privasi | Tanpa kode yang valid, tidak ada data trip, nama, atau nomor yang bisa diakses. Tidak terindeks mesin pencari. | Uji e2e + cek header |
 | S9 | Pakai ulang | Trip baru cukup dengan mengganti 1 file data + folder foto + baris `trip_private` + secret kode, **tanpa mengubah kode engine** | Uji dengan data dummy trip kedua |
-| S10 | Kesan (kualitatif) | Host, translator, dan guide yang mencoba sebagai "tamu" menilainya terasa premium dan personal | Dry-run sebelum kirim |
+| S10 | Kesan (kualitatif) | Host dan guide yang mencoba sebagai "tamu" menilainya terasa premium dan personal | Dry-run sebelum kirim |
 
 ---
 
@@ -182,7 +182,7 @@ Empat perangkat visual menyatukan seluruh web:
 **Sentuhan film**, sesuai tamu yang menyukai "movies":
 - **Letterbox** (bilah hitam rasio 2.39:1) muncul saat kartu judul bab
 - Judul pembuka bergaya *opening titles*
-- **Credits** di akhir dibuat sebagai *end credits* yang bergulir: host, guide, translator, fotografer (kredit lisensi CC), dan "Thank you for watching"
+- **Credits** di akhir dibuat sebagai *end credits* yang bergulir: host, guide, fotografer (kredit lisensi CC), dan "Thank you for watching"
 
 ### 6.2 Apa yang diambil dari video referensi (gaya saja, **bukan isi**)
 | Referensi | Yang diambil | Yang **tidak** diambil |
@@ -221,7 +221,7 @@ Nuansanya **hidup, bukan suram**. Siang terang dan bersih, senja keemasan, malam
 ### 6.6 Etika budaya (wajib)
 - Gunungan dan wayang ditampilkan dengan hormat: tidak dibuat jenaka, tidak didistorsi secara aneh, dan tidak dipakai sebagai "maskot".
 - Aturan keraton dan pura (dress code, area yang tidak boleh difoto) ditampilkan akurat [V].
-- Istilah Jawa dan aksara Jawa ditinjau guide/translator lokal sebelum rilis.
+- Istilah Jawa dan aksara Jawa ditinjau guide/host lokal sebelum rilis.
 
 ---
 
@@ -269,7 +269,7 @@ Isi pengenalan kota, masing-masing satu slide dengan text reveal per baris:
 4. **Bengawan Solo.** Sungai terpanjang di Jawa dan lagu yang dikenal di banyak negara Asia [V].
 5. **"The Spirit of Java"**, slogan kota [V].
 6. **Diorama 3D Solo & Benang Emas:** diorama kota bergaya miniatur (dari data peta OpenStreetMap, dengan landmark utama dimodelkan sederhana: keraton, Pasar Gede, Pura Mangkunegaran, aliran Bengawan Solo, dan siluet Gunung Lawu di timur). Benang emas menggambar rute 3 hari di atas diorama dalam beberapa slide, dengan penghitung *stagger*: "3 days · ~20 stops · 1 city".
-7. **Kenalan dengan tim:** kartu host, guide, dan translator (foto atau inisial). Kartu ini menjadi *shared element* ke bilah kontak di Today.
+7. **Kenalan dengan tim:** kartu host dan guide (foto atau inisial). Kartu ini menjadi *shared element* ke bilah kontak di Today.
 8. **"Say it in Javanese"** (P1): kartu yang bisa dibalik (*microinteraction*) berisi *matur nuwun* (terima kasih), *sugeng enjing* (selamat pagi), *nyuwun sewu* (permisi), dan kebiasaan sopan seperti menunjuk dengan ibu jari serta memberi dan menerima dengan tangan kanan [V].
 
 ### 7.3 Bab Hari (template, P0)
@@ -315,7 +315,7 @@ Isi saat trip:
 - **Kartu Now / Next:** tempat sekarang dan berikutnya, dengan hitung mundur ke jam berikutnya.
 - **Timeline hari itu:** jam, tempat, satu baris keterangan, chip dress code, penanda makanan (halal / tingkat manis / **tanpa pisang**).
 - Tiap tempat punya tombol **Open in Maps** dan **Copy address**.
-- **Bilah kontak sticky:** WhatsApp host / guide / translator dan tombol telepon. Pesan WhatsApp sudah terisi otomatis dalam EN.
+- **Bilah kontak sticky (dock):** WhatsApp host sebagai tombol utama, telepon, dan SOS; kontak lain (guide) di sheet bantuan. Pesan WhatsApp sudah terisi otomatis dalam EN. Tombol tekan 3D (depth, tactile press, soft shadow).
 - **Plan B:** toggle "Rain plan" untuk melihat alternatif kalau hujan.
 - **Darurat:** sheet berisi nomor darurat Indonesia (112, ambulans 118/119, polisi 110) [V] dan alamat penginapan.
 - Semua jam memakai **WIB** (sama dengan Belitung). **Web tidak menyebut Singapura sama sekali** (permintaan host 9 Nov 2026: tamu sudah jarang ke Singapura; asal yang ditampilkan Belitung). Penentuan "hari ini" dihitung di zona **Asia/Jakarta**, berapa pun zona waktu HP tamu.
@@ -409,7 +409,7 @@ Semua nilai disimpan sebagai **token** di satu file (`motion.ts`), tidak ditulis
 |---|---|---|---|
 | 07.00 | Pagi | Sarapan soto (kandidat: Soto Gading) | Gurih [V] |
 | 08.30 | Pagi | **Keraton Kasunanan Surakarta**: museum & pelataran | Dress code sopan (bahu & lutut tertutup), ikuti aturan area [V]. Cek hari tutup [V]. |
-| 10.30 | Siang | **Pasar Klewer**: pusat batik & kain, ramai | Tawar-menawar ditemani translator |
+| 10.30 | Siang | **Pasar Klewer**: pusat batik & kain, ramai | Tawar-menawar ditemani host |
 | 11.30 | Siang | Makan siang tengkleng (kandidat: dekat Pasar Klewer) | Gurih dan pedas, sering cepat habis [V] |
 | 12.45 | Siang | **Pasar Gede Hardjonagoro** (rancangan Thomas Karsten, 1930 [V]): jajanan seperti cabuk rambak (gurih) dan es dawet telasih (manis) + **Klenteng Tien Kok Sie** di sebelahnya | Pastikan dawet tanpa pisang. Spot estetik. |
 | 14.00 | Siang | Istirahat & bebersih di penginapan | Plan B hujan |
@@ -749,7 +749,7 @@ export type Stop = z.infer<typeof Stop>;
 | Aset | Sumber | Cara | Catatan |
 |---|---|---|---|
 | Gong ageng + gayor | Dibuat sendiri | Profil badan gong → lathe. Ornamen gayor dari SVG → extrude. Material perunggu PBR + normal map bekas tempa (prosedural). | Ukuran & proporsi dicek ke referensi foto berlisensi [V] |
-| Gunungan | Dibuat sendiri | SVG bentuk utama (digambar) + pola tatahan (generator kode). Lubang besar jadi geometri, lubang halus jadi alpha texture. | Review bentuk oleh guide/translator |
+| Gunungan | Dibuat sendiri | SVG bentuk utama (digambar) + pola tatahan (generator kode). Lubang besar jadi geometri, lubang halus jadi alpha texture. | Review bentuk oleh guide/host |
 | Diorama Solo | **OpenStreetMap** (ODbL, wajib atribusi) | Unduh footprint bangunan/jalan/sungai area pusat Solo → extrude bergaya miniatur → gabung & kompres (Meshopt). Landmark diganti model sederhana buatan sendiri. | Butuh akses jaringan ke Overpass API atau unduhan ekstrak OSM |
 | Lereng Lawu | DEM publik (mis. Copernicus/SRTM) | Heightmap → terrain + barisan teh (instanced) + Candi Sukuh (geometri berundak buatan sendiri) | Butuh akses jaringan untuk unduhan DEM. Cek lisensi DEM yang dipilih. |
 | Canting + kain mori | Dibuat sendiri | Canting: lathe + tube. Kain: shader/simulasi kain sederhana. Motif parang/kawung digambar sebagai SVG/tekstur prosedural. | — |
@@ -799,9 +799,9 @@ supabase db push               # terapkan migrasi tabel + RLS
 | Visual | Screenshot Playwright di posisi scroll tetap (seed partikel tetap) | Mencegah regresi tampilan per bab |
 | Performa | Lighthouse (gate & Today), overlay FPS di perangkat nyata | Target S1–S4 |
 | Perangkat nyata | Lihat matriks di bawah | Wajib sebelum kirim |
-| Konten | Proofread EN oleh penutur yang fasih + review istilah Jawa oleh guide/translator | S6 |
+| Konten | Proofread EN oleh penutur yang fasih + review istilah Jawa oleh guide/host | S6 |
 | Fakta | Verifikasi semua [V] pada **H-14** dan **H-4** (setelah revisi host di H-5) | Kolom `verifiedAt` terisi |
-| Dry-run | Host, translator, dan guide mencoba sebagai "tamu" dari link WhatsApp sampai Today | S10 |
+| Dry-run | Host dan guide mencoba sebagai "tamu" dari link WhatsApp sampai Today | S10 |
 
 **Matriks perangkat minimum:**
 | Perangkat | Browser | Target tier |
@@ -886,7 +886,7 @@ Ketersediaan perangkat nyata: lihat Q10.
 | Persetujuan host atau akses (jaringan, perangkat) terlambat | Jadwal ±7 minggu bergeser | Setiap checkpoint ditargetkan dijawab host ≤ 2 hari. Januari 2027 disiapkan sebagai buffer. |
 | Revisi besar di H-5 | Waktu mepet sebelum kirim di H-3 | Semua bisa diubah lewat data (tanpa kode). `content:publish` tanpa redeploy. Engine tidak terikat ke tempat atau tanggal tertentu. |
 | Info lapangan berubah (jam buka, harga, jadwal pertunjukan) | Tamu kecewa di lokasi | Tanda [V], verifikasi H-14 & H-4, kolom `verifiedAt`, `content:publish` tanpa redeploy |
-| Kesalahan budaya atau bahasa Jawa | Memalukan di depan tamu | Review guide/translator. Aksara Jawa hanya yang terverifikasi. Panduan etika §6.6. |
+| Kesalahan budaya atau bahasa Jawa | Memalukan di depan tamu | Review guide/host. Aksara Jawa hanya yang terverifikasi. Panduan etika §6.6. |
 | Link diteruskan ke orang lain | Kebocoran jadwal dan kontak | Kode dicek di server, kode dikirim terpisah dari link, bundle tidak memuat data, data privat di Supabase dengan RLS |
 | Jam HP tamu masih di zona lain | Telat jemput | Semua jam berlabel WIB, logika berbasis Asia/Jakarta |
 | Animasi menghambat akses info | Frustrasi selama trip | Today terpisah, tanpa WebGL, default selama trip |
@@ -908,7 +908,7 @@ Q1–Q6 sudah punya **default sementara** di §2.1 dan direvisi host di **H-5**.
 | Q10 | Punya akses ke iPhone & Android flagship untuk uji (milik sendiri atau pinjam)? Kalau tidak, pakai layanan device cloud? | Pinjam perangkat di M4 & M6 | QA (M4, M6) |
 | Q11 | ~~Mau audio ambience bernuansa gamelan + SFX halus dari ElevenLabs?~~ **Dijawab 8 Nov 2026:** ya, dengan rekaman gamelan Solo milik host (3 gendhing + 1 pukulan gong, izin aman) + SFX ElevenLabs paket gratis; gerbang dua tombol. | — | FR-43 |
 | Q12 | Anggaran Rp1–1,5 jt itu per orang atau per rombongan? Siapa yang membayar biaya di lapangan? | Per orang, belum termasuk transport. Biaya hanya tampil di catatan tim. | Pilihan tempat |
-| Q13 | Siapa penutur Inggris yang fasih untuk proofread? | Translator | S6 |
+| Q13 | Siapa penutur Inggris yang fasih untuk proofread? | Host (translator tidak ikut) | S6 |
 | Q14 | Konfirmasi catatan medis (alergi paracetamol & pisang) langsung ke tamu? | Diperlakukan sebagai benar sampai dikonfirmasi | Catatan tim, P3K |
 
 ---

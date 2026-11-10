@@ -28,8 +28,7 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
   "lodging": { "name": "…", "address": "…", "mapsUrl": "https://maps.google.com/…" },
   "contacts": [
     { "label": { "en": "Host", "id": "Host" }, "whatsapp": "+62…" },
-    { "label": { "en": "Guide", "id": "Guide" }, "whatsapp": "+62…", "phone": "+62…" },
-    { "label": { "en": "Translator", "id": "Penerjemah" }, "phone": "+62…" }
+    { "label": { "en": "Guide", "id": "Guide" }, "whatsapp": "+62…", "phone": "+62…" }
   ],
   "stops": { "check-in": { "pickup": "18:30 · lobby", "address": "…", "mapsUrl": "https://maps.google.com/…" } }
 }
@@ -46,9 +45,10 @@ Kunci `stops` dipetakan ke `id` stop di `content/trips/solo/trip.ts`.
 `party.name` tampil di tiket pribadi, `party.short` di sapaan gerbang ("Sugeng rawuh, …"), `party.greeting` di Today.
 
 Dipakai Today (Fase 2):
-- `contacts` → bilah kontak di bawah layar (maks. 3). `whatsapp` membuka wa.me dengan pesan EN yang sudah terisi
-  ("Hi! It’s [panggilan], messaging from the Today page."); tanpa `whatsapp`, tombolnya menelepon `phone`.
-  Nomor boleh ditulis `08…` atau `+62…`. Semua kontak juga muncul sebagai tombol telepon di sheet darurat.
+- `contacts` → kontak **pertama** (host) menjadi tombol utama di dock bawah: WhatsApp dengan pesan EN yang sudah terisi
+  ("Hi! It’s [panggilan], messaging from the Today page.") + tombol telepon (`phone`, atau nomor WhatsApp bila kosong).
+  Kontak berikutnya (mis. guide) ada di sheet bantuan (tombol SOS), masing-masing WhatsApp + telepon.
+  Nomor boleh ditulis `08…` atau `+62…`. Translator tidak ikut (10 Nov 2026).
 - `lodging` → sheet darurat ("Where you’re staying") dengan tombol Maps & salin alamat.
 - `stops[id].pickup` → tampil langsung di kartu Next ("Pickup 18:30 · lobby"), tanpa ketukan.
   `stops[id].address` / `mapsUrl` menggantikan query Maps publik untuk tombol Maps & salin alamat.

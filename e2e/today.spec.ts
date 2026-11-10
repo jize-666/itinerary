@@ -87,17 +87,40 @@ test.describe("Today selama trip", () => {
     const href = (await wa.getAttribute("href")) ?? "";
     expect(href.startsWith("https://wa.me/6280000000001?text=")).toBe(true);
     expect(decodeURIComponent(href.split("text=")[1] ?? "")).toBe("Hi! It’s Mira, messaging from the Today page.");
-    await expect(page.getByRole("link", { name: "Call Guide" })).toHaveAttribute("href", "tel:+6280000000002");
+    // dock: host utama di kiri, telepon host, SOS di kanan
+    await expect(page.getByRole("link", { name: "Call Host" })).toHaveAttribute("href", "tel:+6280000000001");
 
-    const sos = page.getByRole("button", { name: "Emergency" });
+    const sos = page.getByRole("button", { name: /SOS/ });
+    await expect(sos).toHaveAccessibleName("SOS Emergency");
     await sos.click();
     const sheet = page.getByRole("dialog", { name: "If you need help" });
     await expect(sheet).toBeVisible();
     await expect(sheet.getByRole("link", { name: /112/ })).toHaveAttribute("href", "tel:112");
+    await expect(sheet.getByRole("link", { name: "Call Guide" })).toHaveAttribute("href", "tel:+6280000000002");
     await expect(sheet.getByText("Jl. Uji No. 1")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();
     await expect(sos).toBeFocused();
+    // pola modal: tombol tutup di kanan atas
+    await sos.click();
+    await sheet.getByRole("button", { name: "Close" }).click();
+    await expect(sheet).toBeHidden();
+  });
+
+  test("tombol tekan 3D: wajah tombol turun saat ditekan, lalu kembali", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    const sos = page.getByRole("button", { name: /SOS/ });
+    await expect(sos).toBeVisible();
+    await page.waitForTimeout(1300); // dock selesai masuk
+    const faceY = () => sos.locator(".pb-face").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42);
+    const box = (await sos.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(sos).toHaveAttribute("data-pressed", "");
+    await expect.poll(faceY).toBeGreaterThan(3);
+    await page.mouse.up();
+    await expect(sos).not.toHaveAttribute("data-pressed", "");
+    await expect.poll(faceY).toBeLessThan(1.5);
   });
 
   test("tim: catatan tim & biaya; tamu tidak pernah melihatnya", async ({ page }) => {

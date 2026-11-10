@@ -103,6 +103,7 @@ export const STRINGS = {
   "today.close": { en: "Close", id: "Tutup" },
   "today.contacts": { en: "Contacts", id: "Kontak" },
   "today.call": { en: "Call {name}", id: "Telepon {name}" },
+  "today.callShort": { en: "Call", id: "Telepon" },
   "today.whatsapp": { en: "WhatsApp {name}", id: "WhatsApp {name}" },
   "today.waGuest": { en: "Hi! It’s {name}, messaging from the Today page.", id: "Hi! It’s {name}, messaging from the Today page." },
   "today.waGuestNoName": { en: "Hi! Messaging from the Today page.", id: "Hi! Messaging from the Today page." },

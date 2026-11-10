@@ -4,6 +4,7 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import { fmtDay, fmtSpan } from "@/engine/today/format";
 import { timeline, type TodayState } from "@/engine/today/schedule";
 import type { DayView, StopView } from "@/lib/trip";
+import { IconCheck, IconCopy, IconPin } from "../Icons";
 import { copyText } from "./hooks";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -19,25 +20,43 @@ export function MapsLink({ stop, compact = false }: { stop: StopView; compact?: 
   const href = mapsUrl(stop);
   if (!href) return null;
   return (
-    <a className={compact ? "act act--icon" : "act"} href={href} target="_blank" rel="noopener noreferrer" aria-label={t("today.mapsFor", { place: tx(stop.title) })}>
-      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
-        <circle cx="12" cy="10" r="2.4" />
-      </svg>
-      {!compact && <span>{t("today.maps")}</span>}
+    <a
+      className={compact ? "pb pb--tonal pb--icon" : "pb pb--tonal pb--sm"}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={t("today.mapsFor", { place: tx(stop.title) })}
+    >
+      <span className="pb-face">
+        <IconPin size={compact ? 20 : 18} />
+        {!compact && <span>{t("today.maps")}</span>}
+      </span>
     </a>
   );
 }
 
+/** Tombol sekunder: ikon berubah jadi centang sebentar setelah alamat tersalin. */
 export function CopyButton({ text, label, onCopied }: { text: string; label: string; onCopied: (ok: boolean) => void }) {
   const { t } = useI18n();
+  const [done, setDone] = useState(false);
   return (
-    <button type="button" className="act" aria-label={label} onClick={async () => onCopied(await copyText(text))}>
-      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="8.5" y="8.5" width="11" height="11" rx="2" />
-        <path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5" />
-      </svg>
-      <span>{t("today.copy")}</span>
+    <button
+      type="button"
+      className="pb pb--glass pb--sm"
+      data-done={done ? "" : undefined}
+      aria-label={label}
+      onClick={async () => {
+        const ok = await copyText(text);
+        onCopied(ok);
+        if (!ok) return;
+        setDone(true);
+        setTimeout(() => setDone(false), 1600);
+      }}
+    >
+      <span className="pb-face">
+        {done ? <IconCheck /> : <IconCopy />}
+        <span>{t("today.copy")}</span>
+      </span>
     </button>
   );
 }

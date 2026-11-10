@@ -5,6 +5,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import { LangToggle } from "@/components/LangToggle";
 import { Curtain } from "@/components/motion/Curtain";
+import { PressFx } from "@/components/motion/PressFx";
 import { Pwa } from "@/components/Pwa";
 import { SoundToggle } from "@/components/SoundToggle";
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SoundToggle />
         <Curtain />
         <Pwa />
+        <PressFx />
       </body>
     </html>
   );

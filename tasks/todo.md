@@ -364,7 +364,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Ukuran:** M
 
 - [ ] **Tugas 38: Aksesibilitas + proofread EN/ID**
-  - **Deskripsi:** Audit a11y, alt text, kontras, dan keyboard. Proofread EN oleh penutur yang fasih (Q13) dan review istilah Jawa oleh guide/translator.
+  - **Deskripsi:** Audit a11y, alt text, kontras, dan keyboard. Proofread EN oleh penutur yang fasih (Q13) dan review istilah Jawa oleh guide/host.
   - **Kriteria terima:** 0 typo · Lighthouse a11y Today ≥ 95 · istilah Jawa disetujui
   - **Verifikasi:** cspell + Lighthouse + tanda tangan reviewer di `docs/qa/proofread.md`
   - **Dependensi:** CP6

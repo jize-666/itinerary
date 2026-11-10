@@ -1852,42 +1852,185 @@ a {
   transition: transform 1.2s var(--ease-power3-out);
 }
 
-.nn-row > .act--icon {
+.nn-row > .pb--icon {
   grid-column: 2;
   grid-row: 2 / span 2;
   justify-self: end;
 }
 
-.nn-next > .act--icon {
+.nn-next > .pb--icon {
   grid-row: 3 / span 2;
 }
 
-/* ---- Tombol aksi kecil (Maps, salin) ---- */
-.act {
+/* ---- Tombol tekan 3D: depth · tactile press · soft shadow ----
+   Wajah tombol duduk di atas "tebal" (::before) setebal --depth; bayangan lembut (::after) digambar sekali.
+   Ditekan (data-pressed dari PressFx, atau :active) → wajah turun ke tebalnya, bayangan meredup & merapat.
+   Yang dianimasikan hanya transform & opacity. Ukuran mengikuti acuan: tinggi 40/44/56, font 14–15,
+   padding 12 di sisi ikon dan 20 di sisi teks. */
+.pb {
+  --depth: 4px;
+  --h: 44px;
+  --r: 14px;
+  --face: #161c39;
+  --face-hi: #222a4d;
+  --edge: #05060e;
+  --ink: var(--mori);
+  --ring: color-mix(in srgb, var(--mori) 14%, transparent);
+  --shade: rgb(0 0 0 / 0.55);
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid color-mix(in srgb, var(--prada) 50%, transparent);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--prada);
-  font: 600 13px var(--font-ui);
+  flex: none;
+  padding: 0 0 var(--depth);
+  border: 0;
+  border-radius: var(--r);
+  background: none;
+  color: var(--ink);
+  font: 600 14px/1.15 var(--font-ui);
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  transition: transform 0.2s var(--ease-power3-out);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.act:active {
-  transform: scale(0.95);
+/* tebal tombol */
+.pb::before {
+  content: "";
+  position: absolute;
+  inset: var(--depth) 0 0;
+  z-index: -1;
+  border-radius: var(--r);
+  background: var(--edge);
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.06);
 }
 
-.act--icon {
+/* bayangan lembut di bawahnya */
+.pb::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--depth) + 2px) 3px 0;
+  z-index: -2;
+  border-radius: var(--r);
+  box-shadow:
+    0 12px 24px -8px var(--shade),
+    0 4px 8px -3px rgb(0 0 0 / 0.45);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s var(--ease-power3-out);
+}
+
+.pb-face {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  gap: 8px;
+  min-width: 0;
+  min-height: var(--h);
+  padding: 0 20px 0 12px;
+  border-radius: var(--r);
+  background: linear-gradient(180deg, var(--face-hi), var(--face) 62%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 0 0 1px var(--ring);
+  transition: transform 0.2s var(--ease-expo-out);
+}
+
+.pb-face > :not(svg) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pb-face svg {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .pb:hover .pb-face {
+    transform: translateY(-1px);
+  }
+
+  .pb:hover::after {
+    transform: translateY(1px);
+  }
+}
+
+.pb[data-pressed] .pb-face,
+.pb:active .pb-face {
+  transform: translateY(calc(var(--depth) - 0.5px));
+  transition-duration: 0.07s;
+  transition-timing-function: ease-out;
+}
+
+.pb[data-pressed]::after,
+.pb:active::after {
+  opacity: 0.3;
+  transform: translateY(-3px) scale(0.97);
+  transition-duration: 0.07s;
+}
+
+.pb:focus-visible {
+  outline: none;
+}
+
+.pb:focus-visible .pb-face {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+
+.pb--sm {
+  --h: 40px;
+  --depth: 3px;
+  --r: 12px;
+}
+
+.pb--lg {
+  --h: 56px;
+  --depth: 5px;
+  --r: 18px;
+  font-size: 15px;
+}
+
+.pb--icon .pb-face {
+  width: var(--h);
   padding: 0;
+}
+
+/* utama: emas prada */
+.pb--gold {
+  --face: #c29a52;
+  --face-hi: #efd6a0;
+  --edge: #6f5022;
+  --ink: #0a0c18;
+  --ring: rgb(255 244 220 / 0.3);
+  --shade: rgb(120 82 26 / 0.55);
+}
+
+/* sekunder bernada emas (Maps) */
+.pb--tonal {
+  --face: color-mix(in srgb, #d4ab5f 22%, #10142c);
+  --face-hi: color-mix(in srgb, #e9c886 36%, #141a38);
+  --edge: color-mix(in srgb, #c29a52 26%, #05060c);
+  --ink: #f6dfab;
+  --ring: color-mix(in srgb, #e3bf78 46%, transparent);
+  --shade: rgb(80 56 18 / 0.5);
+}
+
+/* darurat: merah lampion */
+.pb--sos {
+  --face: #a2262a;
+  --face-hi: #db5446;
+  --edge: #4e0d11;
+  --ink: #fff5f2;
+  --ring: rgb(255 210 200 / 0.24);
+  --shade: rgb(120 16 20 / 0.6);
+}
+
+.pb[data-done] {
+  --ink: #c7ecb6;
 }
 
 /* ---- Jadwal per hari ---- */
@@ -2368,8 +2511,8 @@ a {
 .tl-acts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 /* ---- Before you go ---- */
@@ -2574,14 +2717,7 @@ a {
 }
 
 .ig-add {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--prada);
-  color: var(--nila);
-  font: 700 14px var(--font-ui);
-  cursor: pointer;
+  margin-top: 2px;
 }
 
 .ig-later {
@@ -2627,101 +2763,88 @@ a {
   white-space: pre-line;
 }
 
-/* ---- Bilah kontak sticky ---- */
-.hb {
+/* ---- Dock bantuan (pola baca HP: aksi di bawah, utama paling lebar) ---- */
+.dock {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 40;
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding: 18px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  background: linear-gradient(to top, var(--nila) 62%, transparent);
-  animation: hb-in 0.7s var(--ease-expo-out) 0.35s both;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 22px max(16px, calc((100% - 560px) / 2), env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, calc((100% - 560px) / 2), env(safe-area-inset-left));
+  background: linear-gradient(to top, var(--nila) 58%, color-mix(in srgb, var(--nila) 0%, transparent));
+  animation: dock-in 0.8s var(--ease-expo-out) 0.35s both;
 }
 
-@keyframes hb-in {
+@keyframes dock-in {
   from {
-    transform: translateY(110%);
+    opacity: 0;
+    transform: translateY(70%);
   }
 }
 
-.hb-btn {
-  flex: 1 1 0;
+.dock-main {
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: 132px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-height: 56px;
-  padding: 6px 6px 5px;
-  border: 1px solid color-mix(in srgb, var(--mori) 22%, transparent);
-  border-radius: 16px;
-  background: var(--nila-2);
-  color: var(--mori);
-  font: 600 12px/1.2 var(--font-ui);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.2s var(--ease-power3-out);
 }
 
-.hb-btn:active {
-  transform: scale(0.95);
+.dock-main .pb-face {
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 20px 0 10px;
 }
 
-.hb-btn span {
-  max-width: 100%;
+.dock-ico {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgb(10 12 24 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(10 12 24 / 0.12);
+}
+
+.dock-label {
+  display: grid;
+  min-width: 0;
+  text-align: left;
+}
+
+.dock-label small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.dock-label > span {
   overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
   text-overflow: ellipsis;
 }
 
-.hb-btn svg {
-  flex: none;
-  width: 20px;
-  height: 20px;
+.dock-sos .pb-face {
+  gap: 6px;
+  padding: 0 18px 0 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
-@media (max-width: 359px) {
-  .hb {
-    gap: 6px;
-    padding-left: max(8px, env(safe-area-inset-left));
-    padding-right: max(8px, env(safe-area-inset-right));
-  }
-
-  .hb-btn {
-    padding: 6px 2px 5px;
-    font-size: 10.5px;
-  }
+.dock[data-solo] {
+  justify-content: center;
 }
 
-.hb-wa {
-  border-color: color-mix(in srgb, #5fcf86 55%, transparent);
-  color: #b4efc8;
+.dock[data-solo] .dock-sos {
+  flex: 0 1 240px;
 }
 
-.hb-sos {
-  border-color: color-mix(in srgb, var(--lampion) 85%, transparent);
-  background: color-mix(in srgb, var(--lampion) 24%, var(--nila));
-  color: #ffe1dc;
-}
-
-.hb-sosdot {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  margin: 5px 0;
-  border-radius: 50%;
-  background: #ff6b5e;
-  box-shadow: 0 0 8px #ff6b5e;
-}
-
-body:has(.hb) .sound-toggle {
-  bottom: calc(92px + env(safe-area-inset-bottom));
+body:has(.dock) .sound-toggle {
+  bottom: calc(100px + env(safe-area-inset-bottom));
 }
 
 /* ---- Sheet darurat (dialog bawaan: fokus terkunci & Escape gratis) ---- */
@@ -2801,6 +2924,13 @@ body:has(.hb) .sound-toggle {
   background: color-mix(in srgb, var(--mori) 25%, transparent);
 }
 
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .sheet-title {
   margin: 0;
   font-family: var(--font-display);
@@ -2819,64 +2949,70 @@ body:has(.hb) .sound-toggle {
 .sheet-nums {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheet-nums a {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  padding: 14px 6px;
-  border: 1px solid color-mix(in srgb, var(--lampion) 75%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--lampion) 15%, transparent);
-  color: #ffe1dc;
-  font-size: 12px;
-  text-align: center;
-  text-decoration: none;
-  transition: transform 0.2s var(--ease-power3-out);
-}
-
-.sheet-nums a:active {
-  transform: scale(0.96);
-}
-
 .sheet-num {
+  --h: 86px;
+  --r: 16px;
+  --depth: 5px;
+  display: flex;
+  width: 100%;
+}
+
+.sheet-num .pb-face {
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: normal;
+  text-align: center;
+}
+
+.sheet-digits {
   font-family: var(--font-display);
   font-size: 30px;
-  line-height: 1.1;
-  color: #fff;
+  font-weight: 500;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
 
 .sheet-people {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheet-people a {
+.sheet-people li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  min-height: 48px;
-  padding: 0 16px;
+  padding: 12px 12px 12px 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  color: var(--mori);
+  border-radius: 16px;
+}
+
+.sheet-who {
   font-weight: 600;
-  text-decoration: none;
+}
+
+.sheet-acts {
+  display: flex;
+  gap: 8px;
 }
 
 .sheet-stay {
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
 .sheet-stay h3 {
@@ -2897,21 +3033,11 @@ body:has(.hb) .sound-toggle {
   font-weight: 600;
 }
 
-.sheet-close {
-  min-height: 48px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--mori);
-  font: 600 15px var(--font-ui);
-  cursor: pointer;
-}
-
 /* ---- Toast ---- */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(94px + env(safe-area-inset-bottom));
+  bottom: calc(104px + env(safe-area-inset-bottom));
   z-index: 60;
   margin: 0;
   padding: 10px 16px;

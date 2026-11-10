@@ -3,30 +3,23 @@ import { useRef, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { prefersReducedMotion } from "@/engine/motion/tokens";
 import { telHref, waLink, waNumber } from "@/engine/today/format";
-import { guestShortName, type TripView } from "@/lib/trip";
+import { type Contact, guestShortName, type TripView } from "@/lib/trip";
+import { IconChat, IconClose, IconPhone, IconPin, IconSiren } from "../Icons";
 import { CopyButton } from "./DayPlan";
 
-const WaIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4.5 19.5l1.1-3.6A7.8 7.8 0 1 1 8.4 18.6z" />
-    <path d="M9.2 9.1c.2 1.9 1.8 3.6 3.7 4.1l1-1 1.6.8c-.2 1-.9 1.5-1.9 1.4-2.6-.3-4.8-2.5-5-5.1 0-1 .5-1.7 1.4-1.9l.8 1.6z" fill="currentColor" fillOpacity="0.2" />
-  </svg>
-);
-const PhoneIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6.6 3.8l2.6.4 1.2 3.6-1.8 1.3a11 11 0 0 0 6.3 6.3l1.3-1.8 3.6 1.2.4 2.6c-.3 1.4-1.6 2.3-3 2.2C10 18.9 5.1 14 4.4 6.8c-.1-1.4.8-2.7 2.2-3z" />
-  </svg>
-);
+const phoneOf = (c: Contact) => c.phone ?? c.whatsapp;
 
 /**
- * Bilah kontak sticky (PRD §7.6, FR-32/35): WhatsApp ke host/guide/translator dengan pesan EN yang sudah terisi,
- * telepon, dan sheet darurat (112/119/110 + alamat penginapan). Nomor & alamat hanya datang dari data privat.
+ * Dock bantuan di bawah layar (PRD §7.6, FR-32/35), mengikuti pola baca HP: aksi ada di bawah, dalam jangkauan ibu jari.
+ * Kiri → kanan: WhatsApp host (utama, pesan EN sudah terisi), telepon host, SOS. Kontak lain (guide) dan
+ * nomor darurat ada di sheet SOS. Nomor & alamat hanya datang dari data privat.
  */
 export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boolean) => void }) {
   const { t, tx } = useI18n();
   const sheet = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
   const contacts = (data.private?.contacts ?? []).filter((c) => waNumber(c.whatsapp) || c.phone);
+  const [main] = contacts;
   const lodging = data.private?.lodging;
   const short = guestShortName(data);
   const message = data.role === "team" ? t("today.waTeam") : short ? t("today.waGuest", { name: short }) : t("today.waGuestNoName");
@@ -44,27 +37,50 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
     }, 200);
   };
 
+  const mainName = main ? tx(main.label) : "";
+  const mainWa = main ? waNumber(main.whatsapp) : "";
+  const mainPhone = main ? phoneOf(main) : undefined;
+
   return (
     <>
-      <nav className="hb" aria-label={t("today.contacts")}>
-        {contacts.slice(0, 3).map((c, i) => {
-          const wa = waNumber(c.whatsapp);
-          const name = tx(c.label);
-          return wa ? (
-            <a key={i} className="hb-btn hb-wa" href={waLink(wa, message)} target="_blank" rel="noopener noreferrer" aria-label={t("today.whatsapp", { name })}>
-              <WaIcon />
-              <span>{name}</span>
+      <nav className="dock" aria-label={t("today.contacts")} data-solo={main ? undefined : ""}>
+        {main &&
+          (mainWa ? (
+            <a className="pb pb--gold pb--lg dock-main" data-haptic="" href={waLink(mainWa, message)} target="_blank" rel="noopener noreferrer">
+              <span className="pb-face">
+                <span className="dock-ico">
+                  <IconChat size={22} />
+                </span>
+                <span className="dock-label">
+                  <small>WhatsApp</small> <span>{mainName}</span>
+                </span>
+              </span>
             </a>
           ) : (
-            <a key={i} className="hb-btn" href={telHref(c.phone!)} aria-label={t("today.call", { name })}>
-              <PhoneIcon />
-              <span>{name}</span>
+            <a className="pb pb--gold pb--lg dock-main" data-haptic="" href={telHref(mainPhone!)}>
+              <span className="pb-face">
+                <span className="dock-ico">
+                  <IconPhone size={22} />
+                </span>
+                <span className="dock-label">
+                  <small>{t("today.callShort")}</small> <span>{mainName}</span>
+                </span>
+              </span>
             </a>
-          );
-        })}
-        <button type="button" className="hb-btn hb-sos" aria-haspopup="dialog" onClick={open}>
-          <span className="hb-sosdot" aria-hidden="true" />
-          <span>{t("today.emergency")}</span>
+          ))}
+        {main && mainWa && mainPhone && (
+          <a className="pb pb--glass pb--lg pb--icon" href={telHref(mainPhone)} aria-label={t("today.call", { name: mainName })}>
+            <span className="pb-face">
+              <IconPhone size={22} />
+            </span>
+          </a>
+        )}
+        <button type="button" className="pb pb--sos pb--lg dock-sos" data-haptic="" aria-haspopup="dialog" onClick={open}>
+          <span className="pb-face">
+            <IconSiren size={22} />
+            <span>SOS</span>
+            <span className="sr-only"> {t("today.emergency")}</span>
+          </span>
         </button>
       </nav>
 
@@ -83,32 +99,59 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
       >
         <div className="sheet-body">
           <span className="sheet-grip" aria-hidden="true" />
-          <h2 id="sheet-title" className="sheet-title">
-            {t("today.emergencyTitle")}
-          </h2>
+          {/* pola modal: judul kiri atas, tutup kanan atas */}
+          <div className="sheet-head">
+            <h2 id="sheet-title" className="sheet-title">
+              {t("today.emergencyTitle")}
+            </h2>
+            <button type="button" className="pb pb--glass pb--sm pb--icon sheet-x" aria-label={t("today.close")} onClick={close}>
+              <span className="pb-face">
+                <IconClose />
+              </span>
+            </button>
+          </div>
           <p className="sheet-note">{t("today.emergencyNote")}</p>
           <ul className="sheet-nums">
             {(data.trip.emergency ?? []).map((e) => (
               <li key={e.number}>
-                <a href={telHref(e.number)}>
-                  <span className="sheet-num">{e.number}</span>
-                  <span>{tx(e.label)}</span>
+                <a className="pb pb--sos sheet-num" data-haptic="" href={telHref(e.number)}>
+                  <span className="pb-face">
+                    <span className="sheet-digits">{e.number}</span>
+                    <span>{tx(e.label)}</span>
+                  </span>
                 </a>
               </li>
             ))}
           </ul>
-          {contacts.some((c) => c.phone || c.whatsapp) && (
+          {contacts.length > 0 && (
             <ul className="sheet-people">
               {contacts.map((c, i) => {
-                const phone = c.phone ?? c.whatsapp;
-                return phone ? (
+                const name = tx(c.label);
+                const wa = waNumber(c.whatsapp);
+                const phone = phoneOf(c);
+                return (
                   <li key={i}>
-                    <a href={telHref(phone)}>
-                      <PhoneIcon />
-                      <span>{t("today.call", { name: tx(c.label) })}</span>
-                    </a>
+                    <span className="sheet-who">{name}</span>
+                    <span className="sheet-acts">
+                      {wa && (
+                        <a className="pb pb--tonal pb--sm" href={waLink(wa, message)} target="_blank" rel="noopener noreferrer" aria-label={t("today.whatsapp", { name })}>
+                          <span className="pb-face">
+                            <IconChat size={18} />
+                            <span>WhatsApp</span>
+                          </span>
+                        </a>
+                      )}
+                      {phone && (
+                        <a className="pb pb--glass pb--sm" href={telHref(phone)} aria-label={t("today.call", { name })}>
+                          <span className="pb-face">
+                            <IconPhone size={18} />
+                            <span>{t("today.callShort")}</span>
+                          </span>
+                        </a>
+                      )}
+                    </span>
                   </li>
-                ) : null;
+                );
               })}
             </ul>
           )}
@@ -119,17 +162,17 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
               <p>{lodging.address}</p>
               <div className="tl-acts">
                 {lodging.mapsUrl && (
-                  <a className="act" href={lodging.mapsUrl} target="_blank" rel="noopener noreferrer">
-                    <span>{t("today.maps")}</span>
+                  <a className="pb pb--tonal pb--sm" href={lodging.mapsUrl} target="_blank" rel="noopener noreferrer">
+                    <span className="pb-face">
+                      <IconPin />
+                      <span>{t("today.maps")}</span>
+                    </span>
                   </a>
                 )}
                 <CopyButton text={lodging.address} label={t("today.copy")} onCopied={onCopied} />
               </div>
             </section>
           )}
-          <button type="button" className="sheet-close" onClick={close}>
-            {t("today.close")}
-          </button>
         </div>
       </dialog>
     </>

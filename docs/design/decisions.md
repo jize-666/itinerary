@@ -143,11 +143,22 @@ Today adalah layar yang dibuka tamu di jalan, jadi informasi datang dulu, seremo
 - **Now / Next** berbentuk tiket kecil berlubang dengan pendar blencong: yang sedang berlangsung + sisa waktu + garis kemajuan; berikutnya + hitung mundur ("in 45 min", "Tomorrow, 04:00") + **jam jemput** dari data privat, terlihat tanpa ketukan. Malam hari, jadwal yang disorot otomatis pindah ke hari esok (subuh Hari 2 berangkat 04.00).
 - **Jadwal**: pilihan hari (hari ini bertitik blencong), benang emas dengan titik fase, stop lewat diredupkan lewat warna (kontras tetap ≥ 4,5:1), chip dress code & makanan (Halal · tingkat manis · *No banana*), tombol Maps & salin alamat. Di HP, jam ditulis di atas judul supaya isi stop selebar layar.
 - **Rain plan**: toggle; rencana hujan per stop muncul, dan hujan tipis turun di belakang jadwal (pola digambar sekali, yang bergerak hanya transform).
-- **Bilah kontak** gaya tab-bar (ikon di atas, label di bawah): WhatsApp host/guide/translator dengan pesan EN terisi, telepon, dan **Emergency** (sheet bawah memakai `<dialog>` bawaan: fokus terkunci, Escape menutup, fokus kembali ke tombol). Isi sheet: 112/119/110, telepon kontak, alamat penginapan.
+- **Dock bantuan** (revisi 10 Nov, lihat di bawah): WhatsApp host dengan pesan EN terisi, telepon, dan **SOS** (sheet bawah memakai `<dialog>` bawaan: fokus terkunci, Escape menutup, fokus kembali ke tombol). Isi sheet: 112/119/110, kontak (WhatsApp + telepon), alamat penginapan.
 - **Offline**: service worker menyimpan halaman, JS/CSS, font Latin, manifest & ikon; data disimpan aplikasi per token. Indikator "Updated just now" / "Offline · saved …".
 - **Pratinjau**: `/today/?at=2027-04-08T10:45` memutar Today ke momen itu (jam WIB) supaya host bisa melihat wajah "selama trip" sebelum April.
 - **Ikon Home Screen**: gunungan prada di atas nila dengan pendar blencong (`public/icons/`), aman untuk masker ikon Android.
 - **Anggaran JS**: 150 KB gz / 129 KB br. Target PRD 120 KB gz lebih kecil dari kerangka React + Next sendiri (≈ 119 KB gz), jadi yang dijaga adalah kode aplikasi (≈ 20 KB br): mesin audio dan kamus lengkap dikeluarkan dari chunk layout.
+
+## Tombol Today (10 Nov 2026), masukan host: "button UI + logonya belum cocok, buat lebih modern dan elegant"
+Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonjol; form: utama di kiri; modal: tutup di kanan atas), *font size & padding* (HP 14–16 pt; padding 12 di sisi ikon, 20 di sisi teks), *sizes & spacing* (tinggi 40, target sentuh 44/56).
+
+- **Tombol tekan 3D** (`.pb`, `src/components/motion/PressFx.tsx`): wajah tombol duduk di atas "tebal" 3–5 px; saat ditekan (jari, mouse, Spasi/Enter) wajah turun ke tebalnya dan bayangan lembut meredup serta merapat, lalu memantul kembali. Ketukan secepat apa pun tetap terlihat ditekan minimal 110 ms. Tombol utama & SOS memberi getar halus di Android. Hanya transform & opacity yang bergerak. Varian: emas (utama), nada-emas (Maps, WhatsApp di sheet), kaca nila (sekunder), merah lampion (SOS & nomor darurat).
+- **Dock**: kiri → kanan = WhatsApp host (tombol utama paling lebar, 56 px, label kecil "WHATSAPP" di atas nama), telepon host (ikon 56 px), **SOS**. Tanpa kontak di data, dock hanya berisi SOS.
+- **Ikon** baru satu gaya (garis 1,6, ujung bulat, `src/components/Icons.tsx`): obrolan, telepon, sirene, pin, salin → centang setelah tersalin, tutup.
+- **Jadwal**: Open in Maps (utama, kiri) · Copy address (sekunder, kanan), tinggi 40 px, celah 10 px.
+- **Sheet SOS**: judul kiri atas, tombol tutup di kanan atas; nomor darurat sebagai tombol merah besar 86 px; tiap kontak: WhatsApp (kiri) + Call (kanan).
+- **Tanpa translator** (rekan tamu tidak jadi berangkat; host yang menerjemahkan): kontak translator dihapus dari rancangan, teks Pasar Klewer jadi "your host has your back" (konten Supabase ikut diperbarui).
+- Nomor telepon dinormalkan ke +62 supaya bisa dipanggil dari SIM mana pun; nomor darurat pendek tetap apa adanya.
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.

@@ -178,3 +178,18 @@ describe("hitung mundur", () => {
     expect(msToNextMinute(Date.parse("2027-04-08T03:00:59.250Z"))).toBe(750);
   });
 });
+
+describe("tautan kontak", async () => {
+  const { telHref, waNumber, waLink } = await import("@/engine/today/format");
+  it("nomor lokal → +62, nomor darurat pendek tetap", () => {
+    expect(telHref("0812-3456-7890")).toBe("tel:+6281234567890");
+    expect(telHref("+62 812 3456 7890")).toBe("tel:+6281234567890");
+    expect(telHref("62 812 3456 7890")).toBe("tel:+6281234567890");
+    expect(telHref("112")).toBe("tel:112");
+  });
+  it("WhatsApp: digit internasional & pesan ter-encode", () => {
+    expect(waNumber("0812 3456 7890")).toBe("6281234567890");
+    expect(waNumber("abc")).toBe("");
+    expect(waLink("6281234567890", "Hi! It’s Mira.")).toBe("https://wa.me/6281234567890?text=Hi!%20It%E2%80%99s%20Mira.");
+  });
+});

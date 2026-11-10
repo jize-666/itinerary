@@ -50,8 +50,8 @@ export function InstallGuide() {
         </h2>
         <p className="ig-body">{t("install.body")}</p>
         {prompt ? (
-          <button type="button" className="ig-add" onClick={() => installPrompt.prompt().then((ok) => ok && setHidden(true))}>
-            {t("install.add")}
+          <button type="button" className="pb pb--gold ig-add" onClick={() => installPrompt.prompt().then((ok) => ok && setHidden(true))}>
+            <span className="pb-face">{t("install.add")}</span>
           </button>
         ) : (
           <>

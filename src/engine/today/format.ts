@@ -48,5 +48,13 @@ export function waNumber(raw: string | undefined): string {
 /** Tautan wa.me dengan pesan yang sudah terisi. */
 export const waLink = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 
-/** Nomor telepon untuk tautan tel: (hanya digit dan + di depan). */
-export const telHref = (raw: string) => `tel:${raw.trim().startsWith("+") ? "+" : ""}${raw.replace(/\D/g, "")}`;
+/**
+ * Tautan tel: nomor panjang dinormalkan ke +62 (bisa dipanggil dari SIM mana pun);
+ * nomor pendek darurat (112, 119, 110) dibiarkan apa adanya.
+ */
+export function telHref(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 8) return `tel:${digits}`;
+  if (raw.trim().startsWith("+")) return `tel:+${digits}`;
+  return `tel:+${digits.startsWith("0") ? `62${digits.slice(1)}` : digits}`;
+}
