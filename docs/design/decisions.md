@@ -136,6 +136,48 @@ Yang tetap dari putaran pertama:
 - **Today:** hitung mundur bergulir, benang emas menjalar di antara stop dengan titik berwarna menurut fase.
 - Reduced motion mematikan semuanya.
 
+## Today, Fase 2 (9 Nov 2026), "lanjut fase 2, kerjakan semaksimal mungkin"
+Today adalah layar yang dibuka tamu di jalan, jadi informasi datang dulu, seremoni belakangan.
+
+- **Tiga wajah menurut kalender WIB** (`src/engine/today/schedule.ts`): *sebelum trip* = hitung mundur + tiket + checklist *Before you go* (dicentang di perangkat) + panduan Add to Home Screen; *selama trip* = kepala hari (Day N · tanggal, terbit/terbenam, dress code), kartu **Now / Next**, jadwal; *setelah trip* = epilog + tiket sebagai kenang-kenangan. Gerbang mengarahkan kunjungan ulang selama trip langsung ke Today, dan ikon Home Screen membuka Today.
+- **Now / Next** berbentuk tiket kecil berlubang dengan pendar blencong: yang sedang berlangsung + sisa waktu + garis kemajuan; berikutnya + hitung mundur ("in 45 min", "Tomorrow, 04:00") + **jam jemput** dari data privat, terlihat tanpa ketukan. Malam hari, jadwal yang disorot otomatis pindah ke hari esok (subuh Hari 2 berangkat 04.00).
+- **Jadwal**: pilihan hari (hari ini bertitik blencong), benang emas dengan titik fase, stop lewat diredupkan lewat warna (kontras tetap ≥ 4,5:1), chip dress code & makanan (Halal · tingkat manis · *No banana*), tombol Maps & salin alamat. Di HP, jam ditulis di atas judul supaya isi stop selebar layar.
+- **Rain plan**: toggle; rencana hujan per stop muncul, dan hujan tipis turun di belakang jadwal (pola digambar sekali, yang bergerak hanya transform).
+- **Dock bantuan** (revisi 10 Nov, lihat di bawah): WhatsApp host dengan pesan EN terisi, telepon, dan **SOS** (sheet bawah memakai `<dialog>` bawaan: fokus terkunci, Escape menutup, fokus kembali ke tombol). Isi sheet: 112/119/110, kontak (WhatsApp + telepon), alamat penginapan.
+- **Offline**: service worker menyimpan halaman, JS/CSS, font Latin, manifest & ikon; data disimpan aplikasi per token. Indikator "Updated just now" / "Offline · saved …".
+- **Pratinjau**: `/today/?at=2027-04-08T10:45` memutar Today ke momen itu (jam WIB) supaya host bisa melihat wajah "selama trip" sebelum April.
+- **Ikon Home Screen**: gunungan prada di atas nila dengan pendar blencong (`public/icons/`), aman untuk masker ikon Android.
+- **Anggaran JS**: 150 KB gz / 129 KB br. Target PRD 120 KB gz lebih kecil dari kerangka React + Next sendiri (≈ 119 KB gz), jadi yang dijaga adalah kode aplikasi (≈ 20 KB br): mesin audio dan kamus lengkap dikeluarkan dari chunk layout.
+
+## Tombol Today (10 Nov 2026), masukan host: "button UI + logonya belum cocok, buat lebih modern dan elegant"
+Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonjol; form: utama di kiri; modal: tutup di kanan atas), *font size & padding* (HP 14–16 pt; padding 12 di sisi ikon, 20 di sisi teks), *sizes & spacing* (tinggi 40, target sentuh 44/56).
+
+- **Tombol tekan 3D** (`.pb`, `src/components/motion/PressFx.tsx`): wajah tombol duduk di atas "tebal" 3–5 px; saat ditekan (jari, mouse, Spasi/Enter) wajah turun ke tebalnya dan bayangan lembut meredup serta merapat, lalu memantul kembali. Ketukan secepat apa pun tetap terlihat ditekan minimal 110 ms. Tombol utama & SOS memberi getar halus di Android. Hanya transform & opacity yang bergerak. Varian: emas (utama), nada-emas (Maps, WhatsApp di sheet), kaca nila (sekunder), merah lampion (SOS & nomor darurat).
+- **Dock**: kiri → kanan = WhatsApp host (tombol utama paling lebar, 56 px, label kecil "WHATSAPP" di atas nama), telepon host (ikon 56 px), **SOS**. Tanpa kontak di data, dock hanya berisi SOS.
+- **Ikon** baru satu gaya (garis 1,6, ujung bulat, `src/components/Icons.tsx`): obrolan, telepon, sirene, pin, salin → centang setelah tersalin, tutup.
+- **Jadwal**: Open in Maps (utama, kiri) · Copy address (sekunder, kanan), tinggi 40 px, celah 10 px.
+- **Sheet SOS**: judul kiri atas, tombol tutup di kanan atas; nomor darurat sebagai tombol merah besar 86 px; tiap kontak: WhatsApp (kiri) + Call (kanan).
+- **Tanpa translator** (rekan tamu tidak jadi berangkat; host yang menerjemahkan): kontak translator dihapus dari rancangan, teks Pasar Klewer jadi "your host has your back" (konten Supabase ikut diperbarui).
+- Nomor telepon dinormalkan ke +62 supaya bisa dipanggil dari SIM mana pun; nomor darurat pendek tetap apa adanya.
+
+## Satu bahasa tombol untuk seluruh alur (10 Nov 2026), "benerin semua button UI-nya, dari masukin kode sampai sekarang, sesuain sama temanya"
+- **Satu sistem** (`.pb` + `PressFx`) dari gerbang sampai Today: emas prada (utama; tombol utama besar bertekstur **kawung** tipis), kaca nila bergaris rambut emas (sekunder), nada-emas (Maps), merah lampion (SOS). Saat ditekan wajah tombol turun ke tebalnya, bayangan meredup, dan **cahaya blencong** menyala dari atas wajah tombol lalu meredup pelan.
+- **Sakelar yang menyala tetap tertekan**: pilihan hari, Rain plan (rona hujan nila muda), speaker (emas).
+- **Sakelar segmen 3D** untuk EN/ID dan iPhone/Android: lintasan dipahat ke dalam, kunci emas timbul bergeser ke pilihan aktif dan ikut tertekan saat disentuh.
+- **Pengaturan di kanan atas**: [speaker] [EN | ID]. Speaker tidak lagi melayang di atas isi halaman.
+- **Kotak kode** jadi celah yang dipahat (bayangan dalam, bibir emas); huruf "diletakkan" ke dalamnya.
+- **Sambutan**: "Use a different code" pindah ke kiri atas (pil kecil berikon kunci); tombol mulai menempel di bawah layar di atas gradasi, tiket tetap bisa di-scroll.
+- **Satu tombol mulai** (revisi host: "click langsung muncul gamelan, tapi fitur mute jangan dihilangkan"): "Begin the lakon" / "Mulai lakonnya" dengan ikon gong. Speaker sudah tampil sejak sambutan (bawaan menyala, diingat); di-mute sebelum mulai → lakon dimulai hening tanpa mengunduh audio.
+- Checklist *Before you go*: kotak centang jadi tombol kecil 3D yang tertekan dan menyala emas.
+- Film: "Open Today" emas berkawung berikon kalender. Today: "Try again", "Watch the film" (ikon putar), "Refresh". 404: "Back to the gate".
+- Lighthouse a11y 100 di gerbang, sambutan, film, dan Today (EN & ID).
+
+## Bunyi klik tombol (10 Nov 2026), permintaan host: "SFX click button, jangan pakai yang lama"
+- Tiga bunyi baru, diputar saat jari **menyentuh** tombol (bukan saat dilepas) dan **hanya bila gamelan menyala**; di-mute → hening:
+  - `ui-pop` (tombol emas & SOS), `ui-click` (tombol kaca/sekunder): dari paket SFX yang dibawa host. Host menyatakan paket itu bebas lisensi dan sudah mendapat izin kreatornya lewat DM (10 Nov 2026). Bukti izin disimpan host, di luar repo.
+  - `ui-tok` (sakelar: EN/ID, Rain plan, pilihan hari, checklist, speaker): ketukan keprak dalang, dibuat dengan ElevenLabs (paket gratis, 50 kredit).
+- Masing-masing < 4 KB, dimuat bersama SFX lain setelah sambutan berbunyi; volume 0,45 dan tidak merendahkan gendhing. Bisa ditimpa per tombol lewat `data-sfx`.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="36%" r="72%">
+      <stop offset="0" stop-color="#23264a"/>
+      <stop offset=".55" stop-color="#121833"/>
+      <stop offset="1" stop-color="#0a0c18"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="34%" r="42%">
+      <stop offset="0" stop-color="#ffb257" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#ffb257" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="prada" x1="0" y1="0" x2=".35" y2="1">
+      <stop offset="0" stop-color="#f6dea6"/>
+      <stop offset=".45" stop-color="#c8a25a"/>
+      <stop offset="1" stop-color="#7d5d2b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#glow)"/>
+  <g transform="translate(256 258) scale(3.25) translate(-30 -50)">
+    <path d="M30 2C36 14 50 26 54 44C58 62 50 78 40 84V93L47 98H13L20 93V84C10 78 2 62 6 44C10 26 24 14 30 2Z" fill="url(#prada)"/>
+    <path d="M30 18V84M30 36C25 42 19 42 14 48M30 36C35 42 41 42 46 48M30 54C25 60 18 60 13 66M30 54C35 60 42 60 47 66M24 84H36V93H24Z" fill="none" stroke="#0a0c18" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="30" cy="27" r="2.6" fill="#0a0c18"/>
+  </g>
+</svg>

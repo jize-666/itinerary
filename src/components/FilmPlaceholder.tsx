@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { guestShortName, loadTrip } from "@/lib/trip";
 import { Canting, Gamelan, Gunungan } from "./motion/Kinetic";
+import { IconToday } from "./Icons";
 import { CurtainLink, useCurtainOpen } from "./motion/Curtain";
 import { useRequireSession } from "./useRequireSession";
 
@@ -35,8 +36,11 @@ export function FilmPlaceholder() {
         )}
         <Gamelan as="p" className="gate-prompt" text={t("film.soon")} delay={2100} />
       </div>
-      <CurtainLink className="begin-btn begin-btn--quiet film-link k-late" href="/today/">
-        <span className="begin-main">{t("film.toToday")}</span>
+      <CurtainLink className="pb pb--gold pb--kawung pb--lg film-link k-late" data-haptic="" href="/today/">
+        <span className="pb-face">
+          <IconToday />
+          <span>{t("film.toToday")}</span>
+        </span>
       </CurtainLink>
     </main>
   );

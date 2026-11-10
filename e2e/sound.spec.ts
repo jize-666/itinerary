@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import { json, seedSession, TRIP, tripFixture } from "./helpers";
 
-type Debug = { started: boolean; enabled: boolean; ctx: string; bed: string | null };
+type Debug = { started: boolean; enabled: boolean; ctx: string; bed: string | null; lastSfx: string | null };
 const audioDebug = (page: Page) =>
   page.evaluate(() => (window as unknown as { __lakonAudio?: { debug: () => Debug } }).__lakonAudio?.debug() ?? null);
 const pref = (page: Page) => page.evaluate(() => localStorage.getItem("lakon.sound"));
@@ -12,34 +12,42 @@ test.beforeEach(async ({ page }) => {
   await page.route(TRIP, (r) => json(r, 200, tripFixture("guest")));
 });
 
-test("gerbang menawarkan dua pilihan suara", async ({ page }) => {
+test("gerbang: satu tombol Begin, toggle speaker sudah ada (bawaan menyala)", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: /Begin with gamelan/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Begin quietly/ })).toBeVisible();
-  // Toggle baru muncul setelah memilih.
-  await expect(page.getByRole("button", { name: "Gamelan sound" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Begin the lakon" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Begin quietly|Begin with gamelan/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Gamelan sound" })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("Begin quietly: hening, tidak mengunduh audio, pilihan diingat", async ({ page }) => {
+test("mute sebelum mulai: hening, tidak mengunduh audio, pilihan diingat", async ({ page }) => {
   const audioRequests: string[] = [];
   page.on("request", (r) => {
     if (r.url().includes("/audio/")) audioRequests.push(r.url());
   });
   await page.goto("/");
-  await page.getByRole("button", { name: /Begin quietly/ }).click();
+  const toggle = page.getByRole("button", { name: "Gamelan sound" });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  expect(await pref(page)).toBe("off");
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
   await expect(page).toHaveURL(/\/film\/$/);
   expect(await pref(page)).toBe("off");
-  const toggle = page.getByRole("button", { name: "Gamelan sound" });
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Gamelan sound" })).toHaveAttribute("aria-pressed", "false");
   await page.waitForTimeout(600);
   expect(audioRequests).toEqual([]);
   expect((await audioDebug(page))?.ctx).toBe("none");
 });
 
-test("Begin with gamelan: Kebo Giro diputar, toggle bisa mematikan", async ({ page }) => {
+test("pilihan mute diingat di kunjungan berikutnya", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("lakon.sound", "off"));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Gamelan sound" })).toHaveAttribute("aria-pressed", "false");
+});
+
+test("Begin: gamelan langsung berbunyi (Kebo Giro), toggle bisa mematikan", async ({ page }) => {
   await page.goto("/");
   const keboGiro = page.waitForResponse((r) => r.url().endsWith("/audio/gamelan/kebo-giro.mp3"));
-  await page.getByRole("button", { name: /Begin with gamelan/ }).click();
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
   const res = await keboGiro;
   expect(res.status()).toBe(200);
   expect(res.headers()["content-type"]).toContain("audio/mpeg");
@@ -60,4 +68,25 @@ test("Begin with gamelan: Kebo Giro diputar, toggle bisa mematikan", async ({ pa
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect.poll(async () => (await audioDebug(page))?.ctx).toBe("running");
   expect((await audioDebug(page))?.bed).toBe("kebo-giro");
+});
+
+test("klik tombol berbunyi saat gamelan menyala (pop/tok), hening setelah di-mute", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
+  await expect(page).toHaveURL(/\/film\/$/);
+  await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("kebo-giro");
+  // tombol emas → pop
+  await page.getByRole("link", { name: "Open Today" }).click();
+  await expect(page).toHaveURL(/\/today\/$/);
+  await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 5_000 }).toBe("ui-pop");
+  // sakelar bahasa → tok keprak
+  await page.getByRole("button", { name: /Bahasa Indonesia/ }).click();
+  await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 5_000 }).toBe("ui-tok");
+  // mute: klik berikutnya tidak berbunyi
+  await page.getByRole("button", { name: "Suara gamelan" }).click();
+  await expect(page.getByRole("button", { name: "Suara gamelan" })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("link", { name: "Tonton filmnya" }).click(); // tombol kaca → "ui-click" kalau tidak di-mute
+  await expect(page).toHaveURL(/\/film\/$/);
+  await page.waitForTimeout(300);
+  expect((await audioDebug(page))?.lastSfx).toBe("ui-tok");
 });

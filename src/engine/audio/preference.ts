@@ -1,4 +1,4 @@
-/** Pilihan suara tamu ("Begin with gamelan" / "Begin quietly"), diingat di perangkat. */
+/** Pilihan suara tamu (tombol speaker; bawaan menyala), diingat di perangkat. */
 export const SOUND_KEY = "lakon.sound";
 export type SoundPref = "on" | "off";
 type ReadStore = Pick<Storage, "getItem">;

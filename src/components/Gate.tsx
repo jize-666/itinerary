@@ -1,13 +1,16 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAudio } from "@/engine/audio/AudioEngine";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { MOTION, prefersReducedMotion } from "@/engine/motion/tokens";
+import { todayState } from "@/engine/today/schedule";
 import { CODE_LENGTH } from "@/lib/code";
 import { type AccessResult, type Session, sessionStore, UNKNOWN, verifyAccess } from "@/lib/session";
-import { guestShortName, loadTrip, type TripView } from "@/lib/trip";
+import { guestShortName, loadTrip, peekTrip, type TripView } from "@/lib/trip";
 import { BeginChoice } from "./BeginChoice";
 import { CodeInput } from "./CodeInput";
+import { IconKey } from "./Icons";
 import { Bayang, Benang, Canting, Gamelan } from "./motion/Kinetic";
 import { useCurtainNav } from "./motion/Curtain";
 import { Ticket } from "./Ticket";
@@ -80,8 +83,9 @@ export function Gate() {
       <Welcome
         session={session}
         fresh={fresh}
-        onBegin={async (withSound) => {
-          await go(session.role === "team" ? "/today/" : "/film/", prefersReducedMotion() ? 0 : 420); // stempel dulu, lalu tirai
+        onBegin={async (withSound, during) => {
+          // selama trip (dan untuk tim) yang dibutuhkan jadwal hari ini; sebelum trip, filmnya
+          await go(session.role === "team" || during ? "/today/" : "/film/", prefersReducedMotion() ? 0 : 420); // stempel dulu, lalu tirai
           if (withSound) void getAudio().playSfx("gong", { gain: 0.85 }); // pukulan gong membuka lakon
         }}
       />
@@ -132,8 +136,12 @@ export function Gate() {
   );
 }
 
-function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean; onBegin: (withSound: boolean) => void }) {
+/** Trip sedang berlangsung (kalender WIB)? */
+const isDuring = (d: TripView | null | undefined) => !!d && todayState(d.trip.days).phase === "during";
+
+function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean; onBegin: (withSound: boolean, during: boolean) => void }) {
   const { t } = useI18n();
+  const router = useRouter();
   const [data, setData] = useState<TripView | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -141,17 +149,31 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
   // Data trip mulai diunduh di sini (dipakai lagi oleh Today); nama tamu hanya datang dari data privat.
   useEffect(() => {
     let alive = true;
+    // Kunjungan ulang selama trip: Today langsung tampil (PRD §7.6), tanpa menunggu jaringan.
+    if (!fresh && isDuring(peekTrip(session.token)?.data)) {
+      router.replace("/today/");
+      return;
+    }
     loadTrip(session.token).then((r) => {
       if (!alive) return;
-      if (r.kind === "ok") setData(r.data);
-      else setFailed(true);
+      if (r.kind === "ok") {
+        if (!fresh && isDuring(r.data)) return router.replace("/today/");
+        setData(r.data);
+      } else setFailed(true);
     });
     return () => {
       alive = false;
     };
-  }, [session.token]);
+  }, [session.token, fresh, router]);
   return (
     <main className="gate gate--welcome" data-leaving={leaving ? "" : undefined}>
+      {/* kiri atas, sejajar toggle bahasa: jalan keluar yang jarang dipakai tidak bersaing dengan tombol utama di bawah */}
+      <button type="button" className="pb pb--glass pb--xs gate-switch" onClick={() => sessionStore.clear()}>
+        <span className="pb-face">
+          <IconKey />
+          <span className="gate-switch-label">{t("gate.switch")}</span>
+        </span>
+      </button>
       <div className="gate-head">
         {session.role === "team" && <Benang className="gate-kicker" text={t("gate.team")} />}
         <h1 className="gate-title" lang="jv">
@@ -165,12 +187,9 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
       <BeginChoice
         onBegin={(withSound) => {
           setLeaving(true);
-          onBegin(withSound);
+          onBegin(withSound, isDuring(data));
         }}
       />
-      <button type="button" className="gate-switch" onClick={() => sessionStore.clear()}>
-        {t("gate.switch")}
-      </button>
     </main>
   );
 }

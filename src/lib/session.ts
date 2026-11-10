@@ -7,6 +7,8 @@ import { FUNCTIONS_URL } from "./config";
 export type Role = "guest" | "team";
 export type Session = Readonly<{ token: string; role: Role; exp: number }>;
 export const SESSION_KEY = "lakon.session";
+/** Salinan trip-data terakhir untuk Today offline (lihat src/lib/trip.ts). Ikut dihapus bersama sesi. */
+export const TRIP_KEY = "lakon.trip";
 
 type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 const localStore = (): Store | undefined => {
@@ -47,6 +49,7 @@ export function writeSession(s: Session, store: Pick<Storage, "setItem"> | undef
 export function clearSession(store: Pick<Storage, "removeItem"> | undefined = localStore()) {
   try {
     store?.removeItem(SESSION_KEY);
+    store?.removeItem(TRIP_KEY);
   } catch {
     /* abaikan */
   }
@@ -112,19 +115,23 @@ export async function verifyAccess(code: string, f: typeof fetch = fetch, base =
   return { kind: "server" };
 }
 
-export type TripResult<T> = { kind: "ok"; data: T } | { kind: "unauthorized" } | { kind: "offline" } | { kind: "server" };
+export type TripResult<T> = { kind: "ok"; data: T; etag?: string } | { kind: "same" } | { kind: "unauthorized" } | { kind: "offline" } | { kind: "server" };
 
-export async function fetchTrip<T>(token: string, f: typeof fetch = fetch, base = FUNCTIONS_URL): Promise<TripResult<T>> {
+/** `etag` dari unduhan sebelumnya → server menjawab 304 ("same") bila datanya belum berubah. */
+export async function fetchTrip<T>(token: string, f: typeof fetch = fetch, base = FUNCTIONS_URL, etag?: string): Promise<TripResult<T>> {
   let res: Response;
   try {
-    res = await f(`${base}/trip-data`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const headers: Record<string, string> = { authorization: `Bearer ${token}` };
+    if (etag) headers["if-none-match"] = etag;
+    res = await f(`${base}/trip-data`, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch {
     return { kind: "offline" };
   }
+  if (res.status === 304) return etag ? { kind: "same" } : { kind: "server" };
   if (res.status === 401) return { kind: "unauthorized" };
   if (!res.ok) return { kind: "server" };
   try {
-    return { kind: "ok", data: (await res.json()) as T };
+    return { kind: "ok", data: (await res.json()) as T, etag: res.headers.get("etag") ?? undefined };
   } catch {
     return { kind: "server" };
   }

@@ -1,9 +1,8 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { getAudio, type AudioState } from "@/engine/audio/AudioEngine";
+import { type AudioState, audioStatus } from "@/engine/audio/status";
 
-/** Status audio (started/enabled) yang reaktif. Engine baru dibuat di klien. */
+/** Status audio (started/enabled) yang reaktif, tanpa memuat mesin audio. */
 export function useAudioState(): AudioState {
-  const a = getAudio();
-  return useSyncExternalStore(a.subscribe, a.getState, a.getServerState);
+  return useSyncExternalStore(audioStatus.subscribe, audioStatus.get, audioStatus.getServer);
 }

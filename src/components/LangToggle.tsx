@@ -1,21 +1,32 @@
 "use client";
 import { useEffect } from "react";
-import { LANGS, translate } from "@/engine/i18n/lang";
-import { useI18n } from "@/engine/i18n/useI18n";
+import { CHROME } from "@/engine/i18n/chrome";
+import { LANGS, langStore } from "@/engine/i18n/lang";
+import { useLang } from "@/engine/i18n/useLang";
+import { Seg } from "./Seg";
 
-/** EN | ID di pojok kanan atas, ganti tanpa reload (PRD FR-11). */
+/** EN | ID di pojok kanan atas, ganti tanpa reload (PRD FR-11). Nama bahasa ditulis dalam bahasanya sendiri. */
 export function LangToggle() {
-  const { lang, setLang, t } = useI18n();
+  const lang = useLang();
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
   return (
-    <div className="lang-toggle" role="group" aria-label={t("lang.label")}>
-      {LANGS.map((l) => (
-        <button key={l} type="button" lang={l} aria-pressed={lang === l} aria-label={translate(l, `lang.${l}`)} onClick={() => setLang(l)}>
-          {l.toUpperCase()}
-        </button>
-      ))}
-    </div>
+    <Seg
+      className="lang-toggle"
+      label={CHROME["lang.label"][lang]}
+      value={lang}
+      onChange={(l) => langStore.set(l)}
+      options={LANGS.map((l) => ({
+        value: l,
+        lang: l,
+        label: (
+          <>
+            {l.toUpperCase()}
+            <span className="sr-only"> {CHROME[`lang.${l}`][l]}</span>
+          </>
+        ),
+      }))}
+    />
   );
 }

@@ -1,34 +1,45 @@
 "use client";
+import { useState } from "react";
 import { getAudio } from "@/engine/audio/AudioEngine";
-import { translate } from "@/engine/i18n/lang";
+import { readSoundPref, writeSoundPref } from "@/engine/audio/preference";
 import { useI18n } from "@/engine/i18n/useI18n";
+import { IconGong } from "./Icons";
+import { SoundButton } from "./SoundToggle";
+import { useAudioState } from "./useAudio";
 
 /**
- * Dua pintu masuk (PRD §7.1, FR-43): tamu memilih sendiri mau disambut gamelan atau hening.
- * Klik ini juga gesture yang membuka audio di iOS/Chrome (kebijakan autoplay).
- * Label utama mengikuti bahasa aktif, subjudul dalam bahasa satunya.
+ * Pintu masuk (PRD §7.1, FR-43): satu tombol, klik langsung disambut gamelan.
+ * Mute tetap ada: tombol speaker di kanan atas sudah tampil di sambutan (bawaan menyala, diingat di perangkat);
+ * kalau dimatikan sebelum mulai, lakon dimulai hening dan audio tidak diunduh sama sekali.
+ * Klik Begin juga gesture yang membuka audio di iOS/Chrome (kebijakan autoplay).
  */
 export function BeginChoice({ onBegin }: { onBegin: (withSound: boolean) => void }) {
-  const { lang, t } = useI18n();
-  const other = lang === "en" ? "id" : "en";
-  const choose = (withSound: boolean) => {
-    getAudio().begin(withSound);
-    onBegin(withSound);
+  const { t } = useI18n();
+  const { started } = useAudioState();
+  const [sound, setSound] = useState(() => readSoundPref() !== "off");
+  const begin = () => {
+    getAudio().begin(sound);
+    onBegin(sound);
   };
   return (
     <div className="begin">
-      {([true, false] as const).map((withSound, i) => {
-        const key = withSound ? "begin.sound" : "begin.quiet";
-        return (
-          <button key={key} type="button" style={{ "--i": i } as React.CSSProperties} className={`begin-btn begin-btn--${withSound ? "sound" : "quiet"}`} onClick={() => choose(withSound)}>
-            <span className="begin-main">{t(key)}</span>
-            <span className="begin-sub" lang={other}>
-              {translate(other, key)}
-            </span>
-          </button>
-        );
-      })}
-      <p className="begin-note">{t("begin.note")}</p>
+      {!started && (
+        <SoundButton
+          on={sound}
+          onToggle={() => {
+            setSound(!sound);
+            writeSoundPref(sound ? "off" : "on");
+          }}
+        />
+      )}
+      <button type="button" data-haptic="" className="pb pb--xl pb--gold pb--kawung begin-btn" onClick={begin}>
+        <span className="pb-face">
+          <span className="begin-ico">
+            <IconGong />
+          </span>
+          <span className="begin-main">{t("begin.go")}</span>
+        </span>
+      </button>
     </div>
   );
 }
