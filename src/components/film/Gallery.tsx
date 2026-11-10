@@ -2,10 +2,9 @@
 import { type CSSProperties, memo } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import type { PanelSlide } from "@/engine/slides/build-slides";
-import { fmtSpan } from "@/engine/today/format";
 import type { Phase, StopView, TripView } from "@/lib/trip";
 import { IconStory } from "../Icons";
-import { Benang, Gunungan } from "../motion/Kinetic";
+import { Benang } from "../motion/Kinetic";
 import { MapsLink } from "../today/DayPlan";
 import { useLive } from "./Slides";
 
@@ -70,17 +69,21 @@ const Card = memo(function Card({ data, slide, current, onOpen }: { data: TripVi
           <PhaseArt phase={phase} />
         )}
         <p className="gal-meta">
-          <time className="gal-time">{fmtSpan(stop.start, stop.end)}</time>
           <span className="gal-phase">{t(PHASE[phase])}</span>
           <span className="gal-n">{t("film.panel", { n: slide.n, total: slide.of })}</span>
         </p>
-        <Gunungan as="h2" className="gal-title" text={title} delay={80} />
+        <p className="gal-clock">
+          <time className="gal-time">{stop.start}</time>
+          {stop.end && <span className="gal-until">– {stop.end}</span>}
+        </p>
+        {/* jam & nama selalu tampil (kartu tetangga jadi pratinjau stop berikutnya); isinya menyusul saat tiba */}
+        <h2 className="gal-title">{title}</h2>
         {stop.why && (
-          <p className="gal-why f-rise" style={{ "--d": "420ms" } as Var}>
+          <p className="gal-why f-rise" style={{ "--d": "120ms" } as Var}>
             {tx(stop.why)}
           </p>
         )}
-        <div className="gal-foot f-rise" style={{ "--d": "560ms" } as Var}>
+        <div className="gal-foot f-rise" style={{ "--d": "260ms" } as Var}>
           {(stop.optional || stop.dressCode || stop.food) && (
             <ul className="chips">
               {stop.optional && <li className="chip">{t("today.optional")}</li>}

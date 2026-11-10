@@ -1,5 +1,5 @@
 "use client";
-import { type CSSProperties, type ElementType, useEffect, useState } from "react";
+import { type CSSProperties, type ElementType, type ReactNode, useEffect, useState } from "react";
 import { expoOut, MOTION, prefersReducedMotion } from "@/engine/motion/tokens";
 
 /**
@@ -51,13 +51,30 @@ function gamelanTimeline(text: string) {
 export function Bayang({ text, delay = 0, className }: { text: string; delay?: number; className?: string }) {
   const cs = chars(text);
   const mid = (cs.length - 1) / 2;
+  // Huruf dikelompokkan per kata supaya baris hanya patah di spasi (judul panjang di layar sempit tidak
+  // terpotong di tengah kata). Spasinya spasi biasa, jadi textContent tetap sama persis dengan teks aslinya.
+  const out: ReactNode[] = [];
+  let word: ReactNode[] = [];
+  const flush = (key: number) => {
+    if (word.length) out.push(<span key={`w${key}`} className="k-word">{word}</span>);
+    word = [];
+  };
+  cs.forEach((ch, i) => {
+    if (ch === " ") {
+      flush(i);
+      out.push(" ");
+      return;
+    }
+    word.push(
+      <span key={i} className="k-char" data-ch={ch} style={{ "--o": Math.round(Math.abs(i - mid)), "--i": i } as Var}>
+        <span className="k-lit">{ch}</span>
+      </span>,
+    );
+  });
+  flush(cs.length);
   return (
     <span className={`k-bayang${className ? ` ${className}` : ""}`} style={{ "--d": ms(delay) } as Var}>
-      {cs.map((ch, i) => (
-        <span key={i} className={charClass(ch)} data-ch={ch} style={{ "--o": Math.round(Math.abs(i - mid)), "--i": i } as Var}>
-          <span className="k-lit">{ch}</span>
-        </span>
-      ))}
+      {out}
     </span>
   );
 }

@@ -1103,6 +1103,12 @@ a {
   white-space: pre;
 }
 
+/* satu kata = satu kotak: baris hanya boleh patah di spasi, bukan di antara huruf */
+.k-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 /* teks yang belum gilirannya: tempat sudah disiapkan, belum terlihat */
 .k-wait {
   opacity: 0;
