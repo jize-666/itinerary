@@ -33,6 +33,7 @@ class AudioEngine {
   private bedToken = 0;
   private pumpTimer: ReturnType<typeof setInterval> | null = null;
   private suspendTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastSfx: SfxName | null = null;
 
   constructor() {
     if (typeof window !== "undefined") (window as AudioWindow).__lakonAudio = { debug: () => this.debug() };
@@ -117,12 +118,13 @@ class AudioEngine {
     src.connect(g).connect(this.sfxBus);
     src.onended = () => g.disconnect();
     src.start(at);
+    this.lastSfx = name;
     if (duck) this.duck(at, buffer.duration);
   }
 
   /** Untuk e2e & debug; tidak memuat data apa pun selain status audio. */
   debug() {
-    return { ...this.state, ctx: this.ctx?.state ?? "none", bed: this.bed?.playing ? this.bedName : null };
+    return { ...this.state, ctx: this.ctx?.state ?? "none", bed: this.bed?.playing ? this.bedName : null, lastSfx: this.lastSfx };
   }
 
   // ---- internal ----

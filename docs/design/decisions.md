@@ -172,6 +172,12 @@ Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonj
 - Film: "Open Today" emas berkawung berikon kalender. Today: "Try again", "Watch the film" (ikon putar), "Refresh". 404: "Back to the gate".
 - Lighthouse a11y 100 di gerbang, sambutan, film, dan Today (EN & ID).
 
+## Bunyi klik tombol (10 Nov 2026), permintaan host: "SFX click button, jangan pakai yang lama"
+- Tiga bunyi baru, diputar saat jari **menyentuh** tombol (bukan saat dilepas) dan **hanya bila gamelan menyala**; di-mute → hening:
+  - `ui-pop` (tombol emas & SOS), `ui-click` (tombol kaca/sekunder): dari paket SFX yang dibawa host. Host menyatakan paket itu bebas lisensi dan sudah mendapat izin kreatornya lewat DM (10 Nov 2026). Bukti izin disimpan host, di luar repo.
+  - `ui-tok` (sakelar: EN/ID, Rain plan, pilihan hari, checklist, speaker): ketukan keprak dalang, dibuat dengan ElevenLabs (paket gratis, 50 kredit).
+- Masing-masing < 4 KB, dimuat bersama SFX lain setelah sambutan berbunyi; volume 0,45 dan tidak merendahkan gendhing. Bisa ditimpa per tombol lewat `data-sfx`.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].
