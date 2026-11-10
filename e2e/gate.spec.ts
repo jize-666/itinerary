@@ -40,7 +40,7 @@ test("kode benar (ditempel, huruf kecil, tanda hubung): disapa nama, tiket priba
   await expect(page.getByText("Welcome back. Your seat is still saved.")).toBeVisible();
   await expect(codeInput(page)).toHaveCount(0);
 
-  await page.getByRole("button", { name: /Begin quietly/ }).click();
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
   await expect(page).toHaveURL(/\/film\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("A Three-Day Lakon");
   await expect(page.getByText("for Mira")).toBeVisible();
@@ -57,7 +57,7 @@ test("kode tim: masuk ke Today dan melihat catatan tim", async ({ page }) => {
   await codeInput(page).fill("TIM123456");
   await expect(page.getByText("Team access")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sugeng rawuh."); // tim tidak disapa dengan nama tamu
-  await page.getByRole("button", { name: /Begin quietly/ }).click();
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
   await expect(page).toHaveURL(/\/today\/$/);
   await expect(page.getByText("Team note:")).toBeVisible();
   expect(auth).toBe("Bearer tok.team-abcdef");

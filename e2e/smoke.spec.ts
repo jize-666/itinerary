@@ -29,7 +29,7 @@ test("CSP tidak memblokir apa pun di alur utama", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Booking code").fill("ABC123XYZ");
   const audio = page.waitForResponse((r) => r.url().endsWith("/kebo-giro.mp3"));
-  await page.getByRole("button", { name: /Begin with gamelan/ }).click();
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
   await audio;
   await page.getByRole("link", { name: "Open Today" }).click();
   await expect(page.getByRole("heading", { level: 4, name: "Morning walk" })).toBeVisible();

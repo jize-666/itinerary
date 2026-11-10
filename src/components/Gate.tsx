@@ -10,6 +10,7 @@ import { type AccessResult, type Session, sessionStore, UNKNOWN, verifyAccess } 
 import { guestShortName, loadTrip, peekTrip, type TripView } from "@/lib/trip";
 import { BeginChoice } from "./BeginChoice";
 import { CodeInput } from "./CodeInput";
+import { IconKey } from "./Icons";
 import { Bayang, Benang, Canting, Gamelan } from "./motion/Kinetic";
 import { useCurtainNav } from "./motion/Curtain";
 import { Ticket } from "./Ticket";
@@ -166,6 +167,13 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
   }, [session.token, fresh, router]);
   return (
     <main className="gate gate--welcome" data-leaving={leaving ? "" : undefined}>
+      {/* kiri atas, sejajar toggle bahasa: jalan keluar yang jarang dipakai tidak bersaing dengan tombol utama di bawah */}
+      <button type="button" className="pb pb--glass pb--xs gate-switch" onClick={() => sessionStore.clear()}>
+        <span className="pb-face">
+          <IconKey />
+          <span className="gate-switch-label">{t("gate.switch")}</span>
+        </span>
+      </button>
       <div className="gate-head">
         {session.role === "team" && <Benang className="gate-kicker" text={t("gate.team")} />}
         <h1 className="gate-title" lang="jv">
@@ -182,9 +190,6 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
           onBegin(withSound, isDuring(data));
         }}
       />
-      <button type="button" className="gate-switch" onClick={() => sessionStore.clear()}>
-        {t("gate.switch")}
-      </button>
     </main>
   );
 }

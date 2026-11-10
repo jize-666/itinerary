@@ -3,7 +3,7 @@
  * Mesinnya (AudioEngine) hanya dimuat halaman yang memulai suara (gerbang); Today yang ringan tidak ikut mengunduhnya.
  */
 export type AudioState = Readonly<{
-  /** Tamu sudah memilih di gerbang ("Begin with gamelan" / "Begin quietly"). */
+  /** Tamu sudah menekan "Begin the lakon" di gerbang. */
   started: boolean;
   /** Suara menyala (toggle). */
   enabled: boolean;

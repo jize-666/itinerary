@@ -5,6 +5,7 @@ import { fmtAgo, fmtClock, fmtDay } from "@/engine/today/format";
 import { todayState } from "@/engine/today/schedule";
 import { sessionStore } from "@/lib/session";
 import { loadTrip, peekTrip, type TripLoad, type TripView } from "@/lib/trip";
+import { IconPlay, IconRefresh } from "../Icons";
 import { InstallGuide } from "../InstallGuide";
 import { Benang, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
 import { CurtainLink, useCurtainOpen } from "../motion/Curtain";
@@ -74,13 +75,16 @@ export function Today() {
         {view.kind !== "loading" && (
           <button
             type="button"
-            className="begin-btn begin-btn--quiet"
+            className="pb pb--gold pb--lg"
             onClick={() => {
               setState({ kind: "loading" });
               setReload((n) => n + 1);
             }}
           >
-            <span className="begin-main">{t("today.retry")}</span>
+            <span className="pb-face">
+              <IconRefresh />
+              <span>{t("today.retry")}</span>
+            </span>
           </button>
         )}
       </main>
@@ -112,20 +116,26 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
   const offline = stale || !online;
   const during = s.phase === "during";
   const meta = (
-    <>
+    <div className="td-statusrow">
       <p className="td-status" data-offline={offline ? "" : undefined}>
         <span className="td-dot" aria-hidden="true" />
         <span>{offline ? t("today.offlineSaved", { t: fmtAgo(savedAt, at, lang) }) : t("today.updated", { t: fmtAgo(savedAt, at, lang) })}</span>
         {offline && online && (
-          <button type="button" className="td-refresh" onClick={onRefresh}>
-            {t("today.refresh")}
+          <button type="button" className="pb pb--glass pb--xs td-refresh" onClick={onRefresh}>
+            <span className="pb-face">
+              <IconRefresh size={14} />
+              <span>{t("today.refresh")}</span>
+            </span>
           </button>
         )}
       </p>
-      <CurtainLink className="today-film" href="/film/">
-        {t("today.toFilm")}
+      <CurtainLink className="pb pb--glass pb--sm today-film" href="/film/">
+        <span className="pb-face">
+          <IconPlay />
+          <span>{t("today.toFilm")}</span>
+        </span>
       </CurtainLink>
-    </>
+    </div>
   );
   return (
     <main className="td" data-phase={s.phase}>

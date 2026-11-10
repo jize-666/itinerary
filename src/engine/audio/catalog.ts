@@ -3,7 +3,7 @@
  * File statis di public/audio: tidak memuat data trip maupun data pribadi.
  */
 export const BEDS = {
-  /** Sambutan: diputar sekali saat tamu memilih "Begin with gamelan", lalu bersambung ke keraton. */
+  /** Sambutan: diputar sekali saat tamu menekan "Begin the lakon" (suara menyala), lalu bersambung ke keraton. */
   "kebo-giro": "/audio/gamelan/kebo-giro.mp3",
   /** Latar bab: tenang & berwibawa dengan gong berkala, diulang tanpa jeda (crossfade). */
   keraton: "/audio/gamelan/keraton.mp3",

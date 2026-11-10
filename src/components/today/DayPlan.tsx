@@ -4,7 +4,7 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import { fmtDay, fmtSpan } from "@/engine/today/format";
 import { timeline, type TodayState } from "@/engine/today/schedule";
 import type { DayView, StopView } from "@/lib/trip";
-import { IconCheck, IconCopy, IconPin } from "../Icons";
+import { IconCheck, IconCopy, IconPin, IconUmbrella } from "../Icons";
 import { copyText } from "./hooks";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -82,13 +82,12 @@ export function DayPlan({ days, s, at, onCopied }: { days: DayView[]; s: TodaySt
         <h2 id="dp-title" className="dp-title">
           {t("today.programme")}
         </h2>
-        <button type="button" className="rain" aria-pressed={rain} onClick={() => setRain((r) => !r)}>
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3.5 12a8.5 8.5 0 0 1 17 0z" fill="currentColor" fillOpacity="0.16" />
-            <path d="M12 12v6.5a2 2 0 0 1-4 0" />
-          </svg>
-          <span>{t("today.rain")}</span>
-          <span className="rain-knob" aria-hidden="true" />
+        <button type="button" className="pb pb--glass pb--sm rain" aria-pressed={rain} onClick={() => setRain((r) => !r)}>
+          <span className="pb-face">
+            <IconUmbrella />
+            <span>{t("today.rain")}</span>
+            <span className="rain-knob" aria-hidden="true" />
+          </span>
         </button>
       </div>
 
@@ -97,13 +96,15 @@ export function DayPlan({ days, s, at, onCopied }: { days: DayView[]; s: TodaySt
           <button
             key={d.n}
             type="button"
-            className="dp-tab"
+            className="pb pb--glass dp-tab"
             aria-pressed={d.n === day.n}
             aria-current={d.n === s.day?.n ? "date" : undefined}
             onClick={() => setPicked(d.n)}
           >
-            <span className="dp-tabn">{t("today.day", { n: d.n })}</span>
-            <span className="dp-tabd">{fmtDay(d.date, lang)}</span>
+            <span className="pb-face">
+              <span className="dp-tabn">{t("today.day", { n: d.n })}</span>
+              <span className="dp-tabd">{fmtDay(d.date, lang)}</span>
+            </span>
           </button>
         ))}
       </div>

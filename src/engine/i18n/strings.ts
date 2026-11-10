@@ -26,9 +26,7 @@ export const STRINGS = {
   "gate.team": { en: "Team access", id: "Akses tim" },
   "gate.switch": { en: "Use a different code", id: "Pakai kode lain" },
 
-  "begin.sound": { en: "Begin with gamelan", id: "Mulai dengan gamelan" },
-  "begin.quiet": { en: "Begin quietly", id: "Mulai tanpa suara" },
-  "begin.note": { en: "Sound can be switched at any time.", id: "Suara bisa diubah kapan saja." },
+  "begin.go": { en: "Begin the lakon", id: "Mulai lakonnya" },
 
 
   "ticket.kicker": { en: "Boarding pass", id: "Boarding pass" },

@@ -27,7 +27,7 @@ export function PressFx() {
       if (left > 0) setTimeout(() => delete el.dataset.pressed, left);
       else delete el.dataset.pressed;
     };
-    const target = (e: Event) => (e.target instanceof Element ? (e.target.closest(".pb") as HTMLElement | null) : null);
+    const target = (e: Event) => (e.target instanceof Element ? (e.target.closest(".pb, [data-press]") as HTMLElement | null) : null);
     const down = (e: PointerEvent) => {
       if (e.button !== 0) return;
       const el = target(e);

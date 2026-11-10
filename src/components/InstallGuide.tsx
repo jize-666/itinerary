@@ -2,6 +2,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { installPrompt, isStandalone } from "@/lib/pwa";
+import { Seg } from "./Seg";
 
 type Os = "ios" | "android";
 const KEY = "lakon.install";
@@ -55,13 +56,13 @@ export function InstallGuide() {
           </button>
         ) : (
           <>
-            <div className="ig-tabs" role="group" aria-label={t("install.add")}>
-              {(["ios", "android"] as const).map((o) => (
-                <button key={o} type="button" aria-pressed={os === o} onClick={() => setOs(o)}>
-                  {t(o === "ios" ? "install.ios" : "install.android")}
-                </button>
-              ))}
-            </div>
+            <Seg
+              className="ig-tabs"
+              label={t("install.add")}
+              value={os}
+              onChange={setOs}
+              options={(["ios", "android"] as const).map((o) => ({ value: o, label: t(o === "ios" ? "install.ios" : "install.android") }))}
+            />
             <ol className="ig-steps" key={os}>
               {STEPS[os].map((k) => (
                 <li key={k}>{t(k)}</li>

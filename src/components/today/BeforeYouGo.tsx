@@ -48,12 +48,15 @@ export function BeforeYouGo({ items }: { items: { id: string; title: L; body: L 
       <ul className="byg-list">
         {items.map((it, i) => (
           <li key={it.id} style={{ "--i": i } as Var}>
-            <label className="byg-item">
+            <label className="byg-item" data-press="">
               <input type="checkbox" checked={done.includes(it.id)} onChange={() => toggle(it.id)} />
+              {/* tombol kecil 3D: tertekan & menyala emas saat dicentang */}
               <span className="byg-box" aria-hidden="true">
-                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3.5 8.5l3 3 6-7" />
-                </svg>
+                <span className="byg-key">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3.5 8.5l3 3 6-7" />
+                  </svg>
+                </span>
               </span>
               <span className="byg-text">
                 <strong>{tx(it.title)}</strong>

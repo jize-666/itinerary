@@ -555,7 +555,7 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 | FR-40 | P0 | Credits dibuat otomatis dari manifest foto + daftar font/data |
 | FR-41 | P1 | Gambar OG + metadata link preview yang netral |
 | FR-42 | P1 | Template pesan WhatsApp pengantar (EN) untuk host |
-| FR-43 | P1 | Audio gamelan: dua tombol di gerbang (dengan gamelan / tanpa suara), pilihan diingat di perangkat, toggle speaker selalu terlihat, berhenti saat tab disembunyikan. Sambutan Kebo Giro sekali → bersambung ke gendhing keraton yang diulang tanpa jeda (crossfade). Efek gong/api naga/gunungan/keris di atas gendhing (gendhing direndahkan sebentar). "Begin quietly" tidak mengunduh audio sama sekali. |
+| FR-43 | P1 | Audio gamelan: **satu tombol** di gerbang ("Begin the lakon"), klik langsung disambut gamelan; **mute** lewat toggle speaker yang sudah tampil sejak sambutan (bawaan menyala, pilihan diingat di perangkat) dan selalu terlihat setelahnya (revisi host 10 Nov 2026), berhenti saat tab disembunyikan. Sambutan Kebo Giro sekali → bersambung ke gendhing keraton yang diulang tanpa jeda (crossfade). Efek gong/api naga/gunungan/keris di atas gendhing (gendhing direndahkan sebentar). Bila di-mute sebelum mulai, audio tidak diunduh sama sekali. |
 
 ---
 

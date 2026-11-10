@@ -160,6 +160,18 @@ Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonj
 - **Tanpa translator** (rekan tamu tidak jadi berangkat; host yang menerjemahkan): kontak translator dihapus dari rancangan, teks Pasar Klewer jadi "your host has your back" (konten Supabase ikut diperbarui).
 - Nomor telepon dinormalkan ke +62 supaya bisa dipanggil dari SIM mana pun; nomor darurat pendek tetap apa adanya.
 
+## Satu bahasa tombol untuk seluruh alur (10 Nov 2026), "benerin semua button UI-nya, dari masukin kode sampai sekarang, sesuain sama temanya"
+- **Satu sistem** (`.pb` + `PressFx`) dari gerbang sampai Today: emas prada (utama; tombol utama besar bertekstur **kawung** tipis), kaca nila bergaris rambut emas (sekunder), nada-emas (Maps), merah lampion (SOS). Saat ditekan wajah tombol turun ke tebalnya, bayangan meredup, dan **cahaya blencong** menyala dari atas wajah tombol lalu meredup pelan.
+- **Sakelar yang menyala tetap tertekan**: pilihan hari, Rain plan (rona hujan nila muda), speaker (emas).
+- **Sakelar segmen 3D** untuk EN/ID dan iPhone/Android: lintasan dipahat ke dalam, kunci emas timbul bergeser ke pilihan aktif dan ikut tertekan saat disentuh.
+- **Pengaturan di kanan atas**: [speaker] [EN | ID]. Speaker tidak lagi melayang di atas isi halaman.
+- **Kotak kode** jadi celah yang dipahat (bayangan dalam, bibir emas); huruf "diletakkan" ke dalamnya.
+- **Sambutan**: "Use a different code" pindah ke kiri atas (pil kecil berikon kunci); tombol mulai menempel di bawah layar di atas gradasi, tiket tetap bisa di-scroll.
+- **Satu tombol mulai** (revisi host: "click langsung muncul gamelan, tapi fitur mute jangan dihilangkan"): "Begin the lakon" / "Mulai lakonnya" dengan ikon gong. Speaker sudah tampil sejak sambutan (bawaan menyala, diingat); di-mute sebelum mulai → lakon dimulai hening tanpa mengunduh audio.
+- Checklist *Before you go*: kotak centang jadi tombol kecil 3D yang tertekan dan menyala emas.
+- Film: "Open Today" emas berkawung berikon kalender. Today: "Try again", "Watch the film" (ikon putar), "Refresh". 404: "Back to the gate".
+- Lighthouse a11y 100 di gerbang, sambutan, film, dan Today (EN & ID).
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

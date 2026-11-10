@@ -68,3 +68,66 @@ export const IconClose = ({ size = 18 }: P) => (
     <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
   </svg>
 );
+
+/** Gong ageng tergantung (pencu di tengah): mulai dengan gamelan. */
+export const IconGong = ({ size = 22 }: P) => (
+  <svg {...base(size)}>
+    <path d="M8.4 5.2 12 2.6l3.6 2.6" />
+    <circle cx="12" cy="13.2" r="7.6" />
+    <circle cx="12" cy="13.2" r="4.4" strokeOpacity="0.55" />
+    <circle cx="12" cy="13.2" r="1.7" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Pengeras suara tanpa bunyi: mulai tanpa suara. */
+export const IconQuiet = ({ size = 22 }: P) => (
+  <svg {...base(size)}>
+    <path d="M4 9.4h3.2L12 5.5v13l-4.8-3.9H4z" />
+    <path d="M16 9.6l4.6 4.8M20.6 9.6 16 14.4" />
+  </svg>
+);
+
+/** Kunci: pakai kode lain. */
+export const IconKey = ({ size = 16 }: P) => (
+  <svg {...base(size)}>
+    <circle cx="8" cy="15.5" r="4" />
+    <path d="M10.9 12.6 19.5 4M16.4 7.1l2.4 2.4M14.2 9.3l1.8 1.8" />
+  </svg>
+);
+
+/** Kalender dengan satu hari ditandai: Today. */
+export const IconToday = ({ size = 20 }: P) => (
+  <svg {...base(size)}>
+    <rect x="3.6" y="5" width="16.8" height="15.4" rx="3" />
+    <path d="M3.6 9.6h16.8M8 3v3.6M16 3v3.6" />
+    <circle cx="12" cy="15" r="1.9" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Segitiga putar: tonton filmnya. */
+export const IconPlay = ({ size = 16 }: P) => (
+  <svg {...base(size)}>
+    <path d="M8 5.6v12.8a.8.8 0 0 0 1.22.68l10.2-6.4a.8.8 0 0 0 0-1.36L9.22 4.92A.8.8 0 0 0 8 5.6Z" fill="currentColor" fillOpacity="0.2" />
+  </svg>
+);
+
+export const IconRefresh = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" />
+    <path d="M19.6 4.4v4.3h-4.3" />
+  </svg>
+);
+
+export const IconBack = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M14.5 5.5 8 12l6.5 6.5" />
+  </svg>
+);
+
+/** Payung: rencana hujan. */
+export const IconUmbrella = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M3.4 12a8.6 8.6 0 0 1 17.2 0z" fill="currentColor" fillOpacity="0.16" />
+    <path d="M12 12v6.4a2 2 0 0 1-4 0M12 2.8v.6" />
+  </svg>
+);
