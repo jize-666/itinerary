@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dari `main` sesudah PR #5) · **PR home 2,5D + sesi per tab terbuka, menunggu tinjauan dan merge host** (nomor dan tautannya di bagian 5) · sesudah itu menunggu arahan host
+Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dari `main` sesudah PR #5) · home 2,5D + sesi per tab sudah di-commit dan di-push, diuji ulang 11 Nov malam (bagian 1c) · **PR-nya belum dibuat**; menunggu perintah host
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 1. Home 2,5D dengan desain baru (Tugas 3, selesai 11 Nov)
@@ -44,6 +44,20 @@ Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: 
 
 **Langkah berikutnya.** Host mencoba: tab baru harus meminta kode. Kalau panduan "Add to Home Screen" perlu menyebut bahwa kode diketik sekali lagi di aplikasi, tambahkan kalimatnya di Today.
 
+## 1c. Cek ulang atas permintaan host (11 Nov malam)
+
+**Pertanyaan host:** apakah galat "di HP dengan reduced motion, ayunan lapisan tidak dimatikan sepenuhnya setelah peringanan" sudah dikerjakan.
+
+**Yang selesai.** Sudah, di commit `9f8e512`. Penyebabnya: sesudah peringanan, aturan ayunan layar sentuh memakai `.hm-l:not(.hm-dust)` yang lebih spesifik daripada aturan reduced motion (`.hm-l`), jadi ayunan tetap jalan. Aturan reduced motion di `home.css` sekarang memakai selektor yang sama dan letaknya sesudah aturan layar sentuh, jadi dia yang menang.
+
+**Hasil tes.**
+- Diulang dari build baru pada `9f8e512`: `pnpm lint`, `pnpm typecheck`, `pnpm test` (211), `pnpm content:check` (OK, 46 peringatan lama: fakta [V] dan foto), `pnpm build`, `pnpm test:e2e` (155 lulus, 13 dilewati per perangkat). Tes yang dulu gagal, `e2e/home.spec.ts` "reduced motion: tidak ada parallax, ayunan, atau debu bergerak", lulus di proyek `iphone` dan `desktop`.
+- Diukur langsung di iPhone tiruan: tanpa reduced motion 18 animasi berjalan (`hm-sway`, `hm-card-sway`, `hm-sheen-sway`, `hm-dust`); dengan reduced motion 0 animasi berjalan, dan dua foto layar berjarak 2 detik identik.
+- Pratinjau direkam ulang dari build ini dan dikirim ke host di chat (2 video, 4 foto, data tiruan); berkasnya tidak masuk repo.
+- Kendala yang sama seperti bagian 1: belum diuji di Safari dan perangkat nyata.
+
+**Langkah berikutnya.** Menunggu perintah host. PR untuk branch ini belum dibuat; begitu diminta, buat PR ke `main` (Squash and merge oleh host).
+
 ## 2. Beres-beres di awal sesi (pilihan host)
 
 - **PR #5 sudah di-merge** host (11 Nov, squash "revisi design (#5)"). Branch kerja dibuat ulang dari `origin/main`.
@@ -68,7 +82,7 @@ Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: 
 
 Urutan usulan; host yang memutuskan. Daftar tugas di `CLAUDE.md` sudah habis.
 
-1. **Host:** tinjau pratinjau home, merge PR (bagian 5), lalu coba di perangkat nyata: tab baru harus meminta kode; home dan `/film/` di iPhone dan MacBook (Safari belum pernah diuji).
+1. **Host:** tinjau pratinjau home, minta PR dibuat lalu merge (bagian 5), lalu coba di perangkat nyata: tab baru harus meminta kode; home dan `/film/` di iPhone dan MacBook (Safari belum pernah diuji).
 2. **Penyesuaian home dari tinjauan host** (PR kecil dari `main` terbaru).
 3. **Putuskan gaya tombol:** apakah tombol baru (`.hb`) ikut dipakai di Today dan film, atau `.pb` tetap di sana. Kalau ikut, itu PR tersendiri: Today punya banyak tombol (dock, Rain plan, tab hari) dan tes `data-pressed`.
 4. **Panduan Add to Home Screen:** tambahkan kalimat bahwa kode diketik sekali lagi di aplikasi, dan bahwa hanya aplikasi itu yang bisa offline (akibat sesi per tab, bagian 1b).
