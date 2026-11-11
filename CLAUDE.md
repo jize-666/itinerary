@@ -28,9 +28,10 @@ Diperbarui 11 Nov 2026.
   Keputusan host 11 Nov: di hari yang punya jadwal sebelum sarapan (Hari 2), matahari mengikuti jam terbit asli, jadi sudah menyembul di panel "Matahari terbit di Kemuning". Rinciannya: `docs/design/decisions.md` bagian "Siklus waktu di gallery". Catatan: mouse tidak men-scrub (hanya roda/trackpad per langkah); yang mengikuti tangan hanya scrub jari.
 - [x] **2. Jadikan film 2D menjadi 2,5D.** ✅ 11 Nov 2026 untuk gallery. Jawaban host 11 Nov atas pertanyaan awal: 2,5D = kedalaman berlapis di film yang sudah ada (parallax antar lapisan, perspektif dan kemiringan ringan pada kartu, bayangan), tetap DOM dengan `transform` dan `opacity`, bukan WebGL; diterapkan di **gallery dulu**. Rinciannya: `docs/design/decisions.md` bagian "Gallery 2,5D". Sisa pekerjaan, semuanya menunggu tinjauan host atas pratinjau:
   - 2,5D di slide selain gallery (prolog, judul hari, gong, epilog, credits).
-  - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 2).
+  - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 3).
   - Hubungan dengan F2 (panggung 3D) belum diputuskan host.
+- [ ] **3. Home 2,5D + benahi UI home.** Permintaan host 11 Nov (sesudah PR #5 di-merge): "upgrade home ke 2,5d sama benerin ui home". Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti yang sama dengan Tugas 2: kedalaman berlapis, tetap DOM dengan `transform` dan `opacity`, bukan WebGL. Host belum merinci apa yang perlu dibenahi di UI; daftar cacat dan perbaikannya dicatat di `HANDOFF.md` bagian 1.
 
-**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.** Panduan merge untuk host ada di `HANDOFF.md` bagian 4.
+Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 
-Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 3.
+Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 4.
