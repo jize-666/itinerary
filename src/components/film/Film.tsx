@@ -1,10 +1,10 @@
 "use client";
 import "./film.css";
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useI18n } from "@/engine/i18n/useI18n";
-import { prefersReducedMotion } from "@/engine/motion/tokens";
-import { buildFilm, chapterAt, type Film as FilmData, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
+import { DEPTH, prefersReducedMotion } from "@/engine/motion/tokens";
+import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
 import { createLiveStore } from "@/engine/slides/live";
 import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
 import { styleAt } from "@/engine/slides/timeline";
@@ -18,9 +18,12 @@ import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
-import { sunPlace } from "./transitions";
+import { HILLS, hillShift, sunPlace } from "./transitions";
 
 type State = { kind: "loading" } | TripLoad;
+type Var = CSSProperties & Record<`--${string}`, string | number>;
+/** Kedalaman gallery untuk CSS (satu sumber dengan lintasan transisi: DEPTH di tokens). */
+const DEPTH_VARS: Var = { "--depth-perspective": `${DEPTH.perspective}px`, "--depth-card-z": `${DEPTH.cardZ}px`, "--depth-card-turn": `${DEPTH.cardTurn}deg` };
 const CALM_KEY = "lakon.calm";
 const HINT_KEY = "lakon.film.hint";
 
@@ -291,6 +294,8 @@ function Stage({ data }: { data: TripView }) {
   const off = (name: Parameters<typeof covered.has>[0]) => (covered.has(name) ? "" : undefined);
   const sun = sunPlace(sky.sun);
   const sunStyle = styleAt({ unit: "%", x: [[0, sun.x]], y: [[0, sun.y]], scale: [[0, sky.sun.scale]], opacity: [[0, sky.sun.opacity]] }, 0);
+  // parallax latar: bukit bergeser menurut letak panel di gallery, yang dekat lebih jauh dari yang jauh (Calm: diam)
+  const drift = calm ? 0 : galleryDrift(slide);
   return (
     <main
       ref={root}
@@ -304,6 +309,7 @@ function Stage({ data }: { data: TripView }) {
       data-kind={slide?.kind}
       data-slide={slide?.id}
       data-index={view.index}
+      style={DEPTH_VARS}
     >
       <div className="fl-skies" aria-hidden="true">
         <div className="fl-sky" data-sky="night" data-covered={off("night")} />
@@ -316,6 +322,12 @@ function Stage({ data }: { data: TripView }) {
             <i className="fl-sun-warm" style={{ opacity: sky.sun.warm }} />
           </div>
         </div>
+        {HILLS.map(([depth, span]) => (
+          // lebar = 100% layar + ruang geser, supaya tepi kanan tidak pernah tersingkap. Saat diam geserannya
+          // transform 2D biasa: translate3d akan menjadikan tiap lapis bukit lapisan compositor tetap, dan tanpa GPU
+          // itu memberatkan semua transisi di atasnya.
+          <div key={depth} className="fl-hills" data-depth={depth} data-covered={off("ground")} style={{ width: `${10000 / (100 - span)}%`, opacity: sky.ground, transform: `translateX(${Math.round(hillShift(span, drift) * 1000) / 1000}%)` }} />
+        ))}
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
       <div className="fl-grain" aria-hidden="true" />

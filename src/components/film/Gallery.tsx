@@ -51,7 +51,8 @@ function Notes({ label, stops }: { label: string; stops: StopView[] }) {
   );
 }
 
-const Card = memo(function Card({ data, slide, current, onOpen }: { data: TripView; slide: PanelSlide; current: boolean; onOpen: (slide: PanelSlide) => void }) {
+const Card = memo(function Card({ data, slide, side, onOpen }: { data: TripView; slide: PanelSlide; side: "prev" | "cur" | "next"; onOpen: (slide: PanelSlide) => void }) {
+  const current = side === "cur";
   const { t, tx } = useI18n();
   const live = useLive(slide.id);
   const { stop } = slide;
@@ -59,7 +60,7 @@ const Card = memo(function Card({ data, slide, current, onOpen }: { data: TripVi
   const photo = stop.photo ? data.manifest?.find((p) => p.id === stop.photo) : undefined;
   const title = tx(stop.title);
   return (
-    <li className="gal-card" data-unit={slide.id} data-live={live ? "" : undefined} data-cur={current ? "" : undefined} data-phase={phase} aria-hidden={!current} inert={!current}>
+    <li className="gal-card" data-unit={slide.id} data-live={live ? "" : undefined} data-cur={current ? "" : undefined} data-side={current ? undefined : side} data-phase={phase} aria-hidden={!current} inert={!current}>
       <article className="gal-paper">
         {photo ? (
           // foto berlisensi dari manifest (PRD §12.6); ukuran responsif menyusul bersama pipeline aset (Tugas 21)
@@ -112,7 +113,8 @@ const Card = memo(function Card({ data, slide, current, onOpen }: { data: TripVi
 
 /**
  * Horizontal gallery satu hari (PRD §7.3, FR-21): semua kartu berada di satu rel; pindah slide = rel bergeser
- * satu kartu. Kartu aktif di tengah, tetangganya mengintip redup di kiri-kanan.
+ * satu kartu. Kartu aktif di tengah menghadap penonton; tetangganya mengintip redup di kiri-kanan, sedikit lebih
+ * jauh dan berpaling menjauh (2,5D: rel berada di ruang berperspektif, lihat film.css).
  */
 export function Gallery({ data, slides, step, onOpen }: { data: TripView; slides: PanelSlide[]; step: number; onOpen: (slide: PanelSlide) => void }) {
   const { t, tx } = useI18n();
@@ -126,7 +128,7 @@ export function Gallery({ data, slides, step, onOpen }: { data: TripView; slides
       )}
       <ol className="gal-track" style={{ "--i": step } as Var}>
         {slides.map((s, i) => (
-          <Card key={s.id} data={data} slide={s} current={i === step} onOpen={onOpen} />
+          <Card key={s.id} data={data} slide={s} side={i === step ? "cur" : i < step ? "prev" : "next"} onOpen={onOpen} />
         ))}
       </ol>
     </div>

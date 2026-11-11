@@ -6,8 +6,8 @@
  *  - wipe : antar bab / lompatan: bayangan kayon menyapu layar, isi berganti di baliknya
  *  - fade : Calm mode, crossfade tanpa gerak
  */
-import { type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
-import { type Film, transitionKind } from "@/engine/slides/build-slides";
+import { DEPTH, type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
+import { type Film, galleryDrift, transitionKind } from "@/engine/slides/build-slides";
 import { SKY_LAYERS, type SkyKey, skyPath, type SunState } from "@/engine/slides/sky";
 import type { Key, Track } from "@/engine/slides/timeline";
 
@@ -27,15 +27,24 @@ const skyOf = (root: HTMLElement, sky: string) => find(root, `.fl-sky[data-sky="
 /** Letak matahari di bingkainya, dalam % ukuran bingkai (lihat `.fl-sunbox`). */
 export const sunPlace = (sun: SunState) => ({ x: sun.u * 100, y: sun.v * 100 });
 
+/** Dua lapis bukit: seberapa jauh masing-masing bergeser selama satu hari di gallery (% lebarnya sendiri). */
+export const HILLS = [
+  ["far", DEPTH.hillsFar],
+  ["near", DEPTH.hillsNear],
+] as const;
+/** Geseran bukit pada letak `drift` di gallery (0–1). Makin dekat lapisannya, makin jauh gesernya: parallax. */
+export const hillShift = (span: number, drift: number) => -span * drift;
+
 /**
- * Lintasan langit: kadar tiap lapisan warna + letak, ukuran, dan rona matahari, dipetakan ke jendela [s, e]
- * dari transisi. Hanya elemen yang nilainya berubah yang diberi lintasan.
- * Calm: tanpa gerak; matahari memudar, pindah tempat saat tak tampak, lalu muncul lagi.
+ * Lintasan langit: kadar tiap lapisan warna + letak, ukuran, dan rona matahari + bukit di kaki langit, dipetakan
+ * ke jendela [s, e] dari transisi. Hanya elemen yang nilainya berubah yang diberi lintasan.
+ * `drift` = letak asal dan tujuan di gallery (0–1): bukit jauh dan dekat bergeser dengan kecepatan berbeda.
+ * Calm: tanpa gerak; matahari memudar, pindah tempat saat tak tampak, lalu muncul lagi; bukit tidak bergeser.
  */
-function skyTracks(root: HTMLElement, keys: readonly SkyKey[], [s, e]: readonly [number, number], calm: boolean): Track[] {
+function skyTracks(root: HTMLElement, keys: readonly SkyKey[], [s, e]: readonly [number, number], calm: boolean, drift: readonly [number, number]): Track[] {
   const first = keys[0]?.[1];
   const last = keys[keys.length - 1]?.[1];
-  if (!first || !last || keys.length < 2) return [];
+  if (!first || !last) return [];
   const tracks: Track[] = [];
   const at = (p: number) => s + (e - s) * p;
   const line = (pick: (k: SkyKey[1]) => number): Key[] => keys.map(([p, state]) => [at(p), pick(state)] as const);
@@ -71,6 +80,18 @@ function skyTracks(root: HTMLElement, keys: readonly SkyKey[], [s, e]: readonly 
     } else tracks.push({ el: sun, unit: "%", x, y, scale, opacity });
   }
   if (warm && changes(glow)) tracks.push({ el: warm, opacity: calm ? swap(first.sun.warm, last.sun.warm) : glow });
+
+  const ground = line((k) => k.ground);
+  const slides = !calm && drift[0] !== drift[1];
+  for (const [depth, span] of HILLS) {
+    const shifts = slides && span > 0;
+    const el = shifts || changes(ground) ? find(root, `.fl-hills[data-depth="${depth}"]`) : null;
+    if (!el) continue;
+    const track: Track = { el, unit: "%" };
+    if (shifts) track.x = [[at(0), hillShift(span, drift[0])], [at(1), hillShift(span, drift[1])]];
+    if (changes(ground)) track.opacity = ground;
+    tracks.push(track);
+  }
   return tracks;
 }
 
@@ -111,7 +132,7 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
 
   // ---- langit & matahari: mengikuti jam slide (gallery) atau crossfade antar langit tetap ----
   const window: Record<Plan["kind"], readonly [number, number]> = { slide: [0.08, 0.86], inner: [0, 1], wipe: [0.44, 0.56], fade: [0, 1] };
-  tracks.push(...skyTracks(root, skyPath(a, b), window[kind], kind === "fade"));
+  tracks.push(...skyTracks(root, skyPath(a, b), window[kind], kind === "fade", [galleryDrift(a), galleryDrift(b)]));
 
   if (base === "inner" && out) {
     // rel kartu gallery bergeser dari kartu i ke kartu j
@@ -127,13 +148,18 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
           : { el: track, x: [[0, -i * step], [1, -j * step]] },
       );
     }
-    const dim = (el: HTMLElement | undefined, lit: boolean) => {
+    // kartu tetangga berada lebih jauh dan berpaling menjauh (seperti panel di drum yang berputar): yang datang
+    // "membuka" menghadap penonton, yang pergi mundur dan berpaling. `turn` = paling kartu di sisi itu (kiri −, kanan +).
+    const dim = (el: HTMLElement | undefined, lit: boolean, turn: number) => {
       if (!el) return;
+      // Calm: datar, tanpa kedalaman (kartu tetangga hanya mengecil), berganti di tengah crossfade
       if (kind === "fade") tracks.push({ el, opacity: lit ? [[0, 0.42], [0.5, 0.42], [0.5, 1], [1, 1]] : [[0, 1], [0.5, 1], [0.5, 0.42], [1, 0.42]], scale: lit ? [[0, 0.93], [0.5, 0.93], [0.5, 1]] : [[0, 1], [0.5, 1], [0.5, 0.93]] });
-      else tracks.push({ el, opacity: lit ? [[0, 0.42], [1, 1]] : [[0, 1], [1, 0.42]], scale: lit ? [[0, 0.93], [1, 1]] : [[0, 1], [1, 0.93]] });
+      else if (lit) tracks.push({ el, opacity: [[0, 0.42], [1, 1]], z: [[0, DEPTH.cardZ], [1, 0]], rotateY: [[0, turn], [1, 0]] });
+      else tracks.push({ el, opacity: [[0, 1], [1, 0.42]], z: [[0, 0], [1, DEPTH.cardZ]], rotateY: [[0, 0], [1, turn]] });
     };
-    dim(cards[i], false);
-    dim(cards[j], true);
+    const side = j > i ? 1 : -1;
+    dim(cards[i], false, -side * DEPTH.cardTurn); // maju: kartu lama jadi tetangga kiri
+    dim(cards[j], true, side * DEPTH.cardTurn); // maju: kartu baru datang dari kanan
     return { kind, tracks, dur: kind === "fade" ? SLIDE.calmDur : Math.round(SLIDE.dur * 0.82), ease: kind === "fade" ? "sineInOut" : "power3InOut", textAt: kind === "fade" ? 0 : Math.round(SLIDE.textIn * 0.7) };
   }
 

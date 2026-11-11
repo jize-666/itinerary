@@ -10,7 +10,7 @@
  * tetap ±8–9 panel.
  */
 import type { Contact, DayView, FactView, PhraseView, StopView, TripView } from "@/lib/trip";
-import { type DayLight, dayLight, minutesOf, type Sky } from "./sky";
+import { type DayLight, dayLight, type Sky, skyClock } from "./sky";
 
 export type { Sky };
 export type Theme = "travel" | "royal" | "lawu" | "batik";
@@ -29,6 +29,8 @@ type Base = {
    */
   clock?: number;
   light?: DayLight;
+  /** false = warna langit mengikuti jam, tetapi matahari hanya digambar di gallery (intro hari). */
+  sun?: false;
   theme: Theme;
 };
 
@@ -139,15 +141,15 @@ export function buildFilm(data: TripView): Film {
     const slug = daySlug(day);
     const theme = themeOf(day);
     const panels = panelsByDay.get(day)!;
-    // langit gallery mengikuti jam tiap stop; intro hari memakai jam panel pertama supaya masuk gallery tanpa ganti langit
+    // langit gallery mengikuti jam tiap stop; intro hari memakai jam panel pertama supaya warna langit tidak berganti saat masuk gallery
     const light = dayLight(day, panels.map((p) => p.stop));
     const timed = (stop: StopView | undefined) => {
-      const clock = light && stop ? minutesOf(stop.start) : null;
+      const clock = light && stop ? skyClock(stop, light) : null;
       return light && clock !== null ? { clock, light } : {};
     };
     open({ id: slug, kind: "day", day });
     push({ id: `${slug}/title`, kind: "title", day, sky: "gate", theme });
-    push({ id: `${slug}/intro`, kind: "dayintro", day, panels: panels.length, sky: skyOf(panels[0]?.stop, "dawn"), ...timed(panels[0]?.stop), theme });
+    push({ id: `${slug}/intro`, kind: "dayintro", day, panels: panels.length, sky: skyOf(panels[0]?.stop, "dawn"), ...timed(panels[0]?.stop), sun: false, theme });
     panels.forEach((p, k) =>
       push({ id: `${slug}/${p.stop.id}`, scene: `${slug}/gallery`, kind: "panel", day, ...p, n: k + 1, of: panels.length, sky: skyOf(p.stop, "day"), ...timed(p.stop), theme }),
     );
@@ -166,6 +168,9 @@ export function buildFilm(data: TripView): Film {
 
   return { slides, chapters };
 }
+
+/** Letak slide di sepanjang gallery harinya: 0 = panel pertama … 1 = panel terakhir; di luar gallery 0. Dipakai parallax latar. */
+export const galleryDrift = (s: Slide | undefined): number => (s?.kind === "panel" && s.of > 1 ? (s.n - 1) / (s.of - 1) : 0);
 
 /** Bab yang memuat slide ke-`index`. */
 export function chapterAt(film: Film, index: number): Chapter | undefined {

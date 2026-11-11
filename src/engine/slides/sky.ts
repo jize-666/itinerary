@@ -7,8 +7,8 @@
  * `Timeline`, sehingga matahari ikut bergerak selama slide bergerak (scrub jari maupun transisi penuh) dan
  * berhenti ketika slide berhenti.
  *
- * Lapisan bertumpuk dari bawah: malam (selalu penuh), subuh, siang, senja, [matahari], gerbang. Yang dianimasikan
- * hanya opacity & transform (aturan performa film).
+ * Lapisan bertumpuk dari bawah: malam (selalu penuh), subuh, siang, senja, [matahari], [bukit], gerbang. Yang
+ * dianimasikan hanya opacity & transform (aturan performa film).
  */
 import { SKY } from "@/engine/motion/tokens";
 import type { DayView, Phase, StopView } from "@/lib/trip";
@@ -24,13 +24,14 @@ export type DayLight = Readonly<{ sunrise: number; sunset: number; sunFrom: numb
  * `warm` 0 = putih siang … 1 = jingga di cakrawala.
  */
 export type SunState = Readonly<{ u: number; v: number; opacity: number; warm: number; scale: number }>;
-export type SkyState = Readonly<{ dawn: number; day: number; dusk: number; gate: number; sun: SunState }>;
+/** `ground` = kadar bukit di kaki langit: penuh di langit terang, samar di malam (diturunkan dari kadar lapisan). */
+export type SkyState = Readonly<{ dawn: number; day: number; dusk: number; gate: number; ground: number; sun: SunState }>;
 /** Lapisan yang kadarnya berubah-ubah, urut dari bawah ke atas (malam di dasar selalu penuh). */
 export const SKY_LAYERS = ["dawn", "day", "dusk", "gate"] as const;
 export type SkyLayer = (typeof SKY_LAYERS)[number];
 
-/** Bagian slide yang menentukan langitnya. */
-export type Lit = { sky: Sky; clock?: number; light?: DayLight };
+/** Bagian slide yang menentukan langitnya. `sun: false` = warna langit mengikuti jam, tetapi matahari tidak digambar. */
+export type Lit = { sky: Sky; clock?: number; light?: DayLight; sun?: false };
 /** Titik kunci: [posisi 0–1 dalam transisi, keadaan langit]. */
 export type SkyKey = readonly [at: number, state: SkyState];
 
@@ -48,10 +49,11 @@ export function minutesOf(hhmm: string | undefined): number | null {
 
 /**
  * Cahaya satu hari dari data: jam terbit/terbenam + kapan matahari mulai tampak.
- * Permintaan host (audit 11 Nov): matahari muncul perlahan mulai dari jadwal pertama setelah sarapan. Sarapan =
- * panel makan pertama hari itu yang mulai pagi; matahari belum tampak sampai jam itu dan tampak penuh di panel
- * berikutnya. Hari tanpa sarapan di data: mengikuti jam terbit. Hari tanpa jam terbit/terbenam: null (langit
- * memakai fase stop seperti sebelumnya).
+ * Aturan host (11 Nov): hari yang dibuka dengan sarapan → matahari muncul perlahan mulai dari jadwal pertama
+ * setelah sarapan (belum tampak sampai jam sarapan, tampak penuh di panel berikutnya). Sarapan = panel makan
+ * pertama hari itu yang mulai pagi. Hari yang punya jadwal sebelum sarapan (berangkat subuh, panel matahari
+ * terbit) atau tanpa sarapan di data → matahari mengikuti jam terbit yang sebenarnya.
+ * Hari tanpa jam terbit/terbenam: null (langit memakai fase stop).
  */
 export function dayLight(day: Pick<DayView, "sunrise" | "sunset">, panels: readonly Pick<StopView, "start" | "kind">[]): DayLight | null {
   const sunrise = minutesOf(day.sunrise);
@@ -59,10 +61,23 @@ export function dayLight(day: Pick<DayView, "sunrise" | "sunset">, panels: reado
   if (sunrise === null || sunset === null || sunset <= sunrise) return null;
   const starts = panels.map((s) => minutesOf(s.start));
   const at = panels.findIndex((s, i) => s.kind === "food" && starts[i] !== null && starts[i]! < SKY.breakfastBefore);
-  const breakfast = at < 0 ? null : starts[at]!;
-  const sunFrom = Math.max(sunrise, breakfast ?? sunrise);
-  const next = at < 0 ? null : (starts.slice(at + 1).find((t): t is number => t !== null && t > sunFrom) ?? null);
+  if (at !== 0) return { sunrise, sunset, sunFrom: sunrise, sunFull: sunrise + SKY.sunAppear };
+  const sunFrom = Math.max(sunrise, starts[0]!);
+  const next = starts.slice(1).find((t): t is number => t !== null && t > sunFrom);
   return { sunrise, sunset, sunFrom, sunFull: next ?? sunFrom + SKY.sunAppear };
+}
+
+/**
+ * Jam yang dipakai langit untuk satu stop: jam mulainya. Kecuali stop yang melewati jam terbit di hari yang
+ * mataharinya mengikuti jam terbit (panel "matahari terbit"): langitnya diambil sesaat sesudah terbit, supaya
+ * matahari sudah menyembul di panel itu.
+ */
+export function skyClock(stop: Pick<StopView, "start" | "end">, light: DayLight): number | null {
+  const start = minutesOf(stop.start);
+  if (start === null) return null;
+  const end = minutesOf(stop.end);
+  const spansSunrise = light.sunFrom === light.sunrise && start < light.sunrise && end !== null && end > light.sunrise;
+  return spansSunrise ? Math.min(end, light.sunrise + SKY.sunPeek) : start;
 }
 
 type Knot = readonly [t: number, dawn: number, day: number, dusk: number];
@@ -110,26 +125,33 @@ function sunAt(t: number, { sunrise, sunset, sunFrom, sunFull }: DayLight): SunS
   return { u: round(f), v: round(1 - height), opacity: round(Math.min(appear, set)), warm: round(warm), scale: round(1 + SKY.sunSwell * warm) };
 }
 
+/** Bukit penuh selama ada langit terang di belakangnya; di malam murni tinggal `SKY.groundNight`. */
+const grounded = (s: Omit<SkyState, "ground">): SkyState => ({ ...s, ground: round(1 - (1 - SKY.groundNight) * (1 - s.dawn) * (1 - s.day) * (1 - s.dusk)) });
+
 /** Langit pada jam `t` (menit sejak 00:00). */
 export function skyAt(t: number, light: DayLight): SkyState {
-  return { ...layersAt(t, light), gate: 0, sun: sunAt(t, light) };
+  return grounded({ ...layersAt(t, light), gate: 0, sun: sunAt(t, light) });
 }
 
 const HIDDEN: SunState = { u: 0.5, v: 1, opacity: 0, warm: 0, scale: 1 };
 /** Langit slide tanpa jam (prolog, judul, gong, kartu kedatangan…): satu lapisan penuh. */
 export const STILL: Readonly<Record<Sky, SkyState>> = {
-  gate: { dawn: 0, day: 0, dusk: 0, gate: 1, sun: HIDDEN },
-  night: { dawn: 0, day: 0, dusk: 0, gate: 0, sun: HIDDEN },
-  dawn: { dawn: 1, day: 0, dusk: 0, gate: 0, sun: HIDDEN },
-  day: { dawn: 0, day: 1, dusk: 0, gate: 0, sun: { u: SKY.stillSun, v: round(1 - Math.sin(Math.PI * SKY.stillSun)), opacity: 1, warm: 0, scale: 1 } },
-  dusk: { dawn: 0, day: 0, dusk: 1, gate: 0, sun: HIDDEN },
+  gate: grounded({ dawn: 0, day: 0, dusk: 0, gate: 1, sun: HIDDEN }),
+  night: grounded({ dawn: 0, day: 0, dusk: 0, gate: 0, sun: HIDDEN }),
+  dawn: grounded({ dawn: 1, day: 0, dusk: 0, gate: 0, sun: HIDDEN }),
+  day: grounded({ dawn: 0, day: 1, dusk: 0, gate: 0, sun: { u: SKY.stillSun, v: round(1 - Math.sin(Math.PI * SKY.stillSun)), opacity: 1, warm: 0, scale: 1 } }),
+  dusk: grounded({ dawn: 0, day: 0, dusk: 1, gate: 0, sun: HIDDEN }),
 };
 
 const timed = (s: Lit): s is Lit & { clock: number; light: DayLight } => s.clock !== undefined && s.light !== undefined;
 const sameLight = (a: DayLight, b: DayLight) => a.sunrise === b.sunrise && a.sunset === b.sunset && a.sunFrom === b.sunFrom && a.sunFull === b.sunFull;
 
 /** Langit saat slide ini diam. */
-export const skyState = (s: Lit): SkyState => (timed(s) ? skyAt(s.clock, s.light) : STILL[s.sky]);
+export function skyState(s: Lit): SkyState {
+  if (!timed(s)) return STILL[s.sky];
+  const state = skyAt(s.clock, s.light);
+  return s.sun === false ? { ...state, sun: { ...state.sun, opacity: 0 } } : state;
+}
 
 /**
  * Apa yang tidak terlihat di satu ujung meminjam nilai ujung seberangnya, supaya yang tampak hanyalah satu
@@ -157,15 +179,15 @@ function reconcile(a: SkyState, b: SkyState): [SkyState, SkyState] {
   else if (a.sun.opacity === 0 && b.sun.opacity === 0) to.sun = from.sun;
   else if (a.sun.opacity === 0) from.sun = { ...b.sun, opacity: 0 };
   else if (b.sun.opacity === 0) to.sun = { ...a.sun, opacity: 0 };
-  return [from, to];
+  return [grounded(from), grounded(to)];
 }
 
 /**
  * Yang sepanjang lintasan tertutup lapisan penuh di atasnya, jadi tidak perlu digambar sama sekali
- * (tanpa GPU, tiap lapisan selayar yang ikut dikomposisi memakan waktu frame). Matahari hanya tertutup gerbang.
+ * (tanpa GPU, tiap lapisan selayar yang ikut dikomposisi memakan waktu frame). Matahari dan bukit hanya tertutup gerbang.
  */
-export function skyCovered(keys: readonly SkyKey[]): ReadonlySet<"night" | "sun" | SkyLayer> {
-  const out = new Set<"night" | "sun" | SkyLayer>();
+export function skyCovered(keys: readonly SkyKey[]): ReadonlySet<"night" | "sun" | "ground" | SkyLayer> {
+  const out = new Set<"night" | "sun" | "ground" | SkyLayer>();
   // per ruas antara dua titik kunci: lapisan teratas yang penuh di kedua ujungnya (di antaranya linear, jadi tetap penuh)
   let top: number = SKY_LAYERS.length;
   for (let i = 0; i < Math.max(1, keys.length - 1); i++) {
@@ -176,7 +198,7 @@ export function skyCovered(keys: readonly SkyKey[]): ReadonlySet<"night" | "sun"
   if (top < 0) return out;
   out.add("night");
   for (const k of SKY_LAYERS.slice(0, top)) out.add(k);
-  if (SKY_LAYERS[top] === "gate") out.add("sun");
+  if (SKY_LAYERS[top] === "gate") out.add("sun").add("ground");
   return out;
 }
 
@@ -185,7 +207,7 @@ export function skyCovered(keys: readonly SkyKey[]): ReadonlySet<"night" | "sun"
  * tujuan, dicuplik di tiap titik belok kadar lapisan + `SKY.samples` cuplikan busur. Selain itu: satu crossfade.
  */
 export function skyPath(a: Lit, b: Lit): SkyKey[] {
-  if (!timed(a) || !timed(b) || !sameLight(a.light, b.light)) {
+  if (!timed(a) || !timed(b) || !sameLight(a.light, b.light) || a.sun === false || b.sun === false) {
     const [from, to] = reconcile(skyState(a), skyState(b));
     return [
       [0, from],

@@ -109,8 +109,10 @@ export const SKY = {
   nightFull: 70,
   /** sarapan = panel makan pertama hari itu yang mulai sebelum jam ini (10:00) */
   breakfastBefore: 600,
-  /** tanpa sarapan di data: matahari tampak penuh sekian menit sesudah terbit */
-  sunAppear: 60,
+  /** hari yang mataharinya mengikuti jam terbit (ada jadwal sebelum sarapan, atau tanpa sarapan di data): tampak penuh sekian menit sesudah terbit */
+  sunAppear: 30,
+  /** stop yang melewati jam terbit (panel "matahari terbit") memakai langit sekian menit sesudah terbit: matahari baru menyembul di cakrawala */
+  sunPeek: 20,
   /** matahari mulai memudar sekian menit sebelum terbenam, hilang sekian menit sesudahnya */
   sunsetLead: 15,
   sunsetLag: 10,
@@ -121,6 +123,28 @@ export const SKY = {
   stillSun: 0.78,
   /** busur antara dua stop dicuplik sebanyak ini supaya lintasannya melengkung, bukan garis lurus */
   samples: 8,
+  /** kadar bukit di langit malam (di langit lain penuh) */
+  groundNight: 0.42,
+} as const;
+
+/**
+ * Kedalaman gallery (2,5D): lapisan yang makin jauh bergeser makin sedikit, kartu tetangga mundur dan berpaling.
+ * Semuanya transform; CSS membaca nilai yang sama lewat variabel --depth-* yang dipasang Film.tsx.
+ */
+export const DEPTH = {
+  /** jarak pandang gallery, px (makin kecil makin dramatis) */
+  perspective: 1100,
+  /** kartu tetangga mundur sekian px… */
+  cardZ: -110,
+  /** …dan berpaling sekian derajat (tepi luarnya menjauh) */
+  cardTurn: 14,
+  /**
+   * Selama satu hari di gallery, bukit jauh / dekat bergeser sekian % dari lebarnya sendiri. Bukit jauh diam
+   * bersama langit: tiap lapis selayar yang ikut digeser terukur memberatkan frame tanpa GPU, dan tiga bidang
+   * (langit + bukit jauh, bukit dekat, kartu) sudah cukup untuk rasa kedalaman.
+   */
+  hillsFar: 0,
+  hillsNear: 26,
 } as const;
 
 export const prefersReducedMotion = () =>

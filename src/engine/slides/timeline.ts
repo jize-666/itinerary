@@ -13,7 +13,8 @@ import { BEZIER, easeCss, type EaseName } from "@/engine/motion/tokens";
 
 /** Titik kunci: [posisi 0–1 dalam transisi, nilai]. Di antaranya linear; di luar rentang ditahan. */
 export type Key = readonly [at: number, value: number];
-export type Channels = { opacity?: readonly Key[]; x?: readonly Key[]; y?: readonly Key[]; scale?: readonly Key[] };
+/** `z` dalam px (kedalaman di ruang berperspektif), `rotateY` dalam derajat; keduanya tetap `transform`. */
+export type Channels = { opacity?: readonly Key[]; x?: readonly Key[]; y?: readonly Key[]; z?: readonly Key[]; scale?: readonly Key[]; rotateY?: readonly Key[] };
 export type Track = Channels & {
   el: Element;
   /** Satuan x & y: "px" atau "%" (dari ukuran elemen itu sendiri). */
@@ -35,18 +36,20 @@ export function valueAt(keys: readonly Key[], p: number): number {
   return keys[keys.length - 1]![1];
 }
 
-const CHANNELS = ["opacity", "x", "y", "scale"] as const;
+const CHANNELS = ["opacity", "x", "y", "z", "scale", "rotateY"] as const;
 
 /** Gaya di posisi `p` (hanya opacity & transform). */
 export function styleAt(track: Channels & { unit?: "px" | "%" }, p: number): { opacity?: string; transform?: string } {
   const out: { opacity?: string; transform?: string } = {};
   if (track.opacity) out.opacity = String(round(valueAt(track.opacity, p)));
-  if (track.x || track.y || track.scale) {
+  if (track.x || track.y || track.z || track.scale || track.rotateY) {
     const u = track.unit ?? "px";
     const x = track.x ? round(valueAt(track.x, p)) : 0;
     const y = track.y ? round(valueAt(track.y, p)) : 0;
+    const z = track.z ? round(valueAt(track.z, p)) : 0;
+    const r = track.rotateY ? ` rotateY(${round(valueAt(track.rotateY, p))}deg)` : "";
     const s = track.scale ? ` scale(${round(valueAt(track.scale, p))})` : "";
-    out.transform = `translate3d(${x}${x ? u : ""}, ${y}${y ? u : ""}, 0)${s}`;
+    out.transform = `translate3d(${x}${x ? u : ""}, ${y}${y ? u : ""}, ${z}${z ? "px" : ""})${r}${s}`;
   }
   return out;
 }

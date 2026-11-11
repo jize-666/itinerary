@@ -32,6 +32,10 @@ describe("lintasan angka", () => {
     expect(styleAt({ opacity: fade, y: [[0, 0], [1, -40]], unit: "%" }, 0.15)).toEqual({ opacity: "0.5", transform: "translate3d(0, -6%, 0)" });
     expect(styleAt({ x: [[0, 0], [1, -300]], scale: [[0, 1], [1, 0.9]] }, 1)).toEqual({ transform: "translate3d(-300px, 0, 0) scale(0.9)" });
     expect(styleAt({ opacity: fade }, 0)).toEqual({ opacity: "1" });
+    // kedalaman (2,5D): z dalam px dan rotateY dalam derajat, tetap satu transform
+    expect(styleAt({ z: [[0, -110], [1, 0]], rotateY: [[0, 14], [1, 0]] }, 0)).toEqual({ transform: "translate3d(0, 0, -110px) rotateY(14deg)" });
+    expect(styleAt({ z: [[0, -110], [1, 0]], rotateY: [[0, 14], [1, 0]] }, 0.5)).toEqual({ transform: "translate3d(0, 0, -55px) rotateY(7deg)" });
+    expect(styleAt({ x: [[0, 10]], z: [[0, 0]], rotateY: [[0, 0]], scale: [[0, 1]] }, 1)).toEqual({ transform: "translate3d(10px, 0, 0) rotateY(0deg) scale(1)" });
   });
 });
 

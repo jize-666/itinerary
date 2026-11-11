@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Trip } from "@content/schema";
 import { trip as soloInput } from "@content/trips/solo/trip";
-import { buildFilm, type PanelSlide } from "@/engine/slides/build-slides";
-import { type DayLight, dayLight, minutesOf, SKY_LAYERS, skyAt, skyCovered, type SkyKey, skyPath, type SkyState, skyState, STILL } from "@/engine/slides/sky";
+import { buildFilm, galleryDrift, type PanelSlide } from "@/engine/slides/build-slides";
+import { type DayLight, dayLight, minutesOf, SKY_LAYERS, skyAt, skyClock, skyCovered, type SkyKey, skyPath, type SkyState, skyState, STILL } from "@/engine/slides/sky";
 import type { TripView } from "@/lib/trip";
 
 const at = (hhmm: string) => minutesOf(hhmm)!;
@@ -33,6 +33,7 @@ function sample(keys: readonly SkyKey[], p: number): SkyState {
     day: mix(a.day, b.day),
     dusk: mix(a.dusk, b.dusk),
     gate: mix(a.gate, b.gate),
+    ground: mix(a.ground, b.ground),
     sun: { u: mix(a.sun.u, b.sun.u), v: mix(a.sun.v, b.sun.v), opacity: mix(a.sun.opacity, b.sun.opacity), warm: mix(a.sun.warm, b.sun.warm), scale: mix(a.sun.scale, b.sun.scale) },
   };
 }
@@ -46,21 +47,46 @@ describe("jam & cahaya hari", () => {
     expect(minutesOf(undefined)).toBeNull();
   });
 
-  it("matahari mulai tampak dari jadwal pertama setelah sarapan", () => {
+  it("hari yang dibuka dengan sarapan: matahari mulai tampak dari jadwal pertama setelah sarapan", () => {
     const day = { sunrise: "05:35", sunset: "17:40" };
     const stops = [
+      { start: "07:00", kind: "food" },
+      { start: "08:30", kind: "sight" },
+      { start: "11:30", kind: "food" },
+    ];
+    expect(dayLight(day, stops)).toEqual({ sunrise: 335, sunset: 1060, sunFrom: at("07:00"), sunFull: at("08:30") });
+  });
+
+  it("ada jadwal sebelum sarapan, atau tanpa sarapan di data: matahari mengikuti jam terbit", () => {
+    const day = { sunrise: "05:35", sunset: "17:40" };
+    const early = [
       { start: "05:15", kind: "nature" },
       { start: "06:45", kind: "food" },
       { start: "08:15", kind: "sight" },
-      { start: "12:45", kind: "food" },
     ];
-    expect(dayLight(day, stops)).toEqual({ sunrise: 335, sunset: 1060, sunFrom: at("06:45"), sunFull: at("08:15") });
+    expect(dayLight(day, early)).toEqual({ sunrise: 335, sunset: 1060, sunFrom: 335, sunFull: 365 });
+    expect(dayLight(day, [{ start: "08:00" }, { start: "13:00", kind: "food" }])).toEqual({ sunrise: 335, sunset: 1060, sunFrom: 335, sunFull: 365 });
   });
 
-  it("tanpa sarapan di data: mengikuti jam terbit; tanpa jam terbit/terbenam: tidak ada cahaya berjam", () => {
-    expect(dayLight({ sunrise: "05:35", sunset: "17:40" }, [{ start: "08:00" }, { start: "13:00", kind: "food" }])).toEqual({ sunrise: 335, sunset: 1060, sunFrom: 335, sunFull: 395 });
+  it("tanpa jam terbit/terbenam: tidak ada cahaya berjam", () => {
     expect(dayLight({}, [{ start: "07:00", kind: "food" }])).toBeNull();
     expect(dayLight({ sunrise: "18:00", sunset: "06:00" }, [])).toBeNull();
+  });
+
+  it("jam langit = jam mulai stop; stop yang melewati jam terbit memakai saat sesudah terbit", () => {
+    const real: DayLight = { sunrise: 335, sunset: 1060, sunFrom: 335, sunFull: 365 };
+    expect(skyClock({ start: "08:15", end: "09:45" }, real)).toBe(at("08:15"));
+    expect(skyClock({ start: "05:15", end: "06:30" }, real)).toBe(355); // terbit 05:35 + 20 menit
+    expect(skyClock({ start: "05:15", end: "05:45" }, real)).toBe(at("05:45")); // tidak melewati akhir stop
+    expect(skyClock({ start: "04:00", end: "05:15" }, real)).toBe(at("04:00")); // selesai sebelum terbit
+    expect(skyClock({ start: "05:15", end: "06:30" }, LIGHT)).toBe(at("05:15")); // hari "setelah sarapan": tetap jam mulai
+    expect(skyClock({ start: "pagi" }, real)).toBeNull();
+    // di panel matahari terbit: matahari sudah tampak, rendah di timur, dan hangat
+    const sun = skyAt(355, real).sun;
+    expect(sun.opacity).toBeGreaterThan(0.6);
+    expect(sun.u).toBeLessThan(0.05);
+    expect(sun.v).toBeGreaterThan(0.85);
+    expect(sun.warm).toBeGreaterThan(0.8);
   });
 });
 
@@ -97,6 +123,20 @@ describe("langit pada satu jam", () => {
     expect(visible(skyAt(at("07:00"), LIGHT)).day).toBeGreaterThan(0.2);
     expect(visible(skyAt(at("15:30"), LIGHT)).dusk).toBeGreaterThan(0.2);
     expect(visible(skyAt(at("15:30"), LIGHT)).dusk).toBeLessThan(0.6);
+  });
+});
+
+describe("bukit di kaki langit", () => {
+  it("penuh selama ada langit terang, samar di malam, dan berubah bertahap di antaranya", () => {
+    expect(STILL.night.ground).toBe(0.42);
+    expect(STILL.dawn.ground).toBe(1);
+    expect(STILL.day.ground).toBe(1);
+    expect(skyAt(at("12:00"), LIGHT).ground).toBe(1);
+    expect(skyAt(at("17:00"), LIGHT).ground).toBe(1);
+    expect(skyAt(at("21:00"), LIGHT).ground).toBe(0.42);
+    const fading = skyAt(at("18:20"), LIGHT).ground; // senja memudar ke malam
+    expect(fading).toBeGreaterThan(0.42);
+    expect(fading).toBeLessThan(1);
   });
 });
 
@@ -168,7 +208,7 @@ describe("lapisan yang tertutup penuh tidak digambar", () => {
   const covered = (keys: readonly SkyKey[]) => [...skyCovered(keys)].sort();
 
   it("saat diam: semua yang berada di bawah lapisan penuh teratas", () => {
-    expect(covered([[0, STILL.gate]])).toEqual(["dawn", "day", "dusk", "night", "sun"]);
+    expect(covered([[0, STILL.gate]])).toEqual(["dawn", "day", "dusk", "ground", "night", "sun"]);
     expect(covered([[0, STILL.night]])).toEqual([]);
     expect(covered([[0, STILL.day]])).toEqual(["dawn", "night"]);
     expect(covered([[0, skyAt(at("07:00"), LIGHT)]])).toEqual(["night"]); // subuh penuh, siang baru sebagian
@@ -207,29 +247,59 @@ describe("konten Solo: tiap panel membawa jamnya", () => {
   const film = buildFilm({ role: "guest", trip: solo as unknown as TripView["trip"] });
   const panelsOf = (chapter: string) => film.slides.filter((s): s is PanelSlide => s.kind === "panel" && s.chapter === chapter);
 
-  it("jam panel = jam mulai stop; intro hari memakai jam panel pertama", () => {
+  it("jam panel = jam langit stop; intro hari memakai jam panel pertama tanpa matahari", () => {
     for (const chapter of ["day-1", "day-2", "day-3"]) {
       const panels = panelsOf(chapter);
-      for (const p of panels) expect(p.clock, p.id).toBe(minutesOf(p.stop.start));
+      for (const p of panels) expect(p.clock, p.id).toBe(skyClock(p.stop, p.light!));
       const intro = film.slides.find((s) => s.id === `${chapter}/intro`)!;
       expect(intro.clock).toBe(panels[0]!.clock);
-      expect(skyPath(intro, panels[0]!)).toHaveLength(1);
+      // masuk gallery: warna langit tidak berganti; matahari (bila ada) memudar masuk di tempat
+      const [[, from], [, to]] = skyPath(intro, panels[0]!) as [SkyKey, SkyKey];
+      expect(visible(from)).toEqual(visible(to));
+      expect(from.sun).toEqual({ ...to.sun, opacity: 0 });
+    }
+    expect(panelsOf("day-1")[0]!.clock).toBe(minutesOf("07:00"));
+    expect(panelsOf("day-2")[0]!.clock).toBe(minutesOf("05:55")); // panel matahari terbit: terbit 05:35 + 20 menit
+  });
+
+  it("hari yang dibuka dengan sarapan: matahari tak tampak sampai sarapan, lalu tampak dari jadwal berikutnya sampai sore", () => {
+    for (const chapter of ["day-1", "day-3"]) {
+      const panels = panelsOf(chapter);
+      expect(panels[0]!.stop.kind).toBe("food");
+      const sunset = panels[0]!.light!.sunset;
+      expect(skyState(panels[0]!).sun.opacity).toBe(0);
+      expect(skyState(panels[1]!).sun.opacity).toBe(1);
+      for (const p of panels.slice(1)) {
+        const sun = skyState(p).sun;
+        if (p.clock! <= sunset - 30) expect(sun.opacity, p.id).toBe(1);
+        else if (p.clock! > sunset + 30) expect(sun.opacity, p.id).toBe(0);
+      }
     }
   });
 
-  it("di tiap hari matahari tak tampak sampai sarapan, lalu tampak di jadwal berikutnya dan seterusnya sampai sore", () => {
+  it("Hari 2 (ada jadwal sebelum sarapan): matahari sudah menyembul di panel matahari terbit dan penuh saat sarapan", () => {
+    const [sunrise, breakfast, temple] = panelsOf("day-2");
+    expect(sunrise!.stop.kind).not.toBe("food");
+    expect(breakfast!.stop.kind).toBe("food");
+    const rising = skyState(sunrise!).sun;
+    expect(rising.opacity).toBeGreaterThan(0.6);
+    expect(rising.v).toBeGreaterThan(0.85);
+    expect(skyState(breakfast!).sun.opacity).toBe(1);
+    expect(skyState(breakfast!).sun.v).toBeLessThan(rising.v);
+    expect(skyState(temple!).sun.u).toBeGreaterThan(skyState(breakfast!).sun.u);
+  });
+
+  it("letak di gallery untuk parallax latar: 0 di panel pertama, 1 di panel terakhir, 0 di luar gallery", () => {
     for (const chapter of ["day-1", "day-2", "day-3"]) {
-      const panels = panelsOf(chapter);
-      const breakfast = panels.findIndex((p) => p.stop.kind === "food");
-      const sunset = panels[0]!.light!.sunset;
-      panels.forEach((p, i) => {
-        const sun = skyState(p).sun;
-        if (i <= breakfast) expect(sun.opacity, p.id).toBe(0);
-        else if (p.clock! <= sunset - 30) expect(sun.opacity, p.id).toBe(1);
-        else if (p.clock! > sunset + 30) expect(sun.opacity, p.id).toBe(0);
-      });
-      expect(skyState(panels[breakfast + 1]!).sun.opacity).toBe(1);
+      const drifts = panelsOf(chapter).map(galleryDrift);
+      expect(drifts[0]).toBe(0);
+      expect(drifts[drifts.length - 1]).toBe(1);
+      expect([...drifts].sort((a, b) => a - b)).toEqual(drifts);
+      expect(new Set(drifts).size).toBe(drifts.length);
     }
+    expect(galleryDrift(film.slides.find((s) => s.id === "day-1/intro"))).toBe(0);
+    expect(galleryDrift(film.slides.find((s) => s.kind === "gong"))).toBe(0);
+    expect(galleryDrift(undefined)).toBe(0);
   });
 
   it("slide tanpa jam tetap memakai langit fasenya", () => {

@@ -466,6 +466,107 @@ test.describe("siklus waktu di gallery: matahari mengikuti jam dan slide", () =>
   });
 });
 
+test.describe("kedalaman gallery (2,5D)", () => {
+  /** Matriks transform yang benar-benar dipakai: m43 = kedalaman (px), m13 ≠ 0 = berputar pada sumbu Y. */
+  const depthOf = (page: Page, selector: string) =>
+    page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      const m = new DOMMatrix(getComputedStyle(el).transform);
+      return { z: Math.round(m.m43) + 0, turn: Math.round((Math.asin(-m.m13) * 180) / Math.PI) + 0, flat: m.is2D }; // + 0: −0 → 0
+    }, selector);
+  const hillX = (page: Page, depth: "far" | "near") => page.evaluate((d) => document.querySelector(`.fl-hills[data-depth="${d}"]`)!.getBoundingClientRect().x, depth);
+  const CUR = ".fl-layer[data-pos='cur'] .gal-card[data-cur]";
+  const PREV = ".fl-layer[data-pos='cur'] .gal-card[data-side='prev']";
+  const NEXT = ".fl-layer[data-pos='cur'] .gal-card[data-side='next']";
+
+  test("kartu aktif menghadap penonton; tetangganya lebih jauh dan berpaling ke arah berlawanan", async ({ page }) => {
+    await open(page, "#day-1");
+    await goTo(page, "day-1/market");
+    expect(await depthOf(page, CUR)).toEqual({ z: 0, turn: 0, flat: true });
+    const prev = (await depthOf(page, PREV))!;
+    const next = (await depthOf(page, NEXT))!;
+    expect(prev.z).toBeLessThan(-50);
+    expect(next.z).toBe(prev.z);
+    expect(Math.abs(prev.turn)).toBeGreaterThan(5);
+    expect(next.turn).toBe(-prev.turn);
+    // rel berada di ruang berperspektif, dan kartu aktif tetap terbaca penuh di tengah layar
+    expect(await page.locator(".fl-layer[data-pos='cur'] .fl-body--gallery").evaluate((el) => getComputedStyle(el).perspective)).not.toBe("none");
+    const box = (await page.locator(CUR).boundingBox())!;
+    const w = page.viewportSize()!.width;
+    expect(Math.abs(box.x + box.width / 2 - w / 2)).toBeLessThan(2);
+  });
+
+  test("selama transisi kartu yang datang membuka dari miring ke datar, tanpa lompatan di akhir", async ({ page }) => {
+    await open(page, "#day-1");
+    await goTo(page, "day-1/walk");
+    await page.evaluate(() => {
+      const w = window as unknown as { __turn: number[]; __stop: boolean };
+      w.__turn = [];
+      w.__stop = false;
+      const card = document.querySelectorAll(".fl-layer[data-pos='cur'] .gal-card")[1]!; // pasar kain: tetangga kanan → aktif
+      const read = () => {
+        const m = new DOMMatrix(getComputedStyle(card).transform);
+        w.__turn.push((Math.asin(-m.m13) * 180) / Math.PI);
+        if (!w.__stop) requestAnimationFrame(read);
+      };
+      requestAnimationFrame(read);
+    });
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(() => slide(page)).toBe("day-1/market");
+    await settled(page);
+    await page.waitForTimeout(200);
+    const turns = await page.evaluate(() => {
+      const w = window as unknown as { __turn: number[]; __stop: boolean };
+      w.__stop = true;
+      return w.__turn;
+    });
+    const start = Math.abs(turns[0]!);
+    expect(start).toBeGreaterThan(5);
+    expect(Math.abs(turns[turns.length - 1]!)).toBeLessThan(0.01);
+    for (let i = 1; i < turns.length; i++) {
+      expect(Math.abs(turns[i]!), `frame ${i}: makin datar`).toBeLessThanOrEqual(Math.abs(turns[i - 1]!) + 0.01);
+      expect(Math.abs(turns[i]! - turns[i - 1]!), `frame ${i}: tidak melompat`).toBeLessThan(start * 0.4);
+    }
+  });
+
+  test("parallax latar: bukit dekat bergeser lebih sedikit daripada kartu, bukit jauh diam bersama langit", async ({ page }) => {
+    await open(page, "#day-1");
+    await goTo(page, "day-1/walk");
+    const [far0, near0] = [await hillX(page, "far"), await hillX(page, "near")];
+    const card0 = (await page.locator(".fl-layer[data-pos='cur'] .gal-card").first().boundingBox())!.x;
+    await goTo(page, "day-1/market");
+    const [far1, near1] = [await hillX(page, "far"), await hillX(page, "near")];
+    const card1 = (await page.locator(".fl-layer[data-pos='cur'] .gal-card").nth(1).boundingBox())!.x; // kartu aktif yang baru, di tempat yang sama
+    const step = (await page.locator(".fl-layer[data-pos='cur'] .gal-card").nth(1).evaluate((el) => (el as HTMLElement).offsetLeft)) - (await page.locator(".fl-layer[data-pos='cur'] .gal-card").first().evaluate((el) => (el as HTMLElement).offsetLeft));
+    expect(Math.abs(card1 - card0)).toBeLessThan(2);
+    expect(far1).toBe(far0);
+    expect(near0 - near1).toBeGreaterThan(4); // bergeser searah kartu…
+    expect(near0 - near1).toBeLessThan(step * 0.3); // …tetapi jauh lebih sedikit
+    // bukit selalu menutup lebar layar, juga di panel terakhir
+    await goTo(page, "day-1/supper");
+    const w = page.viewportSize()!.width;
+    for (const depth of ["far", "near"] as const) {
+      const r = await page.evaluate((d) => {
+        const b = document.querySelector(`.fl-hills[data-depth="${d}"]`)!.getBoundingClientRect();
+        return { left: b.left, right: b.right };
+      }, depth);
+      expect(r.left).toBeLessThanOrEqual(0.5);
+      expect(r.right).toBeGreaterThanOrEqual(w - 0.5);
+    }
+  });
+
+  test("Calm: gallery datar, tanpa perspektif dan tanpa parallax", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await open(page, "#day-1");
+    await goTo(page, "day-1/market");
+    expect((await depthOf(page, PREV))!.flat).toBe(true);
+    expect((await depthOf(page, NEXT))!.flat).toBe(true);
+    expect(await page.locator(".fl-layer[data-pos='cur'] .fl-body--gallery").evaluate((el) => getComputedStyle(el).perspective)).toBe("none");
+    expect(await hillX(page, "near")).toBe(0);
+  });
+});
+
 test.describe("bab, bahasa, Calm", () => {
   test("hash membuka bab yang benar dan ikut berganti saat pindah bab", async ({ page }) => {
     await open(page, "#day-2");

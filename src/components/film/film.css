@@ -44,7 +44,7 @@ html.film-on body {
 }
 
 /* ---- langit: tiap lapisan warna digambar sekali; kadarnya (opacity) dihitung dari jam slide ----
-   Urutan tumpukan = urutan di DOM: malam (dasar, selalu penuh), subuh, siang, senja, matahari, gerbang.
+   Urutan tumpukan = urutan di DOM: malam (dasar, selalu penuh), subuh, siang, senja, matahari, bukit, gerbang.
    Kadar dan letak matahari diisi Film.tsx dari src/engine/slides/sky.ts, dan digerakkan transitions.ts. */
 .fl-skies,
 .fl-sky,
@@ -162,24 +162,35 @@ html.film-on body {
     linear-gradient(180deg, #120f2e 0%, #3a1f52 26%, #86324e 46%, #cf5a3c 62%, #f39a4a 76%, #ffc978 90%, #ffe0a8 100%);
 }
 
-/* tanah: dua lapis bukit gelap di kaki langit, supaya teks di bawah selalu berpijak pada bidang gelap */
-.fl-sky::after {
-  content: "";
+/* tanah: dua lapis bukit gelap di kaki langit, supaya teks di bawah selalu berpijak pada bidang gelap.
+   Tiap lapis elemen sendiri di atas warna langit dan matahari: di gallery bukit dekat bergeser lebih cepat
+   daripada bukit jauh dan langit, lebih lambat daripada kartu (parallax 2,5D; geseran dan lebarnya dari DEPTH di
+   tokens). Kadarnya mengikuti langit: penuh di langit terang, samar di malam, tertutup gerbang. */
+.fl-hills {
   position: absolute;
-  inset: auto 0 0;
+  inset: auto auto 0 0;
   height: 52%;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 520' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230c0f24'/%3E%3Cstop offset='.5' stop-color='%23090b1a'/%3E%3Cstop offset='1' stop-color='%23070912'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='%231a1d44' fill-opacity='.62' d='M0 150C140 96 250 70 380 96s210 76 340 58 190-104 330-118 250 44 390 86V520H0Z'/%3E%3Cpath fill='url(%23g)' d='M0 236c120-52 230-74 360-52s230 86 380 80 220-92 360-98 220 40 340 78V520H0Z'/%3E%3C/svg%3E")
+  pointer-events: none;
+}
+
+.fl-hills[data-covered] {
+  visibility: hidden;
+}
+
+/* selama di gallery bukit dekat tetap jadi lapisan sendiri: tanpa ini ia dinaikkan lalu diratakan lagi di tiap
+   perpindahan panel, dan menggambar ulangnya terukur sebagai satu frame panjang di awal transisi */
+.film[data-kind="panel"]:not([data-calm]) .fl-hills[data-depth="near"] {
+  will-change: transform;
+}
+
+.fl-hills[data-depth="far"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 520' preserveAspectRatio='none'%3E%3Cpath fill='%231a1d44' fill-opacity='.62' d='M0 150C140 96 250 70 380 96s210 76 340 58 190-104 330-118 250 44 390 86V520H0Z'/%3E%3C/svg%3E")
     bottom / 100% 100% no-repeat;
 }
 
-/* gerbang = panggung gelap tanpa lanskap; malam = bukit nyaris tak terlihat */
-.fl-sky[data-sky="gate"]::after {
-  content: none;
-}
-
-.fl-sky[data-sky="night"]::after {
-  opacity: 0.42;
+.fl-hills[data-depth="near"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 520' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230c0f24'/%3E%3Cstop offset='.5' stop-color='%23090b1a'/%3E%3Cstop offset='1' stop-color='%23070912'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M0 236c120-52 230-74 360-52s230 86 380 80 220-92 360-98 220 40 340 78V520H0Z'/%3E%3C/svg%3E")
+    bottom / 100% 100% no-repeat;
 }
 
 /* grain film + vignette: statis */
@@ -879,6 +890,9 @@ html.film-on body {
   padding-top: calc(var(--top) + 4px);
   padding-bottom: var(--bottom);
   gap: clamp(10px, 1.8vh, 18px);
+  /* 2,5D: rel kartu berada di ruang berperspektif; kartu tetangga lebih jauh dan berpaling menjauh */
+  perspective: var(--depth-perspective, 1100px);
+  perspective-origin: 50% 46%;
 }
 
 @media (min-width: 900px) {
@@ -906,21 +920,53 @@ html.film-on body {
   padding: 0 calc(50% - var(--card-w) / 2);
   list-style: none;
   transform: translate3d(calc(var(--i) * (var(--card-w) + var(--gap)) * -1), 0, 0);
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
+/* tetangga: mundur (--depth-card-z) dan berpaling menjauh seperti panel di drum yang berputar: tepi luarnya
+   lebih jauh dari tepi dalamnya (kiri −, kanan +); lintasannya di transitions.ts */
 .gal-card {
+  --turn: 1;
+  position: relative;
   flex: none;
   display: grid;
   width: var(--card-w);
   max-height: 100%;
   opacity: 0.42;
-  transform: scale(0.93);
+  transform: translate3d(0, 0, var(--depth-card-z, -110px)) rotateY(calc(var(--depth-card-turn, 14deg) * var(--turn)));
+}
+
+.gal-card[data-side="prev"] {
+  --turn: -1;
 }
 
 .gal-card[data-cur] {
   opacity: 1;
   transform: none;
+}
+
+/* bayangan kontak: kartu melayang di atas lanskap */
+.gal-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 7% -30px;
+  height: 34px;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(2 3 9 / 0.5), rgb(2 3 9 / 0.22) 45%, transparent 72%);
+  pointer-events: none;
+}
+
+/* Calm: datar. Crossfade memudarkan seluruh rel, dan opacity pada rel meratakan ruang 3D-nya */
+.film[data-calm] .fl-body--gallery {
+  perspective: none;
+}
+
+.film[data-calm] .gal-track {
+  transform-style: flat;
+}
+
+.film[data-calm] .gal-card:not([data-cur]) {
+  transform: scale(0.93);
 }
 
 .film[data-moving] .gal-card {
