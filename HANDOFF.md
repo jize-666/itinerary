@@ -1,17 +1,33 @@
 # HANDOFF
 
-Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #5 di-merge) · **tugas aktif: home 2,5D + benahi UI home**
+Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #5 di-merge) · **tugas aktif: home 2,5D dengan desain baru (kode jalan, tes hijau; tinggal poles, pratinjau, PR)**
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
-## 1. Tugas aktif: home 2,5D + benahi UI home
+## 1. Tugas aktif: home 2,5D dengan desain baru (Tugas 3)
 
-**Permintaan host (11 Nov, di tengah sesi beres-beres):** "upgrade home ke 2,5d sama benerin ui home, catat di handoff.md dulu".
+**Permintaan host (11 Nov, berurutan):** "upgrade home ke 2,5d sama benerin ui home, catat di handoff.md dulu" → "ganti aja design nya, button juga" → "setelah menulis design, update ke handoff.md, sekalian planning pekerjaan selanjutnya".
 
-- **Yang dimaksud "home"** (tafsiran sesi ini, belum dikonfirmasi host): halaman `/`, yaitu gerbang "Kulonuwun?" (kotak kode booking) dan sambutan sesudah kode benar (sapaan, tiket, tombol "Begin the lakon"). Berkasnya: `src/components/{Gate,CodeInput,BeginChoice,Ticket}.tsx`, gaya di `src/app/globals.css`.
-- **Yang dimaksud "2,5D"** mengikuti keputusan host 11 Nov untuk gallery: kedalaman berlapis (parallax antar lapisan, perspektif dan kemiringan ringan pada kartu, bayangan), tetap DOM dengan `transform` dan `opacity`, bukan WebGL. Gerbang harus tetap ringan (target ≤ 80 KB gz sebelum kode benar) dan menghormati reduced motion.
-- **"Benerin UI home"**: diperjelas host di pesan berikutnya (11 Nov): "ganti aja design nya, button juga". Jadi bukan menambal cacat, melainkan **desain home diganti, termasuk tombolnya**. Arah desain barunya belum ditentukan host; sesi ini mengusulkan satu arah, membangunnya, dan mengirim pratinjau untuk ditinjau.
-- Tombol `.pb` dipakai juga di Today dan film. Yang diganti di tugas ini tombol yang tampil di home; apakah gaya baru ikut dipakai di Today dan film menunggu tinjauan host.
-- **Status:** dicatat; home yang sekarang sudah dipotret (desktop, iPhone, layar kecil, lanskap; EN dan ID) sebagai pembanding. Belum ada kode yang diubah.
+Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: kedalaman berlapis, DOM dengan `transform` dan `opacity`, bukan WebGL.
+
+**Yang selesai (desain baru sudah ditulis dan jalan).**
+- **Panggung berlapis** (`src/components/home/Scene.tsx`, `home.css`): langit malam, bintang, punggung Lawu, kabut, perbukitan, lantai pendapa bermotif kawung yang direbahkan dengan perspektif, dua kayon penjaga, pendar blencong, debu emas. Tiap lapisan bergeser dengan jarak berbeda mengikuti kursor (`useDepth.ts`, hitungan murni di `src/engine/motion/tilt.ts`); di layar sentuh lapisan berayun pelan lewat CSS. Nilai kedalaman di `HOME` (`src/engine/motion/tokens.ts`).
+- **Gerbang:** kartu undangan bersudut lekuk tergantung di benang emas, berayun masuk seperti bandul, miring mengikuti kursor. Di dalamnya tiga bidang (alas, isi, cap) yang bergeser satu terhadap yang lain. Kode diketik ke dua baki (3 + 6 sel) dengan titik penanda di sel kosong. Kode benar → huruf menyala, kayon menyibak, kilat blencong, kartu berbalik.
+- **Sambutan:** boarding pass baru (`home/Pass.tsx`), mendatar dengan sobekan di layar lebar dan tegak di HP, masuk dengan berbalik; cap "Admitted" jatuh dari depan saat lakon dimulai. Kunjungan ulang memakai tunda yang lebih singkat (0,35×).
+- **Tombol baru (`.hb`)**: tombol utama kapsul foil gading-emas dengan medali gong, tautan berbenang emas untuk "Use a different code" (pindah ke bawah tombol utama), tombol speaker cincin tipis, sakelar bahasa kapsul bergaris (`Seg` varian `line`). Gaya baru hanya dipakai di home; Today dan film masih memakai `.pb`.
+- **HP:** kartu di paruh atas layar (tidak tertutup keyboard), lanskap dengan puncak Lawu terlihat di bawahnya; tombol utama menempel di bawah layar.
+- `globals.css` berkurang dari 3.200 ke 2.671 baris: aturan gerbang, kotak kode, dan sambutan lama dibuang. `Ticket.tsx` lama tetap dipakai Today dan film.
+
+**Hasil tes dan kendala.**
+- Hijau: `pnpm typecheck`, `pnpm lint`, `pnpm test` (203 unit, 8 baru untuk hitungan parallax), `pnpm build`, `pnpm test:e2e` (135 lulus, 11 dilewati per perangkat).
+- Belum: tes e2e khusus kedalaman home, Lighthouse a11y home dengan desain baru, pemeriksaan layar kecil 360 px dan HP rebah, pratinjau foto dan video untuk host, dokumen desain.
+- Hanya diuji di Chromium. `preserve-3d` dan mask sudut lekuk belum dilihat di Safari.
+
+**Langkah berikutnya (urut).**
+1. Periksa kemiringan kartu saat kursor di tepi, cap saat mulai, layar 360 px, HP rebah, teks ID; perbaiki yang janggal.
+2. Tambah e2e untuk home 2,5D (variabel parallax ikut kursor, kayon menyibak, reduced motion diam) dan jalankan Lighthouse a11y home (target 100).
+3. Ukur kehalusan (0 frame > 50 ms) di gerbang, saat kode benar, dan saat mulai.
+4. Tulis `docs/design/decisions.md` bagian "Home 2,5D" dan `docs/design/motion-tokens.md` (`HOME`).
+5. Kirim pratinjau foto dan video gerak lambat ke host; buka PR.
 
 ## 2. Yang selesai di sesi ini (beres-beres, pilihan host)
 
@@ -35,13 +51,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 Urutan usulan; host yang memutuskan.
 
-1. **Home 2,5D + benahi UI home** (bagian 1), sedang dikerjakan.
-2. **Host:** coba `/film/` dan home di iPhone dan MacBook asli.
-3. **Penyesuaian gallery dari tinjauan host**: kemiringan kartu (`DEPTH.cardTurn`, `cardZ`), jarak parallax (`DEPTH.hillsNear`), letak dan ukuran matahari (`.fl-sunbox`), kartu tetangga padat atau tembus pandang.
-4. **2,5D film di luar gallery**: parallax saat pindah slide vertikal, kedalaman pada kartu judul hari dan gong.
-5. **F2, panggung 3D** (Tugas 23): R3F dimuat lazy hanya di `/film/`, tier High/Medium/Low/Static, overlay FPS. Perlu keputusan host: apakah 2,5D menjadi tier Medium/Low di bawah panggung 3D, atau menggantikannya.
-6. F3 (gong produksi dengan bunyi) dan F4 (gunungan produksi dan gerbang sinematik).
-7. Di luar film: foto berlisensi (Tugas 6, 21), kontak di `trip_private`, verifikasi fakta [V].
+1. **Home 2,5D dengan desain baru** (bagian 1): sisa langkahnya di sana, lalu PR.
+2. **Host:** tinjau pratinjau home, merge PR, lalu coba home dan `/film/` di iPhone dan MacBook asli (Safari belum pernah diuji).
+3. **Putuskan gaya tombol:** apakah tombol baru (`.hb`) ikut dipakai di Today dan film, atau `.pb` tetap di sana. Kalau ikut, itu PR tersendiri: Today punya banyak tombol (dock, Rain plan, tab hari) dan tes `data-pressed`.
+4. **Penyesuaian gallery dari tinjauan host**: kemiringan kartu (`DEPTH.cardTurn`, `cardZ`), jarak parallax (`DEPTH.hillsNear`), letak dan ukuran matahari (`.fl-sunbox`), kartu tetangga padat atau tembus pandang.
+5. **2,5D film di luar gallery**: parallax saat pindah slide vertikal, kedalaman pada kartu judul hari dan gong.
+6. **F2, panggung 3D** (Tugas 23): R3F dimuat lazy hanya di `/film/`, tier High/Medium/Low/Static, overlay FPS. Perlu keputusan host: apakah 2,5D menjadi tier Medium/Low di bawah panggung 3D, atau menggantikannya.
+7. F3 (gong produksi dengan bunyi) dan F4 (gunungan produksi dan gerbang sinematik).
+8. Di luar film: foto berlisensi (Tugas 6, 21), kontak di `trip_private`, verifikasi fakta [V].
 
 Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git checkout -B <branch> origin/main`. Jangan menumpuk commit di atas riwayat lama; squash membuat riwayatnya berbeda dan PR berikutnya akan konflik.
 

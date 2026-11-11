@@ -22,7 +22,7 @@ export function BeginChoice({ onBegin }: { onBegin: (withSound: boolean) => void
     onBegin(sound);
   };
   return (
-    <div className="begin">
+    <>
       {!started && (
         <SoundButton
           on={sound}
@@ -32,14 +32,13 @@ export function BeginChoice({ onBegin }: { onBegin: (withSound: boolean) => void
           }}
         />
       )}
-      <button type="button" data-haptic="" className="pb pb--xl pb--gold pb--kawung begin-btn" onClick={begin}>
-        <span className="pb-face">
-          <span className="begin-ico">
-            <IconGong />
-          </span>
-          <span className="begin-main">{t("begin.go")}</span>
+      <button type="button" data-press="" data-haptic="" data-sfx="ui-pop" className="hb hb--primary hm-begin" onClick={begin}>
+        <span className="hb-sheen" aria-hidden="true" />
+        <span className="hb-label">{t("begin.go")}</span>
+        <span className="hb-orb" aria-hidden="true">
+          <IconGong size={20} />
         </span>
       </button>
-    </div>
+    </>
   );
 }

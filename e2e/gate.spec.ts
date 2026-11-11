@@ -4,7 +4,7 @@ import { FUTURE, json, seedSession, TRIP, tripFixture, VERIFY } from "./helpers"
 const session = (page: import("@playwright/test").Page) => page.evaluate(() => JSON.parse(localStorage.getItem("lakon.session") ?? "null"));
 const codeInput = (page: import("@playwright/test").Page) => page.getByLabel("Booking code");
 // Next.js punya route announcer sendiri ber-role alert; pesan gerbang diambil spesifik.
-const alert = (page: import("@playwright/test").Page) => page.getByRole("alert").and(page.locator(".gate-msg"));
+const alert = (page: import("@playwright/test").Page) => page.getByRole("alert").and(page.locator(".hm-msg"));
 
 test("kode salah: pesan EN, sisa percobaan, lalu bisa diketik ulang", async ({ page }) => {
   await page.route(VERIFY, (r) => json(r, 401, { error: "wrong_code", remaining: 3 }));

@@ -2,7 +2,8 @@
 
 - Saat mulai sesi, baca `HANDOFF.md` kalau ada.
 - Untuk tugas aktif, pakai `query_graph` dari Graphify dulu buat mencari file dan fungsi yang relevan. Buka bagian kode yang diperlukan saja dan cek perubahan lokal sebelum mengedit.
-- Setiap selesai satu langkah penting, perbarui `HANDOFF.md` dalam 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya.
+- **Setiap menyelesaikan satu tugas, kecil maupun besar, wajib memperbarui `HANDOFF.md` dan rencana pekerjaan berikutnya** (aturan host, 11 Nov 2026). Isinya 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya. Jangan menunggu akhir sesi; perbarui begitu tugasnya selesai, lalu commit.
+- Permintaan baru dari host di tengah sesi dicatat dulu di `HANDOFF.md` sebelum kodenya dikerjakan.
 
 ## Kalau host bilang "lanjut tugas, baca isi claude.md"
 

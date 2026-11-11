@@ -10,18 +10,20 @@ import { type AccessResult, type Session, sessionStore, UNKNOWN, verifyAccess } 
 import { guestShortName, loadTrip, peekTrip, type TripView } from "@/lib/trip";
 import { BeginChoice } from "./BeginChoice";
 import { CodeInput } from "./CodeInput";
+import { Pass } from "./home/Pass";
+import { Hang, Stage } from "./home/Scene";
 import { IconKey } from "./Icons";
 import { Bayang, Benang, Canting, Gamelan } from "./motion/Kinetic";
 import { useCurtainNav } from "./motion/Curtain";
-import { Ticket } from "./Ticket";
 import { useSession } from "./useSession";
 
 type Status = { kind: "idle" } | { kind: "checking" } | { kind: "unlocking" } | Exclude<AccessResult, { kind: "ok" }>;
 
 /**
- * Gerbang (PRD §7.1). Alur gerak: benang emas turun → kicker teracak → "Kulonuwun?" membalik huruf demi huruf →
- * kotak kode muncul berurutan. Kode benar → kotak menyala & menyatu jadi benang → kilat blencong → sambutan.
- * Kunjungan berikutnya langsung ke sambutan. Gunungan 3D yang membuka menyusul di fase film.
+ * Home (PRD §7.1), 2,5D: kartu undangan tergantung di benang emas di depan panggung berlapis (langit, Lawu, lantai
+ * pendapa, dua kayon penjaga). Kode benar → huruf menyala, kayon menyibak, kartu berbalik menjadi boarding pass
+ * di sambutan. Panggungnya satu untuk gerbang dan sambutan, jadi pergantian itu tidak mengulang adegan.
+ * Kunjungan berikutnya langsung ke sambutan dengan gerak yang lebih singkat.
  */
 export function Gate() {
   const session = useSession();
@@ -52,7 +54,7 @@ export function Gate() {
     setStatus({ kind: "checking" });
     const r = await verifyAccess(code);
     if (r.kind === "ok") {
-      void loadTrip(r.session.token); // nama & tiket sudah siap saat sambutan tampil
+      void loadTrip(r.session.token); // nama & boarding pass sudah siap saat sambutan tampil
       setStatus({ kind: "unlocking" });
       setTimeout(() => {
         setFresh(true);
@@ -70,25 +72,22 @@ export function Gate() {
     setStatus(r);
   };
 
-  if (session === UNKNOWN) {
-    return (
-      <main className="gate">
-        <GateHead kicker={t("gate.kicker")} />
-      </main>
-    );
-  }
+  // sebelum sesi di perangkat terbaca: panggungnya saja, supaya tamu yang kembali tidak sempat melihat kartu kode
+  if (session === UNKNOWN) return <Stage mode="gate">{null}</Stage>;
 
   if (session)
     return (
-      <Welcome
-        session={session}
-        fresh={fresh}
-        onBegin={async (withSound, during) => {
-          // selama trip (dan untuk tim) yang dibutuhkan jadwal hari ini; sebelum trip, filmnya
-          await go(session.role === "team" || during ? "/today/" : "/film/", prefersReducedMotion() ? 0 : 420); // stempel dulu, lalu tirai
-          if (withSound) void getAudio().playSfx("gong", { gain: 0.85 }); // pukulan gong membuka lakon
-        }}
-      />
+      <Stage mode="welcome">
+        <Welcome
+          session={session}
+          fresh={fresh}
+          onBegin={async (withSound, during) => {
+            // selama trip (dan untuk tim) yang dibutuhkan jadwal hari ini; sebelum trip, filmnya
+            await go(session.role === "team" || during ? "/today/" : "/film/", prefersReducedMotion() ? 0 : 420); // cap dulu, lalu tirai
+            if (withSound) void getAudio().playSfx("gong", { gain: 0.85 }); // pukulan gong membuka lakon
+          }}
+        />
+      </Stage>
     );
 
   const secs = Math.max(1, Math.ceil((lockedUntil - now) / 1000));
@@ -103,36 +102,38 @@ export function Gate() {
   const hint =
     status.kind !== "wrong" || status.remaining < 1 || status.remaining > 3 ? "" : status.remaining === 1 ? t("gate.remainingOne") : t("gate.remaining", { n: status.remaining });
   const isError = status.kind !== "idle" && status.kind !== "checking" && status.kind !== "unlocking";
+  const unlocking = status.kind === "unlocking";
 
   return (
-    <main className="gate" data-unlocking={status.kind === "unlocking" ? "" : undefined}>
-      <span className="gate-flare" aria-hidden="true" />
-      <GateHead kicker={t("gate.kicker")} />
-      <div className="gate-form">
-        <Gamelan as="p" className="gate-prompt" text={t("gate.prompt")} delay={1900} />
-        <CodeInput
-          key={attempt}
-          length={CODE_LENGTH}
-          label={t("gate.codeLabel")}
-          enter={attempt === 0}
-          state={status.kind === "checking" ? "checking" : status.kind === "unlocking" ? "success" : status.kind === "wrong" ? "error" : "idle"}
-          disabled={status.kind === "checking" || status.kind === "unlocking" || locked || status.kind === "ended"}
-          onComplete={submit}
-          onInput={() => {
-            if (isError && !locked) setStatus({ kind: "idle" });
-          }}
-        />
-        <p className="gate-msg" role={isError ? "alert" : "status"} aria-live="polite" data-error={isError ? "" : undefined}>
-          {message}
-          {hint && (
-            <>
-              <br />
-              <span className="gate-hint">{hint}</span>
-            </>
-          )}
-        </p>
-      </div>
-    </main>
+    <Stage mode="gate" unlocking={unlocking}>
+      <Hang kind="invite" flip={unlocking ? "out" : undefined}>
+        <InviteHead kicker={t("gate.kicker")} />
+        <div className="hm-form">
+          <Gamelan as="p" className="hm-prompt" text={t("gate.prompt")} delay={1500} />
+          <CodeInput
+            key={attempt}
+            length={CODE_LENGTH}
+            label={t("gate.codeLabel")}
+            enter={attempt === 0}
+            state={status.kind === "checking" ? "checking" : unlocking ? "success" : status.kind === "wrong" ? "error" : "idle"}
+            disabled={status.kind === "checking" || unlocking || locked || status.kind === "ended"}
+            onComplete={submit}
+            onInput={() => {
+              if (isError && !locked) setStatus({ kind: "idle" });
+            }}
+          />
+          <p className="hm-msg" role={isError ? "alert" : "status"} aria-live="polite" data-error={isError ? "" : undefined}>
+            {message}
+            {hint && (
+              <>
+                <br />
+                <span className="hm-msg-hint">{hint}</span>
+              </>
+            )}
+          </p>
+        </div>
+      </Hang>
+    </Stage>
   );
 }
 
@@ -146,6 +147,8 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
   const [leaving, setLeaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const name = data ? guestShortName(data) : null;
+  // Kunjungan ulang: sapaan tidak perlu ditunggu lagi, jadi tundanya dipersingkat.
+  const pace = fresh ? 1 : 0.35;
   // Data trip mulai diunduh di sini (dipakai lagi oleh Today); nama tamu hanya datang dari data privat.
   useEffect(() => {
     let alive = true;
@@ -166,42 +169,52 @@ function Welcome({ session, fresh, onBegin }: { session: Session; fresh: boolean
     };
   }, [session.token, fresh, router]);
   return (
-    <main className="gate gate--welcome" data-leaving={leaving ? "" : undefined}>
-      {/* kiri atas, sejajar toggle bahasa: jalan keluar yang jarang dipakai tidak bersaing dengan tombol utama di bawah */}
-      <button type="button" className="pb pb--glass pb--xs gate-switch" onClick={() => sessionStore.clear()}>
-        <span className="pb-face">
-          <IconKey />
-          <span className="gate-switch-label">{t("gate.switch")}</span>
-        </span>
-      </button>
-      <div className="gate-head">
-        {session.role === "team" && <Benang className="gate-kicker" text={t("gate.team")} />}
-        <h1 className="gate-title" lang="jv">
-          <Bayang text="Sugeng rawuh" delay={150} />
-          {name && <Canting className="gate-name" tone="gold" text={`, ${name}`} delay={900} />}.
+    <div className="hm-welcome" data-fresh={fresh ? "" : undefined} data-leaving={leaving ? "" : undefined}>
+      <div className="hm-head">
+        {session.role === "team" && <Benang className="hm-kicker" text={t("gate.team")} />}
+        <h1 className="hm-title hm-title--welcome" lang="jv">
+          {/* tiap baris satu kesatuan: koma ikut "rawuh" dan titik ikut nama, jadi di HP barisnya tidak pecah di tanda baca */}
+          <span className="hm-nowrap">
+            <Bayang text="Sugeng rawuh" delay={150 * pace} />
+            {name ? <span className="hm-comma">,</span> : "."}
+          </span>
+          {name && (
+            <>
+              {" "}
+              <span className="hm-nowrap">
+                <Canting className="hm-name" tone="gold" text={name} delay={900 * pace} />.
+              </span>
+            </>
+          )}
         </h1>
-        <Gamelan as="p" className="gate-prompt" delay={1250} text={session.role === "guest" ? t(fresh ? "gate.forOne" : "gate.forOneBack") : t(fresh ? "gate.welcome" : "gate.welcomeBack")} />
+        <Gamelan as="p" className="hm-prompt" delay={1250 * pace} text={session.role === "guest" ? t(fresh ? "gate.forOne" : "gate.forOneBack") : t(fresh ? "gate.welcome" : "gate.welcomeBack")} />
       </div>
-      {/* tempat tiket disiapkan sejak awal supaya judul & tombol tidak meloncat saat tiket datang */}
-      {!failed && <div className="ticket-slot">{data && <Ticket data={data} compact delay={1500} />}</div>}
-      <BeginChoice
-        onBegin={(withSound) => {
-          setLeaving(true);
-          onBegin(withSound, isDuring(data));
-        }}
-      />
-    </main>
+      {/* tempat boarding pass disiapkan sejak awal supaya judul & tombol tidak meloncat saat datanya datang */}
+      {!failed && <div className="hm-pass-slot">{data && <Pass data={data} flip="in" />}</div>}
+      <div className="hm-actions">
+        <BeginChoice
+          onBegin={(withSound) => {
+            setLeaving(true);
+            onBegin(withSound, isDuring(data));
+          }}
+        />
+        {/* jalan keluar yang jarang dipakai: tautan kecil di bawah tombol utama, tidak bersaing dengannya */}
+        <button type="button" data-press="" className="hb hb--link hm-switch" onClick={() => sessionStore.clear()}>
+          <IconKey size={15} />
+          <span>{t("gate.switch")}</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
-/** Judul gerbang: benang emas turun dari atas, pendar blencong di belakang "Kulonuwun?". */
-function GateHead({ kicker }: { kicker: string }) {
+/** Kepala undangan: kicker dijahit benang, "Kulonuwun?" muncul sebagai bayangan yang menajam. */
+function InviteHead({ kicker }: { kicker: string }) {
   return (
-    <div className="gate-head gate-head--invite">
-      <span className="gate-thread" aria-hidden="true" />
-      <Benang className="gate-kicker" text={kicker} delay={500} />
-      <h1 className="gate-title">
-        <Bayang text="Kulonuwun?" delay={700} />
+    <div className="hm-head">
+      <Benang className="hm-kicker" text={kicker} delay={450} />
+      <h1 className="hm-title">
+        <Bayang text="Kulonuwun?" delay={650} />
       </h1>
     </div>
   );
