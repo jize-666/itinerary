@@ -48,7 +48,9 @@ const fs = require('fs');
     const bx = await loc.boundingBox();
     if (!bx) return;
     await p.mouse.move(bx.x + bx.width / 2, bx.y + bx.height / 2);
-    await w(220); await p.mouse.down(); await w(240); await p.mouse.up(); await w(dwell);
+    await w(220); await p.mouse.down(); await w(240); await p.mouse.up();
+    await p.evaluate(() => document.activeElement instanceof HTMLElement && !document.activeElement.closest('dialog') && document.activeElement.blur()); // tanpa cincin fokus di rekaman
+    await w(dwell);
   };
   const slide = () => p.locator('.film').getAttribute('data-slide');
   const kind = () => p.locator('.film').getAttribute('data-kind');

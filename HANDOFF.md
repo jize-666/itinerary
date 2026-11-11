@@ -10,7 +10,9 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Mesin slide murni di `src/engine/slides/`: `controller.ts` (satu gerakan = satu slide, antrean maksimal satu, scrub jari 35%), `input.ts` (pengenal gerakan roda/trackpad dari amplop kecepatan, sentuhan, keyboard), `build-slides.ts` (trip-data → ±50 slide dan bab), `timeline.ts` (transisi di atas Web Animations), `live.ts`.
 - Tampilan di `src/components/film/`: `Film.tsx`, `director.ts`, `transitions.ts` (slide, rel gallery, sapuan kayon, crossfade Calm), `Slides.tsx`, `Gallery.tsx`, `DetailSheet.tsx`, `Chrome.tsx`, `film.css`.
 - Yang ada di layar: gallery menyamping per hari (9, 8, 9 panel), sheet detail dengan shared element, indikator bab, hash per bab (`#day-2`), petunjuk sekali pakai, sakelar Calm, tombol Today, ganti bahasa tanpa pindah slide.
+- Slide tiket dan credits pas selayar (roda dan geseran tetap memindah slide); panduan Add to Home Screen dibuka sebagai sheet.
 - Alat: `scripts/preview/measure-film.cjs` (ukur kehalusan) dan `scripts/preview/record-film.cjs` (rekam video HD gerak lambat).
+- Pratinjau untuk host sudah dikirim (11 Nov): 2 video HD 60 fps (desktop 1920×1080, HP 1080 px tegak) dan 4 lembar tangkapan layar EN/ID dengan data asli. Berkas itu memuat nama asli tamu, jadi tidak ada di repo. Versi bernama tiruan: `docs/design/previews/film_f1_desktop_en.jpg` dan `film_f1_hp_id.jpg`.
 - Dokumen: bagian "Film 2D, F1" di `docs/design/decisions.md`, tabel v4 di `docs/design/motion-tokens.md`, Tugas 17–20 di `tasks/todo.md`.
 - Keputusan host di sesi ini: hibrida GSAP (F1 tanpa GSAP, GSAP masuk di F2 untuk koreografi 3D); branch ini dibangun di atas `claude/zen-knuth-6kig68`.
 
@@ -22,6 +24,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Lighthouse a11y untuk film belum dijalankan.
 - Foto masih 0, jadi panel gallery berupa poster tipografi. Kontak di `trip_private` masih kosong, jadi slide tim dan tombol "Message your host" belum muncul di produksi.
 - Gong masih cakram 2D tanpa bunyi; audio per adegan belum ada.
+- Data asli dari backend (kode tamu dev) terbaca benar di film: nama panggilan di judul, nama lengkap di tiket, tanpa data tim untuk peran tamu.
 - `main` belum memuat Fase 2 (Today) maupun F1: 7 commit sesi sebelumnya dan seluruh commit sesi ini hanya ada di branch ini.
 - Graphify mengindeks `main`, jadi berkas film belum ada di graf sampai branch ini di-merge. Untuk berkas itu, baca langsung dari disk.
 
