@@ -63,6 +63,22 @@ Nilai awal dari PRD §9; dikalibrasi lagi di perangkat nyata.
 | `INPUT.swipeMin` / `swipeMaxMs` / `flickVelocity` | 40 px / 320 ms / 0,45 px/ms | Sentakan: geser pendek yang cepat, atau kecepatan lepas |
 | `INPUT.scrubSpan` | 60% tinggi layar | Jarak jari untuk satu slide penuh (gallery: selebar satu kartu) |
 
+## v5 (11 Nov 2026): siklus waktu di gallery (`SKY` di `src/engine/motion/tokens.ts`)
+Langit dan matahari dihitung dari jam stop terhadap jam terbit/terbenam hari itu (`src/engine/slides/sky.ts`). Menit, kecuali disebut lain.
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `SKY.dawnLead` / `dawnFull` / `dawnHold` | 75 / 15 sebelum terbit, 45 sesudah | Subuh mulai merona / penuh / bertahan |
+| `SKY.dayFull` | 150 sesudah terbit | Langit siang penuh (sebelum jadwal pertama setelah sarapan) |
+| `SKY.duskLead` / `duskFull` / `duskHold` | 190 / 30 sebelum terbenam, 5 sesudah | Senja mulai merona / penuh / bertahan |
+| `SKY.nightFull` | 70 sesudah terbenam | Malam penuh |
+| `SKY.breakfastBefore` | 10:00 | Panel makan pertama sebelum jam ini = sarapan; matahari muncul di panel sesudahnya |
+| `SKY.sunAppear` | 60 | Tanpa sarapan di data: matahari tampak penuh sekian menit sesudah terbit |
+| `SKY.sunsetLead` / `sunsetLag` | 15 sebelum, 10 sesudah terbenam | Matahari memudar hilang |
+| `SKY.warmBelow` / `sunSwell` | ketinggian 0,6 / +30% | Di bawah ketinggian ini matahari menghangat jadi jingga dan membesar |
+| `SKY.stillSun` | 0,78 | Letak matahari pada slide berlangit siang tanpa jam (0 = terbit, 1 = terbenam) |
+| `SKY.samples` | 8 | Cuplikan busur di antara dua stop |
+
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
 - Foto di prototipe adalah **placeholder dari pencarian gambar Framer (Unsplash)**. Beberapa diambil di Yogyakarta, bukan Solo (Taman Sari, abdi dalem). Foto final mengikuti manifest lisensi (Tugas 6).

@@ -88,6 +88,41 @@ export const INPUT = {
   scrubSpan: 0.6,
 } as const;
 
+/**
+ * Langit & matahari film mengikuti jam stop (src/engine/slides/sky.ts). Menit, kecuali disebut lain.
+ * Lapisan langit: malam → subuh → siang → senja → malam, dihitung dari jam matahari terbit/terbenam hari itu.
+ */
+export const SKY = {
+  /** subuh mulai merona sekian menit sebelum matahari terbit */
+  dawnLead: 75,
+  /** subuh penuh sekian menit sebelum terbit, bertahan sampai `dawnHold` sesudahnya */
+  dawnFull: 15,
+  dawnHold: 45,
+  /** langit siang penuh sekian menit sesudah terbit (sebelum jadwal pertama setelah sarapan: sejak itu cukup satu lapisan langit yang digambar) */
+  dayFull: 150,
+  /** senja mulai merona sekian menit sebelum terbenam */
+  duskLead: 190,
+  /** senja penuh sekian menit sebelum terbenam, bertahan sampai `duskHold` sesudahnya */
+  duskFull: 30,
+  duskHold: 5,
+  /** malam penuh sekian menit sesudah terbenam */
+  nightFull: 70,
+  /** sarapan = panel makan pertama hari itu yang mulai sebelum jam ini (10:00) */
+  breakfastBefore: 600,
+  /** tanpa sarapan di data: matahari tampak penuh sekian menit sesudah terbit */
+  sunAppear: 60,
+  /** matahari mulai memudar sekian menit sebelum terbenam, hilang sekian menit sesudahnya */
+  sunsetLead: 15,
+  sunsetLag: 10,
+  /** di bawah ketinggian ini (0 = cakrawala, 1 = puncak) matahari menghangat jadi jingga dan membesar */
+  warmBelow: 0.6,
+  sunSwell: 0.3,
+  /** slide berlangit "siang" tanpa jam (kartu kedatangan): matahari diam di titik busur ini (0 = terbit, 1 = terbenam) */
+  stillSun: 0.78,
+  /** busur antara dua stop dicuplik sebanyak ini supaya lintasannya melengkung, bukan garis lurus */
+  samples: 8,
+} as const;
+
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

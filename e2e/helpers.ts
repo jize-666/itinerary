@@ -96,9 +96,10 @@ export const wib = (iso: string) => new Date(`${iso}+07:00`);
 
 /**
  * Data film tiruan (sengaja fiktif): prolog, kedatangan, dua bab hari, kepulangan.
- * Hari 1 punya stop yang dilebur (transfer & istirahat) supaya aturan gallery ikut teruji.
+ * Hari 1 punya stop yang dilebur (transfer & istirahat) supaya aturan gallery ikut teruji, dan jam terbit/terbenam
+ * supaya langitnya mengikuti jam; Hari 2 tanpa jam terbit/terbenam (langit memakai fase stop).
  */
-export function filmFixture(role: "guest" | "team" = "guest") {
+export function filmFixture(role: "guest" | "team" = "guest", opts: { breakfast?: boolean } = {}) {
   const maps = (q: string) => ({ query: q, url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` });
   const stop = (id: string, start: string, end: string, phase: string, kind: string, en: string, idn: string, extra: Record<string, unknown> = {}) => ({
     id,
@@ -146,6 +147,8 @@ export function filmFixture(role: "guest" | "team" = "guest") {
           sunrise: "05:35",
           sunset: "17:40",
           stops: [
+            // sarapan (opsional): dengan ini matahari di gallery baru muncul di jadwal sesudahnya
+            ...(opts.breakfast ? [stop("breakfast", "06:30", "06:55", "dawn", "food", "Breakfast", "Sarapan")] : []),
             stop("drive", "07:00", "07:30", "dawn", "transfer", "Morning drive", "Berangkat pagi"),
             stop("walk", "08:00", "09:30", "day", "sight", "Morning walk", "Jalan pagi", { maps: maps("Test Palace"), dressCode: L("Covered knees.", "Lutut tertutup."), tips: L("Go early.", "Datang pagi."), ...(role === "team" ? { teamNote: "Bawa payung", estCost: 50000 } : {}) }),
             stop("market", "10:30", "11:30", "day", "market", "Cloth market", "Pasar kain", { maps: maps("Test Market"), planB: L("If it rains: the covered hall.", "Kalau hujan: aula beratap.") }),

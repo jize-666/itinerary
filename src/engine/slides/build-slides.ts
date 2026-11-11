@@ -9,9 +9,10 @@
  * dan ibadah tidak mendapat panel sendiri; mereka dilebur sebagai catatan di panel tetangganya supaya satu hari
  * tetap ±8–9 panel.
  */
-import type { Contact, DayView, FactView, Phase, PhraseView, StopView, TripView } from "@/lib/trip";
+import type { Contact, DayView, FactView, PhraseView, StopView, TripView } from "@/lib/trip";
+import { type DayLight, dayLight, minutesOf, type Sky } from "./sky";
 
-export type Sky = "gate" | Phase;
+export type { Sky };
 export type Theme = "travel" | "royal" | "lawu" | "batik";
 
 type Base = {
@@ -22,6 +23,12 @@ type Base = {
   /** Slide ber-`scene` sama dirender satu lapisan yang menetap (gallery); perpindahan di dalamnya menyamping. */
   scene: string;
   sky: Sky;
+  /**
+   * Jam slide ini (menit sejak 00:00) dan cahaya harinya. Bila ada, langit dan matahari dihitung dari jam
+   * (src/engine/slides/sky.ts) dan `sky` hanya jadi cadangan; tanpa keduanya, `sky` yang dipakai.
+   */
+  clock?: number;
+  light?: DayLight;
   theme: Theme;
 };
 
@@ -132,11 +139,17 @@ export function buildFilm(data: TripView): Film {
     const slug = daySlug(day);
     const theme = themeOf(day);
     const panels = panelsByDay.get(day)!;
+    // langit gallery mengikuti jam tiap stop; intro hari memakai jam panel pertama supaya masuk gallery tanpa ganti langit
+    const light = dayLight(day, panels.map((p) => p.stop));
+    const timed = (stop: StopView | undefined) => {
+      const clock = light && stop ? minutesOf(stop.start) : null;
+      return light && clock !== null ? { clock, light } : {};
+    };
     open({ id: slug, kind: "day", day });
     push({ id: `${slug}/title`, kind: "title", day, sky: "gate", theme });
-    push({ id: `${slug}/intro`, kind: "dayintro", day, panels: panels.length, sky: skyOf(panels[0]?.stop, "dawn"), theme });
+    push({ id: `${slug}/intro`, kind: "dayintro", day, panels: panels.length, sky: skyOf(panels[0]?.stop, "dawn"), ...timed(panels[0]?.stop), theme });
     panels.forEach((p, k) =>
-      push({ id: `${slug}/${p.stop.id}`, scene: `${slug}/gallery`, kind: "panel", day, ...p, n: k + 1, of: panels.length, sky: skyOf(p.stop, "day"), theme }),
+      push({ id: `${slug}/${p.stop.id}`, scene: `${slug}/gallery`, kind: "panel", day, ...p, n: k + 1, of: panels.length, sky: skyOf(p.stop, "day"), ...timed(p.stop), theme }),
     );
     push({ id: `${slug}/gong`, kind: "gong", day, next: chapterDays[i + 1], sky: "night", theme });
   });

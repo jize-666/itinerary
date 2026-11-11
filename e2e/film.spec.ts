@@ -11,9 +11,9 @@ const slide = (page: Page) => film(page).getAttribute("data-slide");
 /** Tunggu sampai tidak ada transisi yang berjalan. */
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
 
-async function open(page: Page, hash = "", role: "guest" | "team" = "guest") {
+async function open(page: Page, hash = "", role: "guest" | "team" = "guest", data: unknown = filmFixture(role)) {
   await seedSession(page, role);
-  await page.route(TRIP, (r) => json(r, 200, filmFixture(role)));
+  await page.route(TRIP, (r) => json(r, 200, data));
   await page.goto(`/film/${hash}`);
   await expect(film(page)).toBeVisible();
   await settled(page);
@@ -323,6 +323,146 @@ test.describe("isi film", () => {
     await expect(page.getByRole("dialog", { name: "Add to Home Screen" })).toBeHidden();
     await goTo(page, "credits");
     await expect(page.getByText("Thank you for watching.")).toBeVisible();
+  });
+});
+
+test.describe("siklus waktu di gallery: matahari mengikuti jam dan slide", () => {
+  /** Pusat cakram matahari di layar + kadar tampaknya. */
+  const sun = (page: Page) =>
+    page.evaluate(() => {
+      const disc = document.querySelector(".fl-sun-disc")!.getBoundingClientRect();
+      return { x: disc.x + disc.width / 2, y: disc.y + disc.height / 2, opacity: Number(getComputedStyle(document.querySelector(".fl-sun")!).opacity) };
+    });
+  const layer = (page: Page, name: string) => page.evaluate((n) => Number(getComputedStyle(document.querySelector(`.fl-sky[data-sky="${n}"]`)!).opacity), name);
+  const openDay = (page: Page) => open(page, "#day-1", "guest", filmFixture("guest", { breakfast: true }));
+
+  test("matahari belum tampak saat sarapan, muncul di jadwal berikutnya, lalu letaknya mengikuti jam tiap stop", async ({ page }) => {
+    await openDay(page);
+    await goTo(page, "day-1/breakfast");
+    expect((await sun(page)).opacity).toBe(0);
+    await goTo(page, "day-1/walk"); // 08:00, jadwal pertama setelah sarapan
+    const morning = await sun(page);
+    await goTo(page, "day-1/market"); // 10:30
+    const midday = await sun(page);
+    await goTo(page, "day-1/lake"); // 17:00, terbenam 17:40
+    const evening = await sun(page);
+    for (const s of [morning, midday, evening]) expect(s.opacity).toBe(1);
+    // timur → barat, tertinggi menjelang tengah hari, rendah menjelang terbenam
+    expect(morning.x).toBeLessThan(midday.x);
+    expect(midday.x).toBeLessThan(evening.x);
+    expect(midday.y).toBeLessThan(morning.y);
+    expect(morning.y).toBeLessThan(evening.y);
+    // di pita langit di atas kartu, tidak menimpa judul hari
+    const head = (await page.locator(".fl-layer[data-pos='cur'] .gal-head").boundingBox())!;
+    const disc = (await page.locator(".fl-sun-disc").evaluate((el) => parseFloat(getComputedStyle(el).width))) * (1.5 / 24); // jari-jari cakram = 1,5vmax dari kotak 24vmax
+    expect(midday.y - disc).toBeGreaterThanOrEqual(head.y + head.height - 1);
+    await goTo(page, "day-1/supper"); // 19:00: sudah terbenam
+    expect((await sun(page)).opacity).toBe(0);
+    expect(await layer(page, "day")).toBe(0);
+  });
+
+  test("warna langit bergradasi menurut jam, bukan sekali ganti per fase", async ({ page }) => {
+    await openDay(page);
+    await goTo(page, "day-1/breakfast"); // 06:30: subuh, siang baru mulai masuk
+    const dawnDay = await layer(page, "day");
+    expect(await layer(page, "dawn")).toBe(1);
+    expect(dawnDay).toBeGreaterThan(0);
+    expect(dawnDay).toBeLessThan(0.3);
+    await goTo(page, "day-1/walk"); // 08:00: hampir siang penuh
+    const morningDay = await layer(page, "day");
+    expect(morningDay).toBeGreaterThan(dawnDay + 0.5);
+    expect(morningDay).toBeLessThan(1);
+    await goTo(page, "day-1/market"); // 10:30: siang
+    expect(await layer(page, "day")).toBe(1);
+    expect(await layer(page, "dusk")).toBe(0);
+    await goTo(page, "day-1/lake"); // 17:00: senja hampir penuh
+    expect(await layer(page, "dusk")).toBeGreaterThan(0.8);
+  });
+
+  test("selama transisi matahari bergerak bersama slide tanpa lompatan, lalu diam begitu slide berhenti", async ({ page }) => {
+    await openDay(page);
+    await goTo(page, "day-1/walk");
+    const start = await sun(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { __sun: number[]; __stop: boolean };
+      w.__sun = [];
+      w.__stop = false;
+      const read = () => {
+        const disc = document.querySelector(".fl-sun-disc")!.getBoundingClientRect();
+        w.__sun.push(disc.x + disc.width / 2);
+        if (!w.__stop) requestAnimationFrame(read);
+      };
+      requestAnimationFrame(read);
+    });
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(() => slide(page)).toBe("day-1/market");
+    await settled(page);
+    await page.waitForTimeout(250);
+    const xs = await page.evaluate(() => {
+      const w = window as unknown as { __sun: number[]; __stop: boolean };
+      w.__stop = true;
+      return w.__sun;
+    });
+    const end = await sun(page);
+    const total = end.x - start.x;
+    expect(total).toBeGreaterThan(20);
+    expect(xs.length).toBeGreaterThan(12);
+    for (let i = 1; i < xs.length; i++) {
+      const step = xs[i]! - xs[i - 1]!;
+      expect(step, `frame ${i}: tidak mundur`).toBeGreaterThanOrEqual(-0.5);
+      expect(step, `frame ${i}: tidak melompat`).toBeLessThan(total * 0.4);
+    }
+    // sesudah slide berhenti: matahari diam di letak jam stop tujuan
+    expect(new Set(xs.slice(-6).map((x) => Math.round(x))).size).toBe(1);
+    expect(Math.abs(xs[xs.length - 1]! - end.x)).toBeLessThan(0.5);
+  });
+
+  test("scrub jari: matahari ikut bergeser, diam saat jari diam, dan kembali bila dilepas sebelum ambang", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "iphone", "sentuhan hanya di HP");
+    await openDay(page);
+    await goTo(page, "day-1/walk");
+    const start = await sun(page);
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type: "touchStart" | "touchMove" | "touchEnd", x = 0) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y: 420 }] });
+    await touch("touchStart", 320);
+    for (let i = 1; i <= 10; i++) {
+      await touch("touchMove", 320 - i * 9); // 90 px ≈ seperempat jarak antar kartu: di bawah ambang 35%
+      await page.waitForTimeout(16);
+    }
+    await page.waitForTimeout(120);
+    const held = await sun(page);
+    expect(held.x).toBeGreaterThan(start.x + 2); // sudah ikut bergeser
+    await page.waitForTimeout(300);
+    const still = await sun(page);
+    expect(still.x).toBe(held.x); // jari diam → matahari diam
+    expect(still.y).toBe(held.y);
+    expect(await slide(page)).toBe("day-1/walk");
+    await touch("touchEnd");
+    await cdp.detach();
+    await settled(page);
+    expect(await slide(page)).toBe("day-1/walk");
+    expect(Math.abs((await sun(page)).x - start.x)).toBeLessThan(0.5); // kembali ke letak jam stop asal
+  });
+
+  test("Calm: tanpa gerak, matahari tetap tiba di letak jam stop tujuan", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openDay(page);
+    await goTo(page, "day-1/walk");
+    const morning = await sun(page);
+    await goTo(page, "day-1/market");
+    const midday = await sun(page);
+    expect(midday.opacity).toBe(1);
+    expect(midday.x).toBeGreaterThan(morning.x);
+  });
+
+  test("hari tanpa jam terbit/terbenam: langit tetap memakai fase stop", async ({ page }) => {
+    await open(page, "#day-2");
+    await goTo(page, "day-2/tea");
+    expect([await layer(page, "dawn"), await layer(page, "day")]).toEqual([1, 0]);
+    expect((await sun(page)).opacity).toBe(0);
+    await goTo(page, "day-2/temple");
+    expect(await layer(page, "day")).toBe(1);
+    expect((await sun(page)).opacity).toBe(1);
   });
 });
 

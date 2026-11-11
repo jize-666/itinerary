@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery]
+// film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
+// matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan.
 // <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo).
 // Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI lewat CDP
 // Animation.setPlaybackRate; timer & rAF diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
@@ -10,7 +12,7 @@ const { chromium, devices } = require('playwright');
 const { spawn } = require('child_process');
 const fs = require('fs');
 (async () => {
-  const [DATA, out, device = 'desktop', kArg] = process.argv.slice(2);
+  const [DATA, out, device = 'desktop', kArg, tour = 'film'] = process.argv.slice(2);
   const K = +(kArg || 0.25);
   const BASE = process.env.BASE_URL || 'http://localhost:4173';
   const FPS = 60;
@@ -58,9 +60,57 @@ const fs = require('fs');
   await p.goto('about:blank');
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  await p.goto(`${BASE}/film/`, { waitUntil: 'commit' });
+  await p.goto(`${BASE}/film/${tour === 'gallery' ? '#day-1' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
+
+  if (tour === 'gallery') {
+    // jari tiruan: titik yang mengikuti sentuhan, hanya di rekaman
+    const finger = async (type, x, y) => {
+      await cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+      await p.evaluate(([t, fx, fy]) => {
+        let dot = document.getElementById('rec-finger');
+        if (!dot) {
+          dot = document.body.appendChild(document.createElement('div'));
+          dot.id = 'rec-finger';
+          dot.style.cssText = 'position:fixed;z-index:999;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgb(255 255 255 / .28);box-shadow:0 0 0 1.5px rgb(255 255 255 / .6);pointer-events:none';
+        }
+        dot.style.display = t === 'touchEnd' ? 'none' : 'block';
+        dot.style.transform = `translate(${fx}px, ${fy}px)`;
+      }, [type, x, y]);
+    };
+    /** Seret jari menyamping dari x0 ke x1 dalam `ms` (waktu video). */
+    const pull = async (x0, x1, y, ms) => {
+      const steps = Math.max(2, Math.round(ms / 16));
+      for (let i = 1; i <= steps; i++) { await finger('touchMove', x0 + ((x1 - x0) * i) / steps, y); await w(ms / steps); }
+    };
+    await w(3000); // judul hari
+    await key('ArrowDown', 3400); // intro hari
+    await key('ArrowDown', 2600); // panel pertama (sarapan: matahari belum tampak)
+    await key('ArrowDown', 2600); // jadwal pertama setelah sarapan: matahari muncul perlahan
+    if (phone) {
+      // scrub: tarik, tahan (matahari ikut diam), lanjut, lepas
+      const y = Math.round(height * 0.62);
+      const x0 = Math.round(width * 0.8);
+      await finger('touchStart', x0, y);
+      await pull(x0, x0 - width * 0.22, y, 700);
+      await w(900);
+      await pull(x0 - width * 0.22, x0 - width * 0.5, y, 800);
+      await w(500);
+      await finger('touchEnd', 0, 0);
+      await w(2200);
+    }
+    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2400); // siang → senja → malam
+    await w(2400); // gong penutup hari
+    await cdp.send('Page.stopScreencast');
+    await new Promise((r) => setTimeout(r, 300));
+    if (last) { ff.stdin.write(last); written++; }
+    ff.stdin.end();
+    await new Promise((r) => ff.on('close', r));
+    console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
+    await b.close();
+    return;
+  }
 
   await w(5200); // hero: judul lahir sebagai bayangan
   await key('ArrowDown', 3000); // pembuka

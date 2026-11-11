@@ -43,7 +43,9 @@ html.film-on body {
   --accent: #d9a273;
 }
 
-/* ---- langit per fase: digambar sekali, hanya opacity yang berganti ---- */
+/* ---- langit: tiap lapisan warna digambar sekali; kadarnya (opacity) dihitung dari jam slide ----
+   Urutan tumpukan = urutan di DOM: malam (dasar, selalu penuh), subuh, siang, senja, matahari, gerbang.
+   Kadar dan letak matahari diisi Film.tsx dari src/engine/slides/sky.ts, dan digerakkan transitions.ts. */
 .fl-skies,
 .fl-sky,
 .fl-grain {
@@ -56,14 +58,69 @@ html.film-on body {
   opacity: 0;
 }
 
-.fl-sky[data-on="cur"] {
-  z-index: 1;
+.fl-sky[data-sky="night"] {
   opacity: 1;
 }
 
-.fl-sky[data-on="in"] {
-  z-index: 2;
-  will-change: opacity;
+/* tertutup lapisan penuh di atasnya: tidak digambar (lihat skyCovered) */
+.fl-sky[data-covered],
+.fl-sunbox[data-covered] {
+  visibility: hidden;
+}
+
+/* ---- matahari: satu elemen yang digeser di dalam bingkai lintasannya (transform dalam % ukuran bingkai) ----
+   Bingkai = pita langit di atas kartu gallery. Kiri → kanan = terbit → terbenam; tepi atas = puncak busur;
+   tepi bawah = cakrawala, kira-kira tepi atas kartu, jadi matahari terbit dan terbenam di balik kartu.
+   --gal-gap dan --gal-card-h menyalin ukuran .fl-body--gallery dan .gal-paper di bawah. */
+.fl-sunbox {
+  --gal-gap: clamp(10px, 1.8vh, 18px);
+  --gal-card-h: min(clamp(300px, 56svh, 580px), 100svh - 226px);
+  position: absolute;
+  left: 13%;
+  width: 74%;
+  /* puncak busur: cakram (jari-jari 1,5vmax) tepat di bawah judul hari, berapa pun ukuran layarnya */
+  top: calc(var(--top) + 26px + 1.9vmax);
+  height: max(24px, 1px + var(--gal-gap) - 1.9vmax + (100svh - var(--top) - var(--bottom) - 19px - var(--gal-gap) - var(--gal-card-h)) / 2);
+  pointer-events: none;
+}
+
+.fl-sun {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform-origin: 0 0;
+}
+
+/* cakram + pendar berpusat di pojok kiri-atas .fl-sun, yaitu titik yang digeser */
+.fl-sun-disc,
+.fl-sun-warm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24vmax;
+  height: 24vmax;
+  margin: -12vmax 0 0 -12vmax;
+  border-radius: 50%;
+}
+
+.fl-sun-disc {
+  background: radial-gradient(circle, #fff8e2 0 1.5vmax, rgb(255 244 208 / 0.5) 1.8vmax, rgb(255 240 198 / 0.2) 3.2vmax, rgb(255 238 190 / 0.12) 7vmax, transparent 12vmax);
+}
+
+/* dekat cakrawala: rona jingga memudar masuk di atas cakram putih */
+.fl-sun-warm {
+  opacity: 0;
+  background: radial-gradient(circle, #ffcf8a 0 1.5vmax, rgb(255 166 92 / 0.62) 1.9vmax, rgb(255 130 72 / 0.2) 7vmax, transparent 12vmax);
+}
+
+/* layar pendek (HP mendatar): tak ada ruang di atas kartu, matahari melintas di sela tombol atas */
+@media (max-height: 560px) {
+  .fl-sunbox {
+    left: 27%;
+    width: 46%;
+    top: calc(22px + env(safe-area-inset-top));
+    height: 36px;
+  }
 }
 
 /* gerbang: gelap, satu pendar blencong */
@@ -94,10 +151,9 @@ html.film-on body {
   background: linear-gradient(180deg, #0a0f2b 0%, #1d2256 26%, #4a3a78 46%, #a45e7c 62%, #ea9a6c 76%, #ffd29a 90%, #ffe9c4 100%);
 }
 
+/* siang: tanpa matahari di gambar latar; mataharinya elemen .fl-sun */
 .fl-sky[data-sky="day"] {
-  background:
-    radial-gradient(circle at 78% 17%, #fff8e2 0 1.5vmax, rgb(255 244 208 / 0.5) 1.8vmax, rgb(255 238 190 / 0.16) 7vmax, transparent 20vmax),
-    linear-gradient(180deg, #1c4a80 0%, #3a78ad 30%, #7fb0cb 56%, #c6dccf 78%, #efe6d2 100%);
+  background: linear-gradient(180deg, #1c4a80 0%, #3a78ad 30%, #7fb0cb 56%, #c6dccf 78%, #efe6d2 100%);
 }
 
 .fl-sky[data-sky="dusk"] {
@@ -834,6 +890,10 @@ html.film-on body {
 .gal-head {
   justify-self: center;
   text-align: center;
+  /* matahari melintas tepat di bawah judul ini: bayangan gelap lembut menjaganya tetap terbaca di langit terang */
+  text-shadow:
+    0 0 10px rgb(7 9 18 / 0.7),
+    0 1px 2px rgb(7 9 18 / 0.55);
 }
 
 .gal-track {

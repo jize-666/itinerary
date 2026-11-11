@@ -4,8 +4,10 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import { flushSync } from "react-dom";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { prefersReducedMotion } from "@/engine/motion/tokens";
-import { buildFilm, chapterAt, type Film as FilmData, indexForHash, type PanelSlide, type Sky, type Slide } from "@/engine/slides/build-slides";
+import { buildFilm, chapterAt, type Film as FilmData, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
 import { createLiveStore } from "@/engine/slides/live";
+import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
+import { styleAt } from "@/engine/slides/timeline";
 import { sessionStore } from "@/lib/session";
 import { loadTrip, peekTrip, type TripLoad, type TripView } from "@/lib/trip";
 import { IconRefresh } from "../Icons";
@@ -16,9 +18,9 @@ import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
+import { sunPlace } from "./transitions";
 
 type State = { kind: "loading" } | TripLoad;
-const SKIES: readonly Sky[] = ["gate", "dawn", "day", "dusk", "night"];
 const CALM_KEY = "lakon.calm";
 const HINT_KEY = "lakon.film.hint";
 
@@ -280,8 +282,15 @@ function Stage({ data }: { data: TripView }) {
 
   const scenes = scenesFor(film, view);
   const slide = film.slides[view.index];
-  const incoming = view.moving ? film.slides[view.moving.to] : undefined;
   const chapter = chapterAt(film, view.index);
+  // langit saat diam; selama transisi, lintasan dari transitions.ts berjalan di atas nilai ini
+  const sky = slide ? skyState(slide) : STILL.gate;
+  // lapisan yang tertutup penuh (saat diam, atau sepanjang transisi yang berjalan) tidak digambar
+  const target = view.moving ? film.slides[view.moving.to] : undefined;
+  const covered = skyCovered(slide && target ? skyPath(slide, target) : [[0, sky]]);
+  const off = (name: Parameters<typeof covered.has>[0]) => (covered.has(name) ? "" : undefined);
+  const sun = sunPlace(sky.sun);
+  const sunStyle = styleAt({ unit: "%", x: [[0, sun.x]], y: [[0, sun.y]], scale: [[0, sky.sun.scale]], opacity: [[0, sky.sun.opacity]] }, 0);
   return (
     <main
       ref={root}
@@ -297,9 +306,17 @@ function Stage({ data }: { data: TripView }) {
       data-index={view.index}
     >
       <div className="fl-skies" aria-hidden="true">
-        {SKIES.map((sky) => (
-          <div key={sky} className="fl-sky" data-sky={sky} data-on={sky === slide?.sky ? "cur" : sky === incoming?.sky ? "in" : undefined} />
-        ))}
+        <div className="fl-sky" data-sky="night" data-covered={off("night")} />
+        <div className="fl-sky" data-sky="dawn" data-covered={off("dawn")} style={{ opacity: sky.dawn }} />
+        <div className="fl-sky" data-sky="day" data-covered={off("day")} style={{ opacity: sky.day }} />
+        <div className="fl-sky" data-sky="dusk" data-covered={off("dusk")} style={{ opacity: sky.dusk }} />
+        <div className="fl-sunbox" data-covered={off("sun")}>
+          <div className="fl-sun" style={sunStyle}>
+            <i className="fl-sun-disc" />
+            <i className="fl-sun-warm" style={{ opacity: sky.sun.warm }} />
+          </div>
+        </div>
+        <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
       <div className="fl-grain" aria-hidden="true" />
       <LiveContext value={live}>

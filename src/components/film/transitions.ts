@@ -8,7 +8,8 @@
  */
 import { type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
 import { type Film, transitionKind } from "@/engine/slides/build-slides";
-import type { Track } from "@/engine/slides/timeline";
+import { SKY_LAYERS, type SkyKey, skyPath, type SunState } from "@/engine/slides/sky";
+import type { Key, Track } from "@/engine/slides/timeline";
 
 export type Plan = {
   kind: "slide" | "inner" | "wipe" | "fade";
@@ -22,6 +23,56 @@ export type Plan = {
 const find = (root: ParentNode, selector: string) => root.querySelector<HTMLElement>(selector);
 const layerOf = (root: HTMLElement, scene: string) => find(root, `.fl-layer[data-scene="${CSS.escape(scene)}"]`);
 const skyOf = (root: HTMLElement, sky: string) => find(root, `.fl-sky[data-sky="${CSS.escape(sky)}"]`);
+
+/** Letak matahari di bingkainya, dalam % ukuran bingkai (lihat `.fl-sunbox`). */
+export const sunPlace = (sun: SunState) => ({ x: sun.u * 100, y: sun.v * 100 });
+
+/**
+ * Lintasan langit: kadar tiap lapisan warna + letak, ukuran, dan rona matahari, dipetakan ke jendela [s, e]
+ * dari transisi. Hanya elemen yang nilainya berubah yang diberi lintasan.
+ * Calm: tanpa gerak; matahari memudar, pindah tempat saat tak tampak, lalu muncul lagi.
+ */
+function skyTracks(root: HTMLElement, keys: readonly SkyKey[], [s, e]: readonly [number, number], calm: boolean): Track[] {
+  const first = keys[0]?.[1];
+  const last = keys[keys.length - 1]?.[1];
+  if (!first || !last || keys.length < 2) return [];
+  const tracks: Track[] = [];
+  const at = (p: number) => s + (e - s) * p;
+  const line = (pick: (k: SkyKey[1]) => number): Key[] => keys.map(([p, state]) => [at(p), pick(state)] as const);
+  const changes = (keysOf: readonly Key[]) => keysOf.some(([, v]) => v !== keysOf[0]![1]);
+  /** Calm: nilai asal ditahan sampai tengah, lalu nilai tujuan (pergantiannya terjadi saat matahari tak tampak). */
+  const swap = (from: number, to: number): Key[] => [[at(0), from], [at(0.5), from], [at(0.501), to], [at(1), to]];
+
+  for (const name of SKY_LAYERS) {
+    const opacity = line((k) => k[name]);
+    const el = changes(opacity) ? skyOf(root, name) : null;
+    if (el) tracks.push({ el, opacity });
+  }
+
+  const sun = find(root, ".fl-sun");
+  const warm = find(root, ".fl-sun-warm");
+  const x = line((k) => sunPlace(k.sun).x);
+  const y = line((k) => sunPlace(k.sun).y);
+  const scale = line((k) => k.sun.scale);
+  const opacity = line((k) => k.sun.opacity);
+  const glow = line((k) => k.sun.warm);
+  if (sun && [x, y, scale, opacity].some(changes)) {
+    if (calm) {
+      const [a, b] = [first.sun, last.sun];
+      const dip = changes(x) || changes(y) || changes(scale);
+      tracks.push({
+        el: sun,
+        unit: "%",
+        x: swap(sunPlace(a).x, sunPlace(b).x),
+        y: swap(sunPlace(a).y, sunPlace(b).y),
+        scale: swap(a.scale, b.scale),
+        opacity: dip ? [[at(0), a.opacity], [at(0.5), 0], [at(0.501), 0], [at(1), b.opacity]] : [[at(0), a.opacity], [at(1), b.opacity]],
+      });
+    } else tracks.push({ el: sun, unit: "%", x, y, scale, opacity });
+  }
+  if (warm && changes(glow)) tracks.push({ el: warm, opacity: calm ? swap(first.sun.warm, last.sun.warm) : glow });
+  return tracks;
+}
 
 /** Posisi slide di dalam scene-nya (kartu ke berapa di gallery). */
 export function stepInScene(film: Film, index: number): number {
@@ -58,13 +109,9 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   const out = layerOf(root, a.scene);
   const inn = layerOf(root, b.scene);
 
-  // ---- langit: yang baru memudar masuk di atas yang lama ----
-  if (a.sky !== b.sky) {
-    const sky = skyOf(root, b.sky);
-    const window: Record<Plan["kind"], [number, number]> = { slide: [0.08, 0.86], inner: [0, 1], wipe: [0.44, 0.56], fade: [0, 1] };
-    const [s, e] = window[kind];
-    if (sky) tracks.push({ el: sky, opacity: [[s, 0], [e, 1]] });
-  }
+  // ---- langit & matahari: mengikuti jam slide (gallery) atau crossfade antar langit tetap ----
+  const window: Record<Plan["kind"], readonly [number, number]> = { slide: [0.08, 0.86], inner: [0, 1], wipe: [0.44, 0.56], fade: [0, 1] };
+  tracks.push(...skyTracks(root, skyPath(a, b), window[kind], kind === "fade"));
 
   if (base === "inner" && out) {
     // rel kartu gallery bergeser dari kartu i ke kartu j

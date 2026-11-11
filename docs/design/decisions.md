@@ -205,13 +205,23 @@ Film kini bisa ditonton dari prolog sampai credits di `/film/`. Lapisan ini seka
 - **Panel tanpa foto.** Foto masih 0 (Tugas 6), jadi semua panel berbentuk poster tipografi: jam besar, lukisan garis fase (matahari naik / tinggi / turun, bulan sabit), nama, alasan, chip. Bila manifest berisi foto untuk `stop.photo`, foto itu tampil di kepala kartu.
 - **Bayang kini mengelompokkan huruf per kata** (komponen bersama gerbang dan Today): judul panjang hanya patah di spasi. `textContent` tetap sama.
 
-**Langit per fase** (gerbang, subuh, siang, senja, malam) digambar sekali dan hanya opacity-nya yang berganti, jadi satu hari di gallery bergerak dari subuh ke malam. Slide berteks rendah mendapat bidang gelap lembut supaya kontras terjaga di langit terang.
+**Langit** (gerbang, subuh, siang, senja, malam) digambar sekali per lapisan dan hanya opacity-nya yang berganti. Di gallery kadarnya dihitung dari jam stop, lihat "Siklus waktu di gallery" di bawah. Slide berteks rendah mendapat bidang gelap lembut supaya kontras terjaga di langit terang.
 
 **Reveal teks** baru berjalan saat penonton tiba (±450 ms setelah transisi dimulai; saat sapuan kayon lewat tengah layar). Lapisan tetangga dipasang lebih dulu dalam keadaan tersembunyi supaya transisi bisa langsung mulai.
 
 **Kehalusan** (`node scripts/preview/measure-film.cjs`, Chromium tanpa GPU, 11 Nov 2026): **0 frame > 50 ms** di 10 momen desktop dan 11 momen iPhone (hero, slide maju/mundur, sapuan kayon, masuk gallery, geser panel, scrub jari, buka/tutup sheet, gong → bab berikutnya). Frame terpanjang 33 ms. Dua perbaikan yang membuatnya tercapai: lapisan slide tanpa `will-change` (sebelumnya 60–78 ms saat reveal teks mulai), dan FLIP menggantikan View Transitions.
 
 **Uji.** 80 unit test baru (mesin slide, jejak roda/trackpad tiruan, lintasan, pemetaan data termasuk konten Solo: tiap stop tampil tepat sekali) dan 39 e2e (`e2e/film.spec.ts`, desktop + iPhone).
+
+**Siklus waktu di gallery (revisi 11 Nov 2026, dari audit host).** Sebelumnya langit berganti sekali per fase stop dan mataharinya bagian dari gambar latar siang, jadi ia melompat. Sekarang (`src/engine/slides/sky.ts`, murni dan dites):
+- Tiap panel membawa jam stop-nya (`clock`) dan cahaya hari itu (`light`: jam terbit, terbenam, dan kapan matahari mulai tampak). Intro hari memakai jam panel pertama, jadi masuk gallery tanpa ganti langit.
+- **Satu elemen matahari** (`.fl-sun`) bergerak di pita langit di atas kartu: kiri → kanan = terbit → terbenam, busurnya tertinggi di tengah hari, dan ia terbit serta terbenam di balik tepi atas kartu. Menjelang cakrawala ia membesar dan menghangat jadi jingga. Ukuran pita diatur CSS (`.fl-sunbox`), letaknya dalam persen pita, jadi sama di HP, desktop, dan layar mendatar.
+- **Aturan host: matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.** Sarapan dikenali dari data sebagai panel makan pertama hari itu yang mulai sebelum 10:00. Sampai jam itu matahari tak tampak; ia memudar masuk sambil naik selama perpindahan ke panel berikutnya. Hari tanpa sarapan di data mengikuti jam terbit.
+- **Warna langit mengikuti jam yang sama.** Kadar lapisan subuh, siang, dan senja linear di antara titik-titik waktu relatif terhadap terbit/terbenam (`SKY` di tokens), jadi pagi makin terang dan sore makin jingga dari panel ke panel, bukan sekali ganti.
+- **Bergerak bersama slide.** Perpindahan panel = jam berjalan dari stop asal ke stop tujuan, dicuplik jadi titik kunci untuk `Timeline` yang sama dengan rel kartu. Hasilnya matahari ikut jari saat scrub, diam saat jari diam, dan berhenti bersama slide; transisi penuh memakai kurva yang sama dengan rel.
+- Lapisan yang tertutup penuh oleh lapisan di atasnya tidak digambar (`skyCovered`), supaya jumlah lapisan selayar yang dikomposisi tetap kecil.
+- Slide tanpa jam (prolog, judul, gong, kartu kedatangan/kepulangan) dan hari tanpa jam terbit/terbenam tetap memakai langit fase seperti sebelumnya. Calm: tanpa gerak, matahari memudar lalu muncul di letak barunya.
+- Terukur (Chromium tanpa GPU, iPhone tiruan): selama scrub ditahan, matahari bergeser 0 px di 36 frame berturut-turut; di transisi penuh tidak ada langkah mundur dan lompatan terbesar per frame 2,6 px.
 
 **Belum, dan perlu perangkat nyata:**
 - Kalibrasi ambang di trackpad MacBook dan Safari iPhone (jejak di tes adalah model, bukan rekaman). Semua ambang ada di `SLIDE` dan `INPUT` (`src/engine/motion/tokens.ts`).
