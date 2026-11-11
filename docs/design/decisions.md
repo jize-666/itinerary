@@ -178,6 +178,67 @@ Acuan host: *button placement* (pola baca HP: aksi di bawah, utama paling menonj
   - `ui-tok` (sakelar: EN/ID, Rain plan, pilihan hari, checklist, speaker): ketukan keprak dalang, dibuat dengan ElevenLabs (paket gratis, 50 kredit).
 - Masing-masing < 4 KB, dimuat bersama SFX lain setelah sambutan berbunyi; volume 0,45 dan tidak merendahkan gendhing. Bisa ditimpa per tombol lewat `data-sfx`.
 
+## Film 2D, F1 (10–11 Nov 2026), "lanjut F1"
+Film kini bisa ditonton dari prolog sampai credits di `/film/`. Lapisan ini sekaligus menjadi tier **Static** dan **Calm**; panggung 3D (F2) nanti dipasang di belakangnya dan digerakkan oleh sumber kemajuan yang sama.
+
+**Susunan.** `buildFilm()` (`src/engine/slides/build-slides.ts`) memetakan respons trip-data menjadi ±50 slide: prolog (hero, pembuka, 5 fakta kota, rute + penghitung, tim, frasa Jawa, kartu kedatangan) → tiap hari (kartu judul berletterbox, intro, gallery menyamping, gong penutup yang menunjuk hari berikutnya) → epilog (penutup, kartu kepulangan, tiket + Open Today / Add to Home Screen / pesan ke host) → credits. Tidak ada teks itinerary di bundle.
+
+**Mesin.** Tiga bagian murni yang dites tanpa browser:
+- `controller.ts`: state machine diam / scrub / transisi. Maksimal satu langkah diantrekan (sisa transisi dipercepat 1,8×); roda dan trackpad dibuang sampai transisi 80%; arah berlawanan membalik transisi di tempat; scrub jari lanjut di 35% atau sentakan searah.
+- `input.ts`: `WheelGestures` mengenali gerakan dari amplop kecepatan (naik → puncak → meluruh), bukan sekadar kunci waktu. Langkah baru hanya dari jeda, balik arah, atau dorongan yang naik jelas di atas dasar peluruhan (paling cepat 450 ms setelah langkah sebelumnya). Event yang digabung browser saat thread utama tersendat dikenali dari kecepatan rata-ratanya dan tidak dihitung gerakan baru.
+- `timeline.ts`: transisi di atas Web Animations dengan lintasan berupa angka, sehingga bisa mengikuti jari, dilanjutkan dari posisi jari, dibalik di tengah jalan, dan kemajuannya dibaca dari jam yang sama (`progress()`, untuk kamera 3D).
+
+**Empat rupa transisi** (`src/components/film/transitions.ts`), semuanya hanya `opacity` dan `transform`:
+| Rupa | Kapan | Gerak |
+|---|---|---|
+| slide | antar slide dalam satu bab | lapisan lama memudar naik, lapisan baru masuk dari arah perjalanan, 1,1 dtk `power3.inOut` |
+| inner | di dalam gallery | rel kartu bergeser satu kartu, kartu aktif menyala, tetangganya meredup, 0,9 dtk |
+| wipe | antar bab dan lompatan | bayangan kayon (gapura, pohon hayat, tatahan) menyapu layar; isi berganti saat intinya menutup, 1,6 dtk |
+| fade | Calm / reduced motion | crossfade 0,45 dtk, tanpa scrub dan tanpa reveal |
+
+**Keputusan yang berbeda dari PRD** (alasan teknis, sesuai §8 serah-terima):
+- **Tanpa GSAP dan Lenis di F1** (hibrida, disetujui host 10 Nov). Transisi DOM lewat Web Animations berjalan di compositor, jadi teks tetap mulus saat WebGL membebani thread utama. GSAP masuk di F2 untuk koreografi kamera dan adegan 3D. Scroll sheet detail dan credits memakai scroll bawaan.
+- **Scrub hanya untuk sentuhan.** Browser tidak memberi tahu kapan jari terangkat dari trackpad, jadi gesekan trackpad dihitung satu langkah (dengan pengenalan inersia di atas), bukan diikuti seperti jari di layar.
+- **Sapuan gunungan memakai bayangan yang menutup layar**, bukan mask `clip-path`: aturan performa hanya mengizinkan opacity dan transform.
+- **Shared element panel → sheet memakai FLIP**, bukan View Transitions. View Transitions memotret seluruh halaman dan terukur 83 ms per frame tanpa GPU; FLIP (satu animasi transform pada judul, selaras dengan gerak sheet) 33 ms dan jalan di semua browser.
+- **Gallery 9, 8, dan 9 panel** (PRD: 5–8). Tamu minta semua stop tampil; istirahat, transfer, dan ibadah dilebur sebagai catatan "First / Then" di panel tetangganya.
+- **Panel tanpa foto.** Foto masih 0 (Tugas 6), jadi semua panel berbentuk poster tipografi: jam besar, lukisan garis fase (matahari naik / tinggi / turun, bulan sabit), nama, alasan, chip. Bila manifest berisi foto untuk `stop.photo`, foto itu tampil di kepala kartu.
+- **Bayang kini mengelompokkan huruf per kata** (komponen bersama gerbang dan Today): judul panjang hanya patah di spasi. `textContent` tetap sama.
+
+**Langit** (gerbang, subuh, siang, senja, malam) digambar sekali per lapisan dan hanya opacity-nya yang berganti. Di gallery kadarnya dihitung dari jam stop, lihat "Siklus waktu di gallery" di bawah. Slide berteks rendah mendapat bidang gelap lembut supaya kontras terjaga di langit terang.
+
+**Reveal teks** baru berjalan saat penonton tiba (±450 ms setelah transisi dimulai; saat sapuan kayon lewat tengah layar). Lapisan tetangga dipasang lebih dulu dalam keadaan tersembunyi supaya transisi bisa langsung mulai.
+
+**Kehalusan** (`node scripts/preview/measure-film.cjs`, Chromium tanpa GPU, 11 Nov 2026): **0 frame > 50 ms** di 10 momen desktop dan 11 momen iPhone (hero, slide maju/mundur, sapuan kayon, masuk gallery, geser panel, scrub jari, buka/tutup sheet, gong → bab berikutnya). Frame terpanjang 33 ms. Dua perbaikan yang membuatnya tercapai: lapisan slide tanpa `will-change` (sebelumnya 60–78 ms saat reveal teks mulai), dan FLIP menggantikan View Transitions.
+
+**Uji.** 80 unit test baru (mesin slide, jejak roda/trackpad tiruan, lintasan, pemetaan data termasuk konten Solo: tiap stop tampil tepat sekali) dan 39 e2e (`e2e/film.spec.ts`, desktop + iPhone).
+
+**Siklus waktu di gallery (revisi 11 Nov 2026, dari audit host).** Sebelumnya langit berganti sekali per fase stop dan mataharinya bagian dari gambar latar siang, jadi ia melompat. Sekarang (`src/engine/slides/sky.ts`, murni dan dites):
+- Tiap panel membawa jam stop-nya (`clock`) dan cahaya hari itu (`light`: jam terbit, terbenam, dan kapan matahari mulai tampak). Intro hari memakai jam panel pertama, jadi warna langit tidak berganti saat masuk gallery; mataharinya sendiri hanya digambar di gallery.
+- **Satu elemen matahari** (`.fl-sun`) bergerak di pita langit di atas kartu: kiri → kanan = terbit → terbenam, busurnya tertinggi di tengah hari, dan ia terbit serta terbenam di balik tepi atas kartu. Menjelang cakrawala ia membesar dan menghangat jadi jingga. Ukuran pita diatur CSS (`.fl-sunbox`), letaknya dalam persen pita, jadi sama di HP, desktop, dan layar mendatar.
+- **Aturan host: matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.** Sarapan dikenali dari data sebagai panel makan pertama hari itu yang mulai sebelum 10:00. Di hari yang dibuka dengan sarapan (Hari 1 dan 3), matahari tak tampak sampai jam itu, lalu memudar masuk sambil naik selama perpindahan ke panel berikutnya.
+- **Hari yang punya jadwal sebelum sarapan (keputusan host 11 Nov, Hari 2):** matahari mengikuti jam terbit yang sebenarnya. Panel yang melewati jam terbit ("Matahari terbit di Kemuning", 05:15–06:30, terbit 05:35) memakai langit 20 menit sesudah terbit, jadi matahari jingga sudah menyembul rendah di timur, lalu penuh saat sarapan. Hari tanpa sarapan di data juga mengikuti jam terbit.
+- **Warna langit mengikuti jam yang sama.** Kadar lapisan subuh, siang, dan senja linear di antara titik-titik waktu relatif terhadap terbit/terbenam (`SKY` di tokens), jadi pagi makin terang dan sore makin jingga dari panel ke panel, bukan sekali ganti.
+- **Bergerak bersama slide.** Perpindahan panel = jam berjalan dari stop asal ke stop tujuan, dicuplik jadi titik kunci untuk `Timeline` yang sama dengan rel kartu. Hasilnya matahari ikut jari saat scrub, diam saat jari diam, dan berhenti bersama slide; transisi penuh memakai kurva yang sama dengan rel.
+- Lapisan yang tertutup penuh oleh lapisan di atasnya tidak digambar (`skyCovered`), supaya jumlah lapisan selayar yang dikomposisi tetap kecil.
+- Slide tanpa jam (prolog, judul, gong, kartu kedatangan/kepulangan) dan hari tanpa jam terbit/terbenam tetap memakai langit fase seperti sebelumnya. Calm: tanpa gerak, matahari memudar lalu muncul di letak barunya.
+- Terukur (Chromium tanpa GPU, iPhone tiruan): selama scrub ditahan, matahari bergeser 0 px di 36 frame berturut-turut; di transisi penuh tidak ada langkah mundur dan lompatan terbesar per frame 2,6 px.
+
+**Gallery 2,5D (11 Nov 2026, permintaan host).** Arti yang dipilih host: kedalaman berlapis di film yang sudah ada, gallery dulu, tetap DOM dengan `transform` dan `opacity` (bukan WebGL; panggung 3D tetap F2). Nilainya di `DEPTH` (`src/engine/motion/tokens.ts`), CSS membacanya lewat variabel `--depth-*`.
+- **Rel kartu di ruang berperspektif** (1100 px). Kartu aktif menghadap penonton; tetangganya 110 px lebih jauh dan berpaling 14° seperti panel di drum yang berputar (tepi luarnya menjauh). Saat pindah panel, kartu yang datang "membuka" dari miring ke datar dan kartu yang pergi berpaling. `Timeline` mendapat dua saluran baru, `z` dan `rotateY`, tetap satu `transform`, jadi geraknya ikut jari saat scrub seperti yang lain.
+- **Parallax latar.** Bukit dipisah dari lapisan warna langit menjadi dua elemen (`.fl-hills`). Bukit dekat bergeser sedikit tiap pindah panel (26% lebarnya selama satu hari), lebih lambat daripada kartu; bukit jauh diam bersama langit; matahari berjalan menurut jam. Jadi ada empat bidang yang geraknya berbeda: langit dan bukit jauh, matahari, bukit dekat, kartu.
+- **Bayangan kontak** di bawah tiap kartu, supaya kartu terasa melayang di atas lanskap.
+- **Calm tetap datar:** tanpa perspektif dan tanpa parallax (crossfade memudarkan seluruh rel, dan opacity pada rel meratakan ruang 3D-nya).
+- Kenapa bukit jauh tidak ikut bergeser: terukur. Tiap lapisan selayar yang ikut digeser memberatkan frame di Chromium tanpa GPU, sedangkan perspektif kartu hampir tidak. Bukit dekat juga dijadikan lapisan tetap selama di gallery supaya tidak digambar ulang di tiap perpindahan.
+- Kehalusan (`measure-film.cjs`, 11 Nov): iPhone tiruan 0 frame > 50 ms, terpanjang 17 ms. Desktop tanpa GPU: p95 33 ms saat pindah panel, dan di sebagian pengukuran ada satu frame 50–67 ms (sebelum 2,5D: 0 frame > 50 ms). Perlu dilihat di MacBook asli; di perangkat ber-GPU lapisan sebanyak ini ringan.
+- Belum: kedalaman di slide selain gallery (menunggu tinjauan host), kedalaman di dalam kartu (lukisan fase dan teks pada bidang berbeda), dan kemiringan yang mengikuti kursor atau giroskop.
+
+**Belum, dan perlu perangkat nyata:**
+- Kalibrasi ambang di trackpad MacBook dan Safari iPhone (jejak di tes adalah model, bukan rekaman). Semua ambang ada di `SLIDE` dan `INPUT` (`src/engine/motion/tokens.ts`).
+- Web Animations di Safari belum teruji di sini (hanya Chromium tersedia).
+- Lighthouse a11y untuk film belum dijalankan.
+- Gong masih cakram 2D tanpa bunyi (F3); audio per adegan (Tugas 36); slide tim hanya muncul bila kontak sudah diisi di `trip_private`.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

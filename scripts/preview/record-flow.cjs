@@ -54,7 +54,7 @@ const { spawn } = require('child_process');
   await tap(p.locator('.begin-btn'), 380);
   await p.waitForURL(/\/film\/$/, { timeout: 60000, waitUntil: 'commit' });
   await w(3800);
-  await tap(p.locator('.film-link'), 340);
+  await tap(p.locator('.fl-corner a'), 340); // tombol Today di pojok film (film sendiri direkam record-film.cjs)
   await p.waitForURL(/\/today\/$/, { timeout: 60000, waitUntil: 'commit' });
   await w(3400);
   await tap(p.locator('.lang-toggle .seg-opt').nth(1), 260); await w(1800);

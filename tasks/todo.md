@@ -170,7 +170,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
 
 ## Fase 3 — Film 2D (26 Nov – 6 Des 2026)
 
-- [ ] **Tugas 17: Mesin slide**
+- [x] **Tugas 17: Mesin slide** ✅ 11 Nov 2026 · state machine + detektor gerakan roda/trackpad + sentuhan + keyboard (tanpa GSAP Observer, lihat `docs/design/decisions.md`) · 54 unit test · sisa: kalibrasi di trackpad MacBook & Safari iPhone
   - **Deskripsi:** Input roda/swipe/trackpad/keyboard (GSAP Observer), akumulasi ambang, pengabaian inersia, antrean satu langkah, scrub dengan jari (ambang 35%), dan hash per bab.
   - **Kriteria terima:** satu event roda atau keyboard = tepat satu slide · inersia trackpad tidak melompati slide · `#day-2` membuka bab yang benar
   - **Verifikasi:** unit test state machine + e2e + uji manual MacBook trackpad & swipe HP
@@ -178,7 +178,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/engine/slides/controller.ts`, `src/engine/slides/input.ts`, `tests/unit/slides.test.ts`, `e2e/slides.spec.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 18: Daftar slide dari data + overlay teks**
+- [x] **Tugas 18: Daftar slide dari data + overlay teks** ✅ 11 Nov 2026 · `buildFilm()` → ±50 slide dari trip-data, reveal lakon per slide, langit per fase · 16 unit test (konten Solo: tiap stop tampil tepat sekali)
   - **Deskripsi:** Ubah data trip menjadi urutan slide (prolog, Hari 0, bab, gallery, gong, epilog, credits), lalu render overlay DOM dengan text reveal/stagger/mask sesuai token motion.
   - **Kriteria terima:** seluruh cerita bisa diikuti slide demi slide · teks memakai token, tanpa angka yang ditulis langsung
   - **Verifikasi:** unit test pemetaan data → slide + screenshot e2e per bab
@@ -186,7 +186,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/engine/slides/build-slides.ts`, `src/app/film/page.tsx`, `src/components/film/SlideOverlay.tsx`, `src/engine/motion/tokens.ts`
   - **Ukuran:** M
 
-- [ ] **Tugas 19: Horizontal gallery + panel foto + sheet detail**
+- [x] **Tugas 19: Horizontal gallery + panel foto + sheet detail** ✅ 11 Nov 2026 · rel kartu menyamping (9/8/9 panel), sheet detail dengan shared element FLIP · panel masih poster tipografi karena foto 0 (Tugas 6/21); foto tampil otomatis begitu ada di manifest
   - **Deskripsi:** Slide menyamping per hari, panel foto (crop sesuai focal point), panel tipografi, dan sheet detail dengan shared element (View Transitions, fallback crossfade).
   - **Kriteria terima:** satu swipe menggeser tepat satu panel · sheet detail berisi semua field · kembali ke panel yang sama
   - **Verifikasi:** e2e + uji manual di HP
@@ -194,7 +194,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **File:** `src/components/film/Gallery.tsx`, `src/components/film/Panel.tsx`, `src/components/film/DetailSheet.tsx`
   - **Ukuran:** M
 
-- [ ] **Tugas 20: Calm mode + titik bab + petunjuk navigasi**
+- [x] **Tugas 20: Calm mode + titik bab + petunjuk navigasi** ✅ 11 Nov 2026 · sakelar Calm (otomatis saat reduced motion, diingat), indikator bab dengan kemajuan slide, hash per bab, petunjuk sekali pakai, ganti bahasa di tempat · e2e `e2e/film.spec.ts` (39 uji)
   - **Deskripsi:** Toggle Cinematic/Calm (otomatis aktif dengan reduced motion), indikator bab yang bisa diketuk, petunjuk "Scroll or swipe", dan toggle bahasa di film.
   - **Kriteria terima:** reduced motion → tanpa gerak kamera dan scrub · titik bab melompat ke bab yang benar
   - **Verifikasi:** e2e dengan emulasi `prefers-reduced-motion`
@@ -203,7 +203,7 @@ Ukuran: **S** = 1–2 file · **M** = 3–5 file · **L** = 5+ file (dipecah lag
   - **Ukuran:** S
 
 ### ✅ Checkpoint 3
-- [ ] Film 2D lengkap dari awal sampai akhir · FR-20a lolos di trackpad & HP · review host
+- [ ] Film 2D lengkap dari awal sampai akhir (✓ 11 Nov 2026, 0 frame > 50 ms terukur tanpa GPU) · FR-20a lolos di trackpad & HP (✓ di e2e; uji MacBook & iPhone nyata menunggu host) · review host
 
 ---
 

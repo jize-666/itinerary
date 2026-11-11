@@ -131,3 +131,41 @@ export const IconUmbrella = ({ size = 18 }: P) => (
     <path d="M12 12v6.4a2 2 0 0 1-4 0M12 2.8v.6" />
   </svg>
 );
+
+/** Air tenang: Calm mode (transisi lembut, tanpa gerak kamera). */
+export const IconCalm = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M3.5 9.2c2.2-1.6 4.4-1.6 6.6 0s4.4 1.6 6.6 0c1.3-1 2.5-1.3 3.8-1.1" />
+    <path d="M3.5 14.4c2.2-1.6 4.4-1.6 6.6 0s4.4 1.6 6.6 0c1.3-1 2.5-1.3 3.8-1.1" opacity="0.6" />
+  </svg>
+);
+
+/** Lembar terbuka: cerita di balik sebuah tempat. */
+export const IconStory = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M12 6.4c-1.9-1.3-4.3-1.7-7.4-1.4v12.6c3.1-.3 5.5.1 7.4 1.4 1.9-1.3 4.3-1.7 7.4-1.4V5c-3.1-.3-5.5.1-7.4 1.4Z" fill="currentColor" fillOpacity="0.14" />
+    <path d="M12 6.4V19" />
+  </svg>
+);
+
+/** Panah ke bawah: petunjuk "gulir atau geser". */
+export const IconDown = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M12 4.5v15M6 13.5l6 6 6-6" />
+  </svg>
+);
+
+/** Panah maju: panel berikutnya. */
+export const IconNext = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M9.5 5.5 16 12l-6.5 6.5" />
+  </svg>
+);
+
+/** Ponsel dengan tanda tambah: simpan ke Home Screen. */
+export const IconHomeAdd = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6" />
+    <path d="M12 9v6M9 12h6" />
+  </svg>
+);

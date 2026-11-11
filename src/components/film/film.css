@@ -1,0 +1,1505 @@
+/* ================= FILM (PRD §7) =================
+   Satu panggung tetap; slide berganti di tempat. Aturan performa: yang dianimasikan HANYA opacity & transform.
+   Langit, grain, dan bayangan kayon digambar sekali di lapisannya sendiri, lalu lapisannya yang digerakkan.
+   Transisi antar slide digerakkan dari src/components/film/transitions.ts (Web Animations). */
+
+html.film-on,
+html.film-on body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.film {
+  --line: color-mix(in srgb, var(--mori) 16%, transparent);
+  --muted: color-mix(in srgb, var(--mori) 78%, var(--nila));
+  --accent: var(--prada);
+  --pad-x: clamp(22px, 6.5vw, 112px);
+  --top: calc(72px + env(safe-area-inset-top));
+  --bottom: calc(92px + env(safe-area-inset-bottom));
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--nila);
+  color: var(--mori);
+  touch-action: pinch-zoom;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.film:focus {
+  outline: none;
+}
+
+.film[data-theme="royal"] {
+  --accent: #e0b062;
+}
+
+.film[data-theme="lawu"] {
+  --accent: #a9c891;
+}
+
+.film[data-theme="batik"] {
+  --accent: #d9a273;
+}
+
+/* ---- langit: tiap lapisan warna digambar sekali; kadarnya (opacity) dihitung dari jam slide ----
+   Urutan tumpukan = urutan di DOM: malam (dasar, selalu penuh), subuh, siang, senja, matahari, bukit, gerbang.
+   Kadar dan letak matahari diisi Film.tsx dari src/engine/slides/sky.ts, dan digerakkan transitions.ts. */
+.fl-skies,
+.fl-sky,
+.fl-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fl-sky {
+  opacity: 0;
+}
+
+.fl-sky[data-sky="night"] {
+  opacity: 1;
+}
+
+/* tertutup lapisan penuh di atasnya: tidak digambar (lihat skyCovered) */
+.fl-sky[data-covered],
+.fl-sunbox[data-covered] {
+  visibility: hidden;
+}
+
+/* ---- matahari: satu elemen yang digeser di dalam bingkai lintasannya (transform dalam % ukuran bingkai) ----
+   Bingkai = pita langit di atas kartu gallery. Kiri → kanan = terbit → terbenam; tepi atas = puncak busur;
+   tepi bawah = cakrawala, kira-kira tepi atas kartu, jadi matahari terbit dan terbenam di balik kartu.
+   --gal-gap dan --gal-card-h menyalin ukuran .fl-body--gallery dan .gal-paper di bawah. */
+.fl-sunbox {
+  --gal-gap: clamp(10px, 1.8vh, 18px);
+  --gal-card-h: min(clamp(300px, 56svh, 580px), 100svh - 226px);
+  position: absolute;
+  left: 13%;
+  width: 74%;
+  /* puncak busur: cakram (jari-jari 1,5vmax) tepat di bawah judul hari, berapa pun ukuran layarnya */
+  top: calc(var(--top) + 26px + 1.9vmax);
+  height: max(24px, 1px + var(--gal-gap) - 1.9vmax + (100svh - var(--top) - var(--bottom) - 19px - var(--gal-gap) - var(--gal-card-h)) / 2);
+  pointer-events: none;
+}
+
+.fl-sun {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform-origin: 0 0;
+}
+
+/* cakram + pendar berpusat di pojok kiri-atas .fl-sun, yaitu titik yang digeser */
+.fl-sun-disc,
+.fl-sun-warm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24vmax;
+  height: 24vmax;
+  margin: -12vmax 0 0 -12vmax;
+  border-radius: 50%;
+}
+
+.fl-sun-disc {
+  background: radial-gradient(circle, #fff8e2 0 1.5vmax, rgb(255 244 208 / 0.5) 1.8vmax, rgb(255 240 198 / 0.2) 3.2vmax, rgb(255 238 190 / 0.12) 7vmax, transparent 12vmax);
+}
+
+/* dekat cakrawala: rona jingga memudar masuk di atas cakram putih */
+.fl-sun-warm {
+  opacity: 0;
+  background: radial-gradient(circle, #ffcf8a 0 1.5vmax, rgb(255 166 92 / 0.62) 1.9vmax, rgb(255 130 72 / 0.2) 7vmax, transparent 12vmax);
+}
+
+/* layar pendek (HP mendatar): tak ada ruang di atas kartu, matahari melintas di sela tombol atas */
+@media (max-height: 560px) {
+  .fl-sunbox {
+    left: 27%;
+    width: 46%;
+    top: calc(22px + env(safe-area-inset-top));
+    height: 36px;
+  }
+}
+
+/* gerbang: gelap, satu pendar blencong */
+.fl-sky[data-sky="gate"] {
+  background:
+    radial-gradient(58% 40% at 50% 42%, rgb(255 178 87 / 0.17), transparent 72%),
+    radial-gradient(130% 70% at 50% 112%, #1b2150, transparent 62%),
+    linear-gradient(180deg, #06070f, #0a0c18 55%, #0d1024);
+}
+
+/* malam: nila dengan bintang dan pendar lampion di kaki langit */
+.fl-sky[data-sky="night"] {
+  background:
+    radial-gradient(1.4px 1.4px at 12% 18%, #fff6dc 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 27% 9%, #fff6dc 50%, transparent 52%),
+    radial-gradient(1.6px 1.6px at 44% 22%, #ffe9bd 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 63% 12%, #fff6dc 50%, transparent 52%),
+    radial-gradient(1.4px 1.4px at 78% 26%, #fff6dc 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 91% 15%, #ffe9bd 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 36% 34%, #fff6dc 50%, transparent 52%),
+    radial-gradient(1.4px 1.4px at 70% 38%, #fff6dc 50%, transparent 52%),
+    radial-gradient(46% 26% at 22% 86%, rgb(184 53 43 / 0.34), transparent 70%),
+    radial-gradient(40% 24% at 78% 90%, rgb(255 178 87 / 0.26), transparent 70%),
+    linear-gradient(180deg, #05060e 0%, #0b0f27 48%, #171a45 100%);
+}
+
+.fl-sky[data-sky="dawn"] {
+  background: linear-gradient(180deg, #0a0f2b 0%, #1d2256 26%, #4a3a78 46%, #a45e7c 62%, #ea9a6c 76%, #ffd29a 90%, #ffe9c4 100%);
+}
+
+/* siang: tanpa matahari di gambar latar; mataharinya elemen .fl-sun */
+.fl-sky[data-sky="day"] {
+  background: linear-gradient(180deg, #1c4a80 0%, #3a78ad 30%, #7fb0cb 56%, #c6dccf 78%, #efe6d2 100%);
+}
+
+.fl-sky[data-sky="dusk"] {
+  background:
+    radial-gradient(40% 20% at 50% 74%, rgb(255 214 140 / 0.6), transparent 72%),
+    linear-gradient(180deg, #120f2e 0%, #3a1f52 26%, #86324e 46%, #cf5a3c 62%, #f39a4a 76%, #ffc978 90%, #ffe0a8 100%);
+}
+
+/* tanah: dua lapis bukit gelap di kaki langit, supaya teks di bawah selalu berpijak pada bidang gelap.
+   Tiap lapis elemen sendiri di atas warna langit dan matahari: di gallery bukit dekat bergeser lebih cepat
+   daripada bukit jauh dan langit, lebih lambat daripada kartu (parallax 2,5D; geseran dan lebarnya dari DEPTH di
+   tokens). Kadarnya mengikuti langit: penuh di langit terang, samar di malam, tertutup gerbang. */
+.fl-hills {
+  position: absolute;
+  inset: auto auto 0 0;
+  height: 52%;
+  pointer-events: none;
+}
+
+.fl-hills[data-covered] {
+  visibility: hidden;
+}
+
+/* selama di gallery bukit dekat tetap jadi lapisan sendiri: tanpa ini ia dinaikkan lalu diratakan lagi di tiap
+   perpindahan panel, dan menggambar ulangnya terukur sebagai satu frame panjang di awal transisi */
+.film[data-kind="panel"]:not([data-calm]) .fl-hills[data-depth="near"] {
+  will-change: transform;
+}
+
+.fl-hills[data-depth="far"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 520' preserveAspectRatio='none'%3E%3Cpath fill='%231a1d44' fill-opacity='.62' d='M0 150C140 96 250 70 380 96s210 76 340 58 190-104 330-118 250 44 390 86V520H0Z'/%3E%3C/svg%3E")
+    bottom / 100% 100% no-repeat;
+}
+
+.fl-hills[data-depth="near"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 520' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230c0f24'/%3E%3Cstop offset='.5' stop-color='%23090b1a'/%3E%3Cstop offset='1' stop-color='%23070912'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M0 236c120-52 230-74 360-52s230 86 380 80 220-92 360-98 220 40 340 78V520H0Z'/%3E%3C/svg%3E")
+    bottom / 100% 100% no-repeat;
+}
+
+/* grain film + vignette: statis */
+.fl-grain {
+  z-index: 3;
+  background:
+    radial-gradient(120% 90% at 50% 46%, transparent 56%, rgb(4 5 12 / 0.62) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .96  0 0 0 0 .86  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+}
+
+/* ---- panggung & lapisan slide ---- */
+.fl-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+.fl-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  isolation: isolate;
+}
+
+.fl-layer:not([data-pos="cur"]) {
+  pointer-events: none;
+}
+
+.fl-layer[data-pos="away"] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.fl-layer[data-pos="in"] {
+  opacity: 0;
+}
+
+/* Sengaja tanpa will-change di lapisan slide: transisi WAAPI sudah menaikkannya ke compositor selama bergerak.
+   Dengan will-change, lapisan selayar itu harus digambar ulang saat reveal teks di dalamnya mulai (terukur
+   60–78 ms per frame tanpa GPU); tanpanya tidak ada frame > 50 ms. */
+
+/* reveal teks menunggu sampai penonton tiba di slide/kartu ini */
+.film [data-unit]:not([data-live]) *,
+.film [data-unit]:not([data-live]) *::before,
+.film [data-unit]:not([data-live]) *::after {
+  animation-play-state: paused !important;
+}
+
+.fl-body {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: clamp(14px, 2.2vh, 26px);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--top) var(--pad-x) var(--bottom);
+}
+
+.fl-body--low {
+  align-content: end;
+  justify-items: start;
+  padding-bottom: calc(var(--bottom) + clamp(18px, 6vh, 72px));
+}
+
+/* teks langsung di atas langit: bidang gelap lembut di belakangnya menjaga kontras ≥ 4,5:1 di langit terang */
+.fl-body--low::before {
+  content: "";
+  position: absolute;
+  inset: 22% 0 0;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent, rgb(7 9 18 / 0.6) 30%, rgb(7 9 18 / 0.84) 62%, rgb(7 9 18 / 0.9));
+  pointer-events: none;
+}
+
+.fl-body--center {
+  justify-items: center;
+  text-align: center;
+}
+
+/* ---- tipografi film ---- */
+.fs-kicker {
+  margin: 0;
+  font: 600 12px/1.2 var(--font-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.fs-display,
+.fs-h1,
+.fs-h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.fs-display {
+  font-size: clamp(50px, 11vw, 152px);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+}
+
+.fs-h1 {
+  font-size: clamp(34px, 6.4vw, 92px);
+  line-height: 1.04;
+}
+
+.fs-h2 {
+  font-size: clamp(27px, 3.7vw, 50px);
+  line-height: 1.12;
+}
+
+.fs-wide {
+  max-width: 17em;
+}
+
+.fs-lede {
+  margin: 0;
+  max-width: 31em;
+  font-size: clamp(17px, 1.7vw, 25px);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.fs-fine {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* judul kiri bawah, keterangan kecil di kanan (PRD §6.2, referensi A) */
+.fs-split {
+  width: 100%;
+  gap: clamp(18px, 3vh, 32px) clamp(28px, 5vw, 88px);
+}
+
+.fs-split > div {
+  display: grid;
+  gap: clamp(12px, 1.8vh, 20px);
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .fs-split {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .fs-side {
+    padding-bottom: 0.5em;
+    border-left: 1px solid color-mix(in srgb, var(--accent) 46%, transparent);
+    padding-left: clamp(18px, 2.4vw, 36px);
+  }
+}
+
+/* ---- reveal ringan untuk paragraf & blok (opacity + transform) ---- */
+.f-rise {
+  animation: f-rise 0.9s var(--ease-expo-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes f-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+  }
+}
+
+.f-rule {
+  display: block;
+  width: clamp(56px, 8vw, 120px);
+  height: 1px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: f-rule 1.1s var(--ease-expo-out) both;
+}
+
+@keyframes f-rule {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---- hero: gong di balik judul ---- */
+.fs-hero {
+  gap: clamp(16px, 2.6vh, 30px);
+}
+
+.fs-hero .fs-display {
+  position: relative;
+}
+
+.fs-for {
+  margin: 0;
+  font: italic 400 clamp(20px, 2.4vw, 32px) / 1.2 var(--font-display);
+}
+
+/* gong ageng versi panggung 2D: cakram perunggu redup + riak (token loop.gongRipple). 3D-nya menyusul di F3. */
+.fs-gong {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: min(86vw, 64vh, 660px);
+  aspect-ratio: 1;
+  translate: -50% -52%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgb(255 214 150 / 0.2) 0 8%, transparent 9%),
+    radial-gradient(circle, transparent 0 15%, rgb(200 162 90 / 0.3) 15.4% 16%, transparent 16.6%),
+    radial-gradient(circle, transparent 0 46%, rgb(200 162 90 / 0.16) 46.4% 47%, transparent 47.6%),
+    radial-gradient(circle, transparent 0 69%, rgb(200 162 90 / 0.22) 69.4% 70.4%, transparent 71%),
+    radial-gradient(circle at 42% 36%, rgb(214 170 96 / 0.2), rgb(92 64 30 / 0.16) 46%, rgb(20 16 22 / 0.06) 72%);
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.26),
+    0 0 120px rgb(255 178 87 / 0.1);
+  opacity: 0;
+  animation: gong-arrive 2.4s var(--ease-expo-out) 0.1s both;
+}
+
+@keyframes gong-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fs-gong i {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(255 200 120 / 0.5);
+  border-radius: 50%;
+  opacity: 0;
+  animation: gong-ripple 2.4s cubic-bezier(0.22, 1, 0.36, 1) 2.2s both;
+}
+
+.fs-gong i:nth-child(2) {
+  animation-delay: 3s;
+}
+
+.fs-gong i:nth-child(3) {
+  animation-delay: 3.8s;
+}
+
+@keyframes gong-ripple {
+  from {
+    opacity: 0.85;
+    transform: scale(0.16);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ---- fakta kota ---- */
+.fs-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font: 500 13px/1 var(--font-ui);
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  animation: f-rise 0.8s var(--ease-expo-out) both;
+}
+
+.fs-count-of {
+  color: var(--muted);
+}
+
+/* ---- rute & penghitung ---- */
+.fs-route {
+  gap: clamp(18px, 3.4vh, 38px);
+}
+
+.fs-legs {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: min(100%, 760px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* benang emas menghubungkan bandara: digambar sekali, dibuka dengan scaleX */
+.fs-legs::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: calc(50% / var(--n));
+  right: calc(50% / var(--n));
+  height: 1px;
+  background: linear-gradient(90deg, var(--prada), var(--blencong), var(--prada));
+  transform-origin: left;
+  animation: f-rule 1.6s var(--ease-expo-in-out) 0.3s both;
+}
+
+.fs-legs li {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  animation: f-rise 0.8s var(--ease-expo-out) both;
+  animation-delay: calc(360ms + var(--i) * 420ms);
+}
+
+.fs-leg-dot {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--prada);
+  border-radius: 50%;
+  background: var(--nila);
+  box-shadow: 0 0 0 4px rgb(10 12 24 / 0.7);
+}
+
+.fs-leg-dot::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--blencong);
+}
+
+.fs-leg-code {
+  font: 400 clamp(30px, 6.4vw, 76px) / 1 var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.fs-routelabel {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fs-counters {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: clamp(14px, 4vw, 56px);
+  margin: 0;
+}
+
+.fs-counters dd {
+  margin: 0;
+  font: italic 400 clamp(44px, 8vw, 96px) / 1 var(--font-display);
+  color: var(--prada);
+  font-variant-numeric: tabular-nums;
+}
+
+.fs-counters dt {
+  margin-top: 6px;
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fs-counters > div {
+  display: grid;
+  justify-items: center;
+}
+
+/* ---- tim ---- */
+.fs-team {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 44px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fs-team li {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.fs-avatar {
+  display: grid;
+  place-items: center;
+  width: clamp(84px, 14vw, 128px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #232b55, #0e1229 70%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--prada) 60%, transparent),
+    0 18px 40px -16px rgb(0 0 0 / 0.7);
+  font: italic 400 clamp(36px, 6vw, 56px) / 1 var(--font-display);
+  color: var(--prada);
+}
+
+.fs-teamname {
+  font: 600 15px/1.2 var(--font-ui);
+  letter-spacing: 0.04em;
+}
+
+/* ---- kartu frasa Jawa: dibalik dengan transform ---- */
+.fs-phrases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(10px, 1.6vw, 18px);
+  width: min(100%, 720px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fs-phrase {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  perspective: 900px;
+  touch-action: manipulation;
+}
+
+.fs-phrase-in {
+  position: relative;
+  display: grid;
+  min-height: clamp(96px, 15vh, 148px);
+  transform-style: preserve-3d;
+  transition: transform 0.7s var(--ease-expo-out);
+}
+
+.fs-phrase[aria-pressed="true"] .fs-phrase-in {
+  transform: rotateY(180deg);
+}
+
+.fs-phrase-face {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  padding: 14px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #1b2247, #10142c);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--prada) 34%, transparent),
+    0 16px 30px -18px rgb(0 0 0 / 0.8);
+  font: italic 400 clamp(21px, 3vw, 34px) / 1.15 var(--font-display);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.fs-phrase-back {
+  background: linear-gradient(180deg, #efd6a0, #c29a52);
+  color: var(--nila);
+  font: 600 clamp(15px, 1.6vw, 19px) / 1.3 var(--font-ui);
+  transform: rotateY(180deg);
+}
+
+.fs-phrase:focus-visible {
+  outline: none;
+}
+
+.fs-phrase:focus-visible .fs-phrase-face {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+
+/* ---- kartu kedatangan / kepulangan & intro hari ---- */
+.fs-stops,
+.fs-facts {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.4;
+}
+
+.fs-stops li {
+  display: grid;
+  grid-template-columns: 6.6em minmax(0, 1fr);
+  gap: 12px;
+}
+
+.fs-stops time {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.fs-facts li {
+  position: relative;
+  padding-left: 20px;
+}
+
+.fs-facts li::before {
+  content: "";
+  position: absolute;
+  top: 0.56em;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.fs-facts li[data-sun="rise"]::before {
+  background: var(--blencong);
+  box-shadow: 0 0 10px var(--blencong);
+}
+
+.fs-facts li[data-sun="set"]::before {
+  background: var(--lampion);
+}
+
+/* ---- kartu judul bab: letterbox masuk dari atas & bawah (token letterbox) ---- */
+.fs-title {
+  gap: clamp(16px, 3vh, 34px);
+}
+
+.fs-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12.5vh;
+  background: #04050b;
+  animation: fs-bar 0.8s var(--ease-expo-out) 0.15s both;
+}
+
+.fs-bar--top {
+  top: 0;
+  transform-origin: top;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--prada) 34%, transparent);
+}
+
+.fs-bar--bottom {
+  bottom: 0;
+  transform-origin: bottom;
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--prada) 34%, transparent);
+}
+
+@keyframes fs-bar {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* ---- gong penutup hari ---- */
+.fs-gongclose {
+  gap: clamp(12px, 2.2vh, 22px);
+}
+
+.fs-strike {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(124px, 22vh, 196px);
+  aspect-ratio: 1;
+  margin-bottom: clamp(8px, 2vh, 22px);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--prada);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fs-strike svg {
+  position: relative;
+  opacity: 0.9;
+}
+
+.fs-gong--small {
+  z-index: 0;
+  width: 100%;
+  translate: -50% -50%;
+  animation-duration: 1.2s;
+}
+
+.fs-gong--small i {
+  animation-delay: 0.5s;
+}
+
+.fs-gong--small i:nth-child(2) {
+  animation-delay: 1.3s;
+}
+
+.fs-gong--small i:nth-child(3) {
+  animation-delay: 2.1s;
+}
+
+/* dipukul: cakram tetap, riak mulai lagi seketika */
+.fs-strike[data-struck] .fs-gong--small {
+  animation: none;
+  opacity: 1;
+}
+
+.fs-strike[data-struck] .fs-gong--small i {
+  animation-delay: 0s;
+}
+
+.fs-strike[data-struck] .fs-gong--small i:nth-child(2) {
+  animation-delay: 0.28s;
+}
+
+.fs-strike[data-struck] .fs-gong--small i:nth-child(3) {
+  animation-delay: 0.56s;
+}
+
+.fs-strike:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 6px;
+}
+
+/* ---- epilog, tiket, credits ---- */
+.fs-epilogue {
+  gap: clamp(18px, 3.4vh, 36px);
+}
+
+/* tiket & credits pas selayar (tanpa scroll di dalam slide): isi panjang dibuka sebagai sheet */
+.fs-pass,
+.fs-credits {
+  align-content: safe center;
+}
+
+.fs-pass {
+  gap: clamp(18px, 3vh, 30px);
+}
+
+.fs-actions {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 340px);
+}
+
+.fs-actions .pb {
+  display: flex;
+  width: 100%;
+}
+
+.fl-sheet .ig {
+  margin: 0;
+  text-align: left;
+}
+
+.fs-credits {
+  gap: clamp(20px, 3.6vh, 40px);
+}
+
+.fs-roll {
+  display: grid;
+  gap: clamp(16px, 2.6vh, 26px);
+  margin: 0;
+}
+
+.fs-roll dt {
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.fs-roll dd {
+  margin: 6px 0 0;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.45;
+}
+
+.fs-roll a {
+  text-decoration-color: color-mix(in srgb, var(--prada) 60%, transparent);
+  text-underline-offset: 3px;
+}
+
+/* ---- horizontal gallery ---- */
+.fl-body--gallery {
+  --card-w: min(86vw, 440px);
+  --gap: clamp(14px, 3.4vw, 44px);
+  /* kolom tidak boleh melebar mengikuti rel kartu: rel = selebar layar, kartunya yang meluber */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: calc(var(--top) + 4px);
+  padding-bottom: var(--bottom);
+  gap: clamp(10px, 1.8vh, 18px);
+  /* 2,5D: rel kartu berada di ruang berperspektif; kartu tetangga lebih jauh dan berpaling menjauh */
+  perspective: var(--depth-perspective, 1100px);
+  perspective-origin: 50% 46%;
+}
+
+@media (min-width: 900px) {
+  .fl-body--gallery {
+    --card-w: clamp(470px, 41vw, 620px);
+  }
+}
+
+.gal-head {
+  justify-self: center;
+  text-align: center;
+  /* matahari melintas tepat di bawah judul ini: bayangan gelap lembut menjaganya tetap terbaca di langit terang */
+  text-shadow:
+    0 0 10px rgb(7 9 18 / 0.7),
+    0 1px 2px rgb(7 9 18 / 0.55);
+}
+
+.gal-track {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0 calc(50% - var(--card-w) / 2);
+  list-style: none;
+  transform: translate3d(calc(var(--i) * (var(--card-w) + var(--gap)) * -1), 0, 0);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* tetangga: mundur (--depth-card-z) dan berpaling menjauh seperti panel di drum yang berputar: tepi luarnya
+   lebih jauh dari tepi dalamnya (kiri −, kanan +); lintasannya di transitions.ts */
+.gal-card {
+  --turn: 1;
+  position: relative;
+  flex: none;
+  display: grid;
+  width: var(--card-w);
+  max-height: 100%;
+  opacity: 0.42;
+  transform: translate3d(0, 0, var(--depth-card-z, -110px)) rotateY(calc(var(--depth-card-turn, 14deg) * var(--turn)));
+}
+
+.gal-card[data-side="prev"] {
+  --turn: -1;
+}
+
+.gal-card[data-cur] {
+  opacity: 1;
+  transform: none;
+}
+
+/* bayangan kontak: kartu melayang di atas lanskap */
+.gal-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 7% -30px;
+  height: 34px;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(2 3 9 / 0.5), rgb(2 3 9 / 0.22) 45%, transparent 72%);
+  pointer-events: none;
+}
+
+/* Calm: datar. Crossfade memudarkan seluruh rel, dan opacity pada rel meratakan ruang 3D-nya */
+.film[data-calm] .fl-body--gallery {
+  perspective: none;
+}
+
+.film[data-calm] .gal-track {
+  transform-style: flat;
+}
+
+.film[data-calm] .gal-card:not([data-cur]) {
+  transform: scale(0.93);
+}
+
+.film[data-moving] .gal-card {
+  will-change: transform, opacity;
+}
+
+/* panel: poster kecil. Lukisan fase di atas, isi berpijak di bawah. */
+.gal-paper {
+  position: relative;
+  display: grid;
+  align-content: end;
+  gap: clamp(9px, 1.5vh, 15px);
+  /* tinggi poster mengikuti layar yang terlihat (svh: toolbar Safari ikut dihitung), tidak pernah melebihi ruangnya */
+  min-height: min(clamp(300px, 56vh, 580px), 100vh - 226px);
+  min-height: min(clamp(300px, 56svh, 580px), 100svh - 226px);
+  max-height: 100%;
+  padding: clamp(20px, 3.2vh, 34px) clamp(20px, 2.6vw, 36px) clamp(18px, 2.8vh, 30px);
+  overflow: hidden;
+  border-radius: 28px;
+  background: linear-gradient(172deg, rgb(30 37 78 / 0.95), rgb(13 16 36 / 0.97) 54%, rgb(8 10 24 / 0.98));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--prada) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 40px 80px -34px rgb(0 0 0 / 0.9),
+    0 12px 28px -14px rgb(0 0 0 / 0.6);
+}
+
+/* rona fase di kepala kartu: digambar sekali */
+.gal-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 52% at 78% 0%, var(--tint, rgb(255 178 87 / 0.2)), transparent 74%),
+    radial-gradient(60% 30% at 0% 0%, rgb(255 255 255 / 0.05), transparent 70%);
+  pointer-events: none;
+}
+
+.gal-card[data-phase="dawn"] {
+  --tint: rgb(240 150 130 / 0.3);
+  --ink: #f6c0a4;
+}
+
+.gal-card[data-phase="day"] {
+  --tint: rgb(255 226 150 / 0.26);
+  --ink: #f4dc9c;
+}
+
+.gal-card[data-phase="dusk"] {
+  --tint: rgb(255 150 70 / 0.34);
+  --ink: #ffbe7a;
+}
+
+.gal-card[data-phase="night"] {
+  --tint: rgb(130 140 255 / 0.26);
+  --ink: #c3c9ff;
+}
+
+.gal-paper > * {
+  position: relative;
+}
+
+/* lukisan fase: besar dan samar di pojok kanan atas */
+.gal-paper > .gal-art {
+  position: absolute;
+  top: clamp(14px, 2.4vh, 26px);
+  right: clamp(12px, 1.8vw, 26px);
+  width: clamp(150px, 46%, 250px);
+  height: auto;
+  fill: none;
+  stroke: var(--ink, var(--prada));
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  animation: f-rise 1.2s var(--ease-expo-out) both;
+}
+
+@media (max-width: 599px) {
+  .gal-paper > .gal-art {
+    top: 34px;
+    right: 8px;
+    width: 42%;
+    opacity: 0.42;
+  }
+}
+
+/* layar sangat pendek (HP mendatar): isi dipadatkan supaya tetap muat */
+@media (max-height: 520px) {
+  .gal-paper {
+    gap: 6px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .gal-paper > .gal-art,
+  .gal-notes {
+    display: none;
+  }
+
+  .gal-time {
+    font-size: 30px;
+  }
+
+  .gal-title {
+    font-size: 24px;
+  }
+}
+
+.gal-art-body {
+  fill: color-mix(in srgb, var(--ink, var(--prada)) 24%, transparent);
+}
+
+.gal-art-land {
+  stroke: color-mix(in srgb, var(--mori) 40%, transparent);
+}
+
+.gal-photo {
+  width: calc(100% + 2 * clamp(20px, 2.6vw, 36px));
+  max-width: none;
+  margin: 0 calc(-1 * clamp(20px, 2.6vw, 36px));
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  align-self: start;
+}
+
+.gal-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink, var(--prada));
+}
+
+.gal-n {
+  margin-left: auto;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gal-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.gal-time {
+  font-size: clamp(40px, 5vw, 68px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+.gal-until {
+  font-size: clamp(17px, 1.7vw, 23px);
+  color: var(--muted);
+}
+
+.gal-title {
+  margin: 0;
+  font: italic 400 clamp(29px, 3.5vw, 50px) / 1.06 var(--font-display);
+  text-wrap: balance;
+}
+
+.gal-why {
+  margin: 0;
+  max-width: 30em;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--mori) 90%, var(--nila));
+  text-wrap: pretty;
+}
+
+.gal-foot {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 14px);
+}
+
+.gal-foot .chips {
+  margin: 0;
+}
+
+.gal-notes {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.gal-notes li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.gal-notes-k {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--mori) 58%, var(--nila));
+  align-self: center;
+}
+
+.gal-notes time {
+  font-variant-numeric: tabular-nums;
+  color: var(--mori);
+}
+
+.gal-acts {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ---- sapuan kayon antar bab: bayangan lebar bersisi lembut, kayon emas di intinya ---- */
+.fl-wipe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 320vw;
+  margin-left: -160vw;
+  background: linear-gradient(90deg, transparent 0%, #04050b 24%, #04050b 76%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.fl-wipe svg {
+  height: min(90vh, 150vw);
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgb(255 178 87 / 0.42));
+}
+
+.fl-wipe-body {
+  fill: url("#fl-kayon-fill");
+  stroke: var(--prada);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.fl-wipe-rim,
+.fl-wipe-dots,
+.fl-wipe-tree,
+.fl-wipe-stick {
+  fill: none;
+  stroke: var(--prada);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fl-wipe-rim {
+  stroke-width: 0.3;
+  opacity: 0.6;
+}
+
+/* tatahan: deret titik emas di dalam tepi */
+.fl-wipe-dots {
+  stroke: var(--blencong);
+  stroke-width: 0.9;
+  stroke-dasharray: 0.1 3.1;
+  opacity: 0.72;
+}
+
+.fl-wipe-tree {
+  stroke-width: 0.5;
+  opacity: 0.86;
+}
+
+.fl-wipe-stick {
+  stroke-width: 1.6;
+}
+
+/* ---- krom: kiri atas, petunjuk, indikator bab ---- */
+.fl-chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.fl-chrome > * {
+  pointer-events: auto;
+}
+
+.fl-corner {
+  position: absolute;
+  top: calc(13px + env(safe-area-inset-top));
+  left: calc(16px + env(safe-area-inset-left));
+  display: flex;
+  gap: 8px;
+}
+
+.fl-calm[aria-pressed="true"] {
+  --face: #c29a52;
+  --face-hi: #efd6a0;
+  --edge: #6f5022;
+  --ink: #0a0c18;
+  --ring: rgb(255 244 220 / 0.3);
+  --shade: rgb(120 82 26 / 0.55);
+}
+
+.fl-rail {
+  position: absolute;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: min(100% - 32px, 460px);
+  translate: -50% 0;
+}
+
+.fl-rail-label {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  font: 600 11px/1.3 var(--font-ui);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--mori) 86%, transparent);
+  text-shadow: 0 1px 10px rgb(4 5 12 / 0.9);
+}
+
+.fl-rail-list {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-rail-list li {
+  flex: var(--w) 1 0;
+  min-width: 26px;
+}
+
+/* target sentuh 44 px; garisnya sendiri tipis */
+.fl-seg {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fl-seg-bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgb(8 10 22 / 0.72);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mori) 30%, transparent);
+  transition: transform 0.25s var(--ease-power3-out);
+}
+
+.fl-seg-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--prada), var(--blencong));
+  transform: scaleX(var(--fill));
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-expo-out);
+}
+
+.fl-seg[aria-current] .fl-seg-bar,
+.fl-seg[data-pressed] .fl-seg-bar {
+  transform: scaleY(1.75);
+}
+
+@media (hover: hover) {
+  .fl-seg:hover .fl-seg-bar {
+    transform: scaleY(1.75);
+  }
+}
+
+.fl-seg:focus-visible {
+  outline: none;
+}
+
+.fl-seg:focus-visible .fl-seg-bar {
+  outline: 2px solid var(--prada);
+  outline-offset: 4px;
+}
+
+.fl-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font: 600 12px/1.2 var(--font-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--mori) 82%, transparent);
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.7s var(--ease-expo-out);
+  pointer-events: none;
+}
+
+.fl-hint[data-shown] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 3.2s;
+}
+
+.fl-hint-ico {
+  display: grid;
+  animation: fl-nudge 1.8s var(--ease-sine) infinite;
+}
+
+@keyframes fl-nudge {
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+.fl-hint-keys {
+  display: none;
+  color: color-mix(in srgb, var(--mori) 56%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fl-hint-keys {
+    display: inline;
+  }
+}
+
+/* ---- sheet detail ---- */
+.fl-sheet .sheet-body {
+  --line: color-mix(in srgb, var(--mori) 15%, transparent);
+  --muted: color-mix(in srgb, var(--mori) 74%, var(--nila-2));
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+.fl-sheet-when {
+  margin: 0;
+  font: 600 12px/1.3 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.fl-sheet-story {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.fl-sheet-row {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.fl-sheet-row strong {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.fl-sheet-row[data-rain] strong {
+  color: #a9b8ff;
+}
+
+/* shared element panel → sheet: judul sheet terbang dari judul kartu (FLIP, transform saja; lihat DetailSheet.tsx).
+   Selama sheet terbuka, judul di kartu disembunyikan supaya tidak ada dua judul. */
+.film[data-sheet] .fl-layer[data-pos="cur"] .gal-card[data-cur] .gal-title {
+  visibility: hidden;
+}
+
+.fl-sheet .sheet-title {
+  transform-origin: 0 0;
+}
+
+/* ---- Calm mode (dan reduced motion): tanpa reveal, tanpa riak; transisi hanya crossfade ---- */
+.film[data-calm] *,
+.film[data-calm] *::before,
+.film[data-calm] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+}
+
+.film[data-calm] .fs-gong i,
+.film[data-calm] .fl-hint-ico {
+  animation: none;
+}
+
+.film[data-calm] .fs-phrase-in,
+.film[data-calm] .fl-seg-fill {
+  transition-duration: 0.01ms;
+}
+
+/* angka penghitung di film berpusat (bawaan .k-num rata kanan untuk hitung mundur Today) */
+.fs-counters .k-num {
+  min-width: 0;
+  text-align: center;
+}

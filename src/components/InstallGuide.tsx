@@ -24,7 +24,7 @@ const detectOs = (): Os => (/android/i.test(navigator.userAgent) ? "android" : "
  * Panduan Add to Home Screen (PRD FR-36). Android yang mendukung: satu tombol (prompt asli browser).
  * iPhone & lainnya: tiga langkah bergambar teks. Tidak tampil bila sudah dibuka dari Home Screen.
  */
-export function InstallGuide() {
+export function InstallGuide({ onDismiss }: { onDismiss?: () => void } = {}) {
   const { t } = useI18n();
   const prompt = useSyncExternalStore(installPrompt.subscribe, installPrompt.get, installPrompt.getServer);
   const [hidden, setHidden] = useState(() => isStandalone() || dismissed());
@@ -32,6 +32,7 @@ export function InstallGuide() {
   if (hidden) return null;
   const later = () => {
     setHidden(true);
+    onDismiss?.();
     try {
       localStorage.setItem(KEY, "later");
     } catch {

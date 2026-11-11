@@ -44,6 +44,54 @@ Nilai di bawah ini sudah dipasang di prototipe Framer **"Lakon Tiga Hari — Mot
 | `text.benang` | 38 ms/huruf, benang 1 px tumbuh `power3.out`, huruf naik 0,6em dengan pantulan, benang meredup ke 30% | Kicker, label hari |
 | `wipe.gunungan` | 1,25 dtk `expo.inOut`, kayon (tinggi 1,9em) menyapu, teks dibuka `clip-path` sejalan | Judul halaman |
 
+## v4 (11 Nov 2026): navigasi slide film (`SLIDE` dan `INPUT` di `src/engine/motion/tokens.ts`)
+Nilai awal dari PRD §9; dikalibrasi lagi di perangkat nyata.
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `SLIDE.dur` | 1,1 dtk, `power3.inOut` | Transisi sesama bab (gallery: 0,9 dtk) |
+| `SLIDE.wipeDur` | 1,6 dtk, sine in-out | Sapuan kayon antar bab |
+| `SLIDE.calmDur` | 0,45 dtk | Crossfade Calm mode |
+| `SLIDE.returnDur` / `releaseMin` | 0,4 dtk / 0,3 dtk, `power3.out` | Scrub dilepas: kembali / sisa perjalanan tercepat |
+| `SLIDE.textIn` | 450 ms | Teks slide baru mulai masuk |
+| `SLIDE.holdUntil` | 80% | Roda/trackpad diabaikan sampai transisi sejauh ini |
+| `SLIDE.scrubCommit` | 35% | Scrub dilepas di sini atau lebih → lanjut |
+| `SLIDE.hurryRate` | 1,8× | Sisa transisi dipercepat bila ada langkah menunggu |
+| `INPUT.wheelThreshold` | 50 px | Akumulasi roda untuk satu langkah (satu takik mouse langsung dihitung) |
+| `INPUT.wheelGap` / `wheelRefire` | 160 ms / 450 ms | Jeda yang mengakhiri gerakan / dorongan baru tercepat saat ekor inersia |
+| `INPUT.touchSlop` | 10 px | Batas ketuk vs geser |
+| `INPUT.swipeMin` / `swipeMaxMs` / `flickVelocity` | 40 px / 320 ms / 0,45 px/ms | Sentakan: geser pendek yang cepat, atau kecepatan lepas |
+| `INPUT.scrubSpan` | 60% tinggi layar | Jarak jari untuk satu slide penuh (gallery: selebar satu kartu) |
+
+## v5 (11 Nov 2026): siklus waktu di gallery (`SKY` di `src/engine/motion/tokens.ts`)
+Langit dan matahari dihitung dari jam stop terhadap jam terbit/terbenam hari itu (`src/engine/slides/sky.ts`). Menit, kecuali disebut lain.
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `SKY.dawnLead` / `dawnFull` / `dawnHold` | 75 / 15 sebelum terbit, 45 sesudah | Subuh mulai merona / penuh / bertahan |
+| `SKY.dayFull` | 150 sesudah terbit | Langit siang penuh (sebelum jadwal pertama setelah sarapan) |
+| `SKY.duskLead` / `duskFull` / `duskHold` | 190 / 30 sebelum terbenam, 5 sesudah | Senja mulai merona / penuh / bertahan |
+| `SKY.nightFull` | 70 sesudah terbenam | Malam penuh |
+| `SKY.breakfastBefore` | 10:00 | Panel makan pertama sebelum jam ini = sarapan; matahari muncul di panel sesudahnya |
+| `SKY.sunAppear` | 30 | Hari yang mataharinya mengikuti jam terbit (ada jadwal sebelum sarapan, atau tanpa sarapan di data): tampak penuh sekian menit sesudah terbit |
+| `SKY.sunPeek` | 20 | Stop yang melewati jam terbit memakai langit sekian menit sesudah terbit: matahari menyembul di cakrawala |
+| `SKY.sunsetLead` / `sunsetLag` | 15 sebelum, 10 sesudah terbenam | Matahari memudar hilang |
+| `SKY.warmBelow` / `sunSwell` | ketinggian 0,6 / +30% | Di bawah ketinggian ini matahari menghangat jadi jingga dan membesar |
+| `SKY.stillSun` | 0,78 | Letak matahari pada slide berlangit siang tanpa jam (0 = terbit, 1 = terbenam) |
+| `SKY.samples` | 8 | Cuplikan busur di antara dua stop |
+| `SKY.groundNight` | 0,42 | Kadar bukit di langit malam (di langit lain penuh) |
+
+## v6 (11 Nov 2026): kedalaman gallery, 2,5D (`DEPTH` di `src/engine/motion/tokens.ts`)
+CSS membaca nilai yang sama lewat `--depth-perspective`, `--depth-card-z`, dan `--depth-card-turn` (dipasang `Film.tsx`).
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `DEPTH.perspective` | 1100 px | Jarak pandang rel kartu (makin kecil makin dramatis) |
+| `DEPTH.cardZ` | −110 px | Kartu tetangga mundur sejauh ini |
+| `DEPTH.cardTurn` | 14° | Kartu tetangga berpaling (tepi luar menjauh); kiri −, kanan + |
+| `DEPTH.hillsNear` | 26% lebarnya | Geseran bukit dekat selama satu hari di gallery |
+| `DEPTH.hillsFar` | 0 | Bukit jauh diam bersama langit (alasan performa, lihat `decisions.md`) |
+
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
 - Foto di prototipe adalah **placeholder dari pencarian gambar Framer (Unsplash)**. Beberapa diambil di Yogyakarta, bukan Solo (Taman Sari, abdi dalem). Foto final mengikuti manifest lisensi (Tugas 6).

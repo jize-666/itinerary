@@ -1,5 +1,5 @@
-import { FilmPlaceholder } from "@/components/FilmPlaceholder";
+import { Film } from "@/components/film/Film";
 
 export default function FilmPage() {
-  return <FilmPlaceholder />;
+  return <Film />;
 }
