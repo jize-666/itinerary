@@ -9,8 +9,9 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 - **Yang dimaksud "home"** (tafsiran sesi ini, belum dikonfirmasi host): halaman `/`, yaitu gerbang "Kulonuwun?" (kotak kode booking) dan sambutan sesudah kode benar (sapaan, tiket, tombol "Begin the lakon"). Berkasnya: `src/components/{Gate,CodeInput,BeginChoice,Ticket}.tsx`, gaya di `src/app/globals.css`.
 - **Yang dimaksud "2,5D"** mengikuti keputusan host 11 Nov untuk gallery: kedalaman berlapis (parallax antar lapisan, perspektif dan kemiringan ringan pada kartu, bayangan), tetap DOM dengan `transform` dan `opacity`, bukan WebGL. Gerbang harus tetap ringan (target ≤ 80 KB gz sebelum kode benar) dan menghormati reduced motion.
-- **"Benerin UI home"**: host belum merinci apa yang salah. Langkah pertama adalah memotret home di desktop dan iPhone tiruan (EN dan ID), mendaftar cacat yang terlihat, lalu memperbaikinya. Daftar cacat dan perbaikannya dicatat di bagian ini.
-- **Status:** dicatat, belum ada kode yang diubah.
+- **"Benerin UI home"**: diperjelas host di pesan berikutnya (11 Nov): "ganti aja design nya, button juga". Jadi bukan menambal cacat, melainkan **desain home diganti, termasuk tombolnya**. Arah desain barunya belum ditentukan host; sesi ini mengusulkan satu arah, membangunnya, dan mengirim pratinjau untuk ditinjau.
+- Tombol `.pb` dipakai juga di Today dan film. Yang diganti di tugas ini tombol yang tampil di home; apakah gaya baru ikut dipakai di Today dan film menunggu tinjauan host.
+- **Status:** dicatat; home yang sekarang sudah dipotret (desktop, iPhone, layar kecil, lanskap; EN dan ID) sebagai pembanding. Belum ada kode yang diubah.
 
 ## 2. Yang selesai di sesi ini (beres-beres, pilihan host)
 
