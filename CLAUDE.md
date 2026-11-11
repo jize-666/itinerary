@@ -19,15 +19,18 @@
 
 Diperbarui 11 Nov 2026.
 
-- [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026, menunggu tinjauan host atas pratinjau. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
+- [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
   - Matahari bergerak saat slide digeser (mouse/jari) dan berhenti saat slide berhenti.
   - Posisi matahari mengikuti jam jadwal tiap stop.
   - Perpindahan ke jadwal berikutnya halus, tanpa lompatan.
 
-  Rinciannya: `docs/design/decisions.md` bagian "Siklus waktu di gallery". Sisa yang menunggu keputusan host (lihat `HANDOFF.md` bagian 2):
-  - Hari 2: panel "Matahari terbit di Kemuning" (05:15) dan sarapan (06:45) tampil tanpa matahari, karena aturannya "muncul setelah sarapan". Kalau host ingin matahari sudah terbit di panel itu, cukup ubah aturan `sunFrom` di `src/engine/slides/sky.ts`.
-  - Mouse tidak men-scrub (hanya roda/trackpad per langkah); matahari bergerak selama transisi lalu berhenti. Scrub yang mengikuti tangan hanya ada untuk jari.
-- [ ] **2. Jadikan film 2D menjadi 2,5D.** Permintaan host 11 Nov, dikerjakan sesudah tugas 1. Host belum merinci arti 2,5D, jadi tanyakan dulu di awal tugas. Tafsiran kerja (usulan Claude, belum disetujui host): kedalaman berlapis di film yang sudah ada, yaitu parallax antar lapisan (langit, latar, kartu, teks), perspektif dan kemiringan ringan pada kartu dan gallery, serta bayangan. Tetap DOM dengan `transform` dan `opacity`, bukan WebGL. Hubungannya dengan F2 (panggung 3D) juga perlu diputuskan host.
+  Keputusan host 11 Nov: di hari yang punya jadwal sebelum sarapan (Hari 2), matahari mengikuti jam terbit asli, jadi sudah menyembul di panel "Matahari terbit di Kemuning". Rinciannya: `docs/design/decisions.md` bagian "Siklus waktu di gallery". Catatan: mouse tidak men-scrub (hanya roda/trackpad per langkah); yang mengikuti tangan hanya scrub jari.
+- [x] **2. Jadikan film 2D menjadi 2,5D.** ✅ 11 Nov 2026 untuk gallery. Jawaban host 11 Nov atas pertanyaan awal: 2,5D = kedalaman berlapis di film yang sudah ada (parallax antar lapisan, perspektif dan kemiringan ringan pada kartu, bayangan), tetap DOM dengan `transform` dan `opacity`, bukan WebGL; diterapkan di **gallery dulu**. Rinciannya: `docs/design/decisions.md` bagian "Gallery 2,5D". Sisa pekerjaan, semuanya menunggu tinjauan host atas pratinjau:
+  - 2,5D di slide selain gallery (prolog, judul hari, gong, epilog, credits).
+  - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 2).
+  - Hubungan dengan F2 (panggung 3D) belum diputuskan host.
+
+**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.** Panduan merge untuk host ada di `HANDOFF.md` bagian 4.
 
 Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 3.
