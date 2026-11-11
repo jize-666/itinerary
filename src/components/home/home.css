@@ -303,8 +303,9 @@ html.home-on {
   background: linear-gradient(to top, var(--prada), rgb(200 162 90 / 0.5));
 }
 
+/* benang pass berhenti tepat di bawah kalimat sambutan, tidak pernah melintasinya */
 .hm-hang[data-kind="pass"] .hm-thread {
-  height: 84px;
+  height: calc(var(--gap) + var(--slot-top) + 9px);
   background: linear-gradient(to top, var(--prada), rgb(200 162 90 / 0));
 }
 
@@ -645,9 +646,11 @@ html.home-on {
 /* ---------- Sambutan ---------- */
 .hm-welcome {
   --pace: 0.35; /* kunjungan ulang: tunda dipersingkat */
+  --gap: clamp(16px, 3vh, 30px);
+  --slot-top: clamp(14px, 3vh, 34px); /* ruang untuk benang di atas pass */
   display: grid;
   justify-items: center;
-  gap: clamp(16px, 3vh, 30px);
+  gap: var(--gap);
   width: 100%;
 }
 
@@ -660,7 +663,7 @@ html.home-on {
   justify-items: center;
   width: 100%;
   min-height: 300px; /* tempat pass disiapkan sejak awal supaya judul & tombol tidak meloncat */
-  margin-top: clamp(14px, 3vh, 34px); /* ruang untuk benang di atas pass */
+  margin-top: var(--slot-top);
 }
 
 .hm-pass {
@@ -777,11 +780,11 @@ html.home-on {
   background: repeating-linear-gradient(90deg, var(--prada) 0 2px, transparent 2px 5px, var(--prada) 5px 6px, transparent 6px 9px, var(--prada) 9px 12px, transparent 12px 14px, var(--prada) 14px 15px, transparent 15px 19px);
 }
 
-/* cap "Admitted": jatuh dari depan ke kartu saat lakon dimulai */
+/* cap "Admitted": jatuh dari depan ke kartu saat lakon dimulai, di sisi kanan nama */
 .hm-pass-stamp {
   position: absolute;
-  right: 7%;
-  top: 30%;
+  right: 6%;
+  top: 27%;
   opacity: 0;
   transform: translateZ(var(--hm-lift-foil)) scale(var(--hm-foil-scale)) rotate(-11deg);
 }
@@ -793,7 +796,6 @@ html.home-on {
   border-radius: 9px;
   outline: 1px solid currentColor;
   outline-offset: 3px;
-  background: rgb(10 12 24 / 0.72);
   color: var(--blencong);
   font-size: 13px;
   font-weight: 800;
@@ -1082,7 +1084,7 @@ html.home-on {
 
   .hm-pass-stamp {
     right: 37%;
-    top: 46%;
+    top: 24%;
   }
 }
 

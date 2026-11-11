@@ -22,7 +22,7 @@ const fs = require('fs');
   const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
-    localStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
+    sessionStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
     const pn = performance.now.bind(performance), t0 = pn(), dn = Date.now, d0 = dn();
     performance.now = () => t0 + (pn() - t0) * k;
     Date.now = () => d0 + (dn() - d0) * k;

@@ -1,4 +1,5 @@
 import { calendarDiff, wibClock } from "@/engine/today/schedule";
+import { deviceStore } from "./device-store";
 import { fetchTrip, type Role, TRIP_KEY } from "./session";
 
 /** Bentuk respons trip-data yang dipakai UI (sisanya dibiarkan apa adanya). */
@@ -59,19 +60,12 @@ export type TripView = {
 /** Hasil memuat trip: `stale` = jaringan gagal, yang tampil salinan terakhir di perangkat (simpanan `savedAt`). */
 export type TripLoad<T = TripView> = { kind: "ok"; data: T; savedAt: number; stale: boolean } | { kind: "unauthorized" } | { kind: "offline" } | { kind: "server" };
 
-// ---- salinan di perangkat (Today offline, PRD FR-33) ----
+// ---- salinan di perangkat (Today offline, PRD FR-33); tempatnya mengikuti sesi, lihat device-store.ts ----
 type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type Snapshot<T> = { token: string; savedAt: number; etag?: string; data: T };
-const localStore = (): Store | undefined => {
-  try {
-    return typeof window !== "undefined" ? window.localStorage : undefined;
-  } catch {
-    return undefined;
-  }
-};
 
 /** Salinan terakhir untuk token ini saja: kode lain di perangkat yang sama tidak pernah melihat data peran lain. */
-export function readSnapshot<T = TripView>(token: string, store: Pick<Storage, "getItem"> | undefined = localStore()): Snapshot<T> | null {
+export function readSnapshot<T = TripView>(token: string, store: Pick<Storage, "getItem"> | undefined = deviceStore()): Snapshot<T> | null {
   try {
     const raw = store?.getItem(TRIP_KEY);
     if (!raw) return null;
@@ -92,7 +86,7 @@ function writeSnapshot<T>(s: Snapshot<T>, store: Pick<Storage, "setItem"> | unde
 
 /** Salinan siap tampil (tanpa jaringan) untuk render pertama yang instan. */
 export function peekTrip(token: string, store?: Pick<Storage, "getItem">): Extract<TripLoad, { kind: "ok" }> | null {
-  const s = readSnapshot(token, store ?? localStore());
+  const s = readSnapshot(token, store ?? deviceStore());
   return s ? { kind: "ok", data: s.data, savedAt: s.savedAt, stale: true } : null;
 }
 
@@ -106,7 +100,7 @@ type LoadOpts = { fresh?: boolean; f?: typeof fetch; store?: Store; now?: () => 
 let cache: { token: string; p: Promise<TripLoad> } | null = null;
 export function loadTrip(token: string, opts: LoadOpts = {}): Promise<TripLoad> {
   if (!opts.fresh && cache?.token === token) return cache.p;
-  const store = opts.store ?? localStore();
+  const store = opts.store ?? deviceStore();
   const now = opts.now ?? Date.now;
   const p = (async (): Promise<TripLoad> => {
     const snap = readSnapshot(token, store);

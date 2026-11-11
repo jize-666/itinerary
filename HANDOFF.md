@@ -29,6 +29,22 @@ Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: 
 4. Tulis `docs/design/decisions.md` bagian "Home 2,5D" dan `docs/design/motion-tokens.md` (`HOME`).
 5. Kirim pratinjau foto dan video gerak lambat ke host; buka PR.
 
+## 1b. Sesi per tab: kode diminta lagi di tab atau browser baru (selesai 11 Nov)
+
+**Kata host:** "benerin sekalian, itu ga ke reset reset di web nya, masa udah gw reset browser tapi masih masuk tanpa nulis pw, udah buka tab baru juga masih masuk tanpa nulis pw/langsung ke home". Sebelumnya token sengaja disimpan permanen (PRD FR-03 lama). **Keputusan host 11 Nov** (dari tiga pilihan): kode diminta lagi di tiap tab/browser baru; Today yang dipasang ke Home Screen tetap ingat.
+
+**Yang selesai.**
+- `src/lib/device-store.ts`: tab browser biasa menyimpan sesi dan salinan trip di `sessionStorage` (hidup selama tab itu); aplikasi Home Screen (standalone) tetap di `localStorage`. `session.ts` dan `trip.ts` memakainya.
+- Sesi permanen lama di `localStorage` (termasuk milik host sekarang) tidak dipakai lagi dan dihapus bersama salinan trip-nya saat halaman dibuka (`sweepLegacy`). Sesi milik aplikasi Home Screen diberi tanda `app: 1` dan tidak ikut terhapus, karena di Android penyimpanannya dipakai bersama tab browser.
+
+**Hasil tes dan akibatnya.**
+- Hijau: 211 unit (8 baru untuk penyimpanan), 155 e2e (3 baru: tab baru meminta kode, sesi lama dibersihkan, Home Screen tetap ingat).
+- Muat ulang di tab yang sama tetap masuk. "Duplicate tab" dan "Reopen closed tab" di Chrome ikut membawa sesi (sifat `sessionStorage`).
+- **Akibat untuk tamu:** Today yang dibuka di tab browser biasa meminta kode tiap tab baru dan butuh sinyal. Supaya bisa offline di jalan, Today harus dipasang ke Home Screen; di sana kode diketik sekali lagi saat pertama dibuka, lalu diingat.
+- Penanda Home Screen (`display-mode: standalone`, `navigator.standalone`) hanya dites dengan tiruan; belum dicoba di iPhone atau Android asli.
+
+**Langkah berikutnya.** Host mencoba: tab baru harus meminta kode. Kalau panduan "Add to Home Screen" perlu menyebut bahwa kode diketik sekali lagi di aplikasi, tambahkan kalimatnya di Today.
+
 ## 2. Yang selesai di sesi ini (beres-beres, pilihan host)
 
 - **PR #5 sudah di-merge** host (11 Nov, squash "revisi design (#5)"). Isi `main` sama persis dengan branch kerja sebelum merge. Branch kerja dibuat ulang dari `origin/main`.

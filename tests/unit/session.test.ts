@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CODE_GROUPS, CODE_LENGTH, normalizeCode } from "@/lib/code";
-import { clearSession, fetchTrip, parseSession, readSession, SESSION_KEY, TRIP_KEY, verifyAccess, writeSession } from "@/lib/session";
+import { deviceStore, isStandalone } from "@/lib/device-store";
+import { clearSession, fetchTrip, parseSession, readSession, SESSION_KEY, sweepLegacy, TRIP_KEY, verifyAccess, writeSession } from "@/lib/session";
 import { normalizeCode as serverNormalize } from "../../supabase/functions/_shared/code.ts";
 
 describe("kode di gerbang", () => {
@@ -28,6 +29,94 @@ describe("sesi di perangkat (FR-03)", () => {
     clearSession(s);
     expect(readSession(s, 1_000)).toBeNull();
     expect(s.m.has(TRIP_KEY)).toBe(false); // salinan Today offline ikut hilang saat ganti kode
+  });
+
+  it("aplikasi Home Screen menandai sesinya; tab browser tidak", () => {
+    const tab = mem();
+    writeSession(good, tab, false);
+    expect(JSON.parse(tab.m.get(SESSION_KEY)!)).toEqual(good);
+    const app = mem();
+    writeSession(good, app, true);
+    expect(JSON.parse(app.m.get(SESSION_KEY)!)).toEqual({ ...good, app: 1 });
+    expect(readSession(app, 1_000)).toEqual(good); // tanda itu tidak ikut ke sesi yang dibaca
+  });
+
+  describe("sesi permanen lama (sebelum 11 Nov 2026)", () => {
+    it("tab browser: sesi lama dan salinan trip-nya dihapus", () => {
+      const local = mem();
+      local.setItem(SESSION_KEY, JSON.stringify(good));
+      local.setItem(TRIP_KEY, "{}");
+      sweepLegacy(local, false);
+      expect([...local.m.keys()]).toEqual([]);
+    });
+
+    it("tab browser: salinan trip tanpa sesi juga dihapus; isi rusak dihapus", () => {
+      const orphan = mem();
+      orphan.setItem(TRIP_KEY, "{}");
+      sweepLegacy(orphan, false);
+      expect(orphan.m.size).toBe(0);
+      const broken = mem();
+      broken.setItem(SESSION_KEY, "{bukan json");
+      sweepLegacy(broken, false);
+      expect(broken.m.size).toBe(0);
+    });
+
+    it("tab browser: sesi milik aplikasi Home Screen dibiarkan (Android berbagi penyimpanan)", () => {
+      const local = mem();
+      writeSession(good, local, true);
+      local.setItem(TRIP_KEY, "{}");
+      sweepLegacy(local, false);
+      expect(readSession(local, 1_000)).toEqual(good);
+      expect(local.m.has(TRIP_KEY)).toBe(true);
+    });
+
+    it("aplikasi Home Screen: sesi lama tetap berlaku dan diberi tanda", () => {
+      const local = mem();
+      local.setItem(SESSION_KEY, JSON.stringify(good));
+      local.setItem(TRIP_KEY, "{}");
+      sweepLegacy(local, true);
+      expect(JSON.parse(local.m.get(SESSION_KEY)!)).toEqual({ ...good, app: 1 });
+      expect(local.m.has(TRIP_KEY)).toBe(true);
+      sweepLegacy(local, false); // lalu dibuka di tab: tidak ikut terhapus
+      expect(readSession(local, 1_000)).toEqual(good);
+    });
+  });
+
+  describe("tempat penyimpanan menurut cara dibuka", () => {
+    afterEach(() => vi.unstubAllGlobals());
+    const fakeWindow = (standalone: boolean, ios = false) => {
+      const session = mem();
+      const local = mem();
+      vi.stubGlobal("window", { matchMedia: (q: string) => ({ matches: standalone && !ios && q.includes("standalone") }), sessionStorage: session, localStorage: local });
+      vi.stubGlobal("navigator", { standalone: standalone && ios });
+      return { session, local };
+    };
+
+    it("tab browser → sessionStorage (tab baru meminta kode lagi)", () => {
+      const w = fakeWindow(false);
+      expect(isStandalone()).toBe(false);
+      expect(deviceStore()).toBe(w.session);
+    });
+
+    it("dibuka dari Home Screen → localStorage (Android dan iOS)", () => {
+      const android = fakeWindow(true);
+      expect(isStandalone()).toBe(true);
+      expect(deviceStore()).toBe(android.local);
+      const ios = fakeWindow(true, true);
+      expect(isStandalone()).toBe(true);
+      expect(deviceStore()).toBe(ios.local);
+    });
+
+    it("tanpa window (render server) atau penyimpanan diblokir → tidak ada penyimpanan", () => {
+      expect(deviceStore()).toBeUndefined();
+      vi.stubGlobal("window", {
+        matchMedia: () => ({ matches: false }),
+        get sessionStorage(): Storage {
+          throw new Error("diblokir");
+        },
+      });
+      expect(deviceStore()).toBeUndefined();
+    });
   });
 
   it("kedaluwarsa, rusak, atau peran asing → null", () => {

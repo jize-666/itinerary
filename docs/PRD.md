@@ -508,7 +508,7 @@ Tempat tanpa foto yang layak diwakili **panel tipografi atau objek 3D**, bukan f
 |---|---|---|---|
 | FR-01 | P0 | **Bundle frontend tidak memuat data trip sama sekali.** Seluruh isi itinerary, nama, dan kontak hanya didapat dari Edge Function Supabase dengan token yang valid. | Membuka `/film` atau `/today` tanpa token → kembali ke gate. Isi bundle JS tidak mengandung nama tempat dari jadwal, nama tamu, atau nomor. |
 | FR-02 | P0 | Kode booking dicek **di server** (Edge Function `verify-access`: normalisasi → hash → perbandingan constant-time) | Kode tidak ada di bundle klien maupun di repo |
-| FR-03 | P0 | Kode benar → token sesi yang ditandatangani (HMAC, berisi `role` & `exp` = akhir trip + 30 hari), disimpan di perangkat | Setelah kode benar, tamu tidak diminta kode lagi di perangkat yang sama |
+| FR-03 | P0 | Kode benar → token sesi yang ditandatangani (HMAC, berisi `role` & `exp` = akhir trip + 30 hari), disimpan **selama tab terbuka**; aplikasi Home Screen menyimpannya permanen. *Diubah 11 Nov 2026 atas keputusan host; sebelumnya permanen di semua browser.* | Muat ulang di tab yang sama tidak meminta kode; tab baru atau browser yang dibuka ulang memintanya lagi; aplikasi Home Screen tetap ingat (Today offline, FR-33) |
 | FR-04 | P1 | Kode tim memberi peran `team`, sehingga catatan tim ikut terkirim | Dengan token tamu, field `teamNote`/`estCost` **tidak ada** di respons `trip-data` |
 | FR-05 | P0 | Pembatasan percobaan dicatat di tabel `access_attempts` (hash IP + waktu): jeda bertingkat, dan 5 kali salah → 30 dtk | Uji e2e |
 | FR-06 | P0 | `noindex` lewat header `X-Robots-Tag`, meta, dan `robots.txt` | Cek header pada semua route |

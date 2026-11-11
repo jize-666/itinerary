@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { FUTURE, json, seedSession, TRIP, tripFixture, VERIFY } from "./helpers";
 
-const session = (page: import("@playwright/test").Page) => page.evaluate(() => JSON.parse(localStorage.getItem("lakon.session") ?? "null"));
+const session = (page: import("@playwright/test").Page) => page.evaluate(() => JSON.parse(sessionStorage.getItem("lakon.session") ?? "null"));
 const codeInput = (page: import("@playwright/test").Page) => page.getByLabel("Booking code");
 // Next.js punya route announcer sendiri ber-role alert; pesan gerbang diambil spesifik.
 const alert = (page: import("@playwright/test").Page) => page.getByRole("alert").and(page.locator(".hm-msg"));
@@ -122,4 +122,70 @@ test("toggle bahasa: tanpa reload, default EN, tersimpan, atribut lang ikut (FR-
   await page.reload();
   await expect(page.getByText("Masukkan kode yang ditulis untukmu")).toBeVisible();
   await expect(page.getByRole("button", { name: "Bahasa Indonesia" })).toHaveAttribute("aria-pressed", "true");
+});
+
+test.describe("sesi per tab (keputusan host 11 Nov 2026)", () => {
+  const ok = async (page: import("@playwright/test").Page) => {
+    await page.route(TRIP, (r) => json(r, 200, tripFixture("guest")));
+    await page.route(VERIFY, (r) => json(r, 200, { token: "tok.guest-abcdef", role: "guest", exp: FUTURE }));
+  };
+
+  test("tab baru meminta kode lagi; muat ulang di tab yang sama tetap masuk", async ({ page, context }) => {
+    await ok(page);
+    await page.goto("/");
+    await codeInput(page).fill("ABC123XYZ");
+    await expect(page.getByRole("button", { name: "Begin the lakon" })).toBeVisible();
+    // tidak ada yang tertinggal di penyimpanan permanen
+    expect(await page.evaluate(() => [localStorage.getItem("lakon.session"), localStorage.getItem("lakon.trip")])).toEqual([null, null]);
+    await page.reload();
+    await expect(page.getByText("Welcome back. Your seat is still saved.")).toBeVisible();
+
+    const tab = await context.newPage(); // tab baru di browser yang sama
+    await ok(tab);
+    await tab.goto("/");
+    await expect(codeInput(tab)).toBeVisible();
+    await tab.goto("/film/");
+    await expect(tab).toHaveURL(/\/$/); // film tanpa sesi → kembali ke gerbang
+    await expect(codeInput(tab)).toBeVisible();
+    await tab.close();
+  });
+
+  test("sesi permanen lama tidak lagi dipakai dan dibersihkan dari perangkat", async ({ page }) => {
+    await page.addInitScript(
+      ([s, t]) => {
+        if (sessionStorage.getItem("e2e-old")) return;
+        sessionStorage.setItem("e2e-old", "1");
+        localStorage.setItem("lakon.session", s);
+        localStorage.setItem("lakon.trip", t);
+      },
+      [JSON.stringify({ token: "tok.old-persisted-1", role: "guest", exp: FUTURE }), JSON.stringify({ token: "tok.old-persisted-1", savedAt: 1, data: {} })] as const,
+    );
+    await page.goto("/");
+    await expect(codeInput(page)).toBeVisible();
+    expect(await page.evaluate(() => [localStorage.getItem("lakon.session"), localStorage.getItem("lakon.trip")])).toEqual([null, null]);
+  });
+
+  test("dibuka dari Home Screen: tetap ingat di pembukaan berikutnya (Today offline)", async ({ page, context }) => {
+    const standalone = () => Object.defineProperty(navigator, "standalone", { value: true }); // tanda iOS untuk aplikasi Home Screen
+    await page.addInitScript(standalone);
+    await ok(page);
+    await page.goto("/");
+    await codeInput(page).fill("ABC123XYZ");
+    await expect(page.getByRole("button", { name: "Begin the lakon" })).toBeVisible();
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("lakon.session"))) ?? "{}")).toMatchObject({ token: "tok.guest-abcdef", app: 1 });
+
+    const next = await context.newPage(); // pembukaan berikutnya
+    await next.addInitScript(standalone);
+    await ok(next);
+    await next.goto("/");
+    await expect(next.getByText("Welcome back. Your seat is still saved.")).toBeVisible();
+    await expect(codeInput(next)).toHaveCount(0);
+
+    // tab browser biasa di perangkat yang sama: tetap diminta kode, dan sesi aplikasi tidak terhapus
+    const tab = await context.newPage();
+    await ok(tab);
+    await tab.goto("/");
+    await expect(codeInput(tab)).toBeVisible();
+    expect(JSON.parse((await tab.evaluate(() => localStorage.getItem("lakon.session"))) ?? "{}")).toMatchObject({ app: 1 });
+  });
 });

@@ -14,7 +14,7 @@ const fs = require('fs');
   const b = await chromium.launch();
   const ctx = await b.newContext(device === 'iphone' ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1440, height: 900 } });
   await ctx.addInitScript(() => {
-    localStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
+    sessionStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
     const m = (window.__m = { gaps: [], loaf: [] });
     let last = performance.now();
     const loop = (t) => { m.gaps.push(t - last); last = t; requestAnimationFrame(loop); };
