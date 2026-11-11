@@ -25,11 +25,19 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Foto masih 0, jadi panel gallery berupa poster tipografi. Kontak di `trip_private` masih kosong, jadi slide tim dan tombol "Message your host" belum muncul di produksi.
 - Gong masih cakram 2D tanpa bunyi; audio per adegan belum ada.
 - Data asli dari backend (kode tamu dev) terbaca benar di film: nama panggilan di judul, nama lengkap di tiket, tanpa data tim untuk peran tamu.
+- **Audit host, tes langsung (11 Nov):** transisi pagi → malam di gallery kurang rapi dan kurang mulus. Sekarang langitnya lima lapisan terpisah (subuh, siang, senja, malam) yang di-crossfade per panel menurut `phase` stop, dan mataharinya bagian dari gambar latar, jadi ia melompat antar posisi alih-alih bergerak.
 - `main` belum memuat Fase 2 (Today) maupun F1: 7 commit sesi sebelumnya dan seluruh commit sesi ini hanya ada di branch ini.
 - Graphify mengindeks `main`, jadi berkas film belum ada di graf sampai branch ini di-merge. Untuk berkas itu, baca langsung dari disk.
 
 ## 3. Langkah berikutnya
 
+0. **Perbaiki siklus waktu di gallery (catatan audit host, kerjakan sebelum F2).** Yang diminta host:
+   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
+   - Matahari bergerak saat slide digeser (mouse/jari) dan berhenti saat slide berhenti.
+   - Posisi matahari mengikuti jam jadwal tiap stop.
+   - Perpindahan ke jadwal berikutnya halus, tanpa lompatan.
+
+   Titik masuk di kode: lapisan `.fl-sky` di `src/components/film/film.css`, lintasan langit di `src/components/film/transitions.ts`, dan `sky` per slide di `src/engine/slides/build-slides.ts` (sekarang hanya dari `stop.phase`). Arah perbaikan: satu elemen matahari yang posisinya dihitung dari `stop.start` terhadap `day.sunrise`/`day.sunset`, digerakkan lewat lintasan `Timeline` yang sama dengan rel kartu (transform saja), supaya ikut scrub dan berhenti bersama slide; warna langit bergradasi mengikuti jam yang sama.
 1. Host meninjau F1 (pratinjau foto dan video) dan mencobanya di iPhone serta MacBook; kalibrasi ambang bila terasa kurang pas.
 2. Host memutuskan kapan branch ini dijadikan PR dan di-merge ke `main`.
 3. F2, panggung 3D (Tugas 23): R3F dimuat lazy hanya di `/film/`, satu canvas di belakang DOM, shot kamera per slide dari `Timeline.progress()`, tier High/Medium/Low/Static dengan pemantau FPS, infrastruktur aset per bab, overlay FPS lewat `/film/?fps=1`, GSAP untuk koreografi.
