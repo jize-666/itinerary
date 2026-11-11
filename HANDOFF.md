@@ -1,33 +1,32 @@
 # HANDOFF
 
-Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #5 di-merge) · **tugas aktif: home 2,5D dengan desain baru (kode jalan, tes hijau; tinggal poles, pratinjau, PR)**
+Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dari `main` sesudah PR #5) · **PR home 2,5D + sesi per tab terbuka, menunggu tinjauan dan merge host** (nomor dan tautannya di bagian 5) · sesudah itu menunggu arahan host
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
-## 1. Tugas aktif: home 2,5D dengan desain baru (Tugas 3)
+## 1. Home 2,5D dengan desain baru (Tugas 3, selesai 11 Nov)
 
 **Permintaan host (11 Nov, berurutan):** "upgrade home ke 2,5d sama benerin ui home, catat di handoff.md dulu" → "ganti aja design nya, button juga" → "setelah menulis design, update ke handoff.md, sekalian planning pekerjaan selanjutnya".
 
-Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: kedalaman berlapis, DOM dengan `transform` dan `opacity`, bukan WebGL.
+Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: kedalaman berlapis, DOM dengan `transform` dan `opacity`, bukan WebGL. Rincian desain dan alasannya: `docs/design/decisions.md` bagian "Home 2,5D dengan desain baru"; nilai gerak: `docs/design/motion-tokens.md` v7.
 
-**Yang selesai (desain baru sudah ditulis dan jalan).**
-- **Panggung berlapis** (`src/components/home/Scene.tsx`, `home.css`): langit malam, bintang, punggung Lawu, kabut, perbukitan, lantai pendapa bermotif kawung yang direbahkan dengan perspektif, dua kayon penjaga, pendar blencong, debu emas. Tiap lapisan bergeser dengan jarak berbeda mengikuti kursor (`useDepth.ts`, hitungan murni di `src/engine/motion/tilt.ts`); di layar sentuh lapisan berayun pelan lewat CSS. Nilai kedalaman di `HOME` (`src/engine/motion/tokens.ts`).
-- **Gerbang:** kartu undangan bersudut lekuk tergantung di benang emas, berayun masuk seperti bandul, miring mengikuti kursor. Di dalamnya tiga bidang (alas, isi, cap) yang bergeser satu terhadap yang lain. Kode diketik ke dua baki (3 + 6 sel) dengan titik penanda di sel kosong. Kode benar → huruf menyala, kayon menyibak, kilat blencong, kartu berbalik.
-- **Sambutan:** boarding pass baru (`home/Pass.tsx`), mendatar dengan sobekan di layar lebar dan tegak di HP, masuk dengan berbalik; cap "Admitted" jatuh dari depan saat lakon dimulai. Kunjungan ulang memakai tunda yang lebih singkat (0,35×).
-- **Tombol baru (`.hb`)**: tombol utama kapsul foil gading-emas dengan medali gong, tautan berbenang emas untuk "Use a different code" (pindah ke bawah tombol utama), tombol speaker cincin tipis, sakelar bahasa kapsul bergaris (`Seg` varian `line`). Gaya baru hanya dipakai di home; Today dan film masih memakai `.pb`.
-- **HP:** kartu di paruh atas layar (tidak tertutup keyboard), lanskap dengan puncak Lawu terlihat di bawahnya; tombol utama menempel di bawah layar.
-- `globals.css` berkurang dari 3.200 ke 2.671 baris: aturan gerbang, kotak kode, dan sambutan lama dibuang. `Ticket.tsx` lama tetap dipakai Today dan film.
+**Yang selesai.**
+- **Panggung berlapis** (`src/components/home/Scene.tsx`, `home.css`): langit malam berbintang, punggung Lawu, perbukitan, lantai pendapa bermotif kawung yang direbahkan dengan perspektif, dua kayon penjaga, debu emas. Lima bidang bergeser dengan jarak berbeda mengikuti kursor (`useDepth.ts`, hitungan murni di `src/engine/motion/tilt.ts`); di layar sentuh berayun pelan lewat CSS. Nilai di `HOME` (`src/engine/motion/tokens.ts`).
+- **Gerbang:** kartu undangan bersudut lekuk tergantung di benang emas, berayun masuk seperti bandul, miring mengikuti kursor; tiga bidang di dalam kartu. Kode di dua baki (3 + 6 sel) dengan titik penanda. Kode benar → huruf menyala, kayon menyibak, kilat blencong, kartu berbalik.
+- **Sambutan:** boarding pass baru (`home/Pass.tsx`), mendatar di layar lebar dan tegak di HP; cap "Admitted" jatuh dari depan saat mulai. Kunjungan ulang memakai tunda 0,35×.
+- **Tombol baru (`.hb`)**: kapsul foil gading-emas dengan medali gong, tautan berbenang emas untuk "Use a different code" (di bawah tombol utama), speaker cincin tipis, sakelar bahasa kapsul bergaris (`Seg` varian `line`). Hanya di home; Today dan film tetap `.pb`.
+- **HP:** kartu di paruh atas layar (tidak tertutup keyboard), puncak Lawu terlihat di bawahnya; tombol utama menempel di bawah layar.
+- `globals.css` 3.200 → 2.671 baris (aturan gerbang, kotak kode, sambutan lama dibuang). `Ticket.tsx` lama tetap dipakai Today dan film.
+- Skrip baru: `scripts/preview/measure-home.cjs` (kehalusan) dan `record-home.cjs` (video gerak lambat; argumen `desktop|iphone`, `en|id`).
 
 **Hasil tes dan kendala.**
-- Hijau: `pnpm typecheck`, `pnpm lint`, `pnpm test` (203 unit, 8 baru untuk hitungan parallax), `pnpm build`, `pnpm test:e2e` (135 lulus, 11 dilewati per perangkat).
-- Belum: tes e2e khusus kedalaman home, Lighthouse a11y home dengan desain baru, pemeriksaan layar kecil 360 px dan HP rebah, pratinjau foto dan video untuk host, dokumen desain.
-- Hanya diuji di Chromium. `preserve-3d` dan mask sudut lekuk belum dilihat di Safari.
+- Hijau pada commit terakhir: `pnpm lint`, `pnpm typecheck`, `pnpm test` (211 unit), `pnpm content:check`, `pnpm build`, `pnpm test:e2e` (155 lulus, 13 dilewati per perangkat; 8 uji baru di `e2e/home.spec.ts`).
+- Lighthouse a11y home: 100 di gerbang, mengetik, kode salah, sambutan × EN/ID × HP/desktop.
+- Kehalusan (`measure-home.cjs`, Chromium tanpa GPU): iPhone tiruan 0 frame > 50 ms di enam momen, terpanjang 33 ms. Desktop: diam 17 ms, p95 33 ms di semua momen, **masih ada 1–2 frame 50–83 ms** saat kursor menyapu dan saat gerbang berganti jadi sambutan. Versi pertama 29 ms per frame saat diam; penyebabnya `filter: blur` pada bayangan kartu dan lapisan selayar yang terlalu banyak, keduanya sudah diperbaiki.
+- JS halaman home 192,7 KB gz (8 berkas, termasuk kerangka React dan Next), CSS 15,2 KB gz. Belum dibandingkan dengan sebelum perubahan (build `main` di worktree terpisah gagal di sesi ini).
+- **Belum diuji di Safari dan perangkat nyata.** `preserve-3d`, mask sudut lekuk, dan `sessionStorage` di aplikasi Home Screen hanya dilihat di Chromium.
+- Di desktop, puncak Lawu tertutup kartu; yang terlihat hanya lerengnya di kiri-kanan. Di HP puncaknya terlihat.
 
-**Langkah berikutnya (urut).**
-1. Periksa kemiringan kartu saat kursor di tepi, cap saat mulai, layar 360 px, HP rebah, teks ID; perbaiki yang janggal.
-2. Tambah e2e untuk home 2,5D (variabel parallax ikut kursor, kayon menyibak, reduced motion diam) dan jalankan Lighthouse a11y home (target 100).
-3. Ukur kehalusan (0 frame > 50 ms) di gerbang, saat kode benar, dan saat mulai.
-4. Tulis `docs/design/decisions.md` bagian "Home 2,5D" dan `docs/design/motion-tokens.md` (`HOME`).
-5. Kirim pratinjau foto dan video gerak lambat ke host; buka PR.
+**Langkah berikutnya.** Host meninjau pratinjau dan merge PR (bagian 5), lalu mencoba di iPhone dan MacBook asli. Penyesuaian yang mungkin diminta: kuat-lemah kemiringan (`HOME.tiltY`, `tiltX`), jarak parallax (`HOME.layers`), ukuran kayon dan motif lantai (`home.css`), bentuk tombol.
 
 ## 1b. Sesi per tab: kode diminta lagi di tab atau browser baru (selesai 11 Nov)
 
@@ -45,11 +44,12 @@ Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: 
 
 **Langkah berikutnya.** Host mencoba: tab baru harus meminta kode. Kalau panduan "Add to Home Screen" perlu menyebut bahwa kode diketik sekali lagi di aplikasi, tambahkan kalimatnya di Today.
 
-## 2. Yang selesai di sesi ini (beres-beres, pilihan host)
+## 2. Beres-beres di awal sesi (pilihan host)
 
-- **PR #5 sudah di-merge** host (11 Nov, squash "revisi design (#5)"). Isi `main` sama persis dengan branch kerja sebelum merge. Branch kerja dibuat ulang dari `origin/main`.
-- **Lighthouse a11y untuk film: 100.** Dijalankan dengan Lighthouse 13.6 pada build `main`, data tiruan, di 16 layar (hero, tiap jenis slide prolog, judul hari, intro hari, panel gallery, sheet detail, gong, epilog, pass, credits) × EN/ID × HP/desktop = 64 audit, semuanya 100, termasuk audit kontras. Batasnya: Lighthouse tidak bisa menilai kontras teks di atas gradasi atau gambar, jadi teks di atas langit tetap perlu dilihat mata di perangkat nyata.
-- Di `main`: `pnpm typecheck`, `pnpm lint`, `pnpm test` (195 unit), `pnpm build` hijau.
+- **PR #5 sudah di-merge** host (11 Nov, squash "revisi design (#5)"). Branch kerja dibuat ulang dari `origin/main`.
+- **Lighthouse a11y untuk film: 100.** Lighthouse 13.6, data tiruan, 16 layar × EN/ID × HP/desktop = 64 audit, semuanya 100, termasuk audit kontras. Batasnya: Lighthouse tidak bisa menilai kontras teks di atas gradasi atau gambar, jadi teks di atas langit tetap perlu dilihat di perangkat nyata.
+- Skrip audit Lighthouse (film dan home) tidak masuk repo karena butuh `lighthouse` dan `puppeteer-core` yang bukan dependensi proyek. Caranya: pasang keduanya di folder luar repo, buka halaman dengan Puppeteer (sesi di `sessionStorage`, `trip-data` di-mock), lalu `startFlow` dengan `navigate` dan `snapshot` per layar.
+- `docs/handoff/FABLE-5.2.md` diberi catatan bahwa statusnya keadaan 10 Nov.
 
 ## 3. Kendala dan hal yang belum (film)
 
@@ -62,19 +62,21 @@ Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti dari Tugas 2: 
 - Foto masih 0 (panel gallery berupa poster tipografi). Kontak di `trip_private` masih kosong, jadi slide tim dan tombol "Message your host" belum muncul di produksi.
 - Gong masih cakram 2D tanpa bunyi; audio per adegan belum ada.
 - Produksi tidak bisa dibuka dari sesi cloud (jaringan menolak `kulonuwun-solo.vercel.app`), jadi hasil deploy sesudah merge belum dicek dari sini.
+- Skrip pratinjau film (`measure-film.cjs`, `record-film.cjs`, `record-flow.cjs`) sudah disesuaikan dengan sesi per tab dan tombol baru, tetapi `record-flow.cjs` belum dijalankan ulang sampai habis.
 
 ## 4. Rencana ke depan
 
-Urutan usulan; host yang memutuskan.
+Urutan usulan; host yang memutuskan. Daftar tugas di `CLAUDE.md` sudah habis.
 
-1. **Home 2,5D dengan desain baru** (bagian 1): sisa langkahnya di sana, lalu PR.
-2. **Host:** tinjau pratinjau home, merge PR, lalu coba home dan `/film/` di iPhone dan MacBook asli (Safari belum pernah diuji).
+1. **Host:** tinjau pratinjau home, merge PR (bagian 5), lalu coba di perangkat nyata: tab baru harus meminta kode; home dan `/film/` di iPhone dan MacBook (Safari belum pernah diuji).
+2. **Penyesuaian home dari tinjauan host** (PR kecil dari `main` terbaru).
 3. **Putuskan gaya tombol:** apakah tombol baru (`.hb`) ikut dipakai di Today dan film, atau `.pb` tetap di sana. Kalau ikut, itu PR tersendiri: Today punya banyak tombol (dock, Rain plan, tab hari) dan tes `data-pressed`.
-4. **Penyesuaian gallery dari tinjauan host**: kemiringan kartu (`DEPTH.cardTurn`, `cardZ`), jarak parallax (`DEPTH.hillsNear`), letak dan ukuran matahari (`.fl-sunbox`), kartu tetangga padat atau tembus pandang.
-5. **2,5D film di luar gallery**: parallax saat pindah slide vertikal, kedalaman pada kartu judul hari dan gong.
-6. **F2, panggung 3D** (Tugas 23): R3F dimuat lazy hanya di `/film/`, tier High/Medium/Low/Static, overlay FPS. Perlu keputusan host: apakah 2,5D menjadi tier Medium/Low di bawah panggung 3D, atau menggantikannya.
-7. F3 (gong produksi dengan bunyi) dan F4 (gunungan produksi dan gerbang sinematik).
-8. Di luar film: foto berlisensi (Tugas 6, 21), kontak di `trip_private`, verifikasi fakta [V].
+4. **Panduan Add to Home Screen:** tambahkan kalimat bahwa kode diketik sekali lagi di aplikasi, dan bahwa hanya aplikasi itu yang bisa offline (akibat sesi per tab, bagian 1b).
+5. **Penyesuaian gallery dari tinjauan host**: kemiringan kartu (`DEPTH.cardTurn`, `cardZ`), jarak parallax (`DEPTH.hillsNear`), letak dan ukuran matahari (`.fl-sunbox`), kartu tetangga padat atau tembus pandang.
+6. **2,5D film di luar gallery**: parallax saat pindah slide vertikal, kedalaman pada kartu judul hari dan gong. Panggung home (`home/Scene.tsx`) bisa jadi acuan.
+7. **F2, panggung 3D** (Tugas 23): R3F dimuat lazy hanya di `/film/`, tier High/Medium/Low/Static, overlay FPS. Perlu keputusan host: apakah 2,5D menjadi tier Medium/Low di bawah panggung 3D, atau menggantikannya.
+8. F3 (gong produksi dengan bunyi) dan F4 (gunungan produksi dan gerbang sinematik; kayon home yang menyibak adalah versi 2,5D-nya).
+9. Di luar film: foto berlisensi (Tugas 6, 21), kontak di `trip_private`, verifikasi fakta [V].
 
 Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git checkout -B <branch> origin/main`. Jangan menumpuk commit di atas riwayat lama; squash membuat riwayatnya berbeda dan PR berikutnya akan konflik.
 

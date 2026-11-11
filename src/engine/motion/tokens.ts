@@ -161,8 +161,8 @@ export const HOME = {
   /** isi kartu melayang sekian px di atas alasnya, cap foil lebih tinggi lagi */
   lift: 22,
   liftFoil: 40,
-  /** geser tiap lapisan saat kursor di tepi layar, px (bintang → debu emas; makin dekat makin jauh) */
-  layers: { stars: 5, far: 10, near: 18, kayon: 28, floor: 34, dust: 54 },
+  /** geser tiap lapisan saat kursor di tepi layar, px (Lawu → debu emas; makin dekat makin jauh). Langit dan bintang diam. */
+  layers: { far: 10, near: 18, kayon: 28, floor: 34, dust: 54 },
   /** kursor diikuti dengan peluruhan eksponensial: sisa jarak tinggal 1/e tiap sekian ms */
   follow: 140,
   /** di bawah selisih ini (satuan −1…1) gerak dianggap selesai dan rAF berhenti */

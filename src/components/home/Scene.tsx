@@ -17,7 +17,6 @@ const VARS: Var = {
   "--hm-lift-scale": 1 - HOME.lift / HOME.perspective,
   "--hm-foil-scale": 1 - HOME.liftFoil / HOME.perspective,
   "--hm-sway": `${HOME.sway}ms`,
-  "--k-stars": HOME.layers.stars,
   "--k-far": HOME.layers.far,
   "--k-near": HOME.layers.near,
   "--k-kayon": HOME.layers.kayon,
@@ -61,10 +60,12 @@ function Kayon() {
 }
 
 /**
- * Panggung home (2,5D): langit malam, bintang, punggung Lawu, kabut, lantai pendapa berperspektif, dua kayon
+ * Panggung home (2,5D): langit malam berbintang, punggung Lawu, perbukitan, lantai pendapa berperspektif, dua kayon
  * penjaga, dan debu emas, masing-masing di kedalaman sendiri. Kursor menggeser tiap lapisan dengan jarak berbeda;
  * di layar sentuh lapisan berayun pelan. Panggung tetap terpasang saat gerbang berganti jadi sambutan, jadi
  * kayon tinggal menyibak (data-open) tanpa adegan diulang.
+ * Yang selayar dan diam (langit, pendar, bintang, vinyet) digabung ke satu lapisan dasar; yang bergerak hanya
+ * pita-pita sempit. Tanpa GPU, tiap lapisan selayar tambahan terukur memberatkan semua frame.
  */
 export function Stage({ mode, unlocking = false, children }: { mode: "gate" | "welcome"; unlocking?: boolean; children: ReactNode }) {
   const root = useRef<HTMLElement>(null);
@@ -77,14 +78,22 @@ export function Stage({ mode, unlocking = false, children }: { mode: "gate" | "w
   return (
     <main ref={root} className="home" data-mode={mode} data-open={mode === "welcome" || unlocking ? "" : undefined} data-unlocking={unlocking ? "" : undefined} style={VARS}>
       <div className="hm-scene" aria-hidden="true">
+        {/* langit, pendar blencong, bintang: diam, digambar sekali di satu lapisan dasar */}
         <div className="hm-sky" />
-        <div className="hm-l hm-stars" />
+        <div className="hm-stars" />
         <div className="hm-l hm-ridge" data-depth="far">
           <svg viewBox="0 0 1600 300" preserveAspectRatio="none" focusable="false">
+            <defs>
+              {/* kaki gunung lebih pucat: kabut di antara dua punggung bukit */}
+              <linearGradient id="hm-ridge-far" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#0e1231" />
+                <stop offset="0.5" stopColor="#151b42" />
+                <stop offset="1" stopColor="#2c3066" />
+              </linearGradient>
+            </defs>
             <path d={RIDGE_FAR} />
           </svg>
         </div>
-        <div className="hm-mist" />
         <div className="hm-l hm-ridge" data-depth="near">
           <svg viewBox="0 0 1600 300" preserveAspectRatio="none" focusable="false">
             <path d={RIDGE_NEAR} />
@@ -93,7 +102,6 @@ export function Stage({ mode, unlocking = false, children }: { mode: "gate" | "w
         <div className="hm-l hm-floor">
           <div className="hm-floor-plane" />
         </div>
-        <div className="hm-glow" />
         <div className="hm-l hm-kayon" data-side="left">
           <div className="hm-kayon-in">
             <Kayon />
@@ -110,7 +118,6 @@ export function Stage({ mode, unlocking = false, children }: { mode: "gate" | "w
             <i key={`${x}-${y}`} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, "--dur": `${dur}s`, "--delay": `${-delay}s` } as Var} />
           ))}
         </div>
-        <div className="hm-vignette" />
       </div>
       <div className="hm-content">{children}</div>
     </main>

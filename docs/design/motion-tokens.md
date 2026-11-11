@@ -92,6 +92,20 @@ CSS membaca nilai yang sama lewat `--depth-perspective`, `--depth-card-z`, dan `
 | `DEPTH.hillsNear` | 26% lebarnya | Geseran bukit dekat selama satu hari di gallery |
 | `DEPTH.hillsFar` | 0 | Bukit jauh diam bersama langit (alasan performa, lihat `decisions.md`) |
 
+## v7 (11 Nov 2026): kedalaman home, 2,5D (`HOME` di `src/engine/motion/tokens.ts`)
+
+| Token | Nilai | Arti |
+|---|---|---|
+| `HOME.perspective` | 1100 px | jarak pandang kartu |
+| `HOME.tiltY`, `tiltX` | 7°, 4,5° | kemiringan kartu paling banyak saat kursor di tepi layar (kiri-kanan, atas-bawah) |
+| `HOME.lift`, `liftFoil` | 22 px, 40 px | isi kartu dan cap di depan alasnya; skalanya dikoreksi supaya huruf tetap tajam saat kartu lurus |
+| `HOME.layers` | far 10, near 18, kayon 28, floor 34, dust 54 px | geser tiap lapisan saat kursor di tepi layar; langit dan bintang diam |
+| `HOME.follow` | 140 ms | kursor dikejar dengan peluruhan eksponensial (sisa jarak 1/e tiap 140 ms), tidak bergantung laju frame |
+| `HOME.rest` | 0,0015 | di bawah selisih ini rAF berhenti |
+| `HOME.sway` | 16 dtk | layar sentuh: lapisan berayun bolak-balik; kartu berayun 11 dtk |
+
+Gerak lain di home (CSS, `home.css`): kartu berayun masuk 2,4 dtk `expo.out`; kayon masuk 1,7 dtk dan menyibak 1,5 dtk `expo.inOut`; kartu berbalik keluar 0,52 dtk mulai 0,62 dtk sesudah kode benar (total tetap `MOTION.unlock` 1150 ms); pass berbalik masuk 1,05 dtk; cap jatuh 0,4 dtk. Kunjungan ulang: semua tunda dikali 0,35.
+
 ## Catatan
 - **Navigasi per slide** (satu gerakan = satu slide) **tidak bisa dibuat di Framer** tanpa kode. Di prototipe, halaman masih di-scroll biasa. Rasa per-slide baru dibangun di web sungguhan (Tugas 17, GSAP Observer).
 - Foto di prototipe adalah **placeholder dari pencarian gambar Framer (Unsplash)**. Beberapa diambil di Yogyakarta, bukan Solo (Taman Sari, abdi dalem). Foto final mengikuti manifest lisensi (Tugas 6).

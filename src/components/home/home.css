@@ -35,14 +35,18 @@ html.home-on {
   overflow: hidden;
   pointer-events: none;
   background: var(--nila);
-  animation: hm-fade 1.4s var(--ease-power3-out) both;
+  animation: hm-fade 1.4s var(--ease-power3-out) backwards;
 }
 
+/* satu lapisan dasar: vinyet, lantai gelap di bawah cakrawala, pendar blencong di belakang kartu, lalu langit */
 .hm-sky {
+  --glow-y: 46%;
   position: absolute;
   inset: 0;
   background:
+    radial-gradient(118% 92% at 50% 46%, transparent 52%, rgb(3 4 10 / 0.72) 100%),
     linear-gradient(to bottom, transparent calc(var(--hz) - 0.5px), #070913 var(--hz)),
+    radial-gradient(min(520px, 85vw) min(416px, 68vw) at 50% var(--glow-y), rgb(255 178 87 / 0.2), rgb(255 178 87 / 0.07) 46%, transparent 72%),
     linear-gradient(to bottom, #04050d 0%, #0a0d21 30%, #171d46 56%, #2c2554 var(--hz));
 }
 
@@ -68,9 +72,9 @@ html.home-on {
 }
 
 .hm-stars {
-  --k: var(--k-stars);
-  inset: -4% -60px auto;
-  height: 72%;
+  position: absolute;
+  inset: 0 0 auto;
+  height: 68%;
   opacity: 0.75;
   background-image:
     radial-gradient(1.2px 1.2px at 24px 38px, #fff 50%, transparent 52%),
@@ -108,7 +112,7 @@ html.home-on {
 }
 
 .hm-ridge[data-depth="far"] path {
-  fill: #0e1231;
+  fill: url("#hm-ridge-far");
   stroke: rgb(255 178 87 / 0.26);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
@@ -122,16 +126,6 @@ html.home-on {
 
 .hm-ridge[data-depth="near"] path {
   fill: #0a0d20;
-}
-
-/* kabut di antara dua punggung bukit: yang jauh tampak lebih pucat */
-.hm-mist {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(100% - var(--hz));
-  height: 17vh;
-  background: linear-gradient(to top, rgb(122 132 196 / 0.2), transparent);
 }
 
 /* lantai pendapa: satu bidang bermotif kawung yang direbahkan, menjauh ke cakrawala */
@@ -150,30 +144,17 @@ html.home-on {
   --tile: 72px;
   --line: rgb(200 162 90 / 0.15);
   position: absolute;
-  left: -70%;
-  right: -70%;
-  top: 0;
-  height: 300%;
+  inset: 0 0 auto;
+  height: 150%; /* tepi dekat diperbesar perspektif, jadi 150% sudah menutup sampai bawah layar */
   transform-origin: 50% 0;
   transform: rotateX(70deg);
   background:
-    radial-gradient(42% 22% at 50% 13%, rgb(255 178 87 / 0.3), transparent 72%),
+    radial-gradient(70% 46% at 50% 26%, rgb(255 178 87 / 0.3), transparent 72%),
     radial-gradient(circle at 50% 50%, transparent 0 55.4%, var(--line) 56.2% 57.8%, transparent 58.6%) 0 0 / var(--tile) var(--tile),
     radial-gradient(circle at 50% 50%, transparent 0 55.4%, var(--line) 56.2% 57.8%, transparent 58.6%) calc(var(--tile) / 2) calc(var(--tile) / 2) / var(--tile) var(--tile),
     linear-gradient(#0d1126, #070913);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 30%, transparent 78%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 30%, transparent 78%);
-}
-
-/* pendar blencong di belakang kartu */
-.hm-glow {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: min(1040px, 170vw);
-  aspect-ratio: 1.25;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgb(255 178 87 / 0.2), rgb(255 178 87 / 0.07) 46%, transparent 72%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 46%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 46%, transparent 100%);
 }
 
 /* dua kayon penjaga: menyibak ke luar saat kode benar */
@@ -252,9 +233,12 @@ html.home-on {
   transition: opacity 0.5s var(--ease-sine) 0.62s;
 }
 
+/* wadah debu tidak dijadikan lapisan sendiri (selayar); tiap butirnya yang jadi lapisan kecil */
 .hm-dust {
   --k: var(--k-dust);
   inset: 0 -60px;
+  will-change: auto;
+  transform: translate(calc(var(--mx, 0) * var(--k) * -1px), calc(var(--my, 0) * var(--k) * -0.45px));
 }
 
 .hm-dust i {
@@ -263,12 +247,6 @@ html.home-on {
   background: radial-gradient(circle, #ffe7b0 0 34%, rgb(255 178 87 / 0) 72%);
   opacity: 0;
   animation: hm-dust var(--dur) linear var(--delay) infinite;
-}
-
-.hm-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(118% 92% at 50% 46%, transparent 52%, rgb(3 4 10 / 0.72) 100%);
 }
 
 /* ---------- Benda yang tergantung di benang ---------- */
@@ -333,13 +311,14 @@ html.home-on {
   transform: rotateY(calc(var(--mx, 0) * var(--hm-tilt-y))) rotateX(calc(var(--my, 0) * var(--hm-tilt-x) * -1));
 }
 
-/* bayangan kartu jauh di belakangnya: bergeser lebih banyak daripada kartu saat miring */
+/* bayangan kartu jauh di belakangnya: bergeser lebih banyak daripada kartu saat miring. Lembutnya dari box-shadow
+   (digambar sekali); filter: blur dihitung ulang compositor di tiap frame dan terukur menghabiskan separuh frame. */
 .hm-card-shadow {
   position: absolute;
-  inset: 9% 5% -7%;
-  border-radius: 48px;
-  background: rgb(0 0 0 / 0.6);
-  filter: blur(30px);
+  inset: 16% 12% 2%;
+  border-radius: 60px;
+  background: rgb(0 0 0 / 0.5);
+  box-shadow: 0 0 60px 34px rgb(0 0 0 / 0.5);
   transform: translateZ(-80px);
 }
 
@@ -1084,7 +1063,7 @@ html.home-on {
 
   .hm-pass-stamp {
     right: 37%;
-    top: 24%;
+    top: 31%;
   }
 }
 
@@ -1104,8 +1083,8 @@ html.home-on {
     padding-top: calc(clamp(92px, 16svh, 168px) + env(safe-area-inset-top));
   }
 
-  .hm-glow {
-    top: 36%;
+  .hm-sky {
+    --glow-y: 36%;
   }
 
   .hm-kayon {
@@ -1163,7 +1142,7 @@ html.home-on {
 
 /* ---------- Layar sentuh: tanpa kursor, lapisan dan kartu berayun pelan ---------- */
 @media (hover: none), (pointer: coarse) {
-  .hm-l {
+  .hm-l:not(.hm-dust) {
     animation: hm-sway var(--hm-sway) var(--ease-sine) calc(var(--hm-sway) / -2) infinite alternate;
   }
 
@@ -1177,7 +1156,7 @@ html.home-on {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hm-l,
+  .hm-l:not(.hm-dust), /* sama spesifiknya dengan aturan ayunan layar sentuh di atas, jadi yang ini yang menang */
   .hm-card,
   .hm-sheen,
   .hm-dust i {

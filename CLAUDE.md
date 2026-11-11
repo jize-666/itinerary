@@ -31,7 +31,12 @@ Diperbarui 11 Nov 2026.
   - 2,5D di slide selain gallery (prolog, judul hari, gong, epilog, credits).
   - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 3).
   - Hubungan dengan F2 (panggung 3D) belum diputuskan host.
-- [ ] **3. Home 2,5D + benahi UI home.** Permintaan host 11 Nov (sesudah PR #5 di-merge): "upgrade home ke 2,5d sama benerin ui home". Home = halaman `/` (gerbang kode dan sambutan). 2,5D memakai arti yang sama dengan Tugas 2: kedalaman berlapis, tetap DOM dengan `transform` dan `opacity`, bukan WebGL. Host belum merinci apa yang perlu dibenahi di UI; daftar cacat dan perbaikannya dicatat di `HANDOFF.md` bagian 1.
+- [x] **3. Home 2,5D dengan desain baru.** ✅ 11 Nov 2026. Permintaan host 11 Nov: "upgrade home ke 2,5d sama benerin ui home", diperjelas "ganti aja design nya, button juga". Home = halaman `/` (gerbang kode dan sambutan); 2,5D memakai arti dari Tugas 2. Yang dikerjakan: panggung berlapis yang mengikuti kursor, kartu undangan dan boarding pass tergantung di benang emas, tombol baru (`.hb`) khusus home. Rinciannya: `docs/design/decisions.md` bagian "Home 2,5D dengan desain baru" dan `HANDOFF.md` bagian 1. Sisa pekerjaan, menunggu tinjauan host:
+  - Uji di Safari, iPhone, dan MacBook asli (di sesi hanya Chromium).
+  - Apakah gaya tombol baru ikut dipakai di Today dan film.
+- [x] **4. Sesi per tab.** ✅ 11 Nov 2026. Keluhan host: browser sudah di-reset dan tab baru masih masuk tanpa kode. Keputusan host: kode diminta lagi di tiap tab atau browser baru; Today yang dipasang ke Home Screen tetap ingat supaya bisa offline. Rinciannya: `docs/design/decisions.md` bagian "Sesi per tab" dan `HANDOFF.md` bagian 1b.
+
+**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.**
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 
