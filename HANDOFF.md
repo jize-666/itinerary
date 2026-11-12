@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #6) · **tugas aktif: panggung 3D, dikerjakan per tugas (bagian 0)**
+Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #6) · **Tugas 5 (fondasi panggung 3D) selesai dikerjakan dan menunggu merge + uji perangkat oleh host; berikutnya Tugas 6 (gong 3D)**
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -11,7 +11,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 | # | Tugas | Acuan | Status |
 |---|---|---|---|
-| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **sedang dikerjakan**: tersambung, terender, tes unit dan e2e 3D lulus, sudah diukur; e2e penuh, video, pratinjau, dan dokumen belum (lihat di bawah) |
+| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **selesai dikerjakan 12 Nov**, PR dibuat; fps di perangkat menunggu uji host (lihat di bawah) |
 | 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
 | 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
 | 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
@@ -20,7 +20,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 | 11 | Canting + kain mori | F6, Tugas 30 | belum |
 | 12 | Boarding pass 3D dengan fisika | F7, Tugas 32 | belum |
 
-### Kemajuan Tugas 5 (catatan 12 Nov, pekerjaan masih berjalan)
+### Tugas 5: hasil (12 Nov)
 
 **Yang sudah ditulis.**
 - Dependensi baru: `three` 0.187, `@react-three/fiber` 9.8.2, `@types/three`. Tanpa drei dan tanpa pustaka post-processing; rantai post ditulis sendiri supaya bundle kecil.
@@ -33,14 +33,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - `director.ts` mendapat `cursor()`: sumber waktu yang sama untuk DOM dan 3D.
 - Bagian three.js, di `src/components/film/stage3d/` (dimaksudkan sebagai bundle lazy): uniform dan GLSL bersama, kubah langit (gradien, matahari, bulan, bintang), lanskap (terasering, lampu desa di malam hari, kabut), pendapa (lantai kawung emas, empat saka, blandar), blencong (wadah, nyala, berkas cahaya), debu emas, rantai post (HDR, bloom, ACES, dither), dan `Stage3D.tsx` (kanvas R3F dengan loop sendiri yang berhenti saat tab tersembunyi).
 
-**Status sebenarnya (12 Nov, diperbarui atas permintaan host di tengah sesi).** Tugas 5 **belum selesai**; yang sudah dan yang belum:
+**Status (12 Nov, saat PR dibuat).** Tugas 5 selesai dikerjakan. Host memutuskan merge dulu, lalu menguji fps di perangkat lewat produksi.
 
-Sudah, dan sudah dibuktikan:
+Sudah, dan sudah dibuktikan di sesi ini:
 - Kanvas tersambung ke film lewat `src/components/film/StageMount.tsx` (muat lazy, tebak tier, `?stage=high|medium|low|static`, `?fps`, jatuh ke 2,5D bila gagal) dan `Film.tsx` + `film.css`.
-- Terender di Chromium sesi ini (WebGL2 lewat SwiftShader, tier dipaksa): semua shader terkompilasi, 26 slide data tiruan tergambar di desktop 1280×720 dan HP tegak, dengan teks DOM terbaca di atasnya.
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (245 tes; 34 baru di `tests/unit/stage.test.ts`), dan `pnpm build` lulus.
-- e2e baru `e2e/stage.spec.ts`: 26 lulus (13 tes × desktop dan iPhone): tanpa GPU / `?stage=static` / reduced motion / Calm tetap 2,5D, Calm dimatikan → kanvas kembali, kanvas tergambar dan bukan bidang kosong, kamera pindah per slide dan kembali saat mundur, kamera gallery bergeser per panel, overlay `?fps`, gerbang dan Today tidak memuat three.
-- Skrip ukur `scripts/preview/measure-stage.cjs`, dijalankan sekali di desktop 1440×900 @2x:
+- Terender di Chromium tanpa GPU (WebGL2 lewat SwiftShader, tier dipaksa): semua shader terkompilasi, 26 slide data tiruan tergambar di desktop dan HP tegak, teks DOM terbaca di atasnya.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (245 tes; 34 baru di `tests/unit/stage.test.ts`), `pnpm content:check`, `pnpm build`, dan `pnpm test:e2e` (183 lulus, 13 dilewati seperti sebelumnya) lulus pada commit terakhir.
+- e2e baru `e2e/stage.spec.ts`, 14 tes × desktop dan iPhone: tanpa GPU / `?stage=static` / reduced motion / Calm tetap 2,5D; Calm dimatikan → kanvas kembali; kanvas tergambar dan bukan bidang kosong; kamera pindah per slide dan kembali saat mundur; kamera gallery bergeser per panel; CSP produksi tidak memblokir 3D dan tidak ada galat shader; overlay `?fps`; gerbang dan Today tidak memuat three.
+- Video HD desktop (1920×1080, tier High, 38 dtk, data tiruan) sudah dikirim ke host dan sudah ditonton frame demi frame: prolog, sapuan gunungan, satu hari di gallery (subuh → malam), gong. Tidak ada lompatan kamera atau frame kosong.
+- Ukuran (`scripts/preview/measure-stage.cjs`, desktop 1440×900 @2x, sebelum frame awal dipisahkan dari rata-rata):
 
   | Tier | Kanvas | Draw call | Segitiga | CPU thread utama per frame (diam) |
   |---|---|---|---|---|
@@ -48,21 +49,18 @@ Sudah, dan sudah dibuktikan:
   | Medium | 2160×1350 | 13–17 | ±25 ribu | 0,5–1,8 ms |
   | Low | 1440×900 | 11–14 | ±25 ribu | 0,5–0,9 ms |
 
-  Bundle 3D (lazy, hanya di `/film/` saat 3D dipakai): **+943 KB mentah, +251 KB gzip** di atas film 2,5D (606 KB mentah, 188 KB gzip). Sebagian besar adalah three; R3F mengimpor seluruh namespace three sehingga tidak bisa dipangkas.
+  Bundle 3D (lazy, hanya di `/film/` saat 3D dipakai): **+943 KB mentah, +251 KB gzip** di atas film 2,5D (606 KB mentah, 188 KB gzip). Sebagian besar three; R3F mengimpor seluruh namespace three sehingga tidak bisa dipangkas.
 
 Belum, atau belum dibuktikan:
-- **`pnpm test:e2e` penuh dan `pnpm content:check` belum dijalankan ulang** sesudah perubahan ini (baru `e2e/stage.spec.ts` yang dijalankan).
-- **fps nyata tidak diketahui.** Sesi ini tanpa GPU; target ≥ 55 fps di HP flagship hanya bisa diukur host di perangkat (`/film/?fps`). Lama sampai frame pertama di sini 3–10 detik, tetapi itu angka SwiftShader, bukan angka perangkat.
-- Baris "hero" di skrip ukur mencatat 7–14 ms: angka itu rata-rata bergerak yang masih memuat frame-frame awal (kompilasi shader), bukan beban tetap. Belum saya pisahkan di skrip, jadi skrip masih mencetak "PERLU DICEK".
-- Skrip ukur belum dijalankan di profil iPhone.
-- Transisi antar slide (gerak kamera, sapuan gunungan) baru diuji lewat angka kamera di e2e; **belum saya tonton sebagai video**.
-- Pratinjau foto dan video belum dikirim ke host.
-- `docs/design/decisions.md` bagian "Panggung 3D" belum ditulis; `CLAUDE.md` belum dicentang.
+- **fps nyata tidak diketahui.** Sesi ini tanpa GPU. Target ≥ 55 fps di HP flagship menunggu uji host: buka film, lalu di tab yang sama ubah alamat jadi `/film/?fps`. Panduan lengkapnya sudah diberikan ke host di chat (baris pertama overlay = laju layar sekarang, `avg` = rata-rata 3 dtk pengatur tier, baris kedua = tier dan skala resolusi).
+- **Pratinjau branch tidak bisa login.** Backend hanya menerima origin produksi dan localhost (`DEFAULT_ORIGINS` di `supabase/functions/_shared/http.ts`), jadi gerbang di domain pratinjau Vercel menampilkan "No connection". Host memilih merge ke `main` daripada menambah secret `ALLOWED_ORIGINS`. Untuk branch berikutnya: uji perangkat sebelum merge butuh secret itu.
+- Video HP dan foto pratinjau belum dibuat (hanya video desktop).
+- Skrip ukur belum dijalankan di profil iPhone. Sesudah tiga frame awal (kompilasi shader) dikeluarkan dari rata-rata, skrip dijalankan ulang; hasilnya dicatat di bawah bila sudah ada.
 - Belum diuji di Safari, iPhone, atau MacBook asli.
 
-Yang ditemukan dan diperbaiki saat render pertama: kata tercadang GLSL (`patch`), sisi jala lanskap terbalik (lanskap tidak tergambar), `smoothstep` dengan dua batas sama di sisi tegak (bintik acak), nyala blencong berbentuk kotak, debu terlalu besar, kabut menutup seluruh lanskap. Yang ditambahkan: petak sawah (sebagian tergenang dan memantulkan langit), lampu desa sebagai titik (`stage3d/village.ts`), balok tumpang sari tempat blencong digantung, gradien langit yang direntang per shot (`skyStretch`) supaya tepi atas layar tetap gelap seperti film 2,5D, tepi bawah gambar diturunkan supaya penanda bab terbaca.
+Yang ditemukan dan diperbaiki saat render pertama: kata tercadang GLSL (`patch`), sisi jala lanskap terbalik (lanskap tidak tergambar), `smoothstep` dengan dua batas sama di sisi tegak (bintik acak), nyala blencong berbentuk kotak, debu terlalu besar, kabut menutup seluruh lanskap. Yang ditambahkan: petak sawah (sebagian tergenang dan memantulkan langit), lampu desa sebagai titik (`stage3d/village.ts`), balok tumpang sari tempat blencong digantung, gradien langit yang direntang per shot (`skyStretch`), tepi bawah gambar diturunkan supaya penanda bab terbaca. Rincian keputusan: `docs/design/decisions.md` bagian "Panggung 3D, fondasi".
 
-Catatan untuk yang melanjutkan: pendapa masih kosong di tengah (gong 3D baru di Tugas 6); gong, gunungan, dan boarding pass yang tampak sekarang masih versi DOM/CSS di atas kanvas. `next dev` membuat `AGENTS.md` otomatis; berkas itu sudah masuk `.gitignore`.
+Catatan untuk yang melanjutkan: pendapa masih kosong di tengah (gong 3D baru di Tugas 6); gong, gunungan, dan boarding pass yang tampak sekarang masih versi DOM/CSS di atas kanvas. `next dev` membuat `AGENTS.md` otomatis; berkas itu sudah masuk `.gitignore`. Perekam video (`record-film.cjs`) menerima `STAGE=high|medium|low` dan tur `stage`; di server tanpa GPU pakai K = 0,04 (±15 menit untuk 38 dtk video).
 
 **Keputusan yang sudah tertanam di kode.**
 - Calm dan reduced motion → tanpa WebGL, film 2,5D yang sekarang.
@@ -70,12 +68,12 @@ Catatan untuk yang melanjutkan: pendapa masih kosong di tengah (gong 3D baru di 
 - Matahari 3D berada di titik layar yang sama dengan matahari 2,5D (diukur dari `.fl-sunbox`). Akibatnya kamera gallery memandang lanskap dari atas, dengan cakrawala tepat di atas kartu.
 - Gallery untuk sementara memakai satu lanskap umum; diorama per bab menyusul di Tugas 9–11.
 
-**Sisa Tugas 5, urut.**
-1. Jalankan `pnpm content:check` dan `pnpm test:e2e` penuh; perbaiki bila ada yang pecah.
-2. Skrip ukur: pisahkan frame awal dari beban tetap, jalankan juga di profil iPhone.
-3. Rekam video (`scripts/preview/record-film.cjs` dengan `?stage=`), tonton transisinya, perbaiki yang janggal.
-4. Kirim pratinjau foto dan video ke host.
-5. Tulis bagian "Panggung 3D" di `docs/design/decisions.md`, centang Tugas 5 di `CLAUDE.md` bila semuanya lulus, perbarui berkas ini, commit + push, siapkan PR.
+**Sesudah merge (langkah berikutnya, urut).**
+1. Host: uji fps di perangkat lewat produksi (`/film/?fps`) dan kabari angka, tier, model HP, dan slide yang terasa patah.
+2. Claude: mulai dari `main` terbaru (`git fetch origin main && git checkout -B claude/gallant-hopper-1jlpo0 origin/main`).
+3. Bila fps di bawah target: setel dulu (resolusi, MSAA, shader lanskap) sebelum menambah isi.
+4. Video HP dan foto pratinjau panggung 3D.
+5. Tugas 6: gong ageng 3D.
 
 ### Rencana Tugas 6–12
 
@@ -185,7 +183,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR untuk tugas aktif (bagian 0) dibuat saat host memintanya.
+**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR Tugas 5 (fondasi panggung 3D) dibuat 12 Nov atas permintaan host dan menunggu merge.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
