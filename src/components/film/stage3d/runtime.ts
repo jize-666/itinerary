@@ -10,7 +10,8 @@ import type { Film } from "@/engine/slides/build-slides";
 import type { SkyState } from "@/engine/slides/sky";
 import { stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
-import { kickSize, strikeLight } from "@/engine/stage/gong";
+import { heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
+import { sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { type Frame, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
@@ -18,6 +19,7 @@ import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
 import { createGong } from "./gong";
+import { createGunungan } from "./gunungan";
 import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
 import { createShared } from "./shared";
@@ -48,6 +50,9 @@ export type StageStats = {
   strikes: number;
   /** Besar hentakan dan getar kamera pada frame terakhir (0 = kamera diam di shot-nya). */
   kick: number;
+  /** Gunungan 3D siap (teksturnya sudah di GPU), dan sedang menyapu di frame terakhir. */
+  kayon: boolean;
+  sweep: boolean;
   /** Jam panggung pada frame terakhir (detik). */
   time: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
@@ -111,7 +116,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const unbindGong = stageBus.bindGong(() => gong.strike(clock));
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
-  const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
+  // gunungan: tekstur dimuat di latar; sampai siap, sapuan antar bab tetap digambar lapisan DOM
+  const gunungan = createGunungan({ gl, shared, large: spec.dof, onReady: (ok) => stageBus.setKayon(ok) });
+  const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh, ...gunungan.nodes];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
   gl.info.autoReset = false;
@@ -233,6 +240,11 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     camera.updateMatrixWorld();
 
+    // sapuan antar bab: gunungan melintas di depan kamera; mundur memperlihatkan muka Murka yang membara dari bawah
+    const sweeping = cue.kind === "wipe" && cue.moving && stageBus.sweep();
+    const back = cursor.to < cursor.from;
+    gunungan.update(sweeping ? sweepPose(cursor.p, back ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), back ? 0.3 * Math.sin(Math.PI * cursor.p) : 0);
+
     gl.getDrawingBufferSize(buf);
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
     dust.setPixel(pixel);
@@ -250,6 +262,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.moving = cue.moving;
     stats.strikes = hit.count;
     stats.kick = kicked;
+    stats.kayon = gunungan.ready();
+    stats.sweep = sweeping;
     stats.time = t;
   };
   layout();
@@ -327,6 +341,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const dispose = () => {
     cancelAnimationFrame(raf);
     unbindGong();
+    stageBus.setKayon(false);
     window.removeEventListener("pointermove", onPointer);
     ro.disconnect();
     canvas.removeEventListener("webglcontextlost", onLost);
@@ -336,6 +351,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     pendapa.dispose();
     blencong.dispose();
     gong.dispose();
+    gunungan.dispose();
     dust.dispose();
     village.dispose();
     post.dispose();

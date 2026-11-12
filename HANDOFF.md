@@ -5,6 +5,40 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
+
+**Status singkat: kode sapuan gunungan 3D sudah tertulis dan lolos typecheck, lint, dan build, tetapi BELUM PERNAH DILIHAT di layar.** Belum ada tangkapan layar, video, tes unit, maupun e2e untuk gunungan. Gerbang pembuka belum dikerjakan. Jangan dianggap selesai.
+
+**Arahan host yang berlaku** (kata demi kata ada di "Tugas 6: kemajuan" di bawah, no. 4, 7, 8): gunungan dikerjakan dulu dengan prioritas tertinggi; tes unit dan e2e gong ditunda sampai gunungan selesai; "redesign/remodel/upgrade ke duanya. jangan yang 'murka' aja". Tafsir Claude atas kalimat terakhir (belum ditegaskan host): sapuan antar bab dan gerbang pembuka dua-duanya dirancang ulang, dan gunungannya tidak hanya berwajah "Murka".
+
+**Rancangan yang dipilih.** Satu lembaran gunungan bermuka dua:
+- muka **Agung** (baru): bingkai dan panel dasar nila, pohon hayat utuh, medali surya-padma berlubang (cahaya tembus di sela kelopak), sepasang merak, naga, banteng dan macan, gapura dan dua raksasa penjaga. Tanpa wajah kala besar dan tanpa gigi api.
+- muka **Murka**: gambar yang disetujui host 8 Nov (kala/banaspati), dengan pupil bara di lubang mata dan **sisi geni** (api + wajah iblis) yang menjalar dari bawah lewat shader.
+- Maju ke bab berikutnya memperlihatkan muka Agung; mundur memperlihatkan baliknya, muka Murka yang membara di kaki.
+
+**Yang sudah ditulis.**
+- `scripts/assets/gunungan-paint.js`: pelukis kanvas (salinan bagian gambar `prototypes/gunungan/scene.js` + rupa Agung). Prototipe acuan tidak diubah.
+- `scripts/assets/bake-gunungan.cjs`: menjalankan pelukis di Chromium dan menulis tekstur ke `public/film/gunungan/` (9 berkas WebP, 2,7 MB; satu perangkat hanya mengunduh 5 di antaranya, ±1,2 MB di Medium/Low dan ±1,6 MB di High). Per rupa: warna + alpha lubang, dan `aux` (R prada, G bagian menyala, B tinggi relief). Jalankan ulang skrip ini tiap gambar diubah, lalu commit hasilnya. **Gambar Agung sudah dilihat** (hasil panggang, bukan di panggung) dan tampak benar.
+- `src/engine/stage/gunungan.ts` (murni): ukuran lembaran, tabir (`VEIL`), batas gerak (`SWEEP`), `sweepPose(p, dir, aspect, t)`, jendela teks (`SWEEP_TEXT`). `p` adalah kemajuan yang **sudah di-ease** (`Timeline.progress()`).
+- `src/components/film/stage3d/gunungan.ts`: lembaran (satu draw call) + tabir gelap berpendar blencong (satu draw call), nol saat tidak menyapu. Di shader: lubang tembus dan berdinding setebal kulit, relief dari peta tinggi, prada mengilap mengikuti lampu yang bergeser dengan kursor, kulit tembus cahaya, kulit melentur saat disapukan, tangkai tanduk, pupil kala, api geni. Diletakkan langsung di ruang kamera, jadi tidak terpengaruh potongan kamera di tengah sapuan.
+- `src/engine/stage/bus.ts`: `setKayon`, `kayon`, `claimSweep`, `sweep`. `planTransition` (`src/components/film/transitions.ts`) mengklaim sapuan 3D bila `data-stage="on"` dan tekstur sudah siap; kalau belum, bayangan kayon DOM (`.fl-wipe`) tetap dipakai seperti sebelumnya. Pada sapuan 3D teks lama dipudarkan lebih awal dan teks baru dimunculkan lebih lambat, karena teks ada di atas kanvas dan tidak tertutup tabir.
+- `src/components/film/stage3d/runtime.ts`: gunungan dibuat dan diperbarui tiap frame; `window.__lakonStage.kayon` (tekstur siap) dan `.sweep` (sedang menyapu).
+
+**Hasil tes dan kendala.**
+- `pnpm typecheck`, `pnpm lint`, `pnpm build` lulus (13 Nov). `pnpm test` dan `pnpm test:e2e` **belum dijalankan** sejak gunungan ditulis.
+- Shader gunungan belum pernah dikompilasi di browser: galat GLSL, arah muka, letak, dan warna semuanya masih mungkin salah.
+- Belum ada tes unit untuk `src/engine/stage/gunungan.ts`, dan tes e2e sapuan kayon yang lama mungkin gagal bila mengandalkan `.fl-wipe` saat 3D hidup (belum dicek).
+- Beban belum diukur. Perkiraan memori tekstur: ±23 MB di Medium/Low, ±41 MB di High. Perlu dicek di HP host dengan `/film/?fps`.
+- `scripts/assets/gunungan-paint.js` dikecualikan dari lint (`eslint-disable`, kode gambar padat salinan prototipe).
+
+**Langkah berikutnya, urut.**
+1. Lihat sapuan di layar (tangkapan layar pada beberapa titik `p`, maju dan mundur, desktop dan HP tegak), perbaiki sampai benar.
+2. Tes unit `gunungan.ts`; sesuaikan e2e sapuan.
+3. Video pratinjau sapuan (kedua muka) ke host.
+4. Gerbang pembuka: gunungan ditancapkan di depan blencong saat film dibuka, lalu disibak ke prolog; klik membaliknya ke muka Murka. Video ke host.
+5. Catat di `docs/design/decisions.md`, centang di `CLAUDE.md`.
+6. Sesudah gunungan: "Utang gong" di bawah (tes unit, e2e penuh sekali, cek bingkai, video gong ditabuh).
+
 ### Tugas 6: kemajuan (12 Nov sore)
 
 **Arahan host di sesi ini, kata demi kata, urut:**
@@ -20,6 +54,8 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 6. "dan tugasmu yang: Suite e2e yang sedang berjalan masih memakai build sebelum bingkai kamera diubah, jadi saya hentikan, build ulang, cek gambar bingkai barunya, baru jalankan e2e penuh sekali di akhir. (sudah?)" (menyusul, sesi yang sama). Jawabannya dari jejak di disk: **build ulang sudah** (`out/` bertanggal 16.21, sesudah perubahan sumber terakhir 16.20); **cek gambar bingkai baru dan e2e penuh belum** (`test-results/` hanya berisi sisa suite yang dihentikan 16.20, tidak ada jalan sesudah build). Keduanya dikerjakan di sesi ini, sesudah getar dan hentakan kamera dipasang, supaya e2e penuh cukup sekali.
 
 7. "lewati tes unit dan e2e (tapi beri catatan di handoff), selesaikan setelah gunungan. kerjakan gunungan terlebih dahulu." (menyusul, saat tes unit hentakan kamera baru dijalankan). Artinya: **tes unit dan e2e gong ditunda sampai gunungan selesai**, dan **Tugas 7 (gunungan) dikerjakan sekarang**. Utang tesnya dicatat di "Utang gong" di bawah; jangan dianggap sudah lulus.
+
+8. "redesign/remodel/upgrade ke duanya. jangan yang "murka "aja" (menyusul, saat Tugas 7 baru dimulai; jawaban atas laporan Claude bahwa gambar gunungan "Murka" dipanggang jadi tekstur untuk sapuan antar bab dan gerbang pembuka). Tafsir Claude (belum ditegaskan host; dipilih yang paling luas supaya tidak ada yang terlewat): (a) **sapuan antar bab dan gerbang pembuka dua-duanya dirancang ulang dan ditingkatkan**, bukan hanya ditempeli gambar lama; (b) **gunungannya tidak hanya berwajah "Murka"**: dibuat rupa kedua yang tenang dan agung, dan kedua sisi ditingkatkan (relief tatahan, kulit tembus cahaya, api yang hidup). Rincian rancangannya di "Tugas 7: kemajuan" di bawah.
 
 | Langkah | Isi | Status |
 |---|---|---|

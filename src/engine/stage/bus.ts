@@ -8,6 +8,8 @@ type Striker = () => number | null;
 
 let striker: Striker | null = null;
 let ready = false;
+let kayon = false;
+let sweep = false;
 
 export const stageBus = {
   /** Panggung 3D: daftarkan gong. Mengembalikan pembatal. */
@@ -30,4 +32,20 @@ export const stageBus = {
     ready = on;
   },
   ready: () => ready,
+  /** Panggung 3D: gunungan siap dipakai (teksturnya sudah di GPU) atau tidak lagi (panggung dibongkar). */
+  setKayon(on: boolean) {
+    kayon = on;
+    if (!on) sweep = false;
+  },
+  kayon: () => kayon,
+  /**
+   * Lapisan DOM, saat merencanakan transisi: `wanted` = transisi ini sapuan antar bab. Mengembalikan true bila
+   * gunungan 3D yang menyapu (lapisan DOM lalu tidak menggambar bayangan kayonnya sendiri). Transisi lain
+   * mencabutnya, jadi panggung dan DOM selalu sepakat siapa yang menggambar sapuan.
+   */
+  claimSweep(wanted: boolean): boolean {
+    sweep = wanted && kayon;
+    return sweep;
+  },
+  sweep: () => sweep,
 };
