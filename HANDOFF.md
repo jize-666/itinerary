@@ -1,7 +1,31 @@
 # HANDOFF
 
-Diperbarui 11 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dari `main` sesudah PR #5) · **PR #6 (home 2,5D + sesi per tab) terbuka, menunggu tinjauan dan merge host** (bagian 5) · diuji ulang 11 Nov malam (bagian 1c) · sesudah itu menunggu perintah host
+Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #6) · **tugas aktif: panggung 3D, dikerjakan per tugas (bagian 0)**
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
+
+## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+**Kata host (12 Nov, sesudah merge PR #6), prioritas tinggi:** "mesin film; panggung 3D React Three Fiber (target ≥ 55 fps di HP flagship); gong (buat jadi 3D); gunungan sebagai gerbang sinematik; benang emas (remodel/design) dan siklus waktu; diorama Solo, Lawu, dan canting; boarding pass 3D dengan fisika. Bebas menggunakan bahasa/pemrograman apa, yang penting hasil maksimal/lebih bagus dari sebelumnya. Boleh remodel, redesign, asal tidak jauh dari konsep. Intinya upgrade panggung 3D semaksimal mungkin. Step by step (output) per task/kerjaan."
+
+**Urutan kerja** (sama dengan Tugas 5–12 di `CLAUDE.md`; tiap tugas ditutup dengan output yang sudah dites, pratinjau ke host, commit + push, dan pembaruan berkas ini):
+
+| # | Tugas | Acuan | Status |
+|---|---|---|---|
+| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | dikerjakan |
+| 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
+| 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
+| 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
+| 9 | Diorama Solo | F6, Tugas 28 | belum |
+| 10 | Lereng Lawu | F6, Tugas 29 | belum |
+| 11 | Canting + kain mori | F6, Tugas 30 | belum |
+| 12 | Boarding pass 3D dengan fisika | F7, Tugas 32 | belum |
+
+**Keputusan awal** (rinciannya ditulis di `docs/design/decisions.md` saat tugasnya selesai):
+- Film 2,5D yang sekarang menjadi tier **Static**: dipakai saat reduced motion, Calm, tanpa WebGL, dan selama bundle 3D dimuat. Tidak ada yang dibuang.
+- Bundle 3D dimuat lazy hanya di `/film/`. Home sebelum kode benar dan Today tetap tanpa WebGL.
+- Teks itinerary tetap DOM di atas kanvas (FR-12).
+- CSP produksi tidak mengizinkan WASM (`script-src` tanpa `wasm-unsafe-eval`). Ini berpengaruh ke pilihan mesin fisika di Tugas 12 (Rapier memakai WASM).
+- Sesi cloud tidak punya GPU: FPS di HP flagship tidak bisa diukur dari sini. Yang diukur: waktu CPU per frame, jumlah draw call dan segitiga, dan perilaku tier. Angka fps nyata menunggu uji host di perangkat.
 
 ## 1. Home 2,5D dengan desain baru (Tugas 3, selesai 11 Nov)
 
@@ -96,7 +120,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 11 Nov.** PR #1 sampai #5 sudah di-merge ke `main`. **PR #6** (home 2,5D + sesi per tab, bagian 1, 1b, 1c) terbuka: https://github.com/jize-666/itinerary/pull/6
+**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR untuk tugas aktif (bagian 0) dibuat saat host memintanya.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
