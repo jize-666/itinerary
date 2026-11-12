@@ -33,7 +33,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - `director.ts` mendapat `cursor()`: sumber waktu yang sama untuk DOM dan 3D.
 - Bagian three.js, di `src/components/film/stage3d/` (dimaksudkan sebagai bundle lazy): uniform dan GLSL bersama, kubah langit (gradien, matahari, bulan, bintang), lanskap (terasering, lampu desa di malam hari, kabut), pendapa (lantai kawung emas, empat saka, blandar), blencong (wadah, nyala, berkas cahaya), debu emas, rantai post (HDR, bloom, ACES, dither), dan `Stage3D.tsx` (kanvas R3F dengan loop sendiri yang berhenti saat tab tersembunyi).
 
-**Status sebenarnya.** `pnpm typecheck` lulus. `pnpm lint` **masih gagal**: 4 galat aturan React (`react-hooks/immutability`) di `stage3d/Stage3D.tsx`, sedang diperbaiki. Selain itu belum ada yang dibuktikan: kanvas **belum disambung ke `Film.tsx`**, shader **belum pernah dirender**, belum ada tes unit atau e2e untuk kode baru, belum ada pratinjau. Film yang berjalan masih 2,5D persis seperti di `main`.
+**Status sebenarnya.** `pnpm typecheck` dan `pnpm lint` lulus. Empat galat `react-hooks/immutability` hilang sesudah dunia, loop, dan gambar per frame dipindah dari komponen React ke `stage3d/runtime.ts`; `Stage3D.tsx` tinggal memasang kanvas dan mengganti tier. Selain itu belum ada yang dibuktikan: kanvas **belum disambung ke `Film.tsx`**, shader **belum pernah dirender**, belum ada tes unit atau e2e untuk kode baru, belum ada pratinjau. Film yang berjalan masih 2,5D persis seperti di `main`.
 
 **Keputusan yang sudah tertanam di kode.**
 - Calm dan reduced motion → tanpa WebGL, film 2,5D yang sekarang.
