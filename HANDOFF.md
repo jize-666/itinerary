@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #6) · **Tugas 5 (fondasi panggung 3D) selesai dikerjakan dan menunggu merge + uji perangkat oleh host; berikutnya Tugas 6 (gong 3D)**
+Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 5 (fondasi panggung 3D) selesai, sudah di-merge dan diterima host; tugas aktif: Tugas 6 (gong ageng 3D)**
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -11,7 +11,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 | # | Tugas | Acuan | Status |
 |---|---|---|---|
-| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **selesai dikerjakan 12 Nov**, PR dibuat; fps di perangkat menunggu uji host (lihat di bawah) |
+| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **selesai 12 Nov**, PR #7 di-merge, diterima host sesudah uji di iPhone (lihat di bawah) |
 | 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
 | 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
 | 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
@@ -33,7 +33,21 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - `director.ts` mendapat `cursor()`: sumber waktu yang sama untuk DOM dan 3D.
 - Bagian three.js, di `src/components/film/stage3d/` (dimaksudkan sebagai bundle lazy): uniform dan GLSL bersama, kubah langit (gradien, matahari, bulan, bintang), lanskap (terasering, lampu desa di malam hari, kabut), pendapa (lantai kawung emas, empat saka, blandar), blencong (wadah, nyala, berkas cahaya), debu emas, rantai post (HDR, bloom, ACES, dither), dan `Stage3D.tsx` (kanvas R3F dengan loop sendiri yang berhenti saat tab tersembunyi).
 
-**Status (12 Nov, saat PR dibuat).** Tugas 5 selesai dikerjakan. Host memutuskan merge dulu, lalu menguji fps di perangkat lewat produksi.
+**Status (12 Nov, sesudah merge).** Tugas 5 selesai. PR #7 di-merge host (squash "redesign 3D (#7)", `064fbdc`), dan host menerimanya: "hasilnya stabil di medium ... oke sih. aku anggep udah selesai".
+
+**Uji host di perangkat (produksi, `/film/?fps`, 12 Nov ±13.16 WIB, iPhone di Safari lewat 4G; modelnya tidak disebut).** Tiga tangkapan layar overlay:
+
+| Slide | Laju layar | Rata-rata 3 dtk | CPU per frame | Tier |
+|---|---|---|---|---|
+| Frasa Jawa (prolog) | 60 fps | 60 | 0,8 ms | medium ×1 |
+| Gong penutup Hari 1 | 59 fps | 58 | 0,8 ms | medium ×1 |
+| Boarding pass (epilog) | 59 fps | 60 | 0,7 ms | medium ×0.82 |
+
+17 draw call dan 26 ribu segitiga di ketiganya. Target ≥ 55 fps tercapai di tier Medium. Dua hal yang perlu diingat:
+- **Tier High tidak pernah terlihat di HP host**, dan penyebabnya belum dipastikan. Dua kemungkinan: (a) aturan tier awal menurunkan High ke Medium bila browser melaporkan ≤ 4 inti (`guessTier` di `src/engine/stage/tier.ts`), dan Safari iOS diduga membatasi angka itu; (b) mulai di High lalu diturunkan pengatur FPS sebelum host melihatnya. Cara memastikan: buka `/film/?fps&stage=high` di HP yang sama dan lihat fps-nya.
+- **Pengatur sempat menurunkan satu anak tangga** (medium ×1 → ×0.82) di antara tangkapan kedua dan ketiga, jadi di suatu saat rata-rata 3 dtk jatuh di bawah 50 fps. Slide atau transisi mana yang menyebabkannya tidak diketahui. Artinya HP ini tidak punya banyak ruang di atas Medium; tiap isi baru (gong, gunungan) perlu dicek lagi di perangkat.
+
+Yang berlaku saat PR dibuat (dipertahankan sebagai catatan):
 
 Sudah, dan sudah dibuktikan di sesi ini:
 - Kanvas tersambung ke film lewat `src/components/film/StageMount.tsx` (muat lazy, tebak tier, `?stage=high|medium|low|static`, `?fps`, jatuh ke 2,5D bila gagal) dan `Film.tsx` + `film.css`.
@@ -52,11 +66,11 @@ Sudah, dan sudah dibuktikan di sesi ini:
   Bundle 3D (lazy, hanya di `/film/` saat 3D dipakai): **+943 KB mentah, +251 KB gzip** di atas film 2,5D (606 KB mentah, 188 KB gzip). Sebagian besar three; R3F mengimpor seluruh namespace three sehingga tidak bisa dipangkas.
 
 Belum, atau belum dibuktikan:
-- **fps nyata tidak diketahui.** Sesi ini tanpa GPU. Target ≥ 55 fps di HP flagship menunggu uji host: buka film, lalu di tab yang sama ubah alamat jadi `/film/?fps`. Panduan lengkapnya sudah diberikan ke host di chat (baris pertama overlay = laju layar sekarang, `avg` = rata-rata 3 dtk pengatur tier, baris kedua = tier dan skala resolusi).
+- ~~fps nyata tidak diketahui.~~ Sudah diuji host di iPhone, lihat tabel di atas. Cara ujinya: buka film, lalu di tab yang sama ubah alamat jadi `/film/?fps` (baris pertama overlay = laju layar sekarang, `avg` = rata-rata 3 dtk pengatur tier, baris kedua = tier dan skala resolusi).
 - **Pratinjau branch tidak bisa login.** Backend hanya menerima origin produksi dan localhost (`DEFAULT_ORIGINS` di `supabase/functions/_shared/http.ts`), jadi gerbang di domain pratinjau Vercel menampilkan "No connection". Host memilih merge ke `main` daripada menambah secret `ALLOWED_ORIGINS`. Untuk branch berikutnya: uji perangkat sebelum merge butuh secret itu.
-- Video HP dan foto pratinjau belum dibuat (hanya video desktop).
+- Video HP dan foto pratinjau tidak dibuat: host sudah melihat langsung di HP dan menganggap Tugas 5 selesai.
 - Skrip ukur belum dijalankan di profil iPhone.
-- Belum diuji di Safari, iPhone, atau MacBook asli.
+- Sudah dilihat host di Safari iPhone. Belum diuji di MacBook, Android, atau iPhone lama.
 
 Yang ditemukan dan diperbaiki saat render pertama: kata tercadang GLSL (`patch`), sisi jala lanskap terbalik (lanskap tidak tergambar), `smoothstep` dengan dua batas sama di sisi tegak (bintik acak), nyala blencong berbentuk kotak, debu terlalu besar, kabut menutup seluruh lanskap. Yang ditambahkan: petak sawah (sebagian tergenang dan memantulkan langit), lampu desa sebagai titik (`stage3d/village.ts`), balok tumpang sari tempat blencong digantung, gradien langit yang direntang per shot (`skyStretch`), tepi bawah gambar diturunkan supaya penanda bab terbaca. Rincian keputusan: `docs/design/decisions.md` bagian "Panggung 3D, fondasi".
 
@@ -68,12 +82,7 @@ Catatan untuk yang melanjutkan: pendapa masih kosong di tengah (gong 3D baru di 
 - Matahari 3D berada di titik layar yang sama dengan matahari 2,5D (diukur dari `.fl-sunbox`). Akibatnya kamera gallery memandang lanskap dari atas, dengan cakrawala tepat di atas kartu.
 - Gallery untuk sementara memakai satu lanskap umum; diorama per bab menyusul di Tugas 9–11.
 
-**Sesudah merge (langkah berikutnya, urut).**
-1. Host: uji fps di perangkat lewat produksi (`/film/?fps`) dan kabari angka, tier, model HP, dan slide yang terasa patah.
-2. Claude: mulai dari `main` terbaru (`git fetch origin main && git checkout -B claude/gallant-hopper-1jlpo0 origin/main`).
-3. Bila fps di bawah target: setel dulu (resolusi, MSAA, shader lanskap) sebelum menambah isi.
-4. Video HP dan foto pratinjau panggung 3D.
-5. Tugas 6: gong ageng 3D.
+**Langkah berikutnya.** Tugas 6: gong ageng 3D (rencananya di "Rencana Tugas 6–12" di bawah). Branch kerja sudah dimulai ulang dari `main` terbaru (`064fbdc`). Karena HP host tidak punya banyak ruang di atas Medium, gong harus hemat: satu draw call untuk badan, tanpa bayangan dinamis, dan diukur ulang dengan `measure-stage.cjs`.
 
 ### Rencana Tugas 6–12
 
@@ -183,7 +192,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR Tugas 5 (fondasi panggung 3D) dibuat 12 Nov atas permintaan host dan menunggu merge.
+**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR #7 (Tugas 5, fondasi panggung 3D) di-merge host 12 Nov (squash "redesign 3D (#7)"). PR untuk Tugas 6 dibuat saat host memintanya.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.

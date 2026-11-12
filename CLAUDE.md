@@ -41,9 +41,10 @@ Diperbarui 12 Nov 2026.
 Kata host: "upgrade panggung 3D semaksimal mungkin", "step by step (output) per task/kerjaan", bebas teknologi, boleh remodel dan redesign asal tidak jauh dari konsep. Rincian dan status: `HANDOFF.md` bagian 0. Tiap tugas ditutup dengan output yang sudah dites, pratinjau ke host, commit + push, dan pembaruan `HANDOFF.md`.
 
 - [x] **5. Panggung 3D (React Three Fiber) + mesin film 3D.** ✅ 12 Nov 2026. Kanvas lazy hanya di `/film/`, shot kamera per slide yang mengikuti transisi, tier kualitas High/Medium/Low/Static, pemantau FPS, overlay FPS (`/film/?fps`), dan latar pertama (pendapa, blencong, lanskap sawah dan Lawu, langit yang mengikuti jam). Rinciannya: `docs/design/decisions.md` bagian "Panggung 3D, fondasi" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
-  - **fps di perangkat nyata belum diukur** (sesi kerja tanpa GPU). Target ≥ 55 fps di HP flagship menunggu uji host lewat `/film/?fps`; kalau di bawah target, setel dulu sebelum Tugas 6.
-  - Video HP dan foto pratinjau belum dibuat (video desktop HD sudah dikirim).
-  - Belum diuji di Safari, iPhone, atau MacBook asli.
+  PR #7 di-merge host 12 Nov. Uji host di iPhone (produksi, `/film/?fps`): 59–60 fps di tier Medium; host: "oke sih, aku anggep udah selesai". Catatan:
+  - Tier High tidak pernah terlihat di HP host dan penyebabnya belum dipastikan (lihat `HANDOFF.md` bagian 0). Cek dengan `/film/?fps&stage=high`.
+  - Pengatur sempat menurunkan resolusi satu anak tangga, jadi HP itu tidak punya banyak ruang di atas Medium: tiap isi baru perlu dicek lagi di perangkat.
+  - Belum diuji di MacBook, Android, atau iPhone lama.
 - [ ] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi.
 - [ ] **7. Gunungan** sebagai gerbang sinematik dan sapuan antar bab.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
