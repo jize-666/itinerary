@@ -269,6 +269,53 @@ Host: "udah gw reset browser tapi masih masuk tanpa nulis pw, udah buka tab baru
 - Akibat untuk tamu: Today di tab browser biasa meminta kode tiap tab baru dan butuh sinyal. Untuk dipakai di jalan, Today perlu dipasang ke Home Screen.
 - Kode: `src/lib/device-store.ts`, `sweepLegacy` di `src/lib/session.ts`. PRD FR-03 sudah diperbarui.
 
+## Panggung 3D, fondasi (12 Nov 2026), arahan host: "upgrade panggung 3D semaksimal mungkin", "step by step (output) per task"
+
+Tugas 5 di `CLAUDE.md`: kanvas, mesin film 3D, tier kualitas, pemantau FPS, dan latar pertama (pendapa, blencong, lanskap, langit). Gong, gunungan, benang emas, dan diorama per bab menyusul di Tugas 6–12; sampai itu jadi, gong, gunungan, dan boarding pass yang tampak masih versi DOM/CSS di atas kanvas, dan tengah pendapa masih kosong.
+
+**Film 2,5D tidak dibuang.** Ia menjadi tier Static. Kanvas WebGL diletakkan di atas langit 2,5D dan di bawah grain serta teks; begitu frame pertamanya tergambar ia memudar masuk (0,9 dtk), lalu langit 2,5D tidak digambar lagi. Teks itinerary tetap DOM di atas kanvas (FR-12). Film tetap 2,5D bila: Calm atau reduced motion, tanpa WebGL2, renderer perangkat lunak, bundle 3D gagal dimuat, konteks WebGL hilang, atau terlalu berat bahkan di tier terendah.
+
+**Tiga lapis kode.**
+- `src/engine/stage/` murni (tanpa DOM, tanpa three), jadi bisa dites: `tier.ts`, `shots.ts`, `mood.ts`, `cue.ts`, `terrain.ts`.
+- `src/components/film/StageMount.tsx`: pintu yang ringan, tanpa three. Menebak tier, memuat bundle 3D dengan `import()`, dan memutuskan kapan kembali ke 2,5D.
+- `src/components/film/stage3d/`: three + React Three Fiber, hanya diunduh di `/film/` saat 3D dipakai. Gerbang dan Today tidak memuatnya (dijaga e2e).
+
+**R3F hanya memasang kanvas.** Dunia, loop, dan gambar per frame ada di `stage3d/runtime.ts`, di luar React, dengan `frameloop="never"` dan loop sendiri. Alasannya dua: aturan lint React melarang mengubah nilai dari dalam komponen, dan loop sendiri bisa berhenti saat tab tersembunyi serta menggambar tiap dua frame saat diam di tier Low.
+
+**Tanpa drei, tanpa pustaka post-processing, tanpa tekstur.** Rantai post ditulis sendiri (`stage3d/post.ts`): target HDR half float, bloom bertingkat dengan ambang di atas putih (hanya nyala, matahari, dan lampu yang berpijar), ACES, sRGB, dither. Semua pola (kawung lantai, lung-lungan saka, petak sawah, bintang) digambar shader, jadi tajam di layar retina dan tidak ada gambar yang diunduh.
+
+**Satu sumber waktu dengan DOM.** `Director.cursor()` memberi letak film (slide asal, tujuan, kemajuan transisi); `createCues` mengubahnya menjadi shot kamera dan keadaan langit. Jendela pergantian langit (`SKY_WINDOW`) dipakai `transitions.ts` dan panggung 3D, jadi keduanya berganti warna di saat yang sama.
+
+**Shot kamera** (`shots.ts`): satu shot per jenis slide, dalam dua rumpun.
+- Orbit, mengitari pusat panggung: hero, pembuka, intro, fakta (tiap fakta satu sudut, dari kiri ke kanan), tim, frasa, judul hari, gong, epilog, boarding pass.
+- Vista, dari tepi belakang pendapa memandang dataran dan Lawu: rute, kartu kedatangan dan kepulangan, intro hari, gallery, credits (mendongak ke bintang).
+- Perpindahan: orbit ke orbit lewat busur (tidak menembus tengah panggung), orbit ke vista melengkung ke atas, di dalam gallery lurus menyamping, dan saat sapuan gunungan kamera dipotong di tengah.
+- Layar tegak: lensa dilebarkan sampai 56°, sisanya kamera mundur sampai lebar gayor gong muat, dan kamera mendongak sedikit supaya lantai tidak memenuhi separuh layar di belakang teks.
+
+**Matahari dan langit menyalin film 2,5D.**
+- Matahari 3D jatuh di titik layar yang sama dengan matahari 2,5D: lintasannya diukur dari `.fl-sunbox`, dan Lawu ditaruh menurut lintasan itu supaya kedua ujungnya (terbit dan terbenam) tetap rendah.
+- Film 2,5D membentangkan gradien langit dari kaki sampai puncak layar, sedangkan kamera 3D hanya melihat ±10° langit di gallery. Karena itu ketinggian pada gradien dikalikan per shot (`skyStretch`): tepi atas layar selalu jatuh di bagian gelap, sehingga label hari tetap terbaca.
+- Arah cahaya dihitung terpisah dari letak matahari di layar (`lightElevation`): rendah saat terbit dan terbenam, tinggi di tengah hari.
+- Warna langit, cahaya, kabut, bintang, dan kuat blencong diturunkan dari kadar lapisan langit yang sama (`mood.ts`).
+
+**Tier** (`tier.ts`):
+
+| Tier | Batas DPR | MSAA | Tingkat bloom | Partikel | Saat diam |
+|---|---|---|---|---|---|
+| High | 2 | 4× | 5 | penuh | tiap frame |
+| Medium | 1,5 | 2× | 4 | separuh | tiap frame |
+| Low | 1 | tanpa | 3 | 15% | tiap dua frame |
+| Static | film 2,5D | | | | |
+
+- Tier awal ditebak dari nama GPU. HP flagship sengaja mulai dari High; memori ≤ 2 GB atau ≤ 2 inti mulai dari Low.
+- Pengatur FPS: rata-rata < 50 fps selama ±3 dtk → turun satu anak tangga (resolusi dulu, baru efek); stabil ≥ 58 fps → naik lagi sesudah jeda; anak tangga yang terbukti berat tidak dicoba ulang; layar 30 Hz (Low Power Mode) dikenali dan tidak dianggap berat; di bawah 20 fps pada anak tangga terendah → Static.
+- `?stage=high|medium|low|static` memaksa tier (pengatur hanya mengukur) dan `?fps` menampilkan overlay. Keduanya untuk uji.
+- Bayangan dinamis dan depth of field sudah punya tempat di spesifikasi tier tetapi **belum dipakai**; itu pekerjaan Tugas 8.
+
+**Angka terukur** (Chromium tanpa GPU, desktop 1440×900 @2x, `scripts/preview/measure-stage.cjs`): 11–19 draw call dan ±25 ribu segitiga per frame di semua slide; CPU thread utama 0,5–1,8 ms per frame saat diam. Bundle 3D menambah 943 KB mentah (251 KB gzip) di atas 606 KB (188 KB gzip) film 2,5D; sebagian besar three, yang tidak bisa dipangkas karena R3F mengimpor seluruh namespace-nya.
+
+**Yang belum diketahui.** fps di perangkat nyata. Sesi kerja tidak punya GPU, jadi target ≥ 55 fps di HP flagship hanya bisa diukur host dengan membuka `/film/?fps`. Belum diuji di Safari, iPhone, atau MacBook.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

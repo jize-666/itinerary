@@ -68,6 +68,8 @@ export type RuntimeOptions = {
   hooks: () => StageHooks;
 };
 
+/** Frame pertama sesudah dunia dibangun yang tidak dihitung dalam rata-rata waktu kerja. */
+const WARM_FRAMES = 3;
 const LAMP_RGB = [1, 0.56, 0.24] as const;
 const LAMP_POWER = 5.2;
 const isMobile = () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -246,7 +248,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     last = ts;
     const t0 = performance.now();
     advance(ts / 1000);
-    work += (performance.now() - t0 - work) * 0.1;
+    // frame-frame awal memuat kompilasi shader: bukan beban tetap, jadi tidak masuk rata-rata
+    if (stats.frames > WARM_FRAMES) work += (performance.now() - t0 - work) * (work ? 0.1 : 1);
     if (!live) {
       live = true;
       hooks().onLive();

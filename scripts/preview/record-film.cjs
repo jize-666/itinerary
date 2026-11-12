@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
-// matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan.
+// matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
+// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong).
+// Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
+// Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p), jadi pakai K kecil (0,04) supaya
+// gerak kamera tetap mulus di video; rekaman 35 detik lalu memakan ±15 menit.
 // <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo).
 // Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI lewat CDP
 // Animation.setPlaybackRate; timer & rAF diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
@@ -15,6 +19,7 @@ const fs = require('fs');
   const [DATA, out, device = 'desktop', kArg, tour = 'film'] = process.argv.slice(2);
   const K = +(kArg || 0.25);
   const BASE = process.env.BASE_URL || 'http://localhost:4173';
+  const STAGE = process.env.STAGE || '';
   const FPS = 60;
   const phone = device === 'iphone';
   const dpr = phone ? 3 : 1.5;
@@ -37,9 +42,12 @@ const fs = require('fs');
   const { width, height } = p.viewportSize();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
+  /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
+  let rolling = true;
   const emitUntil = (tv) => { while (last && tick / FPS <= tv) { ff.stdin.write(last); tick++; written++; } };
   cdp.on('Page.screencastFrame', ({ data, metadata, sessionId }) => {
     cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
+    if (!rolling) return;
     if (t0 === null) t0 = metadata.timestamp;
     emitUntil((metadata.timestamp - t0) * K); // jam virtual = jam nyata × K
     last = Buffer.from(data, 'base64');
@@ -58,11 +66,41 @@ const fs = require('fs');
   const kind = () => p.locator('.film').getAttribute('data-kind');
 
   await p.goto('about:blank');
+  rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  await p.goto(`${BASE}/film/${tour === 'gallery' ? '#day-1' : ''}`, { waitUntil: 'commit' });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: Math.max(1, Math.floor(0.25 / K)) });
+  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' ? '#day-1' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
+  if (STAGE && STAGE !== 'static') {
+    // tunggu kanvas 3D tampil penuh, lalu mulai video dari sini (bukan dari layar muat)
+    await p.waitForSelector('.film[data-stage="on"]', { timeout: 600000 });
+    rolling = true;
+  }
+  /** Akhiri rekaman: tutup aliran ke ffmpeg dan laporkan. */
+  const finish = async () => {
+    await cdp.send('Page.stopScreencast');
+    await new Promise((r) => setTimeout(r, 300));
+    if (last) { ff.stdin.write(last); written++; }
+    ff.stdin.end();
+    await new Promise((r) => ff.on('close', r));
+    console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
+    await b.close();
+  };
+
+  if (tour === 'stage') {
+    await w(3200); // hero: pendapa, blencong, langit malam
+    await key('ArrowDown', 3000); // pembuka: kamera mengitari panggung
+    await key('ArrowDown', 2800); // intro
+    await key('ArrowDown', 2800); // fakta 1
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 4200); // lompat ke Hari 1: sapuan kayon
+    await key('ArrowDown', 3400); // intro hari: kamera turun ke tepi pendapa, memandang Lawu
+    await key('ArrowDown', 2800); // panel pertama: naik ke atas lanskap
+    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2500); // subuh → siang → senja → malam
+    await w(2600); // gong penutup hari
+    await finish();
+    return;
+  }
 
   if (tour === 'gallery') {
     // jari tiruan: titik yang mengikuti sentuhan, hanya di rekaman

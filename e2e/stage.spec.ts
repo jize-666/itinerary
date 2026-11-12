@@ -160,6 +160,19 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     expect(Math.abs(second.camera[1] - first.camera[1])).toBeLessThan(0.3);
   });
 
+  test("CSP produksi tidak memblokir panggung 3D, dan tidak ada galat shader", async ({ page }) => {
+    const bad: string[] = [];
+    page.on("console", (m) => {
+      if (/Content Security Policy|Refused to|THREE\.WebGLProgram|Shader Error/i.test(m.text())) bad.push(m.text().slice(0, 300));
+    });
+    page.on("pageerror", (e) => bad.push(e.message));
+    await open3d(page);
+    await nextFrames(page, 4);
+    await step(page);
+    await nextFrames(page, 2);
+    expect(bad).toEqual([]);
+  });
+
   test("?fps menampilkan overlay ukur", async ({ page }) => {
     await open3d(page, "?stage=low&fps");
     await nextFrames(page, 20);
