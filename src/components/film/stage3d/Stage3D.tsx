@@ -81,7 +81,7 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
   return null;
 }
 
-const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false });
+const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false });
 
 export default function Stage3D({ film, probe, root, tier, locked, debug, onLive, onFail }: Stage3DProps) {
   const [rung, setRung] = useState<Rung>(() => LADDER[rungOf(tier)]!);
@@ -109,7 +109,9 @@ export default function Stage3D({ film, probe, root, tier, locked, debug, onLive
         if (wrap.current) wrap.current.dataset.frames = String(s.frames);
         if (hud.current) {
           const tri = s.triangles >= 1000 ? `${Math.round(s.triangles / 1000)}k` : String(s.triangles);
-          hud.current.textContent = `${s.fps ? s.fps.toFixed(0) : "–"} fps${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale} · ${s.calls} draw · ${tri} tri`;
+          // baris 1: laju layar sekarang, rata-rata 3 dtk dari pengatur tier (bila sudah ada), waktu CPU per frame
+          const avg = s.fps ? ` · avg ${s.fps.toFixed(0)}` : "";
+          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale} · ${s.calls} draw · ${tri} tri`;
         }
       },
     };

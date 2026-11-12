@@ -177,6 +177,7 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     await open3d(page, "?stage=low&fps");
     await nextFrames(page, 20);
     await expect(page.locator(".fl-fps")).toContainText("low");
+    await expect(page.locator(".fl-fps")).toContainText(/\d+ fps/); // laju layar selalu berangka, juga saat diam di tier Low
     await expect(page.locator(".fl-fps")).toContainText("draw");
   });
 

@@ -26,7 +26,10 @@ import { createVillage } from "./village";
 export type StageStats = {
   tier: Tier;
   scale: number;
+  /** fps rata-rata ±3 dtk dari pengatur tier (0 bila belum cukup data, atau saat diam di tier Low). */
   fps: number;
+  /** Laju frame layar saat ini (rata-rata pendek dari jarak antar requestAnimationFrame): yang ditampilkan overlay. */
+  pace: number;
   /** Waktu CPU untuk satu frame (ms), rata-rata bergerak. */
   work: number;
   frames: number;
@@ -229,6 +232,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let raf = 0;
   let live = false;
   let last = 0;
+  /** Jam frame layar sebelumnya dan rata-rata jarak antar frame (ms), untuk overlay. */
+  let prev = 0;
+  let gap = 0;
   let n = 0;
   let work = 0;
   const born = performance.now();
@@ -236,8 +242,12 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     raf = requestAnimationFrame(tick);
     if (document.visibilityState === "hidden") {
       last = 0;
+      prev = 0;
       return;
     }
+    // laju layar: dihitung di tiap frame layar, juga yang sengaja tidak digambar saat diam
+    if (prev && ts - prev > 0 && ts - prev < 250) gap += (ts - prev - gap) * (gap ? 0.06 : 1);
+    prev = ts;
     n++;
     const c = hooks().probe();
     const now = performance.now();
@@ -260,6 +270,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     if (!measured) governor.rest(ts);
     stats.work = work;
     stats.fps = governor.fps();
+    stats.pace = gap ? 1000 / gap : 0;
     stats.capped = governor.capped();
     hooks().onStats?.();
     if (next) {
