@@ -18,7 +18,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 11 Nov 2026.
+Diperbarui 12 Nov 2026.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -36,8 +36,22 @@ Diperbarui 11 Nov 2026.
   - Apakah gaya tombol baru ikut dipakai di Today dan film.
 - [x] **4. Sesi per tab.** ✅ 11 Nov 2026. Keluhan host: browser sudah di-reset dan tab baru masih masuk tanpa kode. Keputusan host: kode diminta lagi di tiap tab atau browser baru; Today yang dipasang ke Home Screen tetap ingat supaya bisa offline. Rinciannya: `docs/design/decisions.md` bagian "Sesi per tab" dan `HANDOFF.md` bagian 1b.
 
-**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.**
+### Panggung 3D (arahan host 12 Nov 2026, prioritas tinggi)
+
+Kata host: "upgrade panggung 3D semaksimal mungkin", "step by step (output) per task/kerjaan", bebas teknologi, boleh remodel dan redesign asal tidak jauh dari konsep. Rincian dan status: `HANDOFF.md` bagian 0. Tiap tugas ditutup dengan output yang sudah dites, pratinjau ke host, commit + push, dan pembaruan `HANDOFF.md`.
+
+- [x] **5. Panggung 3D (React Three Fiber) + mesin film 3D.** ✅ 12 Nov 2026. Kanvas lazy hanya di `/film/`, shot kamera per slide yang mengikuti transisi, tier kualitas High/Medium/Low/Static, pemantau FPS, overlay FPS (`/film/?fps`), dan latar pertama (pendapa, blencong, lanskap sawah dan Lawu, langit yang mengikuti jam). Rinciannya: `docs/design/decisions.md` bagian "Panggung 3D, fondasi" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+  - **fps di perangkat nyata belum diukur** (sesi kerja tanpa GPU). Target ≥ 55 fps di HP flagship menunggu uji host lewat `/film/?fps`; kalau di bawah target, setel dulu sebelum Tugas 6.
+  - Video HP dan foto pratinjau belum dibuat (video desktop HD sudah dikirim).
+  - Belum diuji di Safari, iPhone, atau MacBook asli.
+- [ ] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi.
+- [ ] **7. Gunungan** sebagai gerbang sinematik dan sapuan antar bab.
+- [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
+- [ ] **9. Diorama Solo.**
+- [ ] **10. Lereng Lawu.**
+- [ ] **11. Canting dan kain mori.**
+- [ ] **12. Boarding pass 3D dengan fisika.**
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 
-Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 4.
+Sesudah daftar ini habis, tanya host sebelum lanjut.

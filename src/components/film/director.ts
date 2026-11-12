@@ -9,6 +9,7 @@ import { createSlideStore, type Dir, type SlideEffect, type SlideStore } from "@
 import { type Axis, bindInput } from "@/engine/slides/input";
 import type { LiveStore } from "@/engine/slides/live";
 import { Timeline } from "@/engine/slides/timeline";
+import type { Cursor } from "@/engine/stage/cue";
 import { type Plan, planTransition, scrubSpan } from "./transitions";
 
 export type FilmView = Readonly<{ index: number; moving: { from: number; to: number } | null }>;
@@ -74,6 +75,13 @@ export class Director {
 
   get index() {
     return this.store.get().index;
+  }
+
+  /** Letak film saat ini untuk panggung 3D: slide asal, tujuan, dan kemajuan transisi (sumber waktu yang sama dengan DOM). */
+  cursor(): Cursor {
+    const s = this.store.get();
+    if (s.to === null) return { from: s.index, to: s.index, p: 0 };
+    return { from: s.index, to: s.to, p: this.timeline?.progress() ?? s.progress };
   }
 
   step(dir: Dir) {

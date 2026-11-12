@@ -19,6 +19,7 @@ import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
+import { StageMount, type StagePhase } from "./StageMount";
 import { HILLS, hillShift, sunPlace } from "./transitions";
 
 type State = { kind: "loading" } | TripLoad;
@@ -190,6 +191,9 @@ function Stage({ data }: { data: TripView }) {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const filmNow = useRef(film);
   const director = useRef<Director | null>(null);
+  const [stage, setStage] = useState<StagePhase>("off");
+  /** Letak film untuk panggung 3D: sumber waktu yang sama dengan transisi DOM. */
+  const probe = useCallback(() => director.current?.cursor() ?? { from: initial, to: initial, p: 0 }, [initial]);
 
   // sutradara dibuat setelah panggung terpasang: ia membangun lintasan transisi dari DOM
   useEffect(() => {
@@ -297,6 +301,7 @@ function Stage({ data }: { data: TripView }) {
       data-calm={calm ? "" : undefined}
       data-moving={view.moving ? "" : undefined}
       data-sheet={sheet ? "" : undefined}
+      data-stage={stage === "off" ? undefined : stage}
       data-theme={slide?.theme}
       data-kind={slide?.kind}
       data-slide={slide?.id}
@@ -322,6 +327,7 @@ function Stage({ data }: { data: TripView }) {
         ))}
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
+      <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} />
       <div className="fl-grain" aria-hidden="true" />
       <LiveContext value={live}>
         <div className="fl-stage">

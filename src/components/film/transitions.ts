@@ -10,6 +10,7 @@ import { DEPTH, type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
 import { type Film, galleryDrift, transitionKind } from "@/engine/slides/build-slides";
 import { SKY_LAYERS, type SkyKey, skyPath, type SunState } from "@/engine/slides/sky";
 import type { Key, Track } from "@/engine/slides/timeline";
+import { SKY_WINDOW } from "@/engine/stage/cue";
 
 export type Plan = {
   kind: "slide" | "inner" | "wipe" | "fade";
@@ -131,8 +132,7 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   const inn = layerOf(root, b.scene);
 
   // ---- langit & matahari: mengikuti jam slide (gallery) atau crossfade antar langit tetap ----
-  const window: Record<Plan["kind"], readonly [number, number]> = { slide: [0.08, 0.86], inner: [0, 1], wipe: [0.44, 0.56], fade: [0, 1] };
-  tracks.push(...skyTracks(root, skyPath(a, b), window[kind], kind === "fade", [galleryDrift(a), galleryDrift(b)]));
+  tracks.push(...skyTracks(root, skyPath(a, b), SKY_WINDOW[kind], kind === "fade", [galleryDrift(a), galleryDrift(b)]));
 
   if (base === "inner" && out) {
     // rel kartu gallery bergeser dari kartu i ke kartu j
