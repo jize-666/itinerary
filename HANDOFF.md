@@ -5,6 +5,44 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 6: kemajuan (12 Nov sore)
+
+**Arahan host di sesi ini, kata demi kata, urut:**
+1. "baca tugas di handoff.md / remodel/redesign gong kan? kerjakan. / preview panggung 3D belum?"
+2. "update handoff.md lalu preview gong nya, pas di tabuh juga. (output)" (dikirim saat langkah 2 sedang dites). Artinya: berkas ini diperbarui dulu, lalu video pratinjau gong yang juga memperlihatkan gong ditabuh. Jadi pukulan (langkah 3) dikerjakan sekarang, sebelum video direkam.
+
+| Langkah | Isi | Status |
+|---|---|---|
+| 1 | Mesin murni + tes unit | **selesai** |
+| 2 | Badan gong, gayor, naga, tabuh di panggung | **selesai**, sudah di-commit (`e3cacd5`) |
+| 3 | Pukulan (otomatis saat tiba di slide gong + klik, tap, Enter), efek, bunyi | **sedang dikerjakan** |
+| 4 | Momen prolog: kepingan bara berkumpul menjadi gong | belum |
+| 5 | Batara Kala dan keris di puncak gayor | belum |
+| 6 | Ukur, dokumen, PR saat host meminta | sebagian (lihat di bawah) |
+
+**Yang selesai (langkah 1–2).**
+- `src/engine/stage/gong.ts` (murni): ukuran rakitan, profil badan gong, garis waktu pukulan (sikap tabuh per saat), ayunan bandul, dengung, panas bara, kilatan, riak, napas api, denyut jantung.
+- `src/components/film/stage3d/gong.ts`: badan perunggu tempa (bekas tempa, garis bubut, patina, pencu mengilap, jantung bara berdenyut), gayor berlak merah dengan ukiran prada, dua naga bersisik dengan rahang menganga, tali dan cincin gantungan, tabuh yang digantung di cantolan tiang kanan. **Tiga draw call, tanpa tekstur.** Bahan dibedakan di shader lewat atribut `aTag`.
+- Bayangan gong dan gayor di lantai dihitung di shader lantai (`GONG_SHADOW`, dipakai `pendapa.ts`), tanpa shadow map.
+- Saat 3D hidup: cakram gong CSS (prolog dan slide penutup hari) tidak digambar; tombol pukul tetap ada sebagai bidang sentuh di atas gong; teks penutup hari turun ke bawah gong (`film.css`). Shot slide gong disetel ulang (`shots.ts`).
+- Kamera pratinjau: `window.__lakonStage.cam = [x, y, z, lihatX, lihatY, lihatZ, fov]`.
+- Perekam punya tur `gong` (`scripts/preview/record-film.cjs`).
+- Keputusan desain dan beda dari prototipe: `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
+
+**Hasil tes (langkah 1–2).**
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (260 tes; 15 baru di `tests/unit/gong.test.ts`), `pnpm build` lulus.
+- `pnpm test:e2e`: 183 lulus, 13 dilewati (sama dengan sebelumnya). Empat tes e2e baru untuk gong di `e2e/stage.spec.ts` (× desktop dan iPhone = 8) lulus saat dijalankan sendiri; belum dijalankan bersama seluruh suite.
+- Beban di prolog, tier High (dari overlay): 22 draw call, ±51,5 ribu segitiga (sebelum gong: 19 dan ±26 ribu). Saat kamera memandang lanskap, gong tidak digambar. `measure-stage.cjs` belum dijalankan ulang.
+- Hanya dilihat di Chromium tanpa GPU (desktop 1280×720 dan iPhone tiruan). **Belum diuji di perangkat nyata**; HP host tidak punya banyak ruang di atas Medium, jadi perlu dicek dengan `/film/?fps` sesudah merge.
+
+**Kendala dan catatan.**
+- Blencong tergantung ±1,7 m dari naga kiri: naga itu dan ujung kiri palang sangat terang. Kilap lak sudah dibatasi; kalau masih mengganggu, pilihannya menggeser blencong (mengubah latar Tugas 5).
+- Di HP tegak, gayor kecil di prolog dan judul menutup palang.
+- Kepala naga dari sangat dekat masih kasar (bola-bola yang dipipihkan); dari jarak kamera film tidak terlihat.
+- Pukulan belum tersambung: tombol di slide gong hanya menaikkan `data-struck`.
+
+**Langkah berikutnya.** Langkah 3 (pukulan), lalu video pratinjau gong termasuk saat ditabuh, lalu perbarui berkas ini lagi.
+
 ### Keadaan saat sesi ditutup (12 Nov, sesudah merge PR #7)
 
 **Arahan host yang terakhir, kata demi kata, urut:**

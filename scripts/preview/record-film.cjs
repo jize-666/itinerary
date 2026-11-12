@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
-// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong).
+// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D dari semua sisi
+// (prolog, kamera mengitari gong, lalu slide gong penutup Hari 1).
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -100,6 +101,18 @@ const fs = require('fs');
     await key('ArrowDown', 2800); // panel pertama: naik ke atas lanskap
     for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2500); // subuh → siang → senja → malam
     await w(2600); // gong penutup hari
+    await finish();
+    return;
+  }
+
+  if (tour === 'gong') {
+    await w(3000); // prolog: gong ageng di tengah pendapa
+    await key('ArrowDown', 3200); // pembuka: kamera mengitari gong ke kanan
+    await key('ArrowDown', 3000); // intro: mundur, seluruh pendapa
+    await key('ArrowDown', 3000); // fakta 1: dari sisi kiri
+    await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 4200); // lompat ke Hari 2: sapuan kayon
+    await key('ArrowUp', 4400); // mundur ke gong penutup Hari 1
+    await w(2400);
     await finish();
     return;
   }

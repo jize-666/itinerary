@@ -316,6 +316,29 @@ Tugas 5 di `CLAUDE.md`: kanvas, mesin film 3D, tier kualitas, pemantau FPS, dan 
 
 **Yang belum diketahui.** fps di perangkat nyata. Sesi kerja tidak punya GPU, jadi target ≥ 55 fps di HP flagship hanya bisa diukur host dengan membuka `/film/?fps`. Belum diuji di Safari, iPhone, atau MacBook.
 
+## Gong ageng 3D di panggung (12 Nov 2026), arahan host: "remodel/redesign gong kan? kerjakan", "per tugas output dulu, step by step"
+
+Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–2 (mesin dan model); pukulan, bunyi, kepingan bara, dan Batara Kala menyusul dan ditambahkan di sini saat selesai.
+
+**Acuan dan yang diubah.** Bentuk dan perilakunya mengikuti prototipe "Gong Murka" yang disetujui host 8 Nov (`prototypes/gong/scene.js`): profil badan (pencu, leher, dua punggung recep, pundak, bau), gayor berlak merah dengan dua naga prada di ujung palang, tabuh berbantal kain, jantung bara di pencu. Cara menggambarnya ditulis ulang: prototipe memakai bahan bawaan three, tekstur kanvas 2048 px, bayangan dinamis, dan ±69 ribu segitiga hanya untuk badan gong.
+
+**Tiga draw call, tanpa tekstur.** Badan gong satu jala (52 titik profil × 88 juring, ±14 ribu segitiga); gayor, kedua naga, tali, cincin, dan cantolan satu jala; tabuh satu jala. Bahan (lak, prada, sisik, tulang, bara, tali, kayu, kain) dibedakan di shader lewat atribut `aTag`, bukan lewat material terpisah. Tambahan beban: ±25 ribu segitiga dan 3 draw call, hanya saat gong terlihat; saat kamera memandang lanskap (gallery) gong ada di belakang kamera dan tidak digambar (dijaga e2e).
+
+**Perunggu.** Semua detail dihitung di shader dari letak di muka gong: bekas tempa (sel Voronoi, kemiringannya dihitung langsung tanpa cuplikan tambahan), garis bubut di pencu dan punggung recep, patina kehijauan di tempat yang jarang tersentuh, pencu dan punggung recep yang mengilap karena sering tergosok. Detail yang lebih kecil dari satu piksel dipudarkan supaya tidak berkedip saat kamera bergerak. Karena langit malam nyaris hitam, pantulan logam tidak diambil dari langit saja: `stageEnv` menghitung lingkungan dari langit, lantai yang disinari blencong, dan pendar di sekitar arah lampu.
+
+**Bayangan tanpa shadow map.** Shader lantai memotong sinar dari tiap titik lantai ke blencong dengan bidang gayor; di bidang itu rakitan cukup diwakili bentuk 2D (cakram gong, dua tiang, palang, dua naga). Tepi bayangan makin lembut makin jauh jatuhnya. Biayanya beberapa operasi per piksel lantai, sama di semua tier.
+
+**Yang diubah dari prototipe, dan alasannya.**
+- **Tabuh digantung di cantolan tiang kanan**, tegak. Di prototipe tabuh melayang miring di udara; di adegan film itu terbaca sebagai benda yang lupa ditaruh. Saat dipukul tabuh lepas dari cantolan dan diayun dari titik yang sama dengan prototipe.
+- **Poros ayun gong di sisi bawah palang**, tempat talinya diikat, jadi tali dan gong berayun sebagai satu benda. Di prototipe porosnya di tengah tali dan talinya diam. Simpangan di pusat gong dipertahankan (±3,8 cm); periodenya 1,8 dtk (prototipe 1,6) karena bandulnya lebih panjang.
+- **Gelang naga digambar shader** (sisik prada berselang gelang lak), bukan cincin geometri: lebih hemat dan tepinya tetap tajam.
+- **Gigi bawah naga berdiri di rahangnya.** Di prototipe gigi itu melayang di bawah rahang (tidak terlihat dari jarak prototipe).
+- **Kamera tidak bergetar saat pukulan**, sesuai revisi audit host 8 Nov.
+
+**Lapisan DOM.** Saat 3D hidup, cakram gong CSS di prolog dan di slide penutup hari tidak digambar. Tombol pukul (`.fs-strike`) tetap ada untuk keyboard dan screen reader, menjadi bidang sentuh di atas gong, dan teks penutup hari turun ke bawah gong. Film 2,5D (Static, Calm, reduced motion) tidak berubah.
+
+**Kamera pratinjau.** `window.__lakonStage.cam = [x, y, z, lihatX, lihatY, lihatZ, fov]` memaksa kamera, untuk memotret detail dari dekat. Hanya dipakai skrip pratinjau.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

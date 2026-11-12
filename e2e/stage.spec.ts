@@ -187,6 +187,59 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
   });
 });
 
+test.describe("gong ageng 3D", () => {
+  test("gong 3D menggantikan cakram gong CSS; tanpa 3D cakram CSS tetap digambar", async ({ page }) => {
+    await open3d(page);
+    await expect(page.locator(".fs-hero .fs-gong")).toBeHidden();
+    await nextFrames(page);
+    const s = (await stats(page))!;
+    // prolog: gong, gayor, dan tabuh ada di layar (±25 ribu segitiga, tiga draw call di atas latar)
+    expect(s.triangles).toBeGreaterThan(40_000);
+    expect(s.triangles).toBeLessThan(60_000);
+    expect(s.calls).toBeLessThanOrEqual(26);
+  });
+
+  test("film 2,5D: cakram gong CSS tetap ada", async ({ page }) => {
+    await open(page, "?stage=static");
+    await expect(page.locator(".fs-hero .fs-gong")).toBeVisible();
+  });
+
+  test("memandang lanskap: gong di belakang kamera tidak digambar", async ({ page }) => {
+    await open3d(page);
+    await nextFrames(page);
+    const front = (await stats(page))!;
+    await page.goto("/film/?stage=low#day-1");
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await settled(page);
+    await step(page); // intro hari
+    await step(page); // panel pertama: kamera di tepi belakang pendapa, memandang Lawu
+    await expect(film(page)).toHaveAttribute("data-kind", "panel");
+    await nextFrames(page);
+    const vista = (await stats(page))!;
+    expect(vista.triangles).toBeLessThan(front.triangles - 20_000);
+    expect(vista.calls).toBeLessThan(front.calls);
+  });
+
+  test("slide gong: tombol pukul tetap bisa dipakai lewat keyboard dan klik, teks berada di bawah gong", async ({ page }) => {
+    await open3d(page, "?stage=low", "#day-2");
+    await step(page, "ArrowUp"); // gong penutup Hari 1
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    const strike = page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+    await expect(strike).toBeVisible();
+    await expect(strike).toHaveAccessibleName(/gong/i);
+    await expect(strike.locator(".fs-gong")).toBeHidden();
+    // bidang sentuh di atas gong (paruh atas layar); teks penutup hari di bawahnya
+    const [hit, text, view] = [await strike.boundingBox(), await page.locator(".fl-layer[data-pos='cur'] .fs-gongclose .fs-kicker").boundingBox(), page.viewportSize()!];
+    expect(hit!.y + hit!.height / 2).toBeLessThan(view.height * 0.5);
+    expect(text!.y).toBeGreaterThan(hit!.y + hit!.height / 2);
+    await strike.focus();
+    await page.keyboard.press("Enter");
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await strike.click();
+    await expect(strike).toHaveAttribute("data-struck", "2");
+  });
+});
+
 test.describe("bundle 3D hanya dimuat saat dipakai", () => {
   /** Kumpulkan isi semua JS yang dimuat halaman; three dikenali dari nama kelas penggambarnya. */
   async function loadsThree(page: Page, go: () => Promise<void>) {
