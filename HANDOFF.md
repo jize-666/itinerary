@@ -61,10 +61,17 @@ Urutan kerja yang direncanakan, tiap langkah dirender dan dicek dulu:
 5. Batara Kala di puncak gayor.
 6. Ukur, video pratinjau yang mulus, dokumen, lalu PR saat host meminta.
 
-**Yang perlu diputuskan host sebelum atau selama Tugas 6** (jangan diputuskan sendiri):
-- **Batara Kala dan keris.** Di prototipe figur wayangnya digambar ke kanvas lalu dipakai sebagai tekstur (±200 baris), dan kerisnya model 3D tersendiri (±150 baris). Panggung produksi sejauh ini tanpa tekstur. Pilihan: tetap pakai gambar kanvas sebagai satu tekstur (paling setia pada yang disetujui), atau ditunda ke langkah sesudah gong dan pukulan selesai. Keris kemungkinan besar perlu langkah sendiri.
-- **Pukulan otomatis.** Usul Claude: gong dipukul sendiri saat tamu tiba di slide gong penutup hari (dengan bunyi bila suara menyala), dan bisa dipukul lagi dengan klik/tap/Enter. Slide hero hanya menampilkan gong terbentuk dari kepingan bara, tanpa pukulan.
-- **Tier awal iPhone.** Tetap mulai dari Medium (keadaan sekarang, penyebabnya belum dipastikan) atau dipaksa mulai dari High. HP host sempat turun satu anak tangga di Medium, jadi High kemungkinan terlalu berat.
+**Keputusan host atas tiga hal yang tadinya menunggu (12 Nov), kata demi kata:**
+"point 1; ikut tugas 6, tapi per tugas output dulu. jadi step by step.
+point 2; ya setuju. otomatis dan manual
+point 3; paksa ke high."
+
+Artinya:
+1. **Batara Kala dan keris ikut Tugas 6**, tetapi dikerjakan bertahap: tiap langkah di "Urutan kerja" di atas ditutup dengan output (video pratinjau) ke host dulu, baru lanjut ke langkah berikutnya. Jangan mengerjakan seluruh Tugas 6 sekaligus.
+2. **Pukulan gong otomatis dan manual.** Gong dipukul sendiri saat tamu tiba di slide gong penutup hari (dengan bunyi bila suara menyala), dan bisa dipukul lagi dengan klik, tap, atau Enter.
+3. **Tier awal dipaksa ke High.** Belum dikerjakan. Yang harus diubah: aturan di `guessTier` (`src/engine/stage/tier.ts`) yang menurunkan High ke Medium bila browser melaporkan ≤ 4 inti, beserta tes unitnya di `tests/unit/stage.test.ts`. Sebelum mengubah, pastikan dulu apakah aturan itu memang penyebab HP host mulai di Medium (belum dibuktikan). Pengatur FPS tetap berlaku: kalau High terlalu berat, ia menurunkannya sendiri. Sesudah diubah, minta host cek lagi dengan `/film/?fps`.
+
+Ketiganya baru dicatat, belum ada yang dikerjakan: arahan yang berlaku tetap "video pratinjau dulu, lalu output dan berhenti".
 
 **Kata host (12 Nov, sesudah merge PR #6), prioritas tinggi:** "mesin film; panggung 3D React Three Fiber (target ≥ 55 fps di HP flagship); gong (buat jadi 3D); gunungan sebagai gerbang sinematik; benang emas (remodel/design) dan siklus waktu; diorama Solo, Lawu, dan canting; boarding pass 3D dengan fisika. Bebas menggunakan bahasa/pemrograman apa, yang penting hasil maksimal/lebih bagus dari sebelumnya. Boleh remodel, redesign, asal tidak jauh dari konsep. Intinya upgrade panggung 3D semaksimal mungkin. Step by step (output) per task/kerjaan."
 
