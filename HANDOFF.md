@@ -11,7 +11,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 | # | Tugas | Acuan | Status |
 |---|---|---|---|
-| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **sedang dikerjakan**: kode dasar ditulis, belum dirender dan belum dites (lihat di bawah) |
+| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **sedang dikerjakan**: tersambung dan terender, tes unit lulus; e2e, ukuran, dan pratinjau belum (lihat di bawah) |
 | 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
 | 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
 | 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
@@ -33,7 +33,9 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - `director.ts` mendapat `cursor()`: sumber waktu yang sama untuk DOM dan 3D.
 - Bagian three.js, di `src/components/film/stage3d/` (dimaksudkan sebagai bundle lazy): uniform dan GLSL bersama, kubah langit (gradien, matahari, bulan, bintang), lanskap (terasering, lampu desa di malam hari, kabut), pendapa (lantai kawung emas, empat saka, blandar), blencong (wadah, nyala, berkas cahaya), debu emas, rantai post (HDR, bloom, ACES, dither), dan `Stage3D.tsx` (kanvas R3F dengan loop sendiri yang berhenti saat tab tersembunyi).
 
-**Status sebenarnya.** `pnpm typecheck` dan `pnpm lint` lulus. Empat galat `react-hooks/immutability` hilang sesudah dunia, loop, dan gambar per frame dipindah dari komponen React ke `stage3d/runtime.ts`; `Stage3D.tsx` tinggal memasang kanvas dan mengganti tier. Selain itu belum ada yang dibuktikan: kanvas **belum disambung ke `Film.tsx`**, shader **belum pernah dirender**, belum ada tes unit atau e2e untuk kode baru, belum ada pratinjau. Film yang berjalan masih 2,5D persis seperti di `main`.
+**Status sebenarnya (12 Nov, tengah sesi).** Kanvas sudah tersambung ke film lewat `StageMount.tsx` dan sudah dirender di Chromium sesi ini (WebGL2 lewat SwiftShader, tier dipaksa dengan `?stage=high`): semua shader terkompilasi, 26 slide data tiruan tergambar di desktop dan HP tegak. `pnpm typecheck`, `pnpm lint`, dan `pnpm test` (245 tes, 34 di antaranya baru di `tests/unit/stage.test.ts`) lulus. **Belum:** e2e untuk 3D, `pnpm build` + `pnpm test:e2e` penuh, ukuran bundle dan angka kerja per frame, pratinjau ke host, `docs/design/decisions.md`.
+
+Yang ditemukan dan diperbaiki saat render pertama: kata tercadang GLSL (`patch`), sisi jala lanskap terbalik (lanskap tidak tergambar), `smoothstep` dengan dua batas sama di sisi tegak (bintik acak), nyala blencong berbentuk kotak, debu terlalu besar, kabut menutup seluruh lanskap. Yang ditambahkan: petak sawah (sebagian tergenang dan memantulkan langit), lampu desa sebagai titik (`stage3d/village.ts`), balok tumpang sari tempat blencong digantung, gradien langit yang direntang per shot (`skyStretch`) supaya tepi atas layar tetap gelap seperti film 2,5D.
 
 **Keputusan yang sudah tertanam di kode.**
 - Calm dan reduced motion → tanpa WebGL, film 2,5D yang sekarang.
@@ -42,9 +44,9 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Gallery untuk sementara memakai satu lanskap umum; diorama per bab menyusul di Tugas 9–11.
 
 **Sisa Tugas 5, urut.**
-1. `StageMount.tsx` (muat lazy, tebak tier, paksa tier lewat `?stage=high|medium|low|static`, overlay `?fps`, jatuh ke 2,5D bila gagal) + sambungan di `Film.tsx` + CSS kanvas.
-2. Render pertama di Chromium sesi ini, perbaiki shader, setel komposisi tiap shot di desktop dan HP, pastikan teks tetap terbaca.
-3. Tes unit (tier, pengatur FPS, shot, suasana, cue, tanah) dan e2e (3D hidup, kamera berpindah per slide, Calm dan perangkat tanpa GPU tetap 2,5D, home dan Today tidak memuat three).
+1. ~~`StageMount.tsx` + sambungan di `Film.tsx` + CSS kanvas.~~ Selesai.
+2. ~~Render pertama, perbaiki shader, setel komposisi tiap shot di desktop dan HP.~~ Selesai untuk Chromium tanpa GPU; perangkat asli menunggu uji host.
+3. Tes unit selesai; e2e (3D hidup, kamera berpindah per slide, Calm dan perangkat tanpa GPU tetap 2,5D, home dan Today tidak memuat three) belum.
 4. Ukur draw call, segitiga, waktu CPU per frame, dan ukuran bundle 3D; skrip `scripts/preview/measure-stage.cjs`.
 5. Pratinjau foto dan video ke host, bagian "Panggung 3D" di `docs/design/decisions.md`, perbarui berkas ini dan `CLAUDE.md`, commit + push.
 

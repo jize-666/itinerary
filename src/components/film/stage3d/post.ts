@@ -89,7 +89,9 @@ void main() {
   // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim)
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
   float vig = 1.0 - 0.42 * smoothstep(0.28, 0.82, length(q));
-  c *= uExposure * vig * (1.0 - 0.5 * uDim);
+  // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
+  vig *= 1.0 - 0.38 * smoothstep(0.3, 0.0, vUv.y);
+  c *= uExposure * vig * (1.0 - uDim);
   c = aces(c);
   c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
   c += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;

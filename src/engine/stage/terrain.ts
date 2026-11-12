@@ -81,3 +81,31 @@ export function terrainHeight(x: number, z: number, shape: TerrainShape = TERRAI
   const ends = 1 - 0.8 * Math.max(Math.exp(-0.5 * ((az + 0.95 * half) / (0.14 * half)) ** 2), Math.exp(-0.5 * ((az - 0.95 * half) / (0.14 * half)) ** 2)) * smooth(200, 420, r);
   return y + rim * ends + lawu;
 }
+
+/** Letak lampu: beberapa dusun (gugus rapat) dan lampu lepas di antaranya. Deterministik. */
+export function villageLights(count: number): { position: Float32Array; seed: Float32Array } {
+  let s = 20261112;
+  const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.87;
+  const position = new Float32Array(count * 3);
+  const seed = new Float32Array(count * 3);
+  let n = 0;
+  const put = (x: number, z: number) => {
+    if (n >= count) return;
+    position.set([x, terrainHeight(x, z) + 2.2, z], n * 3);
+    seed.set([rand(), rand(), rand()], n * 3);
+    n++;
+  };
+  while (n < count) {
+    // pusat dusun: di dataran, di luar bukit pendapa
+    const r = 48 + 400 * Math.sqrt(rand());
+    const a = rand() * Math.PI * 2;
+    const [cx, cz] = [r * Math.sin(a), -r * Math.cos(a)];
+    const spread = 4 + rand() * 11;
+    const houses = 4 + Math.floor(rand() * 16);
+    for (let i = 0; i < houses; i++) put(cx + gauss() * spread, cz + gauss() * spread);
+    // satu-dua lampu lepas di jalan menuju dusun
+    put(cx + gauss() * 40, cz + gauss() * 40);
+  }
+  return { position, seed };
+}

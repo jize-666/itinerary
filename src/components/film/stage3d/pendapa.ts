@@ -7,7 +7,8 @@ import { BoxGeometry, type BufferGeometry, CylinderGeometry, Group, Mesh, Shader
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { COMMON, type Shared } from "./shared";
 
-export const PENDAPA = { half: 4.7, pillar: 3.5, height: 4.4 } as const;
+/** `cross` = letak balok tumpang sari (±x dan ±z) yang menyilang di antara blandar; blencong digantung di salah satu silangannya. */
+export const PENDAPA = { half: 4.7, pillar: 3.5, height: 4.4, cross: 1.7 } as const;
 
 const VERT = /* glsl */ `
 varying vec3 vWorld;
@@ -37,26 +38,30 @@ void main() {
 
   // kawung: lingkaran di titik kisi dan di tengah petak, saling mengunci; garis emas tipis
   vec2 uv = vWorld.xz / 0.92;
-  float w = fwidth(uv.x) * 1.3;
+  // lebar tepi garis ≥ sedikit di atas nol: di sisi tegak turunannya nol, dan smoothstep dengan dua batas sama tak terdefinisi
+  float w = max(max(fwidth(uv.x), fwidth(uv.y)) * 1.3, 0.002);
   float d = min(abs(length(fract(uv) - 0.5) - 0.5), abs(length(fract(uv + 0.5) - 0.5) - 0.5));
-  float line = smoothstep(0.03 + w, 0.03, d);
+  float line = smoothstep(0.02 + w, 0.02, d);
   // titik di tengah tiap kelopak
   vec2 q = fract(uv * 2.0 + 0.5) - 0.5;
-  float dot4 = smoothstep(0.07 + w, 0.07, length(q));
+  float dot4 = smoothstep(0.055 + w, 0.055, length(q));
   // bingkai tepi lantai
   float edge = max(abs(vWorld.x), abs(vWorld.z));
   float band = smoothstep(0.02 + w, 0.02, abs(edge - 4.42)) + smoothstep(0.012 + w, 0.012, abs(edge - 4.3));
   float gold = clamp(max(line, dot4 * 0.8) * step(edge, 4.3) + band, 0.0, 1.0) * top;
 
   vec3 goldCol = vec3(0.78, 0.55, 0.2);
-  vec3 albedo = mix(stone, goldCol * 0.35, gold);
+  // pola memudar di kejauhan dan di sudut landai, supaya lantai tidak ramai di belakang teks
+  float calm = 1.0 - 0.75 * smoothstep(5.0, 16.0, length(cameraPosition - vWorld));
+  gold *= calm;
+  vec3 albedo = mix(stone, goldCol * 0.2, gold);
   vec3 col = albedo * diffuseLight(n, vWorld);
 
   // batu dipoles: memantulkan langit di sudut landai, emas berkilat
   float fres = pow(1.0 - max(dot(n, v), 0.0), 5.0);
   vec3 refl = skyColor(reflect(-v, n));
-  col += refl * mix(0.03 + 0.5 * fres, 0.5, gold) * mix(vec3(1.0), goldCol, gold) * top;
-  col += specLight(n, v, vWorld, mix(90.0, 46.0, gold)) * mix(vec3(0.25), goldCol * 1.6, gold);
+  col += refl * mix(0.02 + 0.32 * fres, 0.26, gold) * mix(vec3(1.0), goldCol, gold) * top;
+  col += specLight(n, v, vWorld, mix(90.0, 46.0, gold)) * mix(vec3(0.2), goldCol * 1.1, gold);
 
   // bayangan kontak di kaki saka
   vec2 pc = abs(vWorld.xz) - 3.5;
@@ -81,7 +86,7 @@ void main() {
   vec3 stone = vec3(0.05, 0.05, 0.07) * (0.7 + 0.6 * fbm(vWorld.xy * 6.0));
 
   // gelang emas dan lung-lungan (sulur bergelombang) di badan saka
-  float w = fwidth(y) * 1.5;
+  float w = max(fwidth(y) * 1.5, 0.002);
   float rings = 0.0;
   rings += smoothstep(0.035 + w, 0.035, abs(y - 0.62));
   rings += smoothstep(0.02 + w, 0.02, abs(y - 0.74));
@@ -135,6 +140,11 @@ export function createPendapa(shared: Shared) {
   for (const s of [-1, 1]) {
     parts.push(at(new BoxGeometry(span, 0.4, 0.3), 0, h, s * p));
     parts.push(at(new BoxGeometry(0.3, 0.4, span), s * p, h, 0));
+  }
+  // tumpang sari: empat balok ramping yang menyilang, membingkai langit di atas gong
+  for (const s of [-1, 1]) {
+    parts.push(at(new BoxGeometry(span - 0.3, 0.26, 0.2), 0, h + 0.02, s * PENDAPA.cross));
+    parts.push(at(new BoxGeometry(0.2, 0.26, span - 0.3), s * PENDAPA.cross, h + 0.02, 0));
   }
   const woodGeo = mergeGeometries(parts);
   const woodMat = new ShaderMaterial({ uniforms: { ...shared }, vertexShader: VERT, fragmentShader: WOOD_FRAG });

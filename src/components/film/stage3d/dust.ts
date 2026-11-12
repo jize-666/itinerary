@@ -26,9 +26,12 @@ void main() {
   vec3 dl = uLampPos - wp;
   float lamp = dot(uLampColor, vec3(0.33)) / (1.0 + 0.5 * dot(dl, dl));
   float life = smoothstep(0.0, 0.08, p.y) * smoothstep(1.0, 0.86, p.y);
-  vLight = (lamp * 0.9 + 0.035 * dot(uAmbSky, vec3(0.33)) + 0.012) * life * smoothstep(0.35, 1.2, dist);
+  vLight = (lamp * 0.42 + 0.014 * dot(uAmbSky, vec3(0.33)) + 0.003) * life * smoothstep(0.35, 1.2, dist);
   vSeed = aSeed.w;
-  gl_PointSize = clamp(uPixel * (0.012 + 0.02 * aSeed.w) / dist, 1.0, 14.0);
+  // butir kecil: 1–4 px; yang lebih kecil dari satu piksel digambar satu piksel dengan terang diturunkan
+  float size = uPixel * (0.0022 + 0.004 * aSeed.w * aSeed.w) / dist;
+  vLight *= min(1.0, size * size);
+  gl_PointSize = clamp(size, 1.0, 4.0);
 }`;
 
 const FRAG = /* glsl */ `

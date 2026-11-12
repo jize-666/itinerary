@@ -15,6 +15,8 @@ export type Shared = {
   uWarm: IUniform<number>;
   uSunScale: IUniform<number>;
   uStars: IUniform<number>;
+  /** Pengali ketinggian pada gradien langit: tepi atas layar selalu jatuh di bagian gelap gradien (lihat skyStretch di shots.ts). */
+  uSkyStretch: IUniform<number>;
   uKeyDir: IUniform<Vector3>;
   uKeyColor: IUniform<Color>;
   uAmbSky: IUniform<Color>;
@@ -36,11 +38,12 @@ export function createShared(): Shared {
     uWarm: { value: 0 },
     uSunScale: { value: 1 },
     uStars: { value: 1 },
+    uSkyStretch: { value: 1 },
     uKeyDir: { value: new Vector3(-0.4, 0.8, -0.45).normalize() },
     uKeyColor: { value: new Color(0, 0, 0) },
     uAmbSky: { value: new Color(0, 0, 0) },
     uAmbGround: { value: new Color(0, 0, 0) },
-    uLampPos: { value: new Vector3(-1.7, 2.75, 2.1) },
+    uLampPos: { value: new Vector3(-1.7, 2.75, 1.7) },
     uLampColor: { value: new Color(0, 0, 0) },
     uFogColor: { value: new Color(0, 0, 0) },
     uFogDensity: { value: 0.01 },
@@ -59,6 +62,7 @@ uniform float uSunDisc;
 uniform float uWarm;
 uniform float uSunScale;
 uniform float uStars;
+uniform float uSkyStretch;
 uniform vec3 uKeyDir;
 uniform vec3 uKeyColor;
 uniform vec3 uAmbSky;
@@ -81,14 +85,14 @@ float fbm(vec2 p) { float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a
 
 /* Warna langit menurut arah pandang: gradien cakrawala → zenit + pendar di sekitar matahari. */
 vec3 skyColor(vec3 dir) {
-  float e = pow(asin(clamp(dir.y, 0.0, 1.0)) * 0.63662, 0.45);
+  float e = pow(min(asin(clamp(dir.y, 0.0, 1.0)) * 0.63662 * uSkyStretch, 1.0), 0.45);
   vec3 c = mix(uSky[0], uSky[1], smoothstep(0.0, ${S1.toFixed(2)}, e));
   c = mix(c, uSky[2], smoothstep(${S1.toFixed(2)}, ${S2.toFixed(2)}, e));
   c = mix(c, uSky[3], smoothstep(${S2.toFixed(2)}, ${S3.toFixed(2)}, e));
   c = mix(c, uSky[4], smoothstep(${S3.toFixed(2)}, 1.0, e));
   float d = max(dot(dir, uSunDir), 0.0);
   vec3 tint = mix(vec3(1.0, 0.93, 0.78), vec3(1.0, 0.5, 0.2), uWarm);
-  float halo = pow(d, 18.0) * 0.22 + pow(d, 160.0) * 0.7;
+  float halo = pow(d, 26.0) * 0.14 + pow(d, 420.0) * 0.5;
   c += tint * halo * uSunDisc * (0.5 + uWarm);
   return c;
 }
@@ -120,11 +124,13 @@ vec3 specLight(vec3 n, vec3 v, vec3 wp, float shininess) {
   return (lamp * a * step(0.0, dot(n, L)) + uKeyColor * b * step(0.0, dot(n, uKeyDir))) * (shininess + 8.0) * 0.0398;
 }
 
-/* Kabut: dekat memakai warna kabut, jauh melebur ke warna langit di cakrawala arah itu (tak ada garis sambungan). */
+/* Kabut: dekat memakai warna kabut, jauh melebur ke warna langit di cakrawala arah itu (tak ada garis sambungan).
+   Menipis ke atas: puncak yang menjulang dari dataran tetap tampak sebagai siluet. */
 vec3 applyFog(vec3 c, vec3 wp) {
   vec3 v = wp - cameraPosition;
   float d = length(v);
-  float f = 1.0 - exp(-uFogDensity * d);
+  float thin = mix(0.3, 1.0, exp(-max(wp.y + 9.0, 0.0) * 0.035));
+  float f = 1.0 - exp(-uFogDensity * d * thin);
   vec3 dir = v / max(d, 1e-4);
   vec3 far = skyColor(normalize(vec3(dir.x, 0.012, dir.z)));
   return mix(c, mix(uFogColor, far, smoothstep(30.0, 420.0, d)), f);

@@ -12,3 +12,5 @@ supabase/.temp/
 .publish/
 .secrets.local.md
 __pycache__/
+# dibuat otomatis oleh `next dev`
+AGENTS.md

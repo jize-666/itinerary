@@ -24,6 +24,8 @@ export type Shot = Readonly<{
   focus: number;
   /** Rumpun shot: orbit mengitari pusat panggung, vista memandang lanskap. Menentukan cara berpindah. */
   rig: "orbit" | "vista";
+  /** Pengali ketinggian pada gradien langit (lihat `skyStretch`). */
+  sky: number;
 }>;
 
 const RAD = Math.PI / 180;
@@ -35,6 +37,18 @@ const dist = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b
 export const STAGE_CENTER: Vec3 = [0, 1.5, 0];
 /** Tempat kamera berdiri saat memandang lanskap, dan sejauh apa ia bergeser sepanjang satu hari di gallery. */
 export const VISTA = { y: 1.7, z: -5.2, travel: 3.4, far: 60 } as const;
+
+/**
+ * Film 2,5D membentangkan gradien langit dari tepi bawah ke tepi atas layar. Kamera 3D hanya melihat sebagian
+ * kecil langit (di gallery ±10° di atas cakrawala), jadi ketinggian pada gradien dikalikan supaya tepi atas
+ * layar selalu jatuh di ±`SKY_TOP` derajat: langit gelap di atas, terang di cakrawala, pada shot apa pun.
+ */
+const SKY_TOP = 38;
+export function skyStretch(pos: Vec3, look: Vec3, fov: number): number {
+  const pitch = Math.asin(clamp((look[1] - pos[1]) / (dist(pos, look) || 1), -1, 1));
+  const top = pitch / RAD + fov / 2;
+  return clamp(SKY_TOP / Math.max(top, 1), 1, 5);
+}
 
 type Orbit = { az: number; el: number; r: number; look?: Vec3; fov: number; lamp?: number; dim?: number; /** Lebar adegan (m) yang harus muat mendatar. */ width?: number };
 
@@ -48,6 +62,9 @@ export function fitFov(fov: number, aspect: number): number {
   return Math.min(56, fov * Math.pow(widen, 0.55));
 }
 
+/** Layar tegak: titik pandang shot orbit dinaikkan sekian × jarak × (1 − aspek). */
+const PORTRAIT_TILT = 0.2;
+
 /** Sudut lensa mendatar (rad) dari sudut vertikal (derajat) dan bentuk layar. */
 export const hfovOf = (fov: number, aspect: number) => 2 * Math.atan(Math.tan((fov * RAD) / 2) * aspect);
 
@@ -59,7 +76,9 @@ function orbitShot(o: Orbit, aspect: number): Shot {
   const r = Math.max(o.r, need);
   const [az, el] = [o.az * RAD, o.el * RAD];
   const pos: Vec3 = [look[0] + r * Math.sin(az) * Math.cos(el), Math.max(0.35, look[1] + r * Math.sin(el)), look[2] + r * Math.cos(az) * Math.cos(el)];
-  return { pos, look, fov, lamp: o.lamp ?? 1, dim: o.dim ?? 0, focus: dist(pos, look), rig: "orbit" };
+  // layar tegak: kamera mendongak sedikit, supaya lantai tidak memenuhi separuh layar di belakang teks
+  const aim: Vec3 = [look[0], look[1] + PORTRAIT_TILT * r * clamp(1 - aspect, 0, 0.6), look[2]];
+  return { pos, look: aim, fov, lamp: o.lamp ?? 1, dim: o.dim ?? 0, focus: dist(pos, look), rig: "orbit", sky: skyStretch(pos, aim, fov) };
 }
 
 /**
@@ -73,7 +92,7 @@ function vistaShot(v: { drift: number; horizon: number; fov: number; lift?: numb
   const pitch = Math.atan(v.horizon * Math.tan((fov * RAD) / 2));
   const pos: Vec3 = [x, VISTA.y + (v.lift ?? 0), VISTA.z];
   const look: Vec3 = [x * 0.35, pos[1] + VISTA.far * Math.tan(pitch), VISTA.z - VISTA.far];
-  return { pos, look, fov, lamp: v.lamp ?? 0.25, dim: v.dim ?? 0, focus: 40, rig: "vista" };
+  return { pos, look, fov, lamp: v.lamp ?? 0.25, dim: v.dim ?? 0, focus: 40, rig: "vista", sky: skyStretch(pos, look, fov) };
 }
 
 /** Lensa dan tinggi kamera gallery; dipakai juga untuk menaruh matahari di langit (`sunDirection`). */
@@ -103,27 +122,27 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
     case "hero":
       return orbitShot({ az: 0, el: -2, r: 7.4, look: [0, 1.62, 0], fov: 34, lamp: 1.25, width: GONG_WIDTH }, aspect);
     case "headline":
-      return orbitShot({ az: 32, el: 2, r: 5.6, fov: 36, lamp: 1.1, dim: 0.18, width: GONG_WIDTH * 0.8 }, aspect);
+      return orbitShot({ az: 32, el: 2, r: 5.6, fov: 36, lamp: 1.1, dim: 0.08, width: GONG_WIDTH * 0.8 }, aspect);
     case "intro":
-      return orbitShot({ az: -38, el: 8, r: 9.5, look: [0, 1.4, 0], fov: 38, lamp: 0.9, dim: 0.22, width: 6 }, aspect);
+      return orbitShot({ az: -22, el: 8, r: 9.5, look: [0, 1.4, 0], fov: 38, lamp: 0.9, dim: 0.1, width: 6 }, aspect);
     case "fact": {
       // tiap fakta satu sudut baru: kamera melangkah mengitari panggung dari kiri ke kanan
       const t = slide.of > 1 ? (slide.n - 1) / (slide.of - 1) : 0.5;
       const swing = Math.sin(Math.PI * t);
-      return orbitShot({ az: lerp(-66, 66, t), el: 5 + 7 * (1 - swing), r: 6.4 - 1.5 * swing, look: [lerp(0.5, -0.5, t), 1.45, 0], fov: 37, lamp: 0.95, dim: 0.26, width: 3 }, aspect);
+      return orbitShot({ az: lerp(-58, 58, t), el: 5 + 7 * (1 - swing), r: 6.4 - 1.5 * swing, look: [lerp(0.5, -0.5, t), 1.45, 0], fov: 37, lamp: 0.95, dim: 0.12, width: 3 }, aspect);
     }
     case "route":
-      // dari atas pendapa, memandang ke timur: nanti diorama Solo dan benang emas digambar di sini
-      return { ...vistaShot({ drift: 0.5, horizon: -0.18, fov: 42, lift: 3.6, lamp: 0.5, dim: 0.2 }, aspect), pos: [-1.8, 5.6, 5.4] };
+      // dari tepi belakang pendapa, tinggi di atas dataran: nanti diorama Solo dan benang emas digambar di sini
+      return vistaShot({ drift: 0.5, horizon: -0.18, fov: 42, lift: 5.2, lamp: 0.5, dim: 0.1 }, aspect);
     case "team":
-      return orbitShot({ az: 18, el: 3, r: 4.6, look: [-0.5, 1.5, 0], fov: 34, lamp: 1.3, dim: 0.3, width: 2.6 }, aspect);
+      return orbitShot({ az: 18, el: 3, r: 4.6, look: [-0.5, 1.5, 0], fov: 34, lamp: 1.3, dim: 0.15, width: 2.6 }, aspect);
     case "phrases":
-      return orbitShot({ az: -24, el: 6, r: 4.9, look: [0.4, 1.6, 0], fov: 35, lamp: 1.2, dim: 0.3, width: 2.6 }, aspect);
+      return orbitShot({ az: -24, el: 6, r: 4.9, look: [0.4, 1.6, 0], fov: 35, lamp: 1.2, dim: 0.15, width: 2.6 }, aspect);
     case "daycard":
       return vistaShot({ drift: 0.72, horizon: 0.3, fov: 40, lift: 0.5, dim: 0.16 }, aspect);
     case "title":
       // gunungan ditancapkan di depan panggung: simetris, rendah, khidmat
-      return orbitShot({ az: 0, el: -4, r: 6.6, look: [0, 1.75, 2.4], fov: 30, lamp: 1.4, width: 3 }, aspect);
+      return orbitShot({ az: 0, el: -4, r: 6.6, look: [0, 1.75, 2.4], fov: 30, lamp: 1.4, dim: 0.06, width: 3 }, aspect);
     case "dayintro":
       return vistaShot({ drift: 0, horizon: 0.36, fov: 42, dim: 0.14 }, aspect);
     case "panel":
@@ -132,12 +151,12 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
     case "gong":
       return orbitShot({ az: -20, el: -6, r: 4.3, look: [0, 1.28, 0], fov: 32, lamp: 1.5, dim: 0.12, width: GONG_WIDTH * 0.72 }, aspect);
     case "epilogue":
-      return orbitShot({ az: 0, el: 14, r: 11, look: [0, 1.8, 0], fov: 36, lamp: 0.8, dim: 0.2, width: 7 }, aspect);
+      return orbitShot({ az: 0, el: 14, r: 11, look: [0, 1.8, 0], fov: 36, lamp: 0.8, dim: 0.12, width: 7 }, aspect);
     case "pass":
       return orbitShot({ az: 0, el: 0, r: 6, look: [0, 2.2, 0], fov: 30, lamp: 1, dim: 0.1, width: 2.4 }, aspect);
     case "credits":
-      // mendongak ke bintang
-      return { ...vistaShot({ drift: 0.5, horizon: 1.5, fov: 46, lamp: 0.4, dim: 0.25 }, aspect), pos: [0, 3.4, 9] };
+      // mendongak ke bintang, membelakangi pendapa
+      return vistaShot({ drift: 0.5, horizon: 1.5, fov: 46, lamp: 0.4, dim: 0.1 }, aspect);
   }
 }
 
@@ -157,7 +176,7 @@ export function blendShot(a: Shot, b: Shot, p: number, kind: TransitionKind): Sh
   if (kind === "wipe") return p < 0.5 ? a : b;
   const t = kind === "inner" ? p : smoother(p);
   const look: Vec3 = [lerp(a.look[0], b.look[0], t), lerp(a.look[1], b.look[1], t), lerp(a.look[2], b.look[2], t)];
-  const num = { fov: lerp(a.fov, b.fov, t), lamp: lerp(a.lamp, b.lamp, t), dim: lerp(a.dim, b.dim, t), focus: lerp(a.focus, b.focus, t) };
+  const num = { fov: lerp(a.fov, b.fov, t), lamp: lerp(a.lamp, b.lamp, t), dim: lerp(a.dim, b.dim, t), focus: lerp(a.focus, b.focus, t), sky: lerp(a.sky, b.sky, t) };
   let pos: Vec3;
   if (kind !== "inner" && a.rig === "orbit" && b.rig === "orbit") {
     // koordinat bola terhadap titik pandang masing-masing: sudut ditempuh lewat jalan terpendek

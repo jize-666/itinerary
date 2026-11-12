@@ -20,6 +20,7 @@ import { StagePost } from "./post";
 import { createShared } from "./shared";
 import { createSky, MOON_DIR } from "./sky";
 import { createTerrain } from "./terrain";
+import { createVillage } from "./village";
 
 /** Angka yang dibaca overlay FPS, tes, dan skrip ukur. */
 export type StageStats = {
@@ -86,7 +87,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const pendapa = createPendapa(shared);
   const blencong = createBlencong(shared, spec.bloom >= 4);
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
-  const nodes = [terrain.mesh, pendapa.group, blencong.group, dust.points, sky.mesh];
+  const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
+  const nodes = [terrain.mesh, pendapa.group, blencong.group, village.points, dust.points, sky.mesh];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
   gl.info.autoReset = false;
@@ -123,7 +125,10 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       terrain.reshape(shape);
     }
   };
+  /** Kanvas baru saja berganti ukuran (isinya terhapus): frame berikutnya wajib digambar walau sedang diam. */
+  let stale = true;
   const resize = () => {
+    stale = true;
     gl.getDrawingBufferSize(buf);
     post.setSize(Math.max(1, buf.x), Math.max(1, buf.y));
   };
@@ -160,6 +165,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       u.uNight.value = (1 - s.dawn) * (1 - s.day) * (1 - 0.7 * s.dusk);
     }
     shared.uTime.value = t;
+    shared.uSkyStretch.value = shot.sky;
     // nyala blencong: kuatnya dari suasana × shot, bergetar pelan
     const flicker = 0.9 + 0.06 * Math.sin(t * 9.1) + 0.04 * Math.sin(t * 23.7 + 1.3);
     const lamp = mood.lamp * shot.lamp;
@@ -183,7 +189,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     camera.updateMatrixWorld();
 
     gl.getDrawingBufferSize(buf);
-    dust.setPixel(buf.y / Math.tan((camera.fov * Math.PI) / 360));
+    const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
+    dust.setPixel(pixel);
+    village.setPixel(pixel);
     gl.info.reset();
     post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t });
 
@@ -232,7 +240,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const c = hooks().probe();
     const now = performance.now();
     const active = c.to !== c.from || now - pointer.at < 900 || now - born < 1500;
-    if (!active && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
+    if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
+    stale = false;
     const dt = last ? ts - last : 0;
     last = ts;
     const t0 = performance.now();
@@ -268,6 +277,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     pendapa.dispose();
     blencong.dispose();
     dust.dispose();
+    village.dispose();
     post.dispose();
   };
   return { update, layout, resize, dispose };

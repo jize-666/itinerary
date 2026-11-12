@@ -193,12 +193,57 @@ html.film-on body {
     bottom / 100% 100% no-repeat;
 }
 
+/* ---- panggung 3D (StageMount → stage3d/Stage3D): satu kanvas WebGL di atas langit 2,5D, di bawah grain dan teks ----
+   Kanvas memudar masuk begitu frame pertamanya tergambar ([data-stage="live"]); sesudah penuh ([data-stage="on"])
+   langit 2,5D di bawahnya tidak digambar lagi. Ukurannya tetap dihitung: lintasan matahari 3D diukur dari
+   .fl-sunbox. Tanpa atribut = film 2,5D (tier Static). */
+.fl-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 900ms linear;
+}
+
+.fl-canvas canvas {
+  display: block;
+}
+
+.film[data-stage] .fl-canvas {
+  opacity: 1;
+}
+
+.film[data-stage="on"] .fl-skies {
+  visibility: hidden;
+}
+
+/* vinyet sudah dikerjakan rantai post kanvas: di atasnya cukup grain */
+.film[data-stage="on"] .fl-grain {
+  background: var(--fl-grain-tex);
+}
+
+/* overlay FPS (?fps): hanya untuk uji */
+.fl-fps {
+  position: absolute;
+  z-index: 40;
+  left: max(10px, env(safe-area-inset-left));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  margin: 0;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgb(4 5 12 / 0.72);
+  color: #d8f3c2;
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre;
+}
+
 /* grain film + vignette: statis */
 .fl-grain {
+  --fl-grain-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .96  0 0 0 0 .86  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
   z-index: 3;
   background:
     radial-gradient(120% 90% at 50% 46%, transparent 56%, rgb(4 5 12 / 0.62) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .96  0 0 0 0 .86  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+    var(--fl-grain-tex);
 }
 
 /* ---- panggung & lapisan slide ---- */

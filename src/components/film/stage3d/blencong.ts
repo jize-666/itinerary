@@ -49,16 +49,20 @@ ${COMMON}
 uniform float uGlow;
 varying vec2 vUv;
 void main() {
-  vec2 p = (vUv - vec2(0.5, 0.22)) * vec2(2.0, 1.0);
+  // nyala kecil (±17 cm) di tengah bidang; sisanya ruang untuk pendar, yang habis sebelum tepi bidang
+  vec2 c = vUv - vec2(0.5, 0.28);
+  vec2 p = c * vec2(2.0, 1.0) * 3.4;
   float t = uTime;
   // lidah api: lebar di bawah, runcing dan bergoyang di atas
   float sway = (vnoise(vec2(t * 3.1, p.y * 3.0)) - 0.5) * 0.5 * smoothstep(0.0, 0.7, p.y);
   float width = 0.2 * (1.0 - smoothstep(-0.05, 0.62 + 0.1 * vnoise(vec2(t * 5.0, 1.0)), p.y)) + 0.012;
-  float body = smoothstep(width, width * 0.25, abs(p.x - sway * 0.25)) * smoothstep(-0.12, -0.02, p.y);
+  float body = smoothstep(width, width * 0.25, abs(p.x - sway * 0.25)) * smoothstep(-0.12, -0.02, p.y) * step(p.y, 0.9);
   vec3 flame = mix(vec3(1.0, 0.32, 0.05), vec3(1.0, 0.86, 0.5), smoothstep(0.1, 0.9, body)) * body * 7.0;
   // pendar lembut di sekeliling nyala
-  float halo = exp(-dot(p * vec2(1.0, 0.85), p * vec2(1.0, 0.85)) * 6.0) * 0.7 + exp(-dot(p, p) * 1.3) * 0.12;
-  vec3 col = (flame + vec3(1.0, 0.55, 0.2) * halo * 1.4) * uGlow;
+  vec2 h = vUv - vec2(0.5, 0.34);
+  float edge = smoothstep(0.5, 0.2, length(vUv - 0.5));
+  float halo = (exp(-dot(h, h) * 90.0) * 0.55 + exp(-dot(h, h) * 14.0) * 0.07) * edge;
+  vec3 col = (flame + vec3(1.0, 0.55, 0.2) * halo) * uGlow;
   gl_FragColor = vec4(col, 1.0);
 }`;
 
@@ -84,11 +88,14 @@ void main() {
   vec3 n = normalize(vNormal);
   vec3 v = normalize(cameraPosition - vWorld);
   // tepi kerucut memudar (dilihat menyamping), makin jauh dari lampu makin tipis
-  float rim = pow(abs(dot(n, v)), 1.6);
-  float fade = smoothstep(0.0, 0.12, vAlong) * pow(1.0 - vAlong, 1.4);
+  float rim = pow(abs(dot(n, v)), 2.4);
+  float fade = smoothstep(0.0, 0.12, vAlong) * pow(1.0 - vAlong, 1.8);
   float dust = 0.6 + 0.4 * fbm(vWorld.xy * 2.6 + vec2(uTime * 0.05, -uTime * 0.08));
-  gl_FragColor = vec4(vec3(1.0, 0.6, 0.3) * rim * fade * dust * 0.16 * uGlow, 1.0);
+  gl_FragColor = vec4(vec3(1.0, 0.6, 0.3) * rim * fade * dust * 0.055 * uGlow, 1.0);
 }`;
+
+/** Panjang rantai: dari wadah sampai sisi bawah balok tumpang sari (lihat pendapa.ts). */
+const CHAIN = 1.62;
 
 export function createBlencong(shared: Shared, withShaft: boolean) {
   const group = new Group();
@@ -108,8 +115,9 @@ export function createBlencong(shared: Shared, withShaft: boolean) {
   ].map(([x, y]) => new Vector2(x, y));
   const bodyGeo = mergeGeometries([
     new LatheGeometry(profile, 28),
-    new CylinderGeometry(0.008, 0.008, 4, 5).translate(0.17, 2, 0),
-    new CylinderGeometry(0.008, 0.008, 4, 5).translate(-0.17, 2, 0),
+    // rantai ke balok tumpang sari di atasnya
+    new CylinderGeometry(0.008, 0.008, CHAIN, 5).translate(0.17, CHAIN / 2, 0),
+    new CylinderGeometry(0.008, 0.008, CHAIN, 5).translate(-0.17, CHAIN / 2, 0),
     new CylinderGeometry(0.012, 0.012, 0.36, 6).rotateZ(Math.PI / 2).translate(0, 0.02, 0),
   ]);
   const bodyMat = new ShaderMaterial({ uniforms: { ...shared }, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, side: DoubleSide });
@@ -120,7 +128,7 @@ export function createBlencong(shared: Shared, withShaft: boolean) {
   group.add(body);
 
   const flameMat = new ShaderMaterial({
-    uniforms: { ...shared, uGlow, uSize: { value: 1.3 } },
+    uniforms: { ...shared, uGlow, uSize: { value: 0.9 } },
     vertexShader: FLAME_VERT,
     fragmentShader: FLAME_FRAG,
     blending: AdditiveBlending,
@@ -139,7 +147,7 @@ export function createBlencong(shared: Shared, withShaft: boolean) {
   if (withShaft) {
     // kerucut cahaya dari lampu ke lantai di depan gong
     const len = 3.6;
-    const cone = new CylinderGeometry(0.05, 1.5, len, 40, 1, true).translate(0, -len / 2, 0);
+    const cone = new CylinderGeometry(0.05, 1.15, len, 40, 1, true).translate(0, -len / 2, 0);
     shaftMat = new ShaderMaterial({
       uniforms: { ...shared, uGlow },
       vertexShader: SHAFT_VERT,
@@ -152,7 +160,7 @@ export function createBlencong(shared: Shared, withShaft: boolean) {
     const shaft = new Mesh(cone, shaftMat);
     shaft.position.copy(lamp);
     // condong ke pusat panggung
-    shaft.rotation.set(-0.52, 0, -0.44);
+    shaft.rotation.set(0.52, 0, 0.44);
     shaft.updateMatrix();
     shaft.matrixAutoUpdate = false;
     shaft.renderOrder = 19;

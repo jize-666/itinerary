@@ -55,16 +55,16 @@ void main() {
     col += st * uStars * above * (0.35 + 0.65 * smoothstep(0.0, 0.4, dir.y));
     // bulan: cakram kecil berpendar, redup bersama bintang
     float m = dot(dir, uMoonDir);
-    float disc = smoothstep(0.99962, 0.99974, m);
+    float disc = smoothstep(0.99980, 0.99988, m);
     float shade = 0.82 + 0.18 * vnoise(dir.xy * 90.0);
-    col += vec3(0.82, 0.88, 1.0) * (disc * shade * 2.6 + pow(max(m, 0.0), 420.0) * 0.35 + pow(max(m, 0.0), 40.0) * 0.05) * uStars;
+    col += vec3(0.82, 0.88, 1.0) * (disc * shade * 1.5 + pow(max(m, 0.0), 900.0) * 0.16 + pow(max(m, 0.0), 60.0) * 0.03) * uStars;
   }
 
   // cakram matahari: putih hangat di atas, jingga dan membesar di dekat cakrawala
   float sd = dot(dir, uSunDir);
   float rad = 0.0165 * uSunScale;
   float sun = smoothstep(rad * rad * 1.2, rad * rad * 0.82, 2.0 * (1.0 - sd));
-  vec3 sunCol = mix(vec3(14.0, 13.0, 10.5), vec3(11.0, 5.6, 2.2), uWarm);
+  vec3 sunCol = mix(vec3(6.0, 5.6, 4.5), vec3(4.6, 1.9, 0.6), uWarm);
   col += sunCol * sun * uSunDisc;
 
   gl_FragColor = vec4(col, 1.0);

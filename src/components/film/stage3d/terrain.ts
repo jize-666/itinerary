@@ -1,6 +1,7 @@
 /**
  * Lanskap: satu jala polar berpusat di pendapa (rapat di dekat, renggang di jauh), tinggi dari
- * `terrainHeight`. Shader menggambar terasering sawah, hutan lereng, lampu desa di malam hari, dan kabut.
+ * `terrainHeight`. Shader menggambar petak sawah (sebagian tergenang), terasering, hutan lereng, dan kabut.
+ * Lampu desa ada di village.ts.
  */
 import { BufferAttribute, BufferGeometry, Mesh, ShaderMaterial } from "three";
 import { TERRAIN, terrainHeight, type TerrainShape } from "@/engine/stage/terrain";
@@ -36,7 +37,8 @@ export function terrainGeometry(shape: TerrainShape): BufferGeometry {
     for (let j = 0; j < SPOKES; j++) {
       const a = i * (SPOKES + 1) + j;
       const b = a + SPOKES + 1;
-      index.set([a, b, a + 1, a + 1, b, b + 1], n);
+      // sisi atas = sisi depan (berlawanan arah jarum jam dilihat dari atas)
+      index.set([a, a + 1, b, a + 1, b + 1, b], n);
       n += 6;
     }
   }
@@ -71,35 +73,42 @@ void main() {
   float high = smoothstep(-4.0, 26.0, vWorld.y);
 
   // dasar: sawah di dataran, hutan di lereng, batu di puncak
-  float patch = fbm(vWorld.xz * 0.035);
-  vec3 sawah = mix(vec3(0.045, 0.085, 0.04), vec3(0.11, 0.13, 0.045), patch);
+  float plot = fbm(vWorld.xz * 0.035);
+  float flatness = (1.0 - smoothstep(0.015, 0.09, slope)) * (1.0 - smoothstep(0.0, 0.25, high));
+  // petak sawah: kisi miring yang sedikit meliuk; tiap petak lain umur padinya, sebagian tergenang
+  vec2 g = mat2(0.83, -0.56, 0.56, 0.83) * vWorld.xz / 12.0 + (fbm(vWorld.xz * 0.009) - 0.5) * 2.4;
+  vec2 gi = floor(g), gf = fract(g);
+  float gw = max(fwidth(g.x), fwidth(g.y));
+  float keep = flatness * (1.0 - smoothstep(0.18, 0.55, gw)); // rapat di kejauhan: melebur ke warna rata-rata
+  float age = hash21(gi);
+  float bund = 1.0 - smoothstep(0.02, 0.05 + gw, min(min(gf.x, 1.0 - gf.x), min(gf.y, 1.0 - gf.y)));
+  float flooded = step(age, 0.24) * keep;
+  vec3 padi = mix(vec3(0.03, 0.085, 0.022), vec3(0.14, 0.13, 0.032), smoothstep(0.24, 1.0, age));
+  vec3 sawah = mix(vec3(0.045, 0.085, 0.04), vec3(0.11, 0.13, 0.045), plot);
+  sawah = mix(sawah, padi, keep * 0.85);
+  sawah = mix(sawah, vec3(0.02, 0.028, 0.03), flooded * 0.85);
+  sawah *= 1.0 - 0.55 * bund * keep;
   vec3 hutan = mix(vec3(0.018, 0.045, 0.03), vec3(0.04, 0.075, 0.04), fbm(vWorld.xz * 0.09 + 4.0));
   vec3 batu = vec3(0.09, 0.085, 0.1);
   vec3 albedo = mix(sawah, hutan, clamp(high * 1.6 + smoothstep(0.02, 0.12, slope), 0.0, 1.0));
   albedo = mix(albedo, batu, smoothstep(0.55, 0.95, high) * 0.6);
 
   // terasering: garis kontur, memudar di kejauhan supaya tidak berkedip
-  float lines = fract(vWorld.y * 1.25 + patch * 2.0);
-  float w = fwidth(vWorld.y * 1.25) * 1.5 + 0.02;
-  float ter = smoothstep(w, 0.0, abs(lines - 0.5) - 0.02) * smoothstep(0.004, 0.03, slope) * (1.0 - smoothstep(60.0, 260.0, dist)) * (1.0 - high);
+  float lines = fract(vWorld.y * 1.25 + plot * 2.0);
+  // tebal garis ±0,2 m mendatar: dalam satuan tinggi ia menipis di lereng landai (kalau tidak, garisnya melebar jadi pita)
+  float half_ = 0.25 * sqrt(2.0 * slope);
+  float w = fwidth(vWorld.y * 1.25) * 1.5 + 0.004;
+  float ter = smoothstep(w, 0.0, abs(lines - 0.5) - half_) * smoothstep(0.004, 0.03, slope) * (1.0 - smoothstep(60.0, 260.0, dist)) * (1.0 - high);
   albedo *= 1.0 - 0.45 * ter;
 
   vec3 col = albedo * diffuseLight(n, vWorld);
-
-  // lampu desa: titik hangat di petak-petak dataran, hanya malam; ukurannya ikut jarak supaya tetap utuh
-  vec2 cell = vWorld.xz / 13.0;
-  vec2 id = floor(cell);
-  vec2 rnd = hash22(id);
-  float lit = step(0.83, hash21(id + 7.3)) * (1.0 - smoothstep(-7.5, -4.0, vWorld.y)) * smoothstep(34.0, 70.0, r) * (1.0 - smoothstep(330.0, 470.0, r));
-  float rad = 0.028 + dist * 0.00042;
-  float dl = length(fract(cell) - 0.25 - 0.5 * rnd);
-  float glow = smoothstep(rad, rad * 0.25, dl) + 0.18 * smoothstep(rad * 4.0, 0.0, dl);
-  float flick = 0.82 + 0.18 * sin(uTime * (1.3 + rnd.x * 2.0) + rnd.y * 40.0);
-  col += mix(vec3(1.0, 0.62, 0.26), vec3(1.0, 0.82, 0.5), rnd.x) * glow * lit * flick * uNight * 3.2;
+  // petak tergenang memantulkan langit
+  vec3 vd = v / max(dist, 1e-4);
+  col += skyColor(reflect(-vd, vec3(0.0, 1.0, 0.0))) * flooded * (1.0 - bund) * (0.1 + 0.5 * pow(1.0 - max(vd.y, 0.0), 4.0));
 
   // kabut lembah: lebih pekat di tanah rendah
   col = applyFog(col, vWorld);
-  float mist = (1.0 - exp(-dist * 0.004)) * exp(-max(vWorld.y - ${TERRAIN.plain.toFixed(1)}, 0.0) * 0.16) * 0.55;
+  float mist = (1.0 - exp(-dist * 0.004)) * exp(-max(vWorld.y - ${TERRAIN.plain.toFixed(1)}, 0.0) * 0.16) * 0.34 * (0.55 + 0.9 * fbm(vWorld.xz * 0.012 + vec2(uTime * 0.004, 0.0)));
   col = mix(col, uFogColor * 1.15, mist * (1.0 - 0.6 * uNight));
 
   gl_FragColor = vec4(col, 1.0);
