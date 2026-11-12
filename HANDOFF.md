@@ -41,13 +41,13 @@ Sudah, dan sudah dibuktikan di sesi ini:
 - `pnpm lint`, `pnpm typecheck`, `pnpm test` (245 tes; 34 baru di `tests/unit/stage.test.ts`), `pnpm content:check`, `pnpm build`, dan `pnpm test:e2e` (183 lulus, 13 dilewati seperti sebelumnya) lulus pada commit terakhir.
 - e2e baru `e2e/stage.spec.ts`, 14 tes × desktop dan iPhone: tanpa GPU / `?stage=static` / reduced motion / Calm tetap 2,5D; Calm dimatikan → kanvas kembali; kanvas tergambar dan bukan bidang kosong; kamera pindah per slide dan kembali saat mundur; kamera gallery bergeser per panel; CSP produksi tidak memblokir 3D dan tidak ada galat shader; overlay `?fps`; gerbang dan Today tidak memuat three.
 - Video HD desktop (1920×1080, tier High, 38 dtk, data tiruan) sudah dikirim ke host dan sudah ditonton frame demi frame: prolog, sapuan gunungan, satu hari di gallery (subuh → malam), gong. Tidak ada lompatan kamera atau frame kosong.
-- Ukuran (`scripts/preview/measure-stage.cjs`, desktop 1440×900 @2x, sebelum frame awal dipisahkan dari rata-rata):
+- Ukuran (`scripts/preview/measure-stage.cjs`, desktop 1440×900; ukuran kanvas dari jalanan @2x, draw call dan waktu CPU dari jalanan terakhir dengan `DPR=1`, sesudah tiga frame awal dikeluarkan dari rata-rata). Skrip menutup dengan "OK: CPU thread utama ≤ 1.33 ms per frame di semua tier":
 
   | Tier | Kanvas | Draw call | Segitiga | CPU thread utama per frame (diam) |
   |---|---|---|---|---|
-  | High | 2880×1800 | 15–19 | ±25 ribu | 0,5–1,8 ms |
-  | Medium | 2160×1350 | 13–17 | ±25 ribu | 0,5–1,8 ms |
-  | Low | 1440×900 | 11–14 | ±25 ribu | 0,5–0,9 ms |
+  | High | 2880×1800 | 15–19 | ±25 ribu | 0,5–1,3 ms |
+  | Medium | 2160×1350 | 13–17 | ±25 ribu | 0,5–1,2 ms |
+  | Low | 1440×900 | 11–14 | ±25 ribu | 0,4–0,9 ms |
 
   Bundle 3D (lazy, hanya di `/film/` saat 3D dipakai): **+943 KB mentah, +251 KB gzip** di atas film 2,5D (606 KB mentah, 188 KB gzip). Sebagian besar three; R3F mengimpor seluruh namespace three sehingga tidak bisa dipangkas.
 
@@ -55,7 +55,7 @@ Belum, atau belum dibuktikan:
 - **fps nyata tidak diketahui.** Sesi ini tanpa GPU. Target ≥ 55 fps di HP flagship menunggu uji host: buka film, lalu di tab yang sama ubah alamat jadi `/film/?fps`. Panduan lengkapnya sudah diberikan ke host di chat (baris pertama overlay = laju layar sekarang, `avg` = rata-rata 3 dtk pengatur tier, baris kedua = tier dan skala resolusi).
 - **Pratinjau branch tidak bisa login.** Backend hanya menerima origin produksi dan localhost (`DEFAULT_ORIGINS` di `supabase/functions/_shared/http.ts`), jadi gerbang di domain pratinjau Vercel menampilkan "No connection". Host memilih merge ke `main` daripada menambah secret `ALLOWED_ORIGINS`. Untuk branch berikutnya: uji perangkat sebelum merge butuh secret itu.
 - Video HP dan foto pratinjau belum dibuat (hanya video desktop).
-- Skrip ukur belum dijalankan di profil iPhone. Sesudah tiga frame awal (kompilasi shader) dikeluarkan dari rata-rata, skrip dijalankan ulang; hasilnya dicatat di bawah bila sudah ada.
+- Skrip ukur belum dijalankan di profil iPhone.
 - Belum diuji di Safari, iPhone, atau MacBook asli.
 
 Yang ditemukan dan diperbaiki saat render pertama: kata tercadang GLSL (`patch`), sisi jala lanskap terbalik (lanskap tidak tergambar), `smoothstep` dengan dua batas sama di sisi tegak (bintik acak), nyala blencong berbentuk kotak, debu terlalu besar, kabut menutup seluruh lanskap. Yang ditambahkan: petak sawah (sebagian tergenang dan memantulkan langit), lampu desa sebagai titik (`stage3d/village.ts`), balok tumpang sari tempat blencong digantung, gradien langit yang direntang per shot (`skyStretch`), tepi bawah gambar diturunkan supaya penanda bab terbaca. Rincian keputusan: `docs/design/decisions.md` bagian "Panggung 3D, fondasi".

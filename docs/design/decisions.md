@@ -312,7 +312,7 @@ Tugas 5 di `CLAUDE.md`: kanvas, mesin film 3D, tier kualitas, pemantau FPS, dan 
 - `?stage=high|medium|low|static` memaksa tier (pengatur hanya mengukur) dan `?fps` menampilkan overlay. Keduanya untuk uji.
 - Bayangan dinamis dan depth of field sudah punya tempat di spesifikasi tier tetapi **belum dipakai**; itu pekerjaan Tugas 8.
 
-**Angka terukur** (Chromium tanpa GPU, desktop 1440×900 @2x, `scripts/preview/measure-stage.cjs`): 11–19 draw call dan ±25 ribu segitiga per frame di semua slide; CPU thread utama 0,5–1,8 ms per frame saat diam. Bundle 3D menambah 943 KB mentah (251 KB gzip) di atas 606 KB (188 KB gzip) film 2,5D; sebagian besar three, yang tidak bisa dipangkas karena R3F mengimpor seluruh namespace-nya.
+**Angka terukur** (Chromium tanpa GPU, desktop 1440×900 @2x, `scripts/preview/measure-stage.cjs`): 11–19 draw call dan ±25 ribu segitiga per frame di semua slide; CPU thread utama 0,4–1,3 ms per frame saat diam (anggaran 60 fps: 16,7 ms). Bundle 3D menambah 943 KB mentah (251 KB gzip) di atas 606 KB (188 KB gzip) film 2,5D; sebagian besar three, yang tidak bisa dipangkas karena R3F mengimpor seluruh namespace-nya.
 
 **Yang belum diketahui.** fps di perangkat nyata. Sesi kerja tidak punya GPU, jadi target ≥ 55 fps di HP flagship hanya bisa diukur host dengan membuka `/film/?fps`. Belum diuji di Safari, iPhone, atau MacBook.
 
