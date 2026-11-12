@@ -11,7 +11,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 | # | Tugas | Acuan | Status |
 |---|---|---|---|
-| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | dikerjakan |
+| 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **sedang dikerjakan**: kode dasar ditulis, belum dirender dan belum dites (lihat di bawah) |
 | 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
 | 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
 | 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
@@ -19,6 +19,42 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 | 10 | Lereng Lawu | F6, Tugas 29 | belum |
 | 11 | Canting + kain mori | F6, Tugas 30 | belum |
 | 12 | Boarding pass 3D dengan fisika | F7, Tugas 32 | belum |
+
+### Kemajuan Tugas 5 (catatan 12 Nov, pekerjaan masih berjalan)
+
+**Yang sudah ditulis.**
+- Dependensi baru: `three` 0.187, `@react-three/fiber` 9.8.2, `@types/three`. Tanpa drei dan tanpa pustaka post-processing; rantai post ditulis sendiri supaya bundle kecil.
+- Mesin murni (tanpa DOM, tanpa three), di `src/engine/stage/`:
+  - `tier.ts`: tier High/Medium/Low/Static, tebakan tier awal dari GPU, dan pengatur FPS. Tangga 7 anak tangga (tiap tier punya resolusi penuh dan resolusi dikecilkan): rata-rata < 50 fps selama ±3 dtk → turun, stabil ≥ 58 fps → naik lagi dengan jeda. Layar 30 Hz (Low Power Mode) dikenali dan ambangnya dibagi dua.
+  - `shots.ts`: satu shot kamera per jenis slide, penyesuaian untuk layar tegak, dan perpindahan antar shot (mengitari panggung, melengkung melewati gayor, atau potong saat sapuan gunungan).
+  - `mood.ts`: keadaan langit film (`SkyState`) → warna langit, cahaya matahari/bulan, cahaya sekitar, kabut, bintang, kuat blencong.
+  - `cue.ts`: letak film (slide asal, tujuan, kemajuan transisi) → shot + langit. `SKY_WINDOW` sekarang dipakai bersama oleh `transitions.ts` (DOM) dan panggung 3D.
+  - `terrain.ts`: bentuk tanah (bukit pendapa, dataran, Gunung Lawu).
+- `director.ts` mendapat `cursor()`: sumber waktu yang sama untuk DOM dan 3D.
+- Bagian three.js, di `src/components/film/stage3d/` (dimaksudkan sebagai bundle lazy): uniform dan GLSL bersama, kubah langit (gradien, matahari, bulan, bintang), lanskap (terasering, lampu desa di malam hari, kabut), pendapa (lantai kawung emas, empat saka, blandar), blencong (wadah, nyala, berkas cahaya), debu emas, rantai post (HDR, bloom, ACES, dither), dan `Stage3D.tsx` (kanvas R3F dengan loop sendiri yang berhenti saat tab tersembunyi).
+
+**Status sebenarnya.** `pnpm typecheck` lulus. `pnpm lint` **masih gagal**: 4 galat aturan React (`react-hooks/immutability`) di `stage3d/Stage3D.tsx`, sedang diperbaiki. Selain itu belum ada yang dibuktikan: kanvas **belum disambung ke `Film.tsx`**, shader **belum pernah dirender**, belum ada tes unit atau e2e untuk kode baru, belum ada pratinjau. Film yang berjalan masih 2,5D persis seperti di `main`.
+
+**Keputusan yang sudah tertanam di kode.**
+- Calm dan reduced motion → tanpa WebGL, film 2,5D yang sekarang.
+- Renderer perangkat lunak (tanpa GPU) → otomatis Static.
+- Matahari 3D berada di titik layar yang sama dengan matahari 2,5D (diukur dari `.fl-sunbox`). Akibatnya kamera gallery memandang lanskap dari atas, dengan cakrawala tepat di atas kartu.
+- Gallery untuk sementara memakai satu lanskap umum; diorama per bab menyusul di Tugas 9–11.
+
+**Sisa Tugas 5, urut.**
+1. `StageMount.tsx` (muat lazy, tebak tier, paksa tier lewat `?stage=high|medium|low|static`, overlay `?fps`, jatuh ke 2,5D bila gagal) + sambungan di `Film.tsx` + CSS kanvas.
+2. Render pertama di Chromium sesi ini, perbaiki shader, setel komposisi tiap shot di desktop dan HP, pastikan teks tetap terbaca.
+3. Tes unit (tier, pengatur FPS, shot, suasana, cue, tanah) dan e2e (3D hidup, kamera berpindah per slide, Calm dan perangkat tanpa GPU tetap 2,5D, home dan Today tidak memuat three).
+4. Ukur draw call, segitiga, waktu CPU per frame, dan ukuran bundle 3D; skrip `scripts/preview/measure-stage.cjs`.
+5. Pratinjau foto dan video ke host, bagian "Panggung 3D" di `docs/design/decisions.md`, perbarui berkas ini dan `CLAUDE.md`, commit + push.
+
+### Rencana Tugas 6–12
+
+- **6, gong:** badan dari profil yang diputar, perunggu dengan pantulan langit, gayor dan naga, Batara Kala, pencu berdenyut, kepingan bara yang berkumpul. Pukulan lewat klik/tap/Enter dengan SFX `gong` (`AudioEngine.playSfx`). Tombol DOM tetap ada sebagai pemicu yang bisa dibaca screen reader; gong CSS (`.fs-gong`) disembunyikan saat 3D hidup.
+- **7, gunungan:** bentuk kayon yang sudah ada (`src/components/motion/kayon.ts`) dijadikan lembaran bertatah dengan ketebalan. Dipakai sebagai gerbang sesudah kode benar (bundle 3D baru dimuat sesudah kode benar) dan sebagai sapuan antar bab pengganti `.fl-wipe` di tier 3D. Sisi geni dan blencong yang mengikuti kursor.
+- **8, benang emas dan siklus waktu:** benang sebagai kurva ber-shader yang tergambar mengikuti kemajuan film. Siklus waktu 3D sebagian sudah masuk di Tugas 5 (langit, matahari, arah cahaya); sisanya grading per bab, depth of field di tier High, partikel per fase.
+- **9–11, diorama Solo, Lawu, canting:** data OSM dan DEM butuh akses jaringan; dicek saat tugasnya dimulai, dan bila diblokir host diminta membukanya. Cadangan: bentuk prosedural tanpa data luar.
+- **12, boarding pass:** fisika tali dan kartu ditulis sendiri (tanpa WASM) kecuali host mengizinkan `wasm-unsafe-eval` di CSP untuk Rapier.
 
 **Keputusan awal** (rinciannya ditulis di `docs/design/decisions.md` saat tugasnya selesai):
 - Film 2,5D yang sekarang menjadi tier **Static**: dipakai saat reduced motion, Calm, tanpa WebGL, dan selama bundle 3D dimuat. Tidak ada yang dibuang.
