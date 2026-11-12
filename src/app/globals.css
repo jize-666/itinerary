@@ -70,61 +70,6 @@ a {
   margin: 0;
 }
 
-.begin {
-  display: grid;
-  gap: 14px;
-  width: min(340px, 100%);
-}
-
-/* sambutan: pilihan menempel di bawah layar (pola baca HP), tiket tetap bisa di-scroll di belakang gradasi */
-.gate--welcome .begin {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-  isolation: isolate;
-  padding: 40px 0 calc(14px + env(safe-area-inset-bottom));
-  margin-bottom: calc(-24px - env(safe-area-inset-bottom));
-}
-
-.gate--welcome .begin::before {
-  content: "";
-  position: absolute;
-  inset: 0 -50vw;
-  z-index: -1;
-  background: linear-gradient(to bottom, transparent, var(--nila) 34px);
-  pointer-events: none;
-}
-
-/* satu tombol: ikon gong di kiri (padding 12), teks di tengah */
-.begin-btn .pb-face {
-  justify-content: center;
-  gap: 12px;
-  padding: 0 24px 0 12px;
-}
-
-.begin-ico {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgb(10 12 24 / 0.1);
-  box-shadow: inset 0 0 0 1px rgb(10 12 24 / 0.14);
-}
-
-.begin-main {
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: 0.01em;
-}
-
-/* toggle speaker sebelum mulai muncul bersama tombol, di kelompok kanan atas */
-.gate--welcome .sound-toggle {
-  animation: k-fadein 0.7s var(--ease-power3-out) 2.3s both;
-}
-
-/* ---- Toggle suara: tombol bulat 3D; menyala = tertekan & emas ---- */
 /* satu kelompok pengaturan di kanan atas: [suara] [EN|ID]; tidak lagi melayang menutupi isi halaman */
 .sound-toggle.pb {
   --h: 40px;
@@ -139,29 +84,8 @@ a {
   --ink: color-mix(in srgb, var(--mori) 62%, transparent);
 }
 
-.gate-head {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-}
-
 .gate-title--sm {
   font-size: clamp(40px, 8vw, 84px);
-}
-
-.gate-kicker {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--prada);
-}
-
-.gate-form {
-  display: grid;
-  justify-items: center;
-  gap: 16px;
-  width: 100%;
 }
 
 .gate-prompt {
@@ -170,149 +94,8 @@ a {
   opacity: 0.8;
 }
 
-.gate-msg {
-  margin: 0;
-  min-height: 3em;
-  max-width: 34ch;
-  font-size: 14px;
-  line-height: 1.45;
-  opacity: 0.85;
-}
-
-.gate-msg[data-error] {
-  color: color-mix(in srgb, var(--blencong) 80%, var(--mori));
-}
-
-.gate-hint {
-  opacity: 0.75;
-}
-
-/* kiri atas, sejajar toggle bahasa */
-.gate-switch.pb {
-  position: absolute;
-  top: calc(12px + env(safe-area-inset-top));
-  left: calc(16px + env(safe-area-inset-left));
-  z-index: 5;
-}
-
-@media (max-width: 359px) {
-  .gate-switch-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-
-  .gate-switch .pb-face {
-    width: var(--h);
-    padding: 0;
-  }
-}
-
 .film-link {
   width: min(320px, 100%);
-}
-
-/* ---- Kotak kode ---- */
-.code {
-  position: relative;
-  width: fit-content;
-  max-width: 100%;
-}
-
-.code-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  font-size: 16px; /* cegah zoom otomatis iOS */
-  border: 0;
-  padding: 0;
-  cursor: text;
-}
-
-.code-input:disabled {
-  cursor: progress;
-}
-
-.code-boxes {
-  display: flex;
-  align-items: center;
-  gap: clamp(4px, 1.4vw, 8px);
-}
-
-/* celah yang dipahat ke dalam (bayangan dalam di atas, bibir emas di bawah), huruf "diletakkan" ke dalamnya */
-.code-box {
-  --carve: inset 0 3px 6px rgb(0 0 0 / 0.6), inset 0 -1px 0 color-mix(in srgb, var(--prada) 34%, transparent), 0 1px 0 rgb(255 255 255 / 0.05);
-  display: grid;
-  place-items: center;
-  width: clamp(28px, 8.4vw, 44px);
-  height: clamp(40px, 11vw, 56px);
-  border-radius: 11px;
-  border: 1px solid color-mix(in srgb, var(--prada) 20%, transparent);
-  background: linear-gradient(180deg, #05060d, #10152e 78%);
-  box-shadow: var(--carve);
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: clamp(17px, 4.6vw, 22px);
-  transition: border-color 0.2s;
-}
-
-.code-box[data-filled] {
-  border-color: color-mix(in srgb, var(--prada) 60%, transparent);
-  color: #f6e6c2;
-}
-
-.code-box[data-active] {
-  border-color: var(--prada);
-  box-shadow:
-    var(--carve),
-    0 0 0 3px color-mix(in srgb, var(--prada) 22%, transparent);
-}
-
-.code-box[data-active]::after {
-  content: "";
-  width: 2px;
-  height: 45%;
-  background: var(--prada);
-  animation: caret 1s steps(1) infinite;
-}
-
-.code:focus-within .code-box[data-active] {
-  outline: none;
-}
-
-.code-input:disabled + .code-boxes {
-  opacity: 0.55;
-}
-
-.code-sep {
-  width: 8px;
-  height: 2px;
-  background: color-mix(in srgb, var(--mori) 35%, transparent);
-}
-
-
-@keyframes caret {
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes shake {
-  20%,
-  80% {
-    transform: translateX(-2px);
-  }
-  35%,
-  65% {
-    transform: translateX(5px);
-  }
-  50% {
-    transform: translateX(-6px);
-  }
 }
 
 /* ---- Toggle bahasa: sakelar segmen 3D di pojok kanan atas ---- */
@@ -411,11 +194,6 @@ a {
   outline-offset: 2px;
 }
 
-/* nama tamu: ditulis canting emas (lihat .k-canting) */
-.gate-name {
-  color: var(--prada);
-}
-
 /* ---- Gerbang: undangan pribadi ---- */
 .gate {
   position: relative;
@@ -423,33 +201,7 @@ a {
   padding-top: calc(64px + env(safe-area-inset-top)); /* bebas dari toggle bahasa */
 }
 
-.gate--welcome {
-  gap: clamp(16px, 3vh, 30px);
-}
-
-.gate--welcome .gate-title {
-  font-size: clamp(44px, 11vw, 108px);
-}
-
-.gate-head--invite {
-  position: relative;
-  isolation: isolate;
-}
-
 /* pendar blencong (token loop.blencong: 2,4 dtk bolak-balik, opacity 0,55, skala 1,08) */
-.gate-head--invite::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  top: 58%;
-  width: min(560px, 120vw);
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--blencong) 20%, transparent) 0%, transparent 62%);
-  animation: blencong 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-  pointer-events: none;
-}
 
 @keyframes blencong {
   from {
@@ -463,27 +215,6 @@ a {
 }
 
 /* benang emas turun dari atas layar ke undangan */
-.gate-thread {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 10px);
-  width: 1px;
-  height: 100vh;
-  background: linear-gradient(to top, var(--prada), transparent 85%);
-  animation: thread-in 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transform-origin: bottom;
-}
-
-.gate-thread::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: -3px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--prada);
-}
 
 @keyframes thread-in {
   from {
@@ -1121,249 +852,7 @@ a {
   }
 }
 
-/* blencong berkedip selama bayang lahir di gerbang */
-.gate-head--invite::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  top: 60%;
-  width: min(420px, 100vw);
-  height: 180px;
-  translate: -50% -50%;
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--blencong) 34%, transparent), transparent 70%);
-  pointer-events: none;
-  animation: blencong-flicker 2.6s steps(1) 0.6s both;
-}
-
-@keyframes blencong-flicker {
-  0% {
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.9;
-  }
-  14% {
-    opacity: 0.55;
-  }
-  20% {
-    opacity: 1;
-  }
-  31% {
-    opacity: 0.7;
-  }
-  40% {
-    opacity: 1;
-  }
-  52% {
-    opacity: 0.8;
-  }
-  64% {
-    opacity: 0.95;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-/* ---- Kotak kode ---- */
-.code[data-enter] .code-box {
-  animation: box-in 0.6s var(--ease-power3-out) both;
-  animation-delay: calc(2300ms + var(--i) * 80ms);
-}
-
-.code[data-enter] .code-sep {
-  animation: k-fadein 0.6s var(--ease-power3-out) 2.6s both;
-}
-
-@keyframes box-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.9);
-  }
-}
-
-/* huruf "meletup" masuk ke kotaknya */
-.code-char {
-  display: inline-block;
-  animation: char-pop 0.42s var(--ease-expo-out) both;
-}
-
-@keyframes char-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.4) translateY(30%);
-  }
-  55% {
-    opacity: 1;
-    transform: scale(1.16);
-  }
-}
-
-/* lapisan status di tiap kotak (warna digambar sekali, yang dianimasikan opacity-nya) */
-.code-box {
-  position: relative;
-}
-
-.code-box::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* memeriksa: gelombang cahaya blencong menyusuri kotak */
-.code[data-state="checking"] .code-box {
-  animation: box-wave 1.1s var(--ease-sine) infinite;
-  animation-delay: calc(var(--i) * 70ms);
-}
-
-.code[data-state="checking"] .code-box::before {
-  border: 1px solid var(--blencong);
-  box-shadow: 0 0 18px -2px color-mix(in srgb, var(--blencong) 60%, transparent);
-  animation: box-wave-glow 1.1s var(--ease-sine) infinite;
-  animation-delay: calc(var(--i) * 70ms);
-}
-
-@keyframes box-wave {
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-@keyframes box-wave-glow {
-  50% {
-    opacity: 1;
-  }
-}
-
-/* salah: goyang + kilat merah lampion */
-.code[data-state="error"] .code-boxes {
-  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
-
-.code[data-state="error"] .code-box::before {
-  border: 1px solid var(--lampion);
-  background: color-mix(in srgb, var(--lampion) 28%, transparent);
-  animation: box-error 0.9s ease-out both;
-}
-
-@keyframes box-error {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* benar: kotak menyala emas berurutan, lalu memipih & merapat ke tengah jadi satu benang emas */
-.code[data-state="success"] .code-box {
-  --gap: clamp(4px, 1.4vw, 8px);
-  animation: box-ok 0.95s var(--ease-expo-in-out) both;
-  animation-delay: calc(var(--i) * 45ms);
-}
-
-.code[data-state="success"] .code-box::before {
-  background: var(--prada);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--blencong) 75%, transparent);
-  animation: box-ok-glow 0.5s var(--ease-power3-out) both;
-  animation-delay: calc(var(--i) * 45ms);
-}
-
-.code[data-state="success"] .code-sep {
-  animation: k-out 0.3s both;
-}
-
-@keyframes box-ok {
-  35% {
-    transform: none;
-  }
-  to {
-    /* merapat ke tengah menutup celah & pemisah (--sg celah, --ss pemisah; dihitung di CodeInput), lalu memipih */
-    transform: translateX(calc(var(--sg) * var(--gap) + var(--ss) * 8px)) scaleY(0.05);
-  }
-}
-
-@keyframes box-ok-glow {
-  to {
-    opacity: 1;
-  }
-}
-
-/* kilat blencong yang membuka pintu */
-.gate-flare {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(circle at 50% 58%, color-mix(in srgb, var(--glint) 95%, transparent) 0%, color-mix(in srgb, var(--blencong) 60%, transparent) 24%, transparent 62%);
-}
-
-.gate[data-unlocking] .gate-flare {
-  animation: flare 0.75s var(--ease-expo-in-out) 0.42s both;
-}
-
-.gate[data-unlocking] :is(.gate-head, .gate-prompt, .gate-msg) {
-  animation: blur-out 0.55s var(--ease-power3-out) 0.3s both;
-}
-
-@keyframes flare {
-  from {
-    opacity: 0;
-    transform: scale(0.35);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.7);
-  }
-}
-
-@keyframes blur-out {
-  to {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-}
-
 /* ---- Sambutan: sisa cahaya, tombol, stempel ---- */
-.gate--welcome::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--blencong) 45%, transparent), transparent 65%);
-  animation: afterglow 1.6s var(--ease-power3-out) both;
-}
-
-.gate--welcome > * {
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes afterglow {
-  from {
-    opacity: 1;
-    transform: scale(1.4);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-
-.gate--welcome .begin-btn {
-  animation: k-fadein 0.7s var(--ease-power3-out) both;
-  animation-delay: calc(2300ms + var(--i, 0) * 90ms);
-}
-
-.gate--welcome .gate-switch {
-  animation: k-fadein 0.7s var(--ease-power3-out) 2.7s both;
-}
 
 .ticket-shine {
   position: absolute;
@@ -1414,18 +903,6 @@ a {
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blencong) 30%, transparent);
 }
 
-.gate--welcome[data-leaving] .ticket-stamp {
-  animation: stamp 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
-}
-
-.gate--welcome[data-leaving] .ticket {
-  animation: stamp-thump 0.45s ease-out both;
-}
-
-.gate--welcome[data-leaving] :is(.begin, .gate-switch) {
-  animation: blur-out 0.5s var(--ease-power3-out) both;
-}
-
 @keyframes stamp {
   from {
     opacity: 0;
@@ -1434,12 +911,6 @@ a {
   to {
     opacity: 0.95;
     scale: 1;
-  }
-}
-
-@keyframes stamp-thump {
-  30% {
-    transform: translateY(3px) scale(0.985);
   }
 }
 

@@ -236,8 +236,38 @@ Film kini bisa ditonton dari prolog sampai credits di `/film/`. Lapisan ini seka
 **Belum, dan perlu perangkat nyata:**
 - Kalibrasi ambang di trackpad MacBook dan Safari iPhone (jejak di tes adalah model, bukan rekaman). Semua ambang ada di `SLIDE` dan `INPUT` (`src/engine/motion/tokens.ts`).
 - Web Animations di Safari belum teruji di sini (hanya Chromium tersedia).
-- Lighthouse a11y untuk film belum dijalankan.
+- ~~Lighthouse a11y untuk film belum dijalankan.~~ Dijalankan 11 Nov (Lighthouse 13.6, data tiruan): 100 di 16 layar × EN/ID × HP/desktop. Kontras teks di atas gradasi langit tidak bisa dinilai Lighthouse; itu tetap perlu dilihat di perangkat nyata.
 - Gong masih cakram 2D tanpa bunyi (F3); audio per adegan (Tugas 36); slide tim hanya muncul bila kontak sudah diisi di `trip_private`.
+
+## Home 2,5D dengan desain baru (11 Nov 2026), permintaan host: "upgrade home ke 2,5d", lalu "ganti aja design nya, button juga"
+
+Home = halaman `/` (gerbang kode dan sambutan). Arti 2,5D sama dengan gallery: kedalaman berlapis, DOM dengan `transform` dan `opacity`, bukan WebGL. Nilainya di `HOME` (`src/engine/motion/tokens.ts`), CSS membacanya lewat variabel `--hm-*` dan `--k-*`. Gayanya di `src/components/home/home.css`, terpisah dari `globals.css`.
+
+- **Panggung** (`home/Scene.tsx`). Dari belakang ke depan: langit malam berbintang dengan pendar blencong, punggung Lawu (kakinya lebih pucat, kesan kabut), perbukitan, lantai pendapa bermotif kawung yang direbahkan dengan perspektif, dua kayon penjaga, debu emas. Lima bidang bergeser dengan jarak berbeda saat kursor bergerak (10, 18, 28, 34, 54 px di tepi layar); langit dan bintang diam. Di layar sentuh tidak ada kursor, jadi bidang-bidang itu berayun pelan lewat CSS (16 dtk bolak-balik). Panggungnya satu untuk gerbang dan sambutan; saat kode benar kayon tinggal menyibak, adegan tidak diulang.
+- **Kartu tergantung** (`Hang`). Undangan dan boarding pass tergantung di benang emas, berayun masuk seperti bandul (titik gantung 70vh di atas kartu), lalu miring mengikuti kursor (paling banyak 7° dan 4,5°). Di dalam kartu ada tiga bidang: alas, isi (22 px di depan), cap (40 px di depan), ditambah bayangan 80 px di belakang, jadi saat miring semuanya bergeser satu terhadap yang lain. Sudut kartu berlekuk seperti tiket; tepinya emas 1 px.
+- **Kode.** Dua baki berlekuk (3 + 6 sel) dengan titik emas di sel kosong, supaya jumlah huruf terbaca sebelum mengetik. Huruf jatuh dari depan; memeriksa = huruf bergelombang; salah = goyang dan cincin merah lampion; benar = huruf menyala berurutan, kayon menyibak, kilat blencong, kartu berbalik 90° dan boarding pass berbalik masuk.
+- **Sambutan.** Boarding pass baru (`home/Pass.tsx`): mendatar dengan sobekan di layar ≥ 640 px, tegak di HP. Cap "Admitted" jatuh dari depan saat lakon dimulai. Kunjungan ulang memakai tunda 0,35×. Judul tidak lagi pecah di tanda baca di HP ("Sugeng rawuh," lalu nama).
+- **Tombol baru (`.hb`).** Utama: kapsul foil gading-emas dengan medali gong di kanan; kilau menyapu saat disorot, mengecil sedikit saat ditekan. "Use a different code": tautan berbenang emas, pindah dari kiri atas ke bawah tombol utama. Speaker: cincin tipis, emas saat menyala. Bahasa: kapsul bergaris dengan kunci gading (`Seg` varian `line`). **Gaya ini hanya di home**; Today dan film tetap `.pb` sampai host memutuskan.
+- **HP.** Kartu di paruh atas layar supaya tidak tertutup keyboard; puncak Lawu dan kayon terlihat di bawahnya. Tombol utama menempel di bawah layar.
+- **Reduced motion.** Tanpa parallax, ayunan, atau debu bergerak; sambutan langsung tampil.
+
+**Kenapa begini (terukur).** Tanpa GPU, tiap lapisan selayar tambahan dan tiap `filter` memberatkan semua frame. Versi pertama berjalan 29 ms per frame saat diam di desktop. Dua perubahan mengembalikannya ke 17 ms: (1) langit, pendar, bintang, dan vinyet digabung jadi satu lapisan dasar, lantai dipersempit ke ukuran yang benar-benar terlihat; (2) bayangan kartu memakai `box-shadow` yang digambar sekali, bukan `filter: blur` yang dihitung ulang compositor di tiap frame (sendirian menghabiskan separuh frame).
+
+**Hasil ukur** (`scripts/preview/measure-home.cjs`, Chromium tanpa GPU, 11 Nov): iPhone tiruan 0 frame > 50 ms di enam momen, terpanjang 33 ms. Desktop: diam 17 ms, p95 33 ms di semua momen; masih ada 1–2 frame 50–83 ms saat gerbang berganti jadi sambutan (React memasang sambutan, tertutup kilat blencong). Lighthouse a11y 100 di gerbang, mengetik, kode salah, dan sambutan (EN/ID, HP/desktop).
+
+**Belum.** Safari belum diuji (`preserve-3d`, mask sudut lekuk). Kemiringan mengikuti giroskop di HP belum ada. Gaya tombol baru belum dipakai di Today dan film.
+
+Pratinjau: `docs/design/previews/home_25d_desktop_en.jpg`, `home_25d_hp_id.jpg`, `home_sebelum_sesudah_desktop.jpg`. Video gerak lambat direkam dengan `scripts/preview/record-home.cjs`.
+
+## Sesi per tab (11 Nov 2026), keputusan host
+
+Host: "udah gw reset browser tapi masih masuk tanpa nulis pw, udah buka tab baru juga masih masuk". Sebelumnya token disimpan permanen (PRD FR-03 lama). Dari tiga pilihan, host memilih: **kode diminta lagi di tiap tab atau browser baru; Today yang dipasang ke Home Screen tetap ingat.**
+
+- Tab browser biasa: sesi dan salinan trip di `sessionStorage`. Muat ulang di tab yang sama tetap masuk.
+- Aplikasi Home Screen (`display-mode: standalone` atau `navigator.standalone`): tetap `localStorage`, karena Today harus bisa dibuka offline (FR-33) dan verifikasi kode butuh jaringan. Sesinya bertanda `app: 1`.
+- Sesi permanen lama dihapus bersama salinan trip-nya saat halaman dibuka. Yang bertanda `app` dibiarkan, karena di Android penyimpanan aplikasi dipakai bersama tab browser.
+- Akibat untuk tamu: Today di tab browser biasa meminta kode tiap tab baru dan butuh sinyal. Untuk dipakai di jalan, Today perlu dipasang ke Home Screen.
+- Kode: `src/lib/device-store.ts`, `sweepLegacy` di `src/lib/session.ts`. PRD FR-03 sudah diperbarui.
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.

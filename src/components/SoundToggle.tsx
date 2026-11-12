@@ -1,23 +1,30 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { audioStatus } from "@/engine/audio/status";
 import { CHROME } from "@/engine/i18n/chrome";
 import { useLang } from "@/engine/i18n/useLang";
 import { useAudioState } from "./useAudio";
 
-/** Tombol speaker bulat 3D di kelompok kanan atas. Menyala = emas & tertekan. */
+/**
+ * Tombol speaker di kelompok kanan atas. Di home: cincin tipis, menyala = emas (gaya `.hb`, home.css).
+ * Di halaman lain: tombol bulat 3D, menyala = emas & tertekan.
+ */
 export function SoundButton({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   const lang = useLang();
+  const home = usePathname() === "/";
   return (
     <button
       type="button"
-      className="pb pb--glass pb--icon pb--round sound-toggle"
+      className={home ? "hb hb--icon sound-toggle" : "pb pb--glass pb--icon pb--round sound-toggle"}
+      data-press=""
+      data-sfx="ui-tok"
       aria-pressed={on}
       aria-label={CHROME["sound.label"][lang]}
       title={CHROME[on ? "sound.on" : "sound.off"][lang]}
       onClick={onToggle}
     >
-      <span className="pb-face">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <span className={home ? "hb-face" : "pb-face"}>
+        <svg viewBox="0 0 24 24" width={home ? 20 : 22} height={home ? 20 : 22} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" fillOpacity="0.18" />
           {on ? (
             <>

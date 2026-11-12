@@ -12,6 +12,7 @@ import { sessionStore } from "@/lib/session";
 import { loadTrip, peekTrip, type TripLoad, type TripView } from "@/lib/trip";
 import { IconRefresh } from "../Icons";
 import { useCurtainOpen } from "../motion/Curtain";
+import { BRANCHES, branchPath, KAYON, KAYON_GATE } from "../motion/kayon";
 import { useRequireSession } from "../useRequireSession";
 import { Corner, Hint, Rail, useChapterLabel } from "./Chrome";
 import { DetailSheet, type SheetOrigin } from "./DetailSheet";
@@ -148,15 +149,6 @@ const Layer = memo(function Layer({ data, id, slides, pos, step, onOpen }: { dat
 });
 
 /** Siluet gunungan (kayon) untuk sapuan antar bab: gapura, pohon hayat, tatahan di tepi. Digambar sekali. */
-const KAYON = "M60 3C62 14 70 26 78 40C90 58 103 80 103 104C103 124 95 140 84 152V160L96 166V176H90V184H30V176H24V166L36 160V152C25 140 17 124 17 104C17 80 30 58 42 40C50 26 58 14 60 3Z";
-/** Dahan pohon hayat: [tinggi pangkal, jangkauan]; makin pendek ke puncak supaya tetap di dalam tatahan. */
-const BRANCHES: readonly [y: number, reach: number][] = [
-  [112, 27],
-  [97, 24],
-  [82, 19],
-  [67, 13],
-  [52, 7],
-];
 function Kayon() {
   return (
     <svg viewBox="0 0 120 200" focusable="false">
@@ -172,11 +164,11 @@ function Kayon() {
       <path className="fl-wipe-dots" d={KAYON} transform="translate(60 100) scale(0.86) translate(-60 -100)" />
       <g className="fl-wipe-tree">
         {/* gapura */}
-        <path d="M40 160H80M48 160V139H72V160M60 139V160M44 139H76L71 131H49ZM50 131L60 122L70 131M40 160V148M80 160V148M38 148H42M78 148H82" />
+        <path d={KAYON_GATE} />
         {/* pohon hayat: batang + dahan berpilin, makin pendek ke puncak */}
         <path d="M60 122V20" />
         {BRANCHES.map(([y, reach]) => (
-          <path key={y} d={`M60 ${y}C${60 + reach * 0.32} ${y - 2} ${60 + reach * 0.7} ${y - 7} ${60 + reach} ${y - 15}c2.6-3 6.4-.6 4.4 2.6M60 ${y}C${60 - reach * 0.32} ${y - 2} ${60 - reach * 0.7} ${y - 7} ${60 - reach} ${y - 15}c-2.6-3-6.4-.6-4.4 2.6`} />
+          <path key={y} d={branchPath(y, reach)} />
         ))}
       </g>
     </svg>

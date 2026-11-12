@@ -39,14 +39,7 @@ export const installPrompt = {
   },
 };
 
-/** Sudah dibuka dari Home Screen? */
-export function isStandalone(): boolean {
-  try {
-    return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  } catch {
-    return false;
-  }
-}
+export { isStandalone } from "./device-store";
 
 let started = false;
 export function startPwa() {

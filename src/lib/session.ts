@@ -1,8 +1,11 @@
 import { FUNCTIONS_URL } from "./config";
+import { deviceStore, isStandalone, persistentStore } from "./device-store";
 
 /**
- * Sesi di perangkat (PRD FR-03): token dari verify-access disimpan, jadi kode cukup dimasukkan sekali.
- * Token ditandatangani server; klien hanya membaca role & exp untuk UI, keputusan akses tetap di server.
+ * Sesi di perangkat (PRD FR-03): token dari verify-access disimpan selama tab terbuka, jadi kode cukup dimasukkan
+ * sekali per tab; tab baru atau browser yang dibuka ulang memintanya lagi. Aplikasi Home Screen tetap ingat
+ * (lihat device-store.ts). Token ditandatangani server; klien hanya membaca role & exp untuk UI, keputusan akses
+ * tetap di server.
  */
 export type Role = "guest" | "team";
 export type Session = Readonly<{ token: string; role: Role; exp: number }>;
@@ -11,13 +14,6 @@ export const SESSION_KEY = "lakon.session";
 export const TRIP_KEY = "lakon.trip";
 
 type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
-const localStore = (): Store | undefined => {
-  try {
-    return typeof window !== "undefined" ? window.localStorage : undefined;
-  } catch {
-    return undefined;
-  }
-};
 const nowSec = () => Math.floor(Date.now() / 1000);
 
 export function parseSession(raw: unknown, now = nowSec()): Session | null {
@@ -29,7 +25,7 @@ export function parseSession(raw: unknown, now = nowSec()): Session | null {
   return { token: s.token, role: s.role, exp: s.exp };
 }
 
-export function readSession(store: Pick<Storage, "getItem"> | undefined = localStore(), now = nowSec()): Session | null {
+export function readSession(store: Pick<Storage, "getItem"> | undefined = deviceStore(), now = nowSec()): Session | null {
   try {
     const raw = store?.getItem(SESSION_KEY);
     return raw ? parseSession(JSON.parse(raw), now) : null;
@@ -38,18 +34,49 @@ export function readSession(store: Pick<Storage, "getItem"> | undefined = localS
   }
 }
 
-export function writeSession(s: Session, store: Pick<Storage, "setItem"> | undefined = localStore()) {
+/** `app` = disimpan oleh aplikasi Home Screen: tanda bahwa sesi di penyimpanan permanen ini memang boleh menetap. */
+export function writeSession(s: Session, store: Pick<Storage, "setItem"> | undefined = deviceStore(), app = isStandalone()) {
   try {
-    store?.setItem(SESSION_KEY, JSON.stringify(s));
+    store?.setItem(SESSION_KEY, JSON.stringify(app ? { ...s, app: 1 } : s));
   } catch {
     /* tidak diingat: tamu diminta kode lagi lain kali */
   }
 }
 
-export function clearSession(store: Pick<Storage, "removeItem"> | undefined = localStore()) {
+export function clearSession(store: Pick<Storage, "removeItem"> | undefined = deviceStore()) {
   try {
     store?.removeItem(SESSION_KEY);
     store?.removeItem(TRIP_KEY);
+  } catch {
+    /* abaikan */
+  }
+}
+
+/**
+ * Sesi yang dulu disimpan permanen oleh tab browser (sebelum 11 Nov 2026) tidak dipakai lagi: dihapus bersama salinan
+ * trip-nya, supaya data tamu tidak tertinggal di perangkat. Sesi milik aplikasi Home Screen (bertanda `app`)
+ * dibiarkan, karena di Android penyimpanan itu dipakai bersama tab browser. Di aplikasi Home Screen sendiri, sesi
+ * lama diberi tanda supaya tetap berlaku.
+ */
+export function sweepLegacy(local: Store | undefined = persistentStore(), standalone = isStandalone()) {
+  try {
+    const raw = local?.getItem(SESSION_KEY);
+    let saved: Record<string, unknown> | null = null;
+    try {
+      const parsed: unknown = raw ? JSON.parse(raw) : null;
+      saved = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
+    } catch {
+      /* isi rusak: diperlakukan sebagai sesi lama */
+    }
+    const app = saved?.app === 1;
+    if (standalone) {
+      if (saved && !app) local?.setItem(SESSION_KEY, JSON.stringify({ ...saved, app: 1 }));
+      return;
+    }
+    if (!app) {
+      local?.removeItem(SESSION_KEY);
+      local?.removeItem(TRIP_KEY);
+    }
   } catch {
     /* abaikan */
   }
@@ -62,7 +89,13 @@ let current: Session | null | undefined;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((fn) => fn());
 export const sessionStore = {
-  get: (): SessionSnapshot => (current === undefined ? (current = readSession()) : current),
+  get: (): SessionSnapshot => {
+    if (current === undefined) {
+      sweepLegacy();
+      current = readSession();
+    }
+    return current;
+  },
   getServer: (): SessionSnapshot => UNKNOWN,
   set(s: Session) {
     current = s;

@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { CHROME } from "@/engine/i18n/chrome";
 import { LANGS, langStore } from "@/engine/i18n/lang";
@@ -8,12 +9,14 @@ import { Seg } from "./Seg";
 /** EN | ID di pojok kanan atas, ganti tanpa reload (PRD FR-11). Nama bahasa ditulis dalam bahasanya sendiri. */
 export function LangToggle() {
   const lang = useLang();
+  const home = usePathname() === "/";
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
   return (
     <Seg
       className="lang-toggle"
+      variant={home ? "line" : "carved"}
       label={CHROME["lang.label"][lang]}
       value={lang}
       onChange={(l) => langStore.set(l)}

@@ -2,7 +2,8 @@
 
 - Saat mulai sesi, baca `HANDOFF.md` kalau ada.
 - Untuk tugas aktif, pakai `query_graph` dari Graphify dulu buat mencari file dan fungsi yang relevan. Buka bagian kode yang diperlukan saja dan cek perubahan lokal sebelum mengedit.
-- Setiap selesai satu langkah penting, perbarui `HANDOFF.md` dalam 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya.
+- **Setiap menyelesaikan satu tugas, kecil maupun besar, wajib memperbarui `HANDOFF.md` dan rencana pekerjaan berikutnya** (aturan host, 11 Nov 2026). Isinya 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya. Jangan menunggu akhir sesi; perbarui begitu tugasnya selesai, lalu commit.
+- Permintaan baru dari host di tengah sesi dicatat dulu di `HANDOFF.md` sebelum kodenya dikerjakan.
 
 ## Kalau host bilang "lanjut tugas, baca isi claude.md"
 
@@ -28,9 +29,15 @@ Diperbarui 11 Nov 2026.
   Keputusan host 11 Nov: di hari yang punya jadwal sebelum sarapan (Hari 2), matahari mengikuti jam terbit asli, jadi sudah menyembul di panel "Matahari terbit di Kemuning". Rinciannya: `docs/design/decisions.md` bagian "Siklus waktu di gallery". Catatan: mouse tidak men-scrub (hanya roda/trackpad per langkah); yang mengikuti tangan hanya scrub jari.
 - [x] **2. Jadikan film 2D menjadi 2,5D.** ✅ 11 Nov 2026 untuk gallery. Jawaban host 11 Nov atas pertanyaan awal: 2,5D = kedalaman berlapis di film yang sudah ada (parallax antar lapisan, perspektif dan kemiringan ringan pada kartu, bayangan), tetap DOM dengan `transform` dan `opacity`, bukan WebGL; diterapkan di **gallery dulu**. Rinciannya: `docs/design/decisions.md` bagian "Gallery 2,5D". Sisa pekerjaan, semuanya menunggu tinjauan host atas pratinjau:
   - 2,5D di slide selain gallery (prolog, judul hari, gong, epilog, credits).
-  - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 2).
+  - Uji di MacBook dan iPhone asli: di Chromium tanpa GPU, pindah panel di desktop sesekali mencatat satu frame 50–67 ms (angka lengkap di `HANDOFF.md` bagian 3).
   - Hubungan dengan F2 (panggung 3D) belum diputuskan host.
+- [x] **3. Home 2,5D dengan desain baru.** ✅ 11 Nov 2026. Permintaan host 11 Nov: "upgrade home ke 2,5d sama benerin ui home", diperjelas "ganti aja design nya, button juga". Home = halaman `/` (gerbang kode dan sambutan); 2,5D memakai arti dari Tugas 2. Yang dikerjakan: panggung berlapis yang mengikuti kursor, kartu undangan dan boarding pass tergantung di benang emas, tombol baru (`.hb`) khusus home. Rinciannya: `docs/design/decisions.md` bagian "Home 2,5D dengan desain baru" dan `HANDOFF.md` bagian 1. Sisa pekerjaan, menunggu tinjauan host:
+  - Uji di Safari, iPhone, dan MacBook asli (di sesi hanya Chromium).
+  - Apakah gaya tombol baru ikut dipakai di Today dan film.
+- [x] **4. Sesi per tab.** ✅ 11 Nov 2026. Keluhan host: browser sudah di-reset dan tab baru masih masuk tanpa kode. Keputusan host: kode diminta lagi di tiap tab atau browser baru; Today yang dipasang ke Home Screen tetap ingat supaya bisa offline. Rinciannya: `docs/design/decisions.md` bagian "Sesi per tab" dan `HANDOFF.md` bagian 1b.
 
-**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.** Panduan merge untuk host ada di `HANDOFF.md` bagian 4.
+**Daftar ini sudah habis (11 Nov 2026). Tunggu arahan host; jangan mulai pekerjaan baru sendiri.**
 
-Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 3.
+Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
+
+Sesudah daftar ini habis, tanya host sebelum lanjut. Roadmap F2–F4 ada di `HANDOFF.md` bagian 4.

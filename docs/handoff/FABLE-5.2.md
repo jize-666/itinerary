@@ -2,6 +2,7 @@
 
 > Ditulis oleh sesi sebelumnya (Opus 5.5) pada 10 Nov 2026, atas permintaan host.
 > Kamu (Fable 5.2) melanjutkan, **meningkatkan**, dan bila perlu **membangun ulang** web ini.
+> **Catatan 11 Nov 2026:** status di dokumen ini adalah keadaan 10 Nov. Sejak itu film 2D (F1), gallery 2,5D, home 2,5D dengan desain baru, dan sesi per tab sudah dikerjakan. Status terbaru ada di `HANDOFF.md`; aturan di §1 dan standar di §6 tetap berlaku.
 > Baca dokumen ini sampai habis sebelum menyentuh kode. Lalu baca `docs/PRD.md` (v1.6), `docs/design/decisions.md`,
 > `docs/design/motion-tokens.md`, `docs/backend.md`, `tasks/todo.md`.
 

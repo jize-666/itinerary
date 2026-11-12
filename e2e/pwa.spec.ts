@@ -41,11 +41,11 @@ test("ganti kode: sesi & salinan data di perangkat ikut dihapus", async ({ page 
   await page.route(TRIP, (r) => json(r, 200, todayFixture("team")));
   await page.goto("/today/");
   await expect(page.getByRole("heading", { name: "Team notes" })).toBeVisible();
-  expect(JSON.parse((await page.evaluate(() => localStorage.getItem("lakon.trip"))) ?? "{}").token).toBe("e2e.team-token-123");
+  expect(JSON.parse((await page.evaluate(() => sessionStorage.getItem("lakon.trip"))) ?? "{}").token).toBe("e2e.team-token-123");
   await page.goto("/");
   await page.getByRole("button", { name: "Use a different code" }).click();
   await expect(page.getByLabel("Booking code")).toBeVisible();
-  expect(await page.evaluate(() => [localStorage.getItem("lakon.session"), localStorage.getItem("lakon.trip")])).toEqual([null, null]);
+  expect(await page.evaluate(() => [sessionStorage.getItem("lakon.session"), sessionStorage.getItem("lakon.trip")])).toEqual([null, null]);
 });
 
 test("manifest & ikon Home Screen", async ({ page, request }) => {

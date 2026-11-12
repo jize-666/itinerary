@@ -1,0 +1,1340 @@
+/* ================= HOME (gerbang & sambutan), 2,5D =================
+   Panggung berlapis di belakang, kartu tergantung di benang emas di depan. Nilai kedalaman dari HOME
+   (src/engine/motion/tokens.ts) lewat variabel --hm-* / --k-* yang dipasang Scene.tsx.
+   Aturan performa: yang dianimasikan HANYA opacity & transform. Gradasi, blur, dan bayangan digambar sekali di
+   lapisannya sendiri; lapisannya yang digeser. */
+
+.home {
+  --hz: 66%; /* cakrawala, dari atas layar */
+  --pace: 1;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow-x: clip;
+  text-align: center;
+}
+
+html.home-on {
+  overflow-x: clip;
+}
+
+.hm-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: calc(72px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+/* ---------- Panggung ---------- */
+.hm-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--nila);
+  animation: hm-fade 1.4s var(--ease-power3-out) backwards;
+}
+
+/* satu lapisan dasar: vinyet, lantai gelap di bawah cakrawala, pendar blencong di belakang kartu, lalu langit */
+.hm-sky {
+  --glow-y: 46%;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(118% 92% at 50% 46%, transparent 52%, rgb(3 4 10 / 0.72) 100%),
+    linear-gradient(to bottom, transparent calc(var(--hz) - 0.5px), #070913 var(--hz)),
+    radial-gradient(min(520px, 85vw) min(416px, 68vw) at 50% var(--glow-y), rgb(255 178 87 / 0.2), rgb(255 178 87 / 0.07) 46%, transparent 72%),
+    linear-gradient(to bottom, #04050d 0%, #0a0d21 30%, #171d46 56%, #2c2554 var(--hz));
+}
+
+/* sisa cahaya di cakrawala: menguat saat kayon menyibak */
+.hm-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(85% 34% at 50% var(--hz), rgb(255 178 87 / 0.34), rgb(184 53 43 / 0.1) 46%, transparent 72%);
+  opacity: 0.42;
+  transition: opacity 1.6s var(--ease-power3-out);
+}
+
+.home[data-open] .hm-sky::after {
+  opacity: 0.95;
+}
+
+/* lapisan yang ikut kursor: makin dekat, makin jauh gesernya */
+.hm-l {
+  position: absolute;
+  will-change: transform;
+  transform: translate3d(calc(var(--mx, 0) * var(--k) * -1px), calc(var(--my, 0) * var(--k) * -0.45px), 0);
+}
+
+.hm-stars {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 68%;
+  opacity: 0.75;
+  background-image:
+    radial-gradient(1.2px 1.2px at 24px 38px, #fff 50%, transparent 52%),
+    radial-gradient(1px 1px at 142px 96px, #ffe9c2 50%, transparent 52%),
+    radial-gradient(1.4px 1.4px at 208px 22px, #fff 50%, transparent 52%),
+    radial-gradient(1px 1px at 88px 176px, #cfd6ff 50%, transparent 52%),
+    radial-gradient(1px 1px at 300px 150px, #fff 50%, transparent 52%),
+    radial-gradient(1.6px 1.6px at 60px 250px, #ffe9c2 50%, transparent 52%),
+    radial-gradient(1px 1px at 246px 290px, #fff 50%, transparent 52%);
+  background-size: 260px 220px, 340px 260px, 300px 240px, 280px 300px, 380px 320px, 420px 360px, 360px 400px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 24%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 24%, transparent 94%);
+}
+
+.hm-ridge {
+  left: -60px;
+  right: -60px;
+  bottom: calc(100% - var(--hz));
+  overflow: hidden;
+}
+
+.hm-ridge svg {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  height: 100%;
+  width: max(100%, calc(var(--rh) * 5.3)); /* di layar sempit gambar lebih lebar dari layar, supaya bentuk gunung tidak tergencet */
+  transform: translateX(-50%);
+}
+
+.hm-ridge[data-depth="far"] {
+  --k: var(--k-far);
+  --rh: clamp(120px, 27vh, 280px);
+  height: var(--rh);
+}
+
+.hm-ridge[data-depth="far"] path {
+  fill: url("#hm-ridge-far");
+  stroke: rgb(255 178 87 / 0.26);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.hm-ridge[data-depth="near"] {
+  --k: var(--k-near);
+  --rh: clamp(64px, 13vh, 140px);
+  height: var(--rh);
+}
+
+.hm-ridge[data-depth="near"] path {
+  fill: #0a0d20;
+}
+
+/* lantai pendapa: satu bidang bermotif kawung yang direbahkan, menjauh ke cakrawala */
+.hm-floor {
+  --k: var(--k-floor);
+  left: -60px;
+  right: -60px;
+  top: var(--hz);
+  bottom: 0;
+  overflow: hidden;
+  perspective: 520px;
+  perspective-origin: 50% 0%;
+}
+
+.hm-floor-plane {
+  --tile: 72px;
+  --line: rgb(200 162 90 / 0.15);
+  position: absolute;
+  inset: 0 0 auto;
+  height: 150%; /* tepi dekat diperbesar perspektif, jadi 150% sudah menutup sampai bawah layar */
+  transform-origin: 50% 0;
+  transform: rotateX(70deg);
+  background:
+    radial-gradient(70% 46% at 50% 26%, rgb(255 178 87 / 0.3), transparent 72%),
+    radial-gradient(circle at 50% 50%, transparent 0 55.4%, var(--line) 56.2% 57.8%, transparent 58.6%) 0 0 / var(--tile) var(--tile),
+    radial-gradient(circle at 50% 50%, transparent 0 55.4%, var(--line) 56.2% 57.8%, transparent 58.6%) calc(var(--tile) / 2) calc(var(--tile) / 2) / var(--tile) var(--tile),
+    linear-gradient(#0d1126, #070913);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 46%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 46%, transparent 100%);
+}
+
+/* dua kayon penjaga: menyibak ke luar saat kode benar */
+.hm-kayon {
+  --k: var(--k-kayon);
+  bottom: calc(100% - var(--hz) - 4.5vh);
+  width: clamp(118px, 17vw, 236px);
+  aspect-ratio: 120 / 200;
+}
+
+.hm-kayon[data-side="left"] {
+  --dir: -1;
+  left: max(1.5vw, calc(50% - 548px));
+}
+
+.hm-kayon[data-side="right"] {
+  --dir: 1;
+  right: max(1.5vw, calc(50% - 548px));
+}
+
+.hm-kayon-in {
+  height: 100%;
+  transform-origin: 50% 100%;
+  transform: rotate(calc(var(--dir) * -2.5deg));
+  transition: transform 1.5s var(--ease-expo-in-out);
+  animation: hm-kayon-in 1.7s var(--ease-expo-out) 0.2s backwards;
+}
+
+.home[data-open] .hm-kayon-in {
+  transform: translate3d(calc(var(--dir) * 58%), 0, 0) rotate(calc(var(--dir) * 9deg));
+}
+
+.hm-kayon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hm-kayon-body {
+  fill: #070916;
+}
+
+.hm-kayon-stick {
+  fill: none;
+  stroke: #3b2414;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.hm-kayon-rim {
+  fill: none;
+  stroke: rgb(200 162 90 / 0.5);
+  stroke-width: 0.7;
+}
+
+.hm-kayon-tree {
+  fill: none;
+  stroke: rgb(200 162 90 / 0.3);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* kilat blencong saat pintu terbuka */
+.hm-flare {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(70% 60% at 50% 46%, rgb(255 241 210 / 0.9), rgb(255 178 87 / 0.42) 38%, transparent 74%);
+  opacity: 0;
+  transition: opacity 1.1s var(--ease-power3-out);
+}
+
+.home[data-unlocking] .hm-flare {
+  opacity: 0.9;
+  transition: opacity 0.5s var(--ease-sine) 0.62s;
+}
+
+/* wadah debu tidak dijadikan lapisan sendiri (selayar); tiap butirnya yang jadi lapisan kecil */
+.hm-dust {
+  --k: var(--k-dust);
+  inset: 0 -60px;
+  will-change: auto;
+  transform: translate(calc(var(--mx, 0) * var(--k) * -1px), calc(var(--my, 0) * var(--k) * -0.45px));
+}
+
+.hm-dust i {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe7b0 0 34%, rgb(255 178 87 / 0) 72%);
+  opacity: 0;
+  animation: hm-dust var(--dur) linear var(--delay) infinite;
+}
+
+/* ---------- Benda yang tergantung di benang ---------- */
+.hm-hang {
+  position: relative;
+  width: min(var(--card-w), 100%);
+  perspective: var(--hm-perspective);
+}
+
+.hm-hang[data-kind="invite"] {
+  --card-w: 664px;
+}
+
+.hm-hang[data-kind="pass"] {
+  --card-w: 612px;
+}
+
+.hm-swing {
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: 50% -70vh; /* titik gantung jauh di atas layar: goyangan kecil terbaca sebagai bandul */
+  animation: hm-swing-in 2.4s var(--ease-expo-out) both;
+}
+
+.hm-thread {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 17px);
+  width: 1px;
+  height: 100vh;
+  margin-left: -0.5px;
+  background: linear-gradient(to top, var(--prada), rgb(200 162 90 / 0.5));
+}
+
+/* benang pass berhenti tepat di bawah kalimat sambutan, tidak pernah melintasinya */
+.hm-hang[data-kind="pass"] .hm-thread {
+  height: calc(var(--gap) + var(--slot-top) + 9px);
+  background: linear-gradient(to top, var(--prada), rgb(200 162 90 / 0));
+}
+
+.hm-flip {
+  transform-style: preserve-3d;
+}
+
+.hm-flip[data-flip="out"] {
+  animation: hm-flip-out 0.52s var(--ease-expo-in-out) 0.62s both;
+}
+
+.hm-flip[data-flip="in"] {
+  animation: hm-flip-in 1.05s var(--ease-expo-out) calc(80ms * var(--pace)) both;
+}
+
+.hm-card {
+  --r: 15px;
+  --notch:
+    radial-gradient(circle at 0 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 100% / 51% 51% no-repeat;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--mx, 0) * var(--hm-tilt-y))) rotateX(calc(var(--my, 0) * var(--hm-tilt-x) * -1));
+}
+
+/* bayangan kartu jauh di belakangnya: bergeser lebih banyak daripada kartu saat miring. Lembutnya dari box-shadow
+   (digambar sekali); filter: blur dihitung ulang compositor di tiap frame dan terukur menghabiskan separuh frame. */
+.hm-card-shadow {
+  position: absolute;
+  inset: 16% 12% 2%;
+  border-radius: 60px;
+  background: rgb(0 0 0 / 0.5);
+  box-shadow: 0 0 60px 34px rgb(0 0 0 / 0.5);
+  transform: translateZ(-80px);
+}
+
+/* tebal kartu: satu lapis lagi tepat di belakang alas */
+.hm-card-back {
+  position: absolute;
+  inset: 0;
+  background: #4a3414;
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+  transform: translateZ(-6px);
+}
+
+/* alas kartu: tepi emas 1 px, lalu kertas nila bermotif kawung samar; sudutnya berlekuk seperti tiket */
+.hm-card-base {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ecd39a 0%, #a8823f 34%, #e6ca8c 62%, #8f6c30 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+}
+
+.hm-card-base::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 55%, rgb(200 162 90 / 0.055) 56% 59%, transparent 60%) 0 0 / 44px 44px,
+    radial-gradient(circle at 50% 50%, transparent 0 55%, rgb(200 162 90 / 0.055) 56% 59%, transparent 60%) 22px 22px / 44px 44px,
+    radial-gradient(120% 84% at 50% 0%, #1c2452 0%, #11152f 54%, #0b0e22 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+}
+
+/* bingkai dalam */
+.hm-card-base::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgb(200 162 90 / 0.26);
+  border-radius: 3px;
+}
+
+/* kilau yang menyapu kertas saat kartu miring */
+.hm-sheen {
+  position: absolute;
+  inset: -20% -70%;
+  z-index: 1;
+  background: linear-gradient(112deg, transparent 43%, rgb(255 241 210 / 0.1) 50%, transparent 57%);
+  transform: translate3d(calc(var(--mx, 0) * 20%), 0, 0);
+}
+
+.hm-eyelet {
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
+  border-radius: 50%;
+  background: #05060d;
+  box-shadow:
+    0 0 0 1.5px var(--prada),
+    0 0 0 3px rgb(200 162 90 / 0.2);
+  transform: translateZ(2px);
+}
+
+/* isi kartu melayang di atas alas; skalanya dikoreksi supaya huruf tetap tajam saat kartu menghadap lurus */
+.hm-card-body {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: translateZ(var(--hm-lift)) scale(var(--hm-lift-scale));
+}
+
+/* ---------- Undangan (gerbang) ---------- */
+.hm-hang[data-kind="invite"] .hm-card-body {
+  display: grid;
+  justify-items: center;
+  gap: clamp(18px, 3.4vh, 30px);
+  padding: clamp(42px, 6.4vh, 58px) clamp(14px, 4.6vw, 44px) clamp(16px, 2.6vh, 26px);
+}
+
+.hm-head {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.hm-kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.hm-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(48px, 13.4vw, 104px);
+  line-height: 1;
+}
+
+.hm-title--welcome {
+  font-size: clamp(40px, 9.6vw, 92px);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.hm-nowrap {
+  white-space: nowrap;
+}
+
+.hm-comma {
+  animation: hm-fade 0.6s var(--ease-power3-out) calc(900ms * var(--pace)) backwards;
+}
+
+.hm-prompt {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--mori) 84%, transparent);
+}
+
+.hm-form {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.hm-msg {
+  margin: 0;
+  min-height: 2.9em;
+  max-width: 36ch;
+  font-size: 14px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--mori) 86%, transparent);
+}
+
+.hm-msg[data-error] {
+  color: color-mix(in srgb, var(--blencong) 80%, var(--mori));
+}
+
+.hm-msg-hint {
+  opacity: 0.8;
+}
+
+/* ---------- Kode: dua baki berlekuk, satu sel per huruf ---------- */
+.hm-code {
+  --cell: clamp(27px, 8vw, 46px);
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.hm-code-input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: transparent;
+  caret-color: transparent;
+  opacity: 0;
+  font-size: 16px; /* cegah zoom otomatis iOS */
+  cursor: text;
+}
+
+.hm-code-input:disabled {
+  cursor: default;
+}
+
+.hm-trays {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.8vw, 12px);
+}
+
+.hm-tray {
+  position: relative;
+  display: flex;
+  border-radius: 12px;
+  background: rgb(3 4 11 / 0.66);
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.36),
+    inset 0 2px 6px rgb(0 0 0 / 0.7),
+    0 1px 0 rgb(242 235 221 / 0.07);
+}
+
+/* cincin di atas baki: emas saat fokus atau benar, merah lampion saat salah. Yang berubah hanya opacity. */
+.hm-tray::before,
+.hm-tray::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hm-tray::before {
+  box-shadow:
+    inset 0 0 0 1.5px var(--prada),
+    0 0 22px rgb(255 178 87 / 0.38);
+  transition: opacity 0.3s var(--ease-power3-out);
+}
+
+.hm-tray::after {
+  box-shadow:
+    inset 0 0 0 1.5px #e0584c,
+    0 0 22px rgb(184 53 43 / 0.6);
+}
+
+.hm-code[data-focused] .hm-tray::before {
+  opacity: 0.55;
+}
+
+.hm-code-sep {
+  flex: none;
+  width: clamp(7px, 2vw, 12px);
+  height: 1.5px;
+  background: rgb(200 162 90 / 0.6);
+}
+
+.hm-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--cell);
+  height: calc(var(--cell) * 1.3);
+  font-size: calc(var(--cell) * 0.5);
+  font-weight: 650;
+  line-height: 1;
+  color: var(--mori);
+}
+
+.hm-cell + .hm-cell::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: rgb(200 162 90 / 0.3);
+}
+
+/* sel kosong: titik emas kecil, supaya jumlah huruf terbaca sebelum mulai mengetik */
+.hm-cell:not([data-filled], [data-active])::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(200 162 90 / 0.42);
+}
+
+/* kursor emas di sel aktif */
+.hm-cell[data-active]::after {
+  content: "";
+  width: 1.5px;
+  height: 44%;
+  background: var(--prada);
+  animation: hm-caret 1.1s steps(1) infinite;
+}
+
+/* huruf jatuh dari depan ke baki */
+.hm-char {
+  animation: hm-char-in 0.34s var(--ease-expo-out) backwards;
+}
+
+.hm-code[data-enter] .hm-tray,
+.hm-code[data-enter] .hm-code-sep {
+  animation: hm-rise 0.7s var(--ease-expo-out) calc(1500ms + var(--t, 0.5) * 110ms) backwards;
+}
+
+.hm-code[data-state="checking"] .hm-char {
+  animation: hm-wave 0.9s var(--ease-sine) calc(var(--i) * 70ms) infinite;
+}
+
+.hm-code[data-state="error"] {
+  animation: hm-shake 0.46s var(--ease-power3-out);
+}
+
+.hm-code[data-state="error"] .hm-tray::after {
+  animation: hm-pulse 0.9s var(--ease-power3-out) both;
+}
+
+.hm-code[data-state="success"] .hm-char {
+  color: var(--glint);
+  animation: hm-pop 0.5s var(--ease-expo-out) calc(var(--i) * 42ms) backwards;
+}
+
+.hm-code[data-state="success"] .hm-tray::before {
+  opacity: 1;
+}
+
+/* ---------- Sambutan ---------- */
+.hm-welcome {
+  --pace: 0.35; /* kunjungan ulang: tunda dipersingkat */
+  --gap: clamp(16px, 3vh, 30px);
+  --slot-top: clamp(14px, 3vh, 34px); /* ruang untuk benang di atas pass */
+  display: grid;
+  justify-items: center;
+  gap: var(--gap);
+  width: 100%;
+}
+
+.hm-welcome[data-fresh] {
+  --pace: 1;
+}
+
+.hm-pass-slot {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  min-height: 300px; /* tempat pass disiapkan sejak awal supaya judul & tombol tidak meloncat */
+  margin-top: var(--slot-top);
+}
+
+.hm-pass {
+  position: relative;
+  display: grid;
+  text-align: left;
+  color: var(--mori);
+}
+
+.hm-pass-main {
+  padding: 34px 24px 18px;
+}
+
+.hm-pass-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(200 162 90 / 0.3);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.hm-pass-label,
+.hm-pass-grid dt {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.hm-pass-label {
+  margin-top: 16px;
+}
+
+.hm-pass-name {
+  margin: 3px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(26px, 6.6vw, 36px);
+  line-height: 1.1;
+}
+
+.hm-pass-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(22px, 5.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.hm-pass-route li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hm-pass-route li + li::before {
+  content: "";
+  width: clamp(16px, 5vw, 34px);
+  border-top: 2px dotted rgb(200 162 90 / 0.75);
+}
+
+.hm-pass-route li:last-child {
+  color: var(--prada);
+}
+
+.hm-pass-stub {
+  display: grid;
+  gap: 14px;
+  padding: 16px 24px 22px;
+  border-top: 1px dashed rgb(200 162 90 / 0.42);
+}
+
+.hm-pass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  justify-content: space-between;
+  gap: 12px 14px;
+  margin: 0;
+}
+
+.hm-pass-grid dd {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hm-pass-grid .hm-pass-foil {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--prada);
+}
+
+.hm-pass-bars {
+  height: 24px;
+  width: min(210px, 100%);
+  opacity: 0.86;
+  background: repeating-linear-gradient(90deg, var(--prada) 0 2px, transparent 2px 5px, var(--prada) 5px 6px, transparent 6px 9px, var(--prada) 9px 12px, transparent 12px 14px, var(--prada) 14px 15px, transparent 15px 19px);
+}
+
+/* cap "Admitted": jatuh dari depan ke kartu saat lakon dimulai, di sisi kanan nama */
+.hm-pass-stamp {
+  position: absolute;
+  right: 6%;
+  top: 27%;
+  opacity: 0;
+  transform: translateZ(var(--hm-lift-foil)) scale(var(--hm-foil-scale)) rotate(-11deg);
+}
+
+.hm-pass-stamp span {
+  display: block;
+  padding: 7px 14px;
+  border: 2px solid currentColor;
+  border-radius: 9px;
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+  color: var(--blencong);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.hm-welcome[data-leaving] .hm-pass-stamp {
+  animation: hm-stamp 0.4s cubic-bezier(0.6, 0, 0.9, 0.4) both;
+}
+
+.hm-actions {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.hm-begin {
+  animation: hm-rise 0.8s var(--ease-expo-out) calc(1900ms * var(--pace)) backwards;
+}
+
+.hm-switch {
+  animation: hm-fade 0.7s var(--ease-power3-out) calc(2300ms * var(--pace)) backwards;
+}
+
+/* ---------- Tombol home (.hb): kapsul foil, tanpa tebal 3D ---------- */
+.hb {
+  --h: 46px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: var(--h);
+  margin: 0;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--mori);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.26s var(--ease-expo-out);
+}
+
+.hb[data-pressed] {
+  transform: scale(0.962);
+  transition-duration: 0.08s;
+}
+
+/* utama: foil gading-emas, medali gong di kanan */
+.hb--primary {
+  --h: 60px;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(348px, 100%);
+  padding: 0 8px 0 28px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(180deg, #fcf5e3 0%, #edd9a8 46%, #d2ab5f 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.8),
+    inset 0 -1px 0 rgb(122 74 38 / 0.4),
+    0 1px 0 #8a6a2e,
+    0 16px 36px -14px rgb(255 178 87 / 0.6),
+    0 5px 12px rgb(0 0 0 / 0.42);
+  color: var(--nila);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.hb-label {
+  position: relative;
+}
+
+.hb-orb {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--nila);
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.55),
+    0 1px 0 rgb(255 255 255 / 0.55);
+  color: var(--prada);
+  transition: transform 0.6s var(--ease-expo-out);
+}
+
+.hb-sheen {
+  position: absolute;
+  inset: 0 -45%;
+  z-index: -1;
+  background: linear-gradient(104deg, transparent 41%, rgb(255 255 255 / 0.62) 50%, transparent 59%);
+  transform: translate3d(-72%, 0, 0);
+}
+
+.hm-begin .hb-sheen {
+  animation: hb-sheen 1.3s var(--ease-sine) calc(2600ms * var(--pace)) backwards;
+}
+
+@media (hover: hover) {
+  .hb--primary:hover .hb-sheen {
+    transform: translate3d(72%, 0, 0);
+    transition: transform 0.95s var(--ease-expo-out);
+  }
+
+  .hb--primary:hover .hb-orb {
+    transform: rotate(-16deg) scale(1.06);
+  }
+
+  .hb--link:hover {
+    color: var(--mori);
+  }
+
+  .hb--link:hover span::after {
+    transform: scaleX(1);
+  }
+
+  .hb--icon:hover::after {
+    opacity: 1;
+  }
+}
+
+/* tautan: teks dengan benang emas di bawahnya */
+.hb--link {
+  --h: 40px;
+  gap: 8px;
+  padding: 0 12px;
+  color: color-mix(in srgb, var(--mori) 74%, transparent);
+  font-size: 13.5px;
+  font-weight: 550;
+}
+
+.hb--link span {
+  position: relative;
+}
+
+.hb--link span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: var(--prada);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.45s var(--ease-expo-out);
+}
+
+/* ikon: cincin tipis; menyala = emas */
+.hb--icon {
+  --h: 40px;
+  width: var(--h);
+  padding: 0;
+  background: rgb(10 12 24 / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(200 162 90 / 0.62);
+  color: var(--prada);
+}
+
+.hb--icon[aria-pressed="false"] {
+  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
+  color: color-mix(in srgb, var(--mori) 66%, transparent);
+}
+
+.hb--icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 18px rgb(255 178 87 / 0.42);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-power3-out);
+}
+
+.hb-face {
+  display: grid;
+  place-items: center;
+}
+
+/* sakelar bahasa home: kapsul bergaris tipis, kunci gading bergeser */
+.segl {
+  --pad: 3px;
+  --w: 38px;
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(var(--n), var(--w));
+  height: 40px;
+  padding: var(--pad);
+  border-radius: 999px;
+  background: rgb(10 12 24 / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
+}
+
+.segl-thumb {
+  position: absolute;
+  z-index: -1;
+  top: var(--pad);
+  left: var(--pad);
+  width: var(--w);
+  height: calc(100% - var(--pad) * 2);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fcf5e3, #dfc083);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.4);
+  transform: translate3d(calc(var(--i) * 100%), 0, 0);
+  transition: transform 0.5s var(--ease-expo-out);
+}
+
+.segl-opt {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: color-mix(in srgb, var(--mori) 74%, transparent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.22s var(--ease-expo-out);
+}
+
+.segl-opt[aria-pressed="true"] {
+  color: var(--nila);
+}
+
+.segl-opt[data-pressed] {
+  transform: scale(0.9);
+}
+
+.lang-toggle.segl {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(16px + env(safe-area-inset-right));
+  z-index: 50;
+}
+
+.sound-toggle.hb {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(16px + 82px + 10px + env(safe-area-inset-right));
+  z-index: 50;
+  animation: hm-fade 0.7s var(--ease-power3-out) calc(1600ms * var(--pace, 1)) backwards;
+}
+
+/* ---------- Layar lebar: pass mendatar dengan sobekan di kanan ---------- */
+@media (min-width: 640px) {
+  .hm-pass {
+    grid-template-columns: minmax(0, 1fr) 204px;
+  }
+
+  .hm-pass-main {
+    padding: 36px 30px 28px;
+  }
+
+  .hm-pass-stub {
+    align-content: space-between;
+    padding: 36px 26px 28px;
+    border-top: 0;
+    border-left: 1px dashed rgb(200 162 90 / 0.42);
+  }
+
+  .hm-pass-grid {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
+  .hm-pass-slot {
+    min-height: 262px;
+  }
+
+  .hm-pass-stamp {
+    right: 37%;
+    top: 31%;
+  }
+}
+
+/* ---------- HP: kartu di paruh atas (tidak tertutup keyboard), lanskap terlihat di bawahnya ---------- */
+@media (max-width: 639.98px) {
+  .home {
+    --hz: 76%;
+  }
+
+  /* gunung lebih rendah supaya puncaknya tampak di bawah kartu */
+  .hm-ridge[data-depth="far"] {
+    --rh: clamp(104px, 18.5vh, 190px);
+  }
+
+  .home[data-mode="gate"] .hm-content {
+    align-items: start;
+    padding-top: calc(clamp(92px, 16svh, 168px) + env(safe-area-inset-top));
+  }
+
+  .hm-sky {
+    --glow-y: 36%;
+  }
+
+  .hm-kayon {
+    width: clamp(92px, 27vw, 132px);
+    bottom: calc(100% - var(--hz) - 3vh);
+  }
+
+  .hm-kayon[data-side="left"] {
+    left: -3vw;
+  }
+
+  .hm-kayon[data-side="right"] {
+    right: -3vw;
+  }
+
+  .hm-floor-plane {
+    --tile: 56px;
+  }
+
+  /* tombol utama selalu terjangkau: menempel di bawah layar di atas gradasi */
+  .hm-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    isolation: isolate;
+    padding: 30px 0 calc(6px + env(safe-area-inset-bottom));
+    margin-bottom: calc(-16px - env(safe-area-inset-bottom));
+  }
+
+  .hm-actions::before {
+    content: "";
+    position: absolute;
+    inset: 0 -50vw;
+    z-index: -1;
+    background: linear-gradient(to bottom, transparent, rgb(7 9 19 / 0.94) 38px);
+    pointer-events: none;
+  }
+}
+
+/* layar pendek (HP rebah): kartu lebih rapat */
+@media (max-height: 520px) {
+  .hm-content {
+    padding-top: calc(60px + env(safe-area-inset-top));
+  }
+
+  .hm-hang[data-kind="invite"] .hm-card-body {
+    gap: 12px;
+    padding-top: 36px;
+  }
+
+  .hm-title {
+    font-size: clamp(40px, 13vh, 64px);
+  }
+}
+
+/* ---------- Layar sentuh: tanpa kursor, lapisan dan kartu berayun pelan ---------- */
+@media (hover: none), (pointer: coarse) {
+  .hm-l:not(.hm-dust) {
+    animation: hm-sway var(--hm-sway) var(--ease-sine) calc(var(--hm-sway) / -2) infinite alternate;
+  }
+
+  .hm-card {
+    animation: hm-card-sway 11s var(--ease-sine) -5.5s infinite alternate;
+  }
+
+  .hm-sheen {
+    animation: hm-sheen-sway 11s var(--ease-sine) -5.5s infinite alternate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-l:not(.hm-dust), /* sama spesifiknya dengan aturan ayunan layar sentuh di atas, jadi yang ini yang menang */
+  .hm-card,
+  .hm-sheen,
+  .hm-dust i {
+    animation: none;
+  }
+
+  .hm-dust i {
+    opacity: 0.5;
+  }
+}
+
+/* ---------- Keyframes (opacity & transform saja) ---------- */
+@keyframes hm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes hm-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+}
+
+@keyframes hm-sway {
+  from {
+    transform: translate3d(calc(var(--k) * -0.7px), 0, 0);
+  }
+  to {
+    transform: translate3d(calc(var(--k) * 0.7px), 0, 0);
+  }
+}
+
+@keyframes hm-card-sway {
+  from {
+    transform: rotateY(-5deg) rotateX(1.6deg);
+  }
+  to {
+    transform: rotateY(5deg) rotateX(-1.2deg);
+  }
+}
+
+@keyframes hm-sheen-sway {
+  from {
+    transform: translate3d(-16%, 0, 0);
+  }
+  to {
+    transform: translate3d(16%, 0, 0);
+  }
+}
+
+@keyframes hm-kayon-in {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--dir) * 70%), 0, 0) rotate(calc(var(--dir) * 12deg));
+  }
+}
+
+@keyframes hm-swing-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -34px, 0) rotate(-2.6deg);
+  }
+  16% {
+    opacity: 1;
+  }
+  44% {
+    transform: translate3d(0, 0, 0) rotate(1.15deg);
+  }
+  72% {
+    transform: rotate(-0.42deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hm-flip-out {
+  to {
+    transform: rotateY(-90deg);
+    visibility: hidden;
+  }
+}
+
+@keyframes hm-flip-in {
+  from {
+    transform: rotateY(90deg);
+  }
+}
+
+@keyframes hm-dust {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.6);
+  }
+  22% {
+    opacity: 0.9;
+  }
+  78% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(28px, -96px, 0) scale(1.15);
+  }
+}
+
+@keyframes hm-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes hm-char-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -34%, 0) scale(1.7);
+  }
+}
+
+@keyframes hm-wave {
+  50% {
+    opacity: 0.35;
+    transform: translate3d(0, -12%, 0);
+  }
+}
+
+@keyframes hm-shake {
+  18% {
+    transform: translate3d(-9px, 0, 0);
+  }
+  38% {
+    transform: translate3d(8px, 0, 0);
+  }
+  58% {
+    transform: translate3d(-5px, 0, 0);
+  }
+  78% {
+    transform: translate3d(3px, 0, 0);
+  }
+}
+
+@keyframes hm-pulse {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes hm-pop {
+  from {
+    transform: scale(0.82);
+  }
+  45% {
+    transform: scale(1.3);
+  }
+}
+
+@keyframes hm-stamp {
+  from {
+    opacity: 0;
+    transform: translateZ(190px) scale(1.5) rotate(-24deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(var(--hm-lift-foil)) scale(var(--hm-foil-scale)) rotate(-11deg);
+  }
+}
+
+@keyframes hb-sheen {
+  to {
+    transform: translate3d(72%, 0, 0);
+  }
+}

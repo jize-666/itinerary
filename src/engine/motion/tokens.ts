@@ -147,6 +147,30 @@ export const DEPTH = {
   hillsNear: 26,
 } as const;
 
+/**
+ * Kedalaman home (gerbang & sambutan, 2,5D): adegan berlapis di belakang kartu yang tergantung di benang emas.
+ * Lapisan yang makin dekat bergeser makin jauh saat kursor bergerak; kartu miring mengikuti kursor.
+ * Semuanya transform; CSS membaca nilai yang sama lewat variabel --hm-* yang dipasang Scene.tsx.
+ */
+export const HOME = {
+  /** jarak pandang kartu, px (makin kecil makin dramatis) */
+  perspective: 1100,
+  /** kartu miring paling banyak sekian derajat mengikuti kursor (kiri-kanan / atas-bawah) */
+  tiltY: 7,
+  tiltX: 4.5,
+  /** isi kartu melayang sekian px di atas alasnya, cap foil lebih tinggi lagi */
+  lift: 22,
+  liftFoil: 40,
+  /** geser tiap lapisan saat kursor di tepi layar, px (Lawu → debu emas; makin dekat makin jauh). Langit dan bintang diam. */
+  layers: { far: 10, near: 18, kayon: 28, floor: 34, dust: 54 },
+  /** kursor diikuti dengan peluruhan eksponensial: sisa jarak tinggal 1/e tiap sekian ms */
+  follow: 140,
+  /** di bawah selisih ini (satuan −1…1) gerak dianggap selesai dan rAF berhenti */
+  rest: 0.0015,
+  /** layar sentuh tanpa kursor: lapisan berayun pelan bolak-balik selama sekian ms */
+  sway: 16000,
+} as const;
+
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

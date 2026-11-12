@@ -4,12 +4,15 @@ export const VERIFY = "**/functions/v1/verify-access";
 export const TRIP = "**/functions/v1/trip-data";
 export const FUTURE = 4_102_444_800; // 2100-01-01
 
-/** Sesi palsu di perangkat (klien tidak memverifikasi token; server yang memverifikasi, dan di e2e server di-mock). */
+/**
+ * Sesi palsu di tab ini (klien tidak memverifikasi token; server yang memverifikasi, dan di e2e server di-mock).
+ * Sesi tab browser hidup di sessionStorage, jadi tiap halaman baru perlu di-seed sendiri.
+ */
 export async function seedSession(page: Page, role: "guest" | "team" = "guest") {
   await page.addInitScript(
     ([k, v]) => {
       if (!sessionStorage.getItem("e2e-seeded")) {
-        localStorage.setItem(k, v);
+        sessionStorage.setItem(k, v);
         sessionStorage.setItem("e2e-seeded", "1");
       }
     },
