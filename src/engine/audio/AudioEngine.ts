@@ -122,6 +122,11 @@ class AudioEngine {
     if (duck) this.duck(at, buffer.duration);
   }
 
+  /** Unduh dan urai satu efek lebih dulu, supaya saat dipakai tidak terlambat (dan dibuang oleh SFX_LATE). */
+  preload(name: SfxName) {
+    if (this.ctx && this.state.enabled) void this.load(SFX[name]).catch(() => null);
+  }
+
   /** Untuk e2e & debug; tidak memuat data apa pun selain status audio. */
   debug() {
     return { ...this.state, ctx: this.ctx?.state ?? "none", bed: this.bed?.playing ? this.bedName : null, lastSfx: this.lastSfx };

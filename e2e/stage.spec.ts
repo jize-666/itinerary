@@ -9,7 +9,7 @@ import { filmFixture, json, seedSession, todayFixture, TRIP } from "./helpers";
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean };
+type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -220,23 +220,82 @@ test.describe("gong ageng 3D", () => {
     expect(vista.calls).toBeLessThan(front.calls);
   });
 
-  test("slide gong: tombol pukul tetap bisa dipakai lewat keyboard dan klik, teks berada di bawah gong", async ({ page }) => {
-    await open3d(page, "?stage=low", "#day-2");
-    await step(page, "ArrowUp"); // gong penutup Hari 1
+  /** Ke slide gong penutup Hari 1 (dari judul Hari 2, satu langkah mundur). */
+  async function toGong(page: Page, query: string) {
+    if (query.includes("static")) await open(page, query, "#day-2");
+    else await open3d(page, query, "#day-2");
+    await step(page, "ArrowUp");
     await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
-    const strike = page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+    return page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+  }
+  const strikes = async (page: Page) => (await stats(page))?.strikes ?? -1;
+
+  test("slide gong: bidang sentuh tombol pukul tepat di atas gong, teks berada di bawahnya", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
     await expect(strike).toBeVisible();
     await expect(strike).toHaveAccessibleName(/gong/i);
     await expect(strike.locator(".fs-gong")).toBeHidden();
-    // bidang sentuh di atas gong (paruh atas layar); teks penutup hari di bawahnya
     const [hit, text, view] = [await strike.boundingBox(), await page.locator(".fl-layer[data-pos='cur'] .fs-gongclose .fs-kicker").boundingBox(), page.viewportSize()!];
-    expect(hit!.y + hit!.height / 2).toBeLessThan(view.height * 0.5);
-    expect(text!.y).toBeGreaterThan(hit!.y + hit!.height / 2);
+    const [cx, cy] = [hit!.x + hit!.width / 2, hit!.y + hit!.height / 2];
+    // letaknya dihitung dari shot kamera: dekat tengah layar, di atas teks penutup hari, seluruhnya di dalam layar
+    expect(Math.abs(cx - view.width / 2)).toBeLessThan(view.width * 0.1);
+    expect(cy).toBeLessThan(view.height * 0.6);
+    expect(text!.y).toBeGreaterThan(cy);
+    expect(hit!.y).toBeGreaterThanOrEqual(0);
+    expect(hit!.width).toBeGreaterThan(Math.min(view.width, view.height) * 0.25);
+    expect(hit!.width).toBeLessThan(view.width);
+  });
+
+  test("tiba di slide gong: gong dipukul sendiri; klik dan Enter memukul lagi, tetapi tidak selama tabuh masih berayun", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
+    // otomatis: tabuh diayun ±0,26 dtk sesudah tiba dan kena ±0,5 dtk kemudian
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    // Pukulan baru ditolak sampai tabuh kembali menggantung (1,5 dtk sejak diayun). Dua klik dalam satu giliran:
+    // paling banyak satu yang diterima, berapa pun lambatnya halaman menggambar.
+    const twice = () =>
+      page.evaluate(() => {
+        const b = document.querySelector<HTMLButtonElement>(".fl-layer[data-pos='cur'] .fs-strike")!;
+        b.click();
+        b.click();
+        return b.dataset.struck ?? "";
+      });
+    await expect.poll(twice, { timeout: 20_000, intervals: [400] }).toBe("2");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+    // keyboard: Enter di tombol yang terfokus
     await strike.focus();
-    await page.keyboard.press("Enter");
+    await expect
+      .poll(
+        async () => {
+          await page.keyboard.press("Enter");
+          return strike.getAttribute("data-struck");
+        },
+        { timeout: 20_000, intervals: [400] },
+      )
+      .toBe("3");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(3);
+  });
+
+  test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await step(page, "ArrowDown"); // judul Hari 2
+    await page.waitForTimeout(1700);
+    expect(await strikes(page)).toBe(1);
+    await step(page, "ArrowUp");
+    await expect(strike).toHaveAttribute("data-struck", "2");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+  });
+
+  test("film 2,5D: cakram gong CSS dipukul sendiri saat tiba dan beriak lagi tiap diklik", async ({ page }) => {
+    const strike = await toGong(page, "?stage=static");
+    await expect(strike.locator(".fs-gong")).toBeVisible();
     await expect(strike).toHaveAttribute("data-struck", "1");
     await strike.click();
     await expect(strike).toHaveAttribute("data-struck", "2");
+    await strike.focus();
+    await page.keyboard.press("Enter");
+    await expect(strike).toHaveAttribute("data-struck", "3");
   });
 });
 

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 6 (gong ageng 3D) sedang dikerjakan atas arahan host**, langkah demi langkah: tiap langkah ditutup dengan video pratinjau ke host. Status per langkah ada di bagian 0, "Tugas 6: kemajuan".
+Diperbarui 13 Nov 2026 dini hari (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -11,14 +11,34 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 1. "baca tugas di handoff.md / remodel/redesign gong kan? kerjakan. / preview panggung 3D belum?"
 2. "update handoff.md lalu preview gong nya, pas di tabuh juga. (output)" (dikirim saat langkah 2 sedang dites). Artinya: berkas ini diperbarui dulu, lalu video pratinjau gong yang juga memperlihatkan gong ditabuh. Jadi pukulan (langkah 3) dikerjakan sekarang, sebelum video direkam.
 
+3. "cek handoff.md, tugasmu yang ini; Sedang menulis langkah 3 (pukulan): pemicu dari tombol dan otomatis saat tiba di slide gong, ayunan tabuh dan gong, retakan bara, riak, bunga api, napas api naga, dan bunyi. sudah selesai?" (sesi baru sesudah `/clear`, 12 Nov malam). Jawabannya: belum. Saat sesi sebelumnya terputus, yang sudah tertulis (belum di-commit) baru bagian murni: `src/engine/stage/bus.ts`, `createStrikes` dan `gongSpot` di `src/engine/stage/gong.ts`, `projectPoint` di `shots.ts`, dan `audioStatus.scene` di `src/engine/audio/status.ts`. Model 3D, tombol, dan pemicu otomatis belum tersambung. Langkah 3 dilanjutkan di sesi ini.
+
+4. "setelah sudah (output previews gong) lewati keris dan batara kala, lanjut langsung ke gunungan. (priority max) catat ini di handoff.md" (dikirim saat langkah 3 sedang dites, 12 Nov malam). Artinya: sesudah video pratinjau gong (termasuk saat ditabuh) dikirim, **langkah 5 (Batara Kala dan keris) dilewati** dan pekerjaan langsung pindah ke **Tugas 7, gunungan, prioritas tertinggi**. Ini mengganti keputusan 12 Nov "Batara Kala dan keris ikut Tugas 6". Tafsir Claude (belum ditegaskan host): langkah 4 (kepingan bara berkumpul menjadi gong di prolog) ikut ditunda, karena host bilang "lanjut langsung ke gunungan"; kalau host tetap menginginkannya, dikerjakan sesudah gunungan.
+
+5. "cek di handoff.md / tugasmu yang: Audit host 8 Nov mengunci 'kamera diam saat gong dipukul', jadi getar dan hentakan yang baru saya tambahkan saya cabut. Bingkai slide gong saya lebarkan agar kedua api naga tetap terlihat tanpa menggerakkan kamera. (pasang aja, asal lebih smooth dari yang kemarin)" (sesi baru sesudah `/clear`, 12 Nov malam). Artinya: **getar dan hentakan kamera saat gong dipukul dipasang lagi**, dengan syarat lebih halus dari yang lama. Ini mengganti keputusan audit 8 Nov "kamera diam, tanpa getar" khusus untuk pukulan gong. Tafsir Claude (belum ditegaskan host): bingkai lebar slide gong tetap dipakai, karena tanpa itu api kedua naga terpotong; yang berubah hanya kameranya ikut terhentak.
+
+6. "dan tugasmu yang: Suite e2e yang sedang berjalan masih memakai build sebelum bingkai kamera diubah, jadi saya hentikan, build ulang, cek gambar bingkai barunya, baru jalankan e2e penuh sekali di akhir. (sudah?)" (menyusul, sesi yang sama). Jawabannya dari jejak di disk: **build ulang sudah** (`out/` bertanggal 16.21, sesudah perubahan sumber terakhir 16.20); **cek gambar bingkai baru dan e2e penuh belum** (`test-results/` hanya berisi sisa suite yang dihentikan 16.20, tidak ada jalan sesudah build). Keduanya dikerjakan di sesi ini, sesudah getar dan hentakan kamera dipasang, supaya e2e penuh cukup sekali.
+
+7. "lewati tes unit dan e2e (tapi beri catatan di handoff), selesaikan setelah gunungan. kerjakan gunungan terlebih dahulu." (menyusul, saat tes unit hentakan kamera baru dijalankan). Artinya: **tes unit dan e2e gong ditunda sampai gunungan selesai**, dan **Tugas 7 (gunungan) dikerjakan sekarang**. Utang tesnya dicatat di "Utang gong" di bawah; jangan dianggap sudah lulus.
+
 | Langkah | Isi | Status |
 |---|---|---|
 | 1 | Mesin murni + tes unit | **selesai** |
 | 2 | Badan gong, gayor, naga, tabuh di panggung | **selesai**, sudah di-commit (`e3cacd5`) |
-| 3 | Pukulan (otomatis saat tiba di slide gong + klik, tap, Enter), efek, bunyi | **sedang dikerjakan** |
-| 4 | Momen prolog: kepingan bara berkumpul menjadi gong | belum |
-| 5 | Batara Kala dan keris di puncak gayor | belum |
+| 3 | Pukulan (otomatis saat tiba di slide gong + klik, tap, Enter), efek, bunyi, hentakan kamera | **kode tertulis dan di-commit; tes dan video ditunda atas arahan host** (lihat "Utang gong") |
+| 4 | Momen prolog: kepingan bara berkumpul menjadi gong | ditunda (sesudah gunungan, bila host masih mau) |
+| 5 | Batara Kala dan keris di puncak gayor | **dilewati** atas arahan host |
 | 6 | Ukur, dokumen, PR saat host meminta | sebagian (lihat di bawah) |
+
+**Utang gong (dikerjakan sesudah gunungan, arahan host no. 7).** Kode langkah 3 sudah ada di branch, tetapi belum boleh disebut teruji:
+- **Tes unit:** terakhir dijalankan hanya `tests/unit/gong.test.ts`: 29 dari 30 lulus. Yang gagal: tes hentakan kamera (ayunan balik 42% dari hentakan, batasnya 40%). Sesudah itu `KICK.backDecay` diubah 0,24 → 0,22 (hitungan tangan: ±32%), **belum dijalankan ulang**. `pnpm test` penuh belum dijalankan sejak langkah 3.
+- **e2e:** suite penuh belum pernah jalan dengan kode langkah 3 (suite terakhir dihentikan di tengah karena memakai build lama). Tes baru: pukulan di `e2e/stage.spec.ts`, bunyi di `e2e/sound.spec.ts`. Belum ada tes e2e untuk hentakan kamera (`window.__lakonStage.kick` sudah disediakan: 0 = kamera diam).
+- **Cek gambar bingkai baru slide gong** (shot dilebarkan supaya kedua naga terlihat): belum dilihat sesudah build ulang.
+- **Video pratinjau gong saat ditabuh** (tur `gong` di `record-film.cjs`): belum direkam. Hentakan kamera baru dihitung angkanya, belum pernah ditonton.
+- `scripts/preview/measure-stage.cjs` belum dijalankan ulang; belum diuji di perangkat nyata.
+- Yang sudah lulus sesudah hentakan kamera dipasang: `pnpm typecheck` dan `pnpm lint`.
+
+**Hentakan dan getar kamera (arahan host no. 5), yang ditulis.** `cameraKick`, `KICK`, `kickSize` di `src/engine/stage/gong.ts` (murni); dijumlahkan per hantaman di `createStrikes().at()` (`kick`); dipasang ke kamera di `src/components/film/stage3d/runtime.ts` sesudah napas dan parallax. Angkanya: mundur ±0,9% jarak dalam ±0,08 dtk lalu berayun balik sekali; getar 3,6–4,8 Hz, paling jauh ±0,6% tinggi layar, habis ±1,5 dtk; mulai dari nol tanpa sentakan. Sekalian: hantaman lama sekarang dilupakan sesudah 12 dtk (dulu hanya 3 hantaman terakhir yang dihitung, sehingga pukulan keempat beruntun menggeser gong ±1 cm). Rinciannya di `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
 
 **Yang selesai (langkah 1–2).**
 - `src/engine/stage/gong.ts` (murni): ukuran rakitan, profil badan gong, garis waktu pukulan (sikap tabuh per saat), ayunan bandul, dengung, panas bara, kilatan, riak, napas api, denyut jantung.
@@ -39,9 +59,8 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Blencong tergantung ±1,7 m dari naga kiri: naga itu dan ujung kiri palang sangat terang. Kilap lak sudah dibatasi; kalau masih mengganggu, pilihannya menggeser blencong (mengubah latar Tugas 5).
 - Di HP tegak, gayor kecil di prolog dan judul menutup palang.
 - Kepala naga dari sangat dekat masih kasar (bola-bola yang dipipihkan); dari jarak kamera film tidak terlihat.
-- Pukulan belum tersambung: tombol di slide gong hanya menaikkan `data-struck`.
 
-**Langkah berikutnya.** Langkah 3 (pukulan), lalu video pratinjau gong termasuk saat ditabuh, lalu perbarui berkas ini lagi.
+**Langkah berikutnya.** Tugas 7 (gunungan), lalu kembali ke "Utang gong": `pnpm test`, build, cek gambar bingkai, e2e penuh sekali, video pratinjau gong saat ditabuh.
 
 ### Keadaan saat sesi ditutup (12 Nov, sesudah merge PR #7)
 
@@ -120,8 +139,8 @@ Ketiganya baru dicatat, belum ada yang dikerjakan: arahan yang berlaku tetap "vi
 | # | Tugas | Acuan | Status |
 |---|---|---|---|
 | 5 | Panggung 3D (R3F) + mesin film 3D: kanvas, shot kamera per slide, tier kualitas, pemantau FPS | F2, Tugas 23 | **selesai 12 Nov**, PR #7 di-merge, diterima host sesudah uji di iPhone (lihat di bawah) |
-| 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | belum |
-| 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | belum |
+| 6 | Gong ageng 3D + pukulan | F3, Tugas 24 | kode tertulis; tes dan video ditunda host (lihat "Utang gong") |
+| 7 | Gunungan: gerbang sinematik + sapuan antar bab | F4, Tugas 25 | **sedang dikerjakan** |
 | 8 | Benang emas (desain ulang) + siklus waktu 3D + post-FX + partikel | F5, Tugas 26, 27, 31 | belum |
 | 9 | Diorama Solo | F6, Tugas 28 | belum |
 | 10 | Lereng Lawu | F6, Tugas 29 | belum |

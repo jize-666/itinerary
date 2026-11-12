@@ -234,11 +234,12 @@ html.film-on body {
   padding-bottom: calc(var(--bottom) + clamp(14px, 5vh, 56px));
 }
 
+/* letak dan garis tengah gong di layar dihitung dari shot kamera (GongClose di Slides.tsx) */
 .film[data-stage] .fs-strike {
   position: absolute;
-  top: 38%;
-  left: 50%;
-  width: min(46vh, 70vw);
+  top: var(--gong-y, 38%);
+  left: var(--gong-x, 50%);
+  width: var(--gong-d, min(46vh, 70vw));
   margin: 0;
   translate: -50% -50%;
 }

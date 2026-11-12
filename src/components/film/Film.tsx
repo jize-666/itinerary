@@ -144,7 +144,7 @@ const Layer = memo(function Layer({ data, id, slides, pos, step, onOpen }: { dat
       aria-hidden={pos !== "cur"}
       inert={pos !== "cur"}
     >
-      {gallery ? <Gallery data={data} slides={slides as PanelSlide[]} step={step} onOpen={onOpen} /> : <SlideContent data={data} slide={head} />}
+      {gallery ? <Gallery data={data} slides={slides as PanelSlide[]} step={step} onOpen={onOpen} /> : <SlideContent data={data} slide={head} pos={pos} />}
     </section>
   );
 });

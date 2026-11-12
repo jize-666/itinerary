@@ -318,7 +318,7 @@ Tugas 5 di `CLAUDE.md`: kanvas, mesin film 3D, tier kualitas, pemantau FPS, dan 
 
 ## Gong ageng 3D di panggung (12 Nov 2026), arahan host: "remodel/redesign gong kan? kerjakan", "per tugas output dulu, step by step"
 
-Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–2 (mesin dan model); pukulan, bunyi, kepingan bara, dan Batara Kala menyusul dan ditambahkan di sini saat selesai.
+Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (mesin, model, dan pukulan beserta bunyinya). Atas arahan host 12 Nov malam ("lewati keris dan batara kala, lanjut langsung ke gunungan"), Batara Kala dan keris tidak dikerjakan di tugas ini; kepingan bara di prolog ikut ditunda.
 
 **Acuan dan yang diubah.** Bentuk dan perilakunya mengikuti prototipe "Gong Murka" yang disetujui host 8 Nov (`prototypes/gong/scene.js`): profil badan (pencu, leher, dua punggung recep, pundak, bau), gayor berlak merah dengan dua naga prada di ujung palang, tabuh berbantal kain, jantung bara di pencu. Cara menggambarnya ditulis ulang: prototipe memakai bahan bawaan three, tekstur kanvas 2048 px, bayangan dinamis, dan ±69 ribu segitiga hanya untuk badan gong.
 
@@ -333,7 +333,23 @@ Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–2 (
 - **Poros ayun gong di sisi bawah palang**, tempat talinya diikat, jadi tali dan gong berayun sebagai satu benda. Di prototipe porosnya di tengah tali dan talinya diam. Simpangan di pusat gong dipertahankan (±3,8 cm); periodenya 1,8 dtk (prototipe 1,6) karena bandulnya lebih panjang.
 - **Gelang naga digambar shader** (sisik prada berselang gelang lak), bukan cincin geometri: lebih hemat dan tepinya tetap tajam.
 - **Gigi bawah naga berdiri di rahangnya.** Di prototipe gigi itu melayang di bawah rahang (tidak terlihat dari jarak prototipe).
-- **Kamera tidak bergetar saat pukulan**, sesuai revisi audit host 8 Nov.
+- **Kamera terhentak dan bergetar saat gong kena, tetapi halus.** Audit host 8 Nov meminta "kamera diam, tanpa getar"; host 12 Nov malam: "pasang aja, asal lebih smooth dari yang kemarin". Getar lama (prototipe) langsung muncul dengan simpangan penuh dan bergetar 9–11 Hz. Yang sekarang (`cameraKick` di `src/engine/stage/gong.ts`): naik dari nol dengan kecepatan nol (frame pertama di 60 fps baru ±seperempat jalan), hentakan = kamera mundur ±1% jaraknya dalam ±0,08 dtk lalu berayun balik sekali (±sepertiga) seperti pegas berperedam, getar = sinus 3,6–4,8 Hz yang meluruh dalam ±1,5 dtk, paling jauh ±0,6% tinggi layar. Rumus tertutup dari detik sejak hantaman, jadi sama di laju frame berapa pun; pukulan beruntun dijumlahkan sehingga tidak melompat. Simpangan getar dihitung dalam ukuran layar, jadi sama di layar lebar dan tegak. Teks dan tombol (DOM) tidak ikut bergetar.
+
+**Pukulan (langkah 3).**
+- **Satu pemicu.** Lapisan DOM memanggil `stageBus.strikeGong()` (`src/engine/stage/bus.ts`, tanpa three). Otomatis 0,26 dtk sesudah tamu tiba di slide gong penutup hari (keputusan host 12 Nov: "otomatis dan manual"), dan manual lewat tombol `.fs-strike` (klik, tap, Enter). Geseran jari yang dibatalkan tidak dihitung tiba. Pukulan baru ditolak sampai tabuh kembali menggantung (1,5 dtk sejak diayun), jadi ketukan beruntun tidak menumpuk.
+- **Garis waktu** sama dengan prototipe: ancang-ancang, jeda, ayunan makin cepat, kena pencu di 0,52 dtk, pantulan, kembali ke cantolan. Semua efek dimulai tepat saat kena.
+- **Retakan bara dan riak digambar di shader badan gong**, tanpa jala atau draw call tambahan. Riak menempel di muka gong (audit host 8 Nov), empat cincin yang menyusul tiap 0,16 dtk.
+- **Bunga api dan napas api kedua naga = satu `Points`.** Geraknya rumus tertutup dari jam hantaman di vertex shader (tanpa pembaruan buffer dari JS), dan hanya digambar ±2,2 dtk per pukulan: satu draw call tambahan, nol saat diam. Di tier rendah titiknya lebih jarang (49% di Low), ukurannya tetap.
+- **Kilatan menerangi seluruh pendapa.** Satu lampu titik di depan pencu ada di uniform bersama (`uFlash`), jadi lantai, tiang, dan gayor ikut terang sesaat. Saat diam nilainya nol dan cabangnya di shader tidak dihitung.
+- **Pukulan beruntun.** Ayunan, dengung, dan panas adalah jumlah tanggapan tiap hantaman (bandul itu linear), jadi memukul gong yang masih berayun tidak membuatnya melompat. Riak dan api memakai dua lajur bergantian, supaya efek pukulan sebelumnya selesai dengan wajar.
+- **Satu jam.** Pukulan dicatat pada jam panggung (jam frame 3D terakhir), bukan jam dinding, supaya ayunan tabuh, efek, dan kamera tidak bisa saling bergeser.
+- **Bunyi.** `gong` dijadwalkan di Web Audio tepat saat tabuh kena (0,52 dtk sesudah dipicu) dan merendahkan gendhing sebentar; `api-naga` menyusul 0,08 dtk kemudian pada 55%. Keduanya dimuat lebih dulu saat tamu menuju slide gong. Suara dimatikan atau lakon belum dimulai: hening dan tidak ada yang diunduh (dijaga e2e).
+- **Film 2,5D** (Static, Calm, reduced motion): cakram gong CSS beriak dan bunyi gong langsung, otomatis saat tiba dan tiap diklik.
+- **Tabuh terangkat sedikit** saat kursor atau fokus keyboard ada di tombol pukul: tanda bahwa gong bisa dipukul.
+
+**Bingkai slide gong.** Di langkah 2 gong memenuhi paruh atas layar dan kedua naga terpotong tepi atas. Api naga tidak akan terlihat di bingkai itu. Jadi shot slide gong dilebarkan (`GONG_SHOT` di `shots.ts`): seluruh gayor, kedua naga, dan ruang semburan apinya ada di layar, gong di atas teks penutup hari. Harganya: gong lebih kecil di layar (±25% tinggi layar di desktop, sebelumnya ±48%). Bidang sentuh tombol pukul dihitung dari proyeksi gong pada shot ini (`gongSpot`), jadi selalu tepat di atas gong di layar lebar maupun tegak. Bingkai lebar ini dipertahankan sesudah hentakan kamera dipasang lagi (tafsir Claude, belum ditegaskan host): hentakannya mundur, jadi kedua naga dan apinya tetap di dalam layar.
+
+**Belum dikerjakan dari daftar prototipe:** gelombang kejut selayar (distorsi di rantai post) dan pendar api di mulut naga sebagai lampu tersendiri. Keduanya masuk akal digarap bersama post-FX di Tugas 8.
 
 **Lapisan DOM.** Saat 3D hidup, cakram gong CSS di prolog dan di slide penutup hari tidak digambar. Tombol pukul (`.fs-strike`) tetap ada untuk keyboard dan screen reader, menjadi bidang sentuh di atas gong, dan teks penutup hari turun ke bawah gong. Film 2,5D (Static, Calm, reduced motion) tidak berubah.
 

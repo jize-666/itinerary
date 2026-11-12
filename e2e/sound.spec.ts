@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { json, seedSession, TRIP, tripFixture } from "./helpers";
+import { filmFixture, json, seedSession, TRIP, tripFixture } from "./helpers";
 
 type Debug = { started: boolean; enabled: boolean; ctx: string; bed: string | null; lastSfx: string | null };
 const audioDebug = (page: Page) =>
@@ -89,4 +89,49 @@ test("klik tombol berbunyi saat gamelan menyala (click/tok), hening setelah di-m
   await expect(page).toHaveURL(/\/film\/$/);
   await page.waitForTimeout(300);
   expect((await audioDebug(page))?.lastSfx).toBe("ui-tok");
+});
+
+test.describe("gong penutup hari berbunyi", () => {
+  /** Dari gerbang ke slide gong penutup Hari 1: lompat ke Hari 2 lewat rel bab, lalu satu langkah mundur. */
+  async function toGong(page: Page, sound: boolean) {
+    await page.route(TRIP, (r) => json(r, 200, filmFixture("guest", { breakfast: true })));
+    await page.goto("/");
+    if (!sound) await page.getByRole("button", { name: "Gamelan sound" }).click();
+    await page.getByRole("button", { name: "Begin the lakon" }).click();
+    await expect(page).toHaveURL(/\/film\/$/);
+    const film = page.locator("main.film");
+    await expect(film).toBeVisible();
+    if (sound) await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("kebo-giro");
+    await page.locator(".fl-rail-list li:nth-child(3) button").click();
+    await expect(film).toHaveAttribute("data-slide", "day-2/title");
+    await expect(film).not.toHaveAttribute("data-moving", "");
+    await page.keyboard.press("ArrowUp");
+    await expect(film).toHaveAttribute("data-slide", "day-1/gong");
+    await expect(film).not.toHaveAttribute("data-moving", "");
+    return page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+  }
+
+  test("suara menyala: gong berbunyi sendiri saat tiba, dan lagi saat dipukul", async ({ page }) => {
+    const strike = await toGong(page, true);
+    await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 10_000 }).toBe("gong");
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await page.waitForTimeout(700); // film 2,5D: bunyi gong tidak ditumpuk lebih rapat dari 0,6 dtk
+    await strike.click(); // saat ditekan berbunyi pop, lalu gong
+    await expect(strike).toHaveAttribute("data-struck", "2");
+    await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 10_000 }).toBe("gong");
+  });
+
+  test("suara dimatikan: gong tetap dipukul, tetapi hening dan tidak mengunduh audio", async ({ page }) => {
+    const audioRequests: string[] = [];
+    page.on("request", (r) => {
+      if (r.url().includes("/audio/")) audioRequests.push(r.url());
+    });
+    const strike = await toGong(page, false);
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await strike.click();
+    await expect(strike).toHaveAttribute("data-struck", "2");
+    await page.waitForTimeout(500);
+    expect(audioRequests).toEqual([]);
+    expect((await audioDebug(page))?.lastSfx ?? null).toBeNull();
+  });
 });

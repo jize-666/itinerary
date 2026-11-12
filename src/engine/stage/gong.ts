@@ -6,7 +6,7 @@
  * Satuan: "model" = meter pada skala prototipe, titik asal di lantai di bawah pencu, gong menghadap +z.
  * Dunia = model × `GONG_SCALE` (shot kamera Tugas 5 dibuat untuk rakitan selebar ±3,5 m).
  */
-import type { Vec3 } from "./shots";
+import { projectPoint, type Shot, type Vec3 } from "./shots";
 
 export const GONG_SCALE = 1.35;
 
@@ -293,3 +293,160 @@ export function ripple(i: number, st: number): { radius: number; opacity: number
 
 /** Napas api naga sesudah hantaman: 0–1, naik cepat lalu habis dalam 1,8 detik. */
 export const breath = (st: number) => (st < 0 || st >= 1.8 ? 0 : Math.min(1, st * 8) * (1 - st / 1.8));
+
+/** Kilatan cahaya di depan pencu yang menerangi seluruh pendapa: tertinggi saat kena, habis dalam ±1,5 detik. */
+export const strikeLight = (st: number) => (st < 0 ? 0 : 2.6 * Math.exp(-st * 3));
+
+/**
+ * Hentakan dan getar kamera saat gong kena. Arahan host 12 Nov: "pasang aja, asal lebih smooth dari yang
+ * kemarin" (mengganti "kamera diam" dari audit 8 Nov, khusus untuk pukulan gong). Getar lama di prototipe
+ * langsung muncul dengan simpangan penuh dan bergetar 9–11 Hz. Yang ini:
+ * - naik dari nol dengan kecepatan nol (`rise`), jadi tidak ada frame yang melompat tepat saat kena;
+ * - hentakan = kamera terdorong mundur lalu berayun balik sekali seperti pegas berperedam (`backHz`);
+ * - getar = gelombang sinus pelan (3,6–4,8 Hz) yang meluruh, bukan derau acak per frame;
+ * - seluruhnya rumus tertutup dari detik sejak hantaman: laju frame berapa pun hasilnya sama.
+ */
+export const KICK = {
+  /** Tetapan waktu serangan (detik): simpangan penuh tercapai ±0,1 dtk sesudah kena. */
+  rise: 0.035,
+  /** Hentakan: kamera mundur ±1% dari jaraknya ke gong (puncaknya ±separuh angka ini), ayunan baliknya sepertiganya. */
+  back: 0.02,
+  backHz: 1.2,
+  backDecay: 0.22,
+  /** Getar: simpangan di layar (bagian dari setengah tinggi layar) ke atas-bawah dan kiri-kanan, dan guling (rad). */
+  up: 0.018,
+  side: 0.01,
+  roll: 0.0028,
+  upHz: 4.8,
+  sideHz: 3.6,
+  rollHz: 4.1,
+  decay: 0.34,
+} as const;
+
+export type CameraKick = Readonly<{
+  /** Kamera mundur sejauh bagian ini dari jarak fokusnya (negatif = maju sedikit saat berayun balik). */
+  back: number;
+  /** Simpangan pandangan ke atas dan ke kanan, bagian dari setengah tinggi layar. */
+  up: number;
+  side: number;
+  /** Guling mengitari sumbu pandang (rad). */
+  roll: number;
+}>;
+
+const TAU = Math.PI * 2;
+const NO_KICK: CameraKick = { back: 0, up: 0, side: 0, roll: 0 };
+
+/** Hentakan dan getar kamera `st` detik sesudah hantaman: nol dan tanpa kecepatan tepat saat kena, lalu meluruh. */
+export function cameraKick(st: number): CameraKick {
+  if (st <= 0) return NO_KICK;
+  const a = 1 - Math.exp(-st / KICK.rise);
+  const attack = a * a;
+  const shake = attack * Math.exp(-st / KICK.decay);
+  return {
+    back: KICK.back * attack * Math.exp(-st / KICK.backDecay) * Math.cos(TAU * KICK.backHz * st),
+    up: KICK.up * shake * Math.sin(TAU * KICK.upHz * st),
+    side: KICK.side * shake * Math.sin(TAU * KICK.sideHz * st + 0.9),
+    roll: KICK.roll * shake * Math.sin(TAU * KICK.rollHz * st + 2.1),
+  };
+}
+
+/** Besar hentakan kamera sebagai satu angka (untuk pemantau dan uji): nol berarti kamera diam di shot-nya. */
+export const kickSize = (k: CameraKick) => Math.hypot(k.back, k.up, k.side, k.roll);
+
+/** Bunga api dan napas api: lama hidupnya (detik sesudah hantaman). Sesudah `FX.end` tidak ada lagi yang digambar. */
+export const FX = {
+  /** Bunga api memudar habis. */
+  sparks: 1.8,
+  /** Naga berhenti menyembur. */
+  emit: 1.2,
+  /** Umur satu lidah api. */
+  flame: 1,
+  /** Riak terakhir hilang; lidah api terakhir padam. */
+  end: 2.2,
+} as const;
+
+/**
+ * Hantaman dilupakan sesudah sekian detik: saat itu ayunannya tinggal < 1% (e^(−12/2,6)), jadi membuangnya tidak
+ * terlihat. Sebelum itu semua hantaman dijumlahkan, supaya pukulan beruntun tidak membuat gong melompat.
+ */
+const FORGET = 12;
+
+export type StrikeState = Readonly<{
+  /** Detik sejak tabuh mulai diayun (untuk `malletPose`); sangat besar bila belum pernah dipukul. */
+  p: number;
+  /** Detik sejak hantaman terakhir yang sudah terjadi; negatif bila belum ada. */
+  st: number;
+  swing: number;
+  hum: number;
+  heat: number;
+  flare: number;
+  breath: number;
+  /**
+   * Detik sejak hantaman di tiap lajur efek (negatif = belum ada). Pukulan bergantian memakai lajur 0 dan 1,
+   * jadi riak dan bunga api pukulan sebelumnya selesai dengan wajar walau gong dipukul lagi.
+   */
+  fx: readonly [number, number];
+  /** Hentakan dan getar kamera (jumlah dari semua hantaman yang masih terasa). */
+  kick: CameraKick;
+  /** Jumlah hantaman yang sudah terjadi sejak panggung hidup. */
+  count: number;
+  /** Masih ada yang bergerak atau menyala: panggung perlu digambar tiap frame. */
+  busy: boolean;
+}>;
+
+/**
+ * Pencatat pukulan. `strike(t)` memulai ayunan tabuh pada jam `t` (ditolak selama tabuh belum kembali
+ * menggantung); `at(t)` memberi keadaan gong pada jam `t`. Ayunan dan dengung adalah jumlah tanggapan
+ * tiap hantaman (bandul itu linear), jadi memukul gong yang masih berayun tidak membuatnya melompat.
+ */
+export function createStrikes() {
+  /** Jam hantaman (bukan jam ayunan dimulai) dan lajur efeknya, yang terlama di depan. */
+  const hits: { at: number; lane: 0 | 1 }[] = [];
+  let begun = -Infinity;
+  let total = 0;
+  return {
+    strike(t: number): boolean {
+      if (t - begun < STRIKE.rest) return false;
+      begun = t;
+      while (hits.length && t - hits[0]!.at > FORGET) hits.shift();
+      hits.push({ at: t + STRIKE.impact, lane: total % 2 ? 1 : 0 });
+      total++;
+      return true;
+    },
+    at(t: number): StrikeState {
+      let [st, swing, hum, heat, pending] = [-1, 0, 0, 0, 0];
+      let [back, up, side, roll] = [0, 0, 0, 0];
+      const fx: [number, number] = [-1, -1];
+      for (const hit of hits) {
+        const d = t - hit.at;
+        if (d < 0) {
+          pending++;
+          continue;
+        }
+        st = d;
+        fx[hit.lane] = d;
+        swing += gongSwing(d);
+        hum += gongHum(d);
+        heat += strikeHeat(d);
+        const k = cameraKick(d);
+        back += k.back;
+        up += k.up;
+        side += k.side;
+        roll += k.roll;
+      }
+      const p = t - begun;
+      const busy = p < STRIKE.rest || (st >= 0 && st < STRIKE.tail);
+      return { p, st, swing, hum, heat: Math.min(heat, 2.6), flare: strikeFlare(st), breath: breath(st), fx, kick: { back, up, side, roll }, count: total - pending, busy };
+    },
+  };
+}
+
+/**
+ * Letak gong di layar pada shot `shot`: pusat (persen dari kiri dan dari atas) dan garis tengahnya (persen lebar
+ * layar, sedikit dilebihkan). Dipakai lapisan DOM untuk menaruh bidang sentuh tombol pukul tepat di atas gong.
+ */
+export function gongSpot(shot: Pick<Shot, "pos" | "look" | "fov">, aspect: number): { x: number; y: number; d: number } {
+  const c = projectPoint(shot, aspect, [0, GONG.y * GONG_SCALE, 0.04 * GONG_SCALE]);
+  const r = (GONG.radius * GONG_SCALE) / (Math.max(c.depth, 0.1) * Math.tan((shot.fov * Math.PI) / 360) * aspect);
+  return { x: (c.x * 0.5 + 0.5) * 100, y: (0.5 - c.y * 0.5) * 100, d: r * 100 * 1.06 };
+}

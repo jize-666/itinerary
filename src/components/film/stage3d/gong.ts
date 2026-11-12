@@ -5,9 +5,14 @@
  * bayangan dinamis. Semua bahan (perunggu, lak, prada, tulang, bara, tali, kain) dibedakan di shader lewat
  * atribut `aTag`, dan semua gerak (ayunan, dengung, gencetan bantalan) dihitung di vertex shader dari uniform.
  *
+ * Pukulan: retakan bara dan riak digambar di shader badan gong (tanpa jala tambahan); bunga api dan napas api
+ * kedua naga adalah satu `Points` yang geraknya dihitung di vertex shader dari jam hantaman, dan hanya digambar
+ * selama masih ada yang menyala (satu draw call tambahan, ±2 detik per pukulan).
+ *
  * Geometri ditulis dalam satuan model (lihat engine/stage/gong.ts); grupnya yang diskalakan ke dunia.
  */
 import {
+  AdditiveBlending,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -19,16 +24,19 @@ import {
   Matrix4,
   Mesh,
   Object3D,
+  Points,
   ShaderMaterial,
   Shape,
   SphereGeometry,
   TorusGeometry,
   TubeGeometry,
+  Vector2,
   Vector3,
   Vector4,
 } from "three";
 import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { GONG, GONG_SCALE, gongHum, gongSection, gongSwing, heartbeat, MALLET_REST, malletPose, strikeFlare, strikeHeat } from "@/engine/stage/gong";
+import { stageBus } from "@/engine/stage/bus";
+import { createStrikes, FX, GONG, GONG_SCALE, gongSection, heartbeat, MALLET_REST, malletPose, ripple, RIPPLES, STRIKE, type StrikeState } from "@/engine/stage/gong";
 import { COMMON, type Shared } from "./shared";
 
 /** Bahan pada jala gayor dan tabuh (`aTag.x`). */
@@ -147,6 +155,7 @@ const BODY_FRAG = /* glsl */ `
 ${COMMON}
 ${METAL}
 uniform vec4 uEmber; // x denyut jantung, y panas pukulan, z detik sejak hantaman, w cadangan
+uniform vec3 uRings[${RIPPLES * 2}]; // riak: x jari-jari luar (bagian dari jari-jari gong), y terang, z jari-jari dalam ÷ luar
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec3 vLocal;
@@ -229,6 +238,17 @@ void main() {
     float glow = (crack * seen + rings * 0.5 * step(r, reach + 0.05)) * front;
     col += mix(ember, vec3(1.0, 0.62, 0.22), smoothstep(1.2, 2.2, uEmber.y)) * glow * uEmber.y * 1.6;
     col += ember * 0.12 * uEmber.y * front * (1.0 - r); // seluruh muka ikut memerah sesaat
+    // riak: cincin bara yang melebar dari pencu di sepanjang muka gong, paling terang di tepi depannya
+    float aaR = px / R * 1.5 + 0.004;
+    float wave = 0.0;
+    for (int i = 0; i < ${RIPPLES * 2}; i++) {
+      vec3 g = uRings[i];
+      if (g.y <= 0.0) continue;
+      float inner = g.x * g.z;
+      float band = smoothstep(inner - aaR, inner + aaR, r) * (1.0 - smoothstep(g.x - aaR, g.x + aaR, r));
+      wave += band * g.y * mix(0.3, 1.0, smoothstep(inner, g.x, r));
+    }
+    col += vec3(1.0, 0.24, 0.05) * wave * front;
   }
 
   gl_FragColor = vec4(applyFog(col, vWorld), 1.0);
@@ -388,6 +408,72 @@ void main() {
   }
 
   gl_FragColor = vec4(applyFog(col, vWorld), 1.0);
+}`;
+
+/** Bunga api dari pencu dan napas api dari mulut kedua naga: semua geraknya rumus tertutup dari jam hantaman. */
+const FIRE_VERT = /* glsl */ `
+${COMMON}
+attribute vec4 aSeed;
+attribute vec3 aTag; // x jenis (0 bunga api, 1 napas api), y lajur pukulan, z naga (0 kiri, 1 kanan)
+uniform vec2 uHit; // detik sejak hantaman, per lajur
+uniform float uPixel;
+uniform vec3 uMouth[2];
+uniform vec3 uAim[2];
+varying vec3 vColor;
+void main() {
+  float st = aTag.y < 0.5 ? uHit.x : uHit.y;
+  vec3 p = vec3(0.0);
+  float size = 0.0;
+  vColor = vec3(0.0);
+  if (aTag.x < 0.5) {
+    // bunga api: menyembur dari pencu, tertahan udara, lalu jatuh pelan sambil meredup
+    float life = st / ${f(FX.sparks)};
+    if (st >= 0.0 && life < 1.0) {
+      float d = (1.0 - exp(-1.7 * st)) / 1.7;
+      p = vec3(0.0, ${f(GONG.y)}, 0.13) + position * d;
+      p.y -= 0.42 * st * st;
+      float twinkle = 0.6 + 0.4 * sin(st * (22.0 + aSeed.x * 30.0) + aSeed.y * 40.0);
+      vColor = mix(vec3(1.0, 0.72, 0.3), vec3(1.0, 0.34, 0.08), life) * 5.0 * (1.0 - life) * (1.0 - life * 0.5) * twinkle;
+      size = 0.023 * (0.45 + aSeed.w) * (1.0 - 0.4 * life);
+    }
+  } else if (st >= 0.0) {
+    // napas api: selama naga menyembur tiap titik disembur ulang; panasnya membuatnya naik
+    const float EVERY = 0.36;
+    float k = floor(min(st, ${f(FX.emit)}) / EVERY - aSeed.x);
+    float age = st - (aSeed.x + k) * EVERY;
+    float life = age / ${f(FX.flame)};
+    if (k >= 0.0 && life < 1.0) {
+      vec3 rnd = vec3(hash11(aSeed.y * 91.7 + k * 13.1), hash11(aSeed.z * 57.3 + k * 7.7), hash11(aSeed.w * 33.1 + k * 3.3));
+      vec3 aim = aTag.z < 0.5 ? uAim[0] : uAim[1];
+      vec3 v = (aim + (rnd - vec3(0.5, 0.3, 0.5)) * 0.5) * (1.0 + hash11(aSeed.w * 71.3 + k * 5.1));
+      const float DRAG = 3.08;
+      float d = (1.0 - exp(-DRAG * age)) / DRAG;
+      p = (aTag.z < 0.5 ? uMouth[0] : uMouth[1]) + v * d;
+      p.y += (0.9 / DRAG) * (age - d);
+      // putih kekuningan → jingga → merah → padam
+      vColor = vec3(1.0, max(0.1, 0.78 - life), max(0.0, 0.38 - life * 1.2)) * 0.5 * (1.0 - life) * (1.0 - life * 0.6) * smoothstep(0.0, 0.06, life);
+      size = 0.1 * (0.55 + 0.9 * life) * (0.7 + 0.6 * rnd.x);
+    }
+  }
+  if (size <= 0.0) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    gl_PointSize = 0.0;
+    return;
+  }
+  vec4 mv = viewMatrix * modelMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  // garis tengah di layar; yang lebih kecil dari 1,5 piksel digambar 1,5 piksel dengan terang diturunkan
+  float px = uPixel * 0.5 * size * ${f(GONG_SCALE)} / max(-mv.z, 0.2);
+  vColor *= min(1.0, px * px / 2.25);
+  gl_PointSize = clamp(px, 1.5, 160.0);
+}`;
+
+const FIRE_FRAG = /* glsl */ `
+varying vec3 vColor;
+void main() {
+  vec2 q = gl_PointCoord * 2.0 - 1.0;
+  float d = dot(q, q);
+  gl_FragColor = vec4(vColor * exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d)), 1.0);
 }`;
 
 // ---------------------------------------------------------------------------------------------------------
@@ -636,7 +722,42 @@ function malletGeometry(): BufferGeometry {
   return geometry;
 }
 
-export function createGong(shared: Shared) {
+/** Jumlah titik per lajur pukulan pada kepadatan partikel penuh (tier High). */
+const SPARKS = 220;
+const FLAMES = 520;
+
+/**
+ * Titik-titik bunga api dan napas api untuk dua lajur pukulan. `position` = kecepatan awal bunga api (m/dtk,
+ * setengah bola ke arah depan gong); napas api tidak memakainya.
+ */
+function fireGeometry(density: number): BufferGeometry {
+  const sparks = Math.round(SPARKS * density);
+  const flames = Math.round(FLAMES * density);
+  const n = (sparks + flames) * 2;
+  const [pos, seed, tagOf] = [new Float32Array(n * 3), new Float32Array(n * 4), new Float32Array(n * 3)];
+  let s = 4321;
+  const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  let i = 0;
+  for (let lane = 0; lane < 2; lane++) {
+    for (let k = 0; k < sparks + flames; k++, i++) {
+      const flame = k >= sparks;
+      if (!flame) {
+        const [a, el, v] = [rand() * Math.PI * 2, rand() * 1.15, 0.5 + rand() * 1.8];
+        pos.set([Math.cos(a) * Math.sin(el) * v, Math.sin(a) * Math.sin(el) * v, Math.cos(el) * v], i * 3);
+      }
+      seed.set([rand(), rand(), rand(), rand()], i * 4);
+      tagOf.set([flame ? 1 : 0, lane, k % 2], i * 3);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute("position", new BufferAttribute(pos, 3));
+  g.setAttribute("aSeed", new BufferAttribute(seed, 4));
+  g.setAttribute("aTag", new BufferAttribute(tagOf, 3));
+  return g;
+}
+
+/** `particles` = kepadatan partikel tier (1 di High): bunga api dan lidah api lebih jarang di tier rendah. */
+export function createGong(shared: Shared, particles = 1) {
   const group = new Group();
   group.scale.setScalar(GONG_SCALE);
   group.updateMatrix();
@@ -645,11 +766,12 @@ export function createGong(shared: Shared) {
   const uSwing = { value: new Vector3(0, 0, GONG.pivot) };
   const uEmber = { value: new Vector4(0, 0, 0, 0) };
   const uPulse = { value: new Vector4(0, 0, 0, 1) };
+  const uRings = { value: Array.from({ length: RIPPLES * 2 }, () => new Vector3()) };
 
   // 52 titik muka × 88 juring: tepi lingkaran menyimpang < 0,6 mm dari bulat sempurna, di bawah satu piksel pada shot terdekat
   const section = gongSection(52);
   const bodyGeo = latheZ(section.points, section.normals, 88).translate(0, GONG.y, 0);
-  const bodyMat = new ShaderMaterial({ uniforms: { ...shared, uSwing, uEmber }, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG });
+  const bodyMat = new ShaderMaterial({ uniforms: { ...shared, uSwing, uEmber, uRings }, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG });
   const body = new Mesh(bodyGeo, bodyMat);
 
   const frame = frameGeometry();
@@ -659,33 +781,81 @@ export function createGong(shared: Shared) {
   const malletGeo = malletGeometry();
   const mallet = new Mesh(malletGeo, frameMat);
 
-  for (const m of [body, gayor, mallet]) {
+  // bunga api + napas api: satu Points, hanya digambar selama ada yang menyala
+  const uHit = { value: new Vector2(-1, -1) };
+  const uPixel = { value: 800 };
+  const [left, right] = [frame.mouths[0]!, frame.mouths[1]!];
+  const fireGeo = fireGeometry(0.4 + 0.6 * Math.min(1, particles));
+  const fireMat = new ShaderMaterial({
+    uniforms: { ...shared, uHit, uPixel, uMouth: { value: [left.pos, right.pos] }, uAim: { value: [left.dir, right.dir] } },
+    vertexShader: FIRE_VERT,
+    fragmentShader: FIRE_FRAG,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+  });
+  const fire = new Points(fireGeo, fireMat);
+  fire.frustumCulled = false;
+  fire.renderOrder = 31;
+  fire.visible = false;
+
+  for (const m of [body, gayor, mallet, fire]) {
     m.matrixAutoUpdate = false;
     group.add(m);
   }
 
   const [head, hand, up] = [new Vector3(), new Vector3(), new Vector3(0, 1, 0)];
-  /** Jam (detik panggung) saat tabuh mulai diayun; hantamannya `STRIKE.impact` detik kemudian. */
-  const struckAt = -1e9;
+  const strikes = createStrikes();
+  /** Tabuh terangkat sedikit saat kursor atau fokus ada di tombol pukul (0–1, dihaluskan). */
+  let ready = 0;
+  /** Sesudah `strike` dan sebelum frame berikutnya, panggung sudah harus dianggap sibuk. */
+  let busy = false;
+  const alive = (st: number) => st >= 0 && st < FX.end;
 
   return {
     group,
-    /** Mulut kedua naga (satuan model): sumber napas api. */
-    mouths: frame.mouths,
-    /** Tiap frame: denyut jantung, ayunan, dan sikap tabuh pada jam `t` (detik). */
-    update(t: number) {
-      const p = t - struckAt;
-      const st = -1; // belum ada pukulan: disambungkan di langkah berikutnya
+    /**
+     * Mulai satu pukulan pada jam `t` (detik, jam yang sama dengan `update`). Mengembalikan detik sampai tabuh
+     * mengenai gong, atau `null` bila tabuh belum kembali menggantung dari pukulan sebelumnya.
+     */
+    strike(t: number): number | null {
+      if (!strikes.strike(t)) return null;
+      busy = true;
+      return STRIKE.impact;
+    },
+    /** Masih ada yang bergerak atau menyala: loop tidak boleh melewatkan frame. */
+    busy: () => busy,
+    /** Tinggi kanvas dalam piksel perangkat ÷ tan(fov/2): ukuran bunga api mengikuti lensa dan resolusi. */
+    setPixel(v: number) {
+      uPixel.value = v;
+    },
+    /** Tiap frame: denyut jantung, ayunan, sikap tabuh, dan efek pukulan pada jam `t` (detik). */
+    update(t: number, dt: number): StrikeState {
+      const s = strikes.at(t);
       const beat = heartbeat(t);
-      uSwing.value.set(gongSwing(st), gongHum(st), GONG.pivot);
-      uEmber.value.set(beat, strikeHeat(st), Math.max(0, st), 0);
-      const pose = malletPose(p, t);
-      uPulse.value.set(beat, strikeFlare(st), 0, pose.squash);
+      const want = stageBus.ready() ? 1 : 0;
+      ready += (want - ready) * (1 - Math.exp(-Math.min(0.1, Math.max(0, dt)) * 9));
+      if (Math.abs(want - ready) < 0.002) ready = want;
+      busy = s.busy || ready !== want;
+      uSwing.value.set(s.swing, s.hum, GONG.pivot);
+      uEmber.value.set(beat, s.heat, Math.max(0, s.st), 0);
+      for (let lane = 0; lane < 2; lane++) {
+        for (let i = 0; i < RIPPLES; i++) {
+          const r = ripple(i, s.fx[lane]!);
+          // riak genap tipis dan terang, riak ganjil lebar dan redup
+          uRings.value[lane * RIPPLES + i]!.set(r.radius, r.opacity * (i % 2 ? 0.6 : 1.5), i % 2 ? 0.86 : 0.97);
+        }
+      }
+      const pose = malletPose(s.p, t, ready);
+      uPulse.value.set(beat, s.flare, s.breath, pose.squash);
       head.set(...pose.head);
       hand.set(...pose.hand);
       // sumbu +z tabuh mengarah ke tangan
       mallet.matrix.lookAt(hand, head, up).setPosition(head);
       mallet.matrixWorldNeedsUpdate = true;
+      uHit.value.set(s.fx[0], s.fx[1]);
+      fire.visible = alive(s.fx[0]) || alive(s.fx[1]);
+      return s;
     },
     dispose() {
       bodyGeo.dispose();
@@ -693,6 +863,8 @@ export function createGong(shared: Shared) {
       frame.geometry.dispose();
       frameMat.dispose();
       malletGeo.dispose();
+      fireGeo.dispose();
+      fireMat.dispose();
     },
   };
 }

@@ -8,7 +8,9 @@
 import { type PerspectiveCamera, type Scene, Vector2, Vector3, type WebGLRenderer } from "three";
 import type { Film } from "@/engine/slides/build-slides";
 import type { SkyState } from "@/engine/slides/sky";
+import { stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
+import { kickSize, strikeLight } from "@/engine/stage/gong";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { type Frame, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
@@ -42,6 +44,12 @@ export type StageStats = {
   /** Indeks slide tempat kamera berada (asal transisi). */
   index: number;
   moving: boolean;
+  /** Jumlah hantaman tabuh ke gong sejak panggung hidup. */
+  strikes: number;
+  /** Besar hentakan dan getar kamera pada frame terakhir (0 = kamera diam di shot-nya). */
+  kick: number;
+  /** Jam panggung pada frame terakhir (detik). */
+  time: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
 };
@@ -78,6 +86,8 @@ export type RuntimeOptions = {
 const WARM_FRAMES = 3;
 const LAMP_RGB = [1, 0.56, 0.24] as const;
 const LAMP_POWER = 5.2;
+/** Warna kilatan pukulan gong (bara jingga). */
+const FLASH_RGB = [1, 0.44, 0.15] as const;
 const isMobile = () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 export type Runtime = {
@@ -94,7 +104,11 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const terrain = createTerrain(shared, shape0);
   const pendapa = createPendapa(shared);
   const blencong = createBlencong(shared, spec.bloom >= 4);
-  const gong = createGong(shared);
+  const gong = createGong(shared, spec.particles);
+  /** Jam panggung pada frame terakhir (detik). Pukulan dicatat pada jam ini, bukan jam dinding: satu jam untuk semua gerak 3D. */
+  let clock = 0;
+  // tombol pukul di lapisan DOM memicu gong lewat bus
+  const unbindGong = stageBus.bindGong(() => gong.strike(clock));
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
   const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
@@ -143,6 +157,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   };
 
   const update = (camera: PerspectiveCamera, t: number, dt: number) => {
+    clock = t;
     const cursor = hooks().probe();
     const cue = cues(cursor);
     const shot = cue.shot;
@@ -181,7 +196,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const k = LAMP_POWER * lamp * flicker;
     shared.uLampColor.value.setRGB(LAMP_RGB[0] * k, LAMP_RGB[1] * k, LAMP_RGB[2] * k);
     blencong.setGlow(Math.min(1.6, 0.25 + lamp) * flicker);
-    gong.update(t);
+    const hit = gong.update(t, dt);
+    const flash = strikeLight(hit.st);
+    shared.uFlash.value.setRGB(FLASH_RGB[0] * flash, FLASH_RGB[1] * flash, FLASH_RGB[2] * flash);
 
     // kamera: shot + napas pelan + geseran kecil mengikuti kursor (parallax)
     const ease = 1 - Math.exp(-Math.min(0.1, dt) * 4);
@@ -196,6 +213,17 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const reach = shot.rig === "orbit" ? 1 : 0.6;
     camera.translateX((Math.sin(t * 0.21) * 0.035 + pointer.x * 0.18) * reach);
     camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - pointer.y * 0.09) * reach);
+    // gong kena: kamera terhentak mundur dan bergetar pelan (simpangan getar dalam ukuran layar, jadi sama di lensa mana pun)
+    const kick = hit.kick;
+    const kicked = kickSize(kick);
+    if (kicked > 0) {
+      const lens = Math.tan((camera.fov * Math.PI) / 360);
+      // shot lanskap berfokus jauh (40 m): hentakannya dibatasi seperti di shot pendapa
+      camera.translateZ(kick.back * Math.min(shot.focus, 12));
+      camera.rotateX(Math.atan(kick.up * lens));
+      camera.rotateY(-Math.atan(kick.side * lens));
+      camera.rotateZ(kick.roll);
+    }
     const forced = stats.cam;
     if (forced && forced.length >= 7) {
       camera.fov = forced[6]!;
@@ -209,6 +237,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
     dust.setPixel(pixel);
     village.setPixel(pixel);
+    gong.setPixel(pixel);
     gl.info.reset();
     post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t });
 
@@ -219,6 +248,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.fov = camera.fov;
     stats.index = cursor.from;
     stats.moving = cue.moving;
+    stats.strikes = hit.count;
+    stats.kick = kicked;
+    stats.time = t;
   };
   layout();
   resize();
@@ -263,7 +295,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     n++;
     const c = hooks().probe();
     const now = performance.now();
-    const active = c.to !== c.from || now - pointer.at < 900 || now - born < 1500;
+    const active = c.to !== c.from || now - pointer.at < 900 || now - born < 1500 || gong.busy();
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -294,6 +326,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
 
   const dispose = () => {
     cancelAnimationFrame(raf);
+    unbindGong();
     window.removeEventListener("pointermove", onPointer);
     ro.disconnect();
     canvas.removeEventListener("webglcontextlost", onLost);
