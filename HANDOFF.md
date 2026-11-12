@@ -13,6 +13,8 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 3. "catat di handoff dulu, planning mu. aku mau clear sesi ini"
 4. "video=output, tunggu arahan ku dulu. pastikan sudah di catat di handoff"
 
+5. "berikan video previews dulu, lalu output dan berhenti" (arahan sesudah sesi dilanjutkan, 12 Nov). Artinya: rekam ulang video pratinjau Tugas 5 sampai mulus dan kirim, laporkan hasilnya, lalu berhenti. Tugas 6 tetap belum boleh dimulai.
+
 **Yang berlaku sejak itu.**
 - **Tunggu arahan host.** Sesi berikutnya tidak boleh langsung merekam atau mulai Tugas 6. Baca berkas ini, laporkan keadaannya, lalu tanyakan mana yang dikerjakan dulu.
 - **Beban hemat, kualitas tidak turun.** Berlaku untuk semua isi 3D baru. Hemat lewat cara menggambar (sedikit draw call, tidak digambar saat di luar layar, gerak dihitung shader), bukan lewat menurunkan resolusi, MSAA, atau detail.

@@ -6,8 +6,10 @@
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong).
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
-// Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p), jadi pakai K kecil (0,04) supaya
-// gerak kamera tetap mulus di video; rekaman 35 detik lalu memakan ±15 menit.
+// Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
+// tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
+// kecil, dan jangan menjalankan pekerjaan berat lain selama merekam. Rekaman 38 detik memakan ±35 menit.
+// Semua frame screencast diambil (everyNthFrame 1): melewatkan frame membuat video patah-patah.
 // <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo).
 // Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI lewat CDP
 // Animation.setPlaybackRate; timer & rAF diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
@@ -68,7 +70,7 @@ const fs = require('fs');
   await p.goto('about:blank');
   rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: Math.max(1, Math.floor(0.25 / K)) });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
   await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' ? '#day-1' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
