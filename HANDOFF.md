@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Sesi ditutup atas permintaan host. JANGAN mulai mengerjakan apa pun sebelum host memberi arahan** (kata host: "tunggu arahan ku dulu"). Yang menunggu arahan: rekam ulang video pratinjau Tugas 5, lalu Tugas 6 (gong ageng 3D). Baca "Keadaan saat sesi ditutup" di bagian 0.
+Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 6 (gong ageng 3D) sedang dikerjakan atas arahan host**, langkah demi langkah: tiap langkah ditutup dengan video pratinjau ke host. Status per langkah ada di bagian 0, "Tugas 6: kemajuan".
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -14,6 +14,8 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 4. "video=output, tunggu arahan ku dulu. pastikan sudah di catat di handoff"
 
 5. "berikan video previews dulu, lalu output dan berhenti" (arahan sesudah sesi dilanjutkan, 12 Nov). Artinya: rekam ulang video pratinjau Tugas 5 sampai mulus dan kirim, laporkan hasilnya, lalu berhenti. Tugas 6 tetap belum boleh dimulai.
+
+6. "baca tugas di handoff.md / remodel/redesign gong kan? kerjakan. / preview panggung 3D belum?" (sesi berikutnya, 12 Nov sore). Artinya: Tugas 6 boleh dimulai, dan host menanyakan video pratinjau panggung 3D. Rekaman ulang (`panggung3d-desktop-hd-v2.mp4`, 1920×1080, 60 fps, tier High, 38 dtk, K = 0,0125) ternyata sudah selesai direkam di sesi sebelumnya tetapi belum tercatat terkirim; dikirim ke host di chat saat itu juga. Isinya 35–58 gambar berbeda per detik saat bergerak (rekaman pertama 3–7).
 
 **Yang berlaku sejak itu.**
 - **Tunggu arahan host.** Sesi berikutnya tidak boleh langsung merekam atau mulai Tugas 6. Baca berkas ini, laporkan keadaannya, lalu tanyakan mana yang dikerjakan dulu.
