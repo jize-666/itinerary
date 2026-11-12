@@ -1,5 +1,5 @@
 /**
- * Isi panggung 3D di luar React: membangun dunia (langit, lanskap, pendapa, blencong, debu), menjalankan loop,
+ * Isi panggung 3D di luar React: membangun dunia (langit, lanskap, pendapa, gong, blencong, debu), menjalankan loop,
  * dan menggambar tiap frame. Stage3D.tsx hanya memasang dan membongkarnya.
  *
  * Tiap frame: letak film (`probe`) → cue (shot kamera + keadaan langit) → uniform bersama dan kamera → rantai
@@ -15,6 +15,7 @@ import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
+import { createGong } from "./gong";
 import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
 import { createShared } from "./shared";
@@ -41,6 +42,8 @@ export type StageStats = {
   /** Indeks slide tempat kamera berada (asal transisi). */
   index: number;
   moving: boolean;
+  /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
+  cam?: readonly number[];
 };
 
 export type StageHooks = {
@@ -91,9 +94,10 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const terrain = createTerrain(shared, shape0);
   const pendapa = createPendapa(shared);
   const blencong = createBlencong(shared, spec.bloom >= 4);
+  const gong = createGong(shared);
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
-  const nodes = [terrain.mesh, pendapa.group, blencong.group, village.points, dust.points, sky.mesh];
+  const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
   gl.info.autoReset = false;
@@ -177,6 +181,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const k = LAMP_POWER * lamp * flicker;
     shared.uLampColor.value.setRGB(LAMP_RGB[0] * k, LAMP_RGB[1] * k, LAMP_RGB[2] * k);
     blencong.setGlow(Math.min(1.6, 0.25 + lamp) * flicker);
+    gong.update(t);
 
     // kamera: shot + napas pelan + geseran kecil mengikuti kursor (parallax)
     const ease = 1 - Math.exp(-Math.min(0.1, dt) * 4);
@@ -191,6 +196,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const reach = shot.rig === "orbit" ? 1 : 0.6;
     camera.translateX((Math.sin(t * 0.21) * 0.035 + pointer.x * 0.18) * reach);
     camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - pointer.y * 0.09) * reach);
+    const forced = stats.cam;
+    if (forced && forced.length >= 7) {
+      camera.fov = forced[6]!;
+      camera.updateProjectionMatrix();
+      camera.position.set(forced[0]!, forced[1]!, forced[2]!);
+      camera.lookAt(look.set(forced[3]!, forced[4]!, forced[5]!));
+    }
     camera.updateMatrixWorld();
 
     gl.getDrawingBufferSize(buf);
@@ -290,6 +302,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     terrain.dispose();
     pendapa.dispose();
     blencong.dispose();
+    gong.dispose();
     dust.dispose();
     village.dispose();
     post.dispose();

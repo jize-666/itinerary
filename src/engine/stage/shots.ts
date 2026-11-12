@@ -149,7 +149,8 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
       // memandang dari atas: lanskap terhampar di balik kartu, langit dan matahari di pita atas
       return galleryShot(galleryDrift(slide), frame);
     case "gong":
-      return orbitShot({ az: -20, el: -6, r: 4.3, look: [0, 1.28, 0], fov: 32, lamp: 1.5, dim: 0.12, width: GONG_WIDTH * 0.72 }, aspect);
+      // gong memenuhi paruh atas layar, dipandang dari bawah-kiri; teks penutup hari berada di bawahnya
+      return orbitShot({ az: -20, el: -6, r: 5, look: [0, 1.14, 0], fov: 32, lamp: 1.5, dim: 0.12, width: GONG_WIDTH * 0.72 }, aspect);
     case "epilogue":
       return orbitShot({ az: 0, el: 14, r: 11, look: [0, 1.8, 0], fov: 36, lamp: 0.8, dim: 0.12, width: 7 }, aspect);
     case "pass":

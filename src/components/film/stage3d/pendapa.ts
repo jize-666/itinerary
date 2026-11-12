@@ -5,6 +5,7 @@
  */
 import { BoxGeometry, type BufferGeometry, CylinderGeometry, Group, Mesh, ShaderMaterial } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { GONG_SHADOW } from "./gong";
 import { COMMON, type Shared } from "./shared";
 
 /** `cross` = letak balok tumpang sari (±x dan ±z) yang menyilang di antara blandar; blencong digantung di salah satu silangannya. */
@@ -24,6 +25,7 @@ void main() {
 
 const FLOOR_FRAG = /* glsl */ `
 ${COMMON}
+${GONG_SHADOW}
 varying vec3 vWorld;
 varying vec3 vNormal;
 
@@ -55,13 +57,18 @@ void main() {
   float calm = 1.0 - 0.75 * smoothstep(5.0, 16.0, length(cameraPosition - vWorld));
   gold *= calm;
   vec3 albedo = mix(stone, goldCol * 0.2, gold);
-  vec3 col = albedo * diffuseLight(n, vWorld);
+  // gong dan gayor membayangi cahaya blencong; kaki tiangnya menggelapkan lantai di sekitarnya
+  float shade = mix(1.0, gongShade(vWorld), top);
+  float contact = mix(1.0, gongContact(vWorld), top);
+  vec3 L;
+  vec3 lamp = lampAt(vWorld, L);
+  vec3 col = albedo * (hemi(n) * contact + uKeyColor * max(dot(n, uKeyDir), 0.0) + lamp * max(dot(n, L), 0.0) * shade);
 
   // batu dipoles: memantulkan langit di sudut landai, emas berkilat
   float fres = pow(1.0 - max(dot(n, v), 0.0), 5.0);
   vec3 refl = skyColor(reflect(-v, n));
-  col += refl * mix(0.02 + 0.32 * fres, 0.26, gold) * mix(vec3(1.0), goldCol, gold) * top;
-  col += specLight(n, v, vWorld, mix(90.0, 46.0, gold)) * mix(vec3(0.2), goldCol * 1.1, gold);
+  col += refl * mix(0.02 + 0.32 * fres, 0.26, gold) * mix(vec3(1.0), goldCol, gold) * top * contact;
+  col += specLight(n, v, vWorld, mix(90.0, 46.0, gold)) * mix(vec3(0.2), goldCol * 1.1, gold) * mix(0.25, 1.0, shade);
 
   // bayangan kontak di kaki saka
   vec2 pc = abs(vWorld.xz) - 3.5;
