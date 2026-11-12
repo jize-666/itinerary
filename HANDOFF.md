@@ -1,9 +1,68 @@
 # HANDOFF
 
-Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 5 (fondasi panggung 3D) selesai, sudah di-merge dan diterima host; tugas aktif: Tugas 6 (gong ageng 3D)**
+Diperbarui 12 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Sesi ditutup atas permintaan host. JANGAN mulai mengerjakan apa pun sebelum host memberi arahan** (kata host: "tunggu arahan ku dulu"). Yang menunggu arahan: rekam ulang video pratinjau Tugas 5, lalu Tugas 6 (gong ageng 3D). Baca "Keadaan saat sesi ditutup" di bagian 0.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Keadaan saat sesi ditutup (12 Nov, sesudah merge PR #7)
+
+**Arahan host yang terakhir, kata demi kata, urut:**
+1. "sudah merge, dan hasilnya stabil di medium, gada high nya ya? tapi oke sih. aku anggep udah selesai" (Tugas 5 diterima).
+2. "beban hemat tapi jangan turunkan kualitas. tadi video preview juga ngeframe, record ulang yang biasanya pake slowmotion itu."
+3. "catat di handoff dulu, planning mu. aku mau clear sesi ini"
+4. "video=output, tunggu arahan ku dulu. pastikan sudah di catat di handoff"
+
+**Yang berlaku sejak itu.**
+- **Tunggu arahan host.** Sesi berikutnya tidak boleh langsung merekam atau mulai Tugas 6. Baca berkas ini, laporkan keadaannya, lalu tanyakan mana yang dikerjakan dulu.
+- **Beban hemat, kualitas tidak turun.** Berlaku untuk semua isi 3D baru. Hemat lewat cara menggambar (sedikit draw call, tidak digambar saat di luar layar, gerak dihitung shader), bukan lewat menurunkan resolusi, MSAA, atau detail.
+- **Video = output.** Tafsir Claude (belum ditegaskan host): hasil tiap tugas harus diserahkan sebagai video pratinjau yang mulus, bukan foto atau angka saja. Kalau tafsir ini penting untuk keputusan, tanyakan dulu.
+
+**Belum ada kode Tugas 6 yang ditulis.** Yang dikerjakan sesudah merge hanya membaca prototipe gong dan satu percobaan perekam (di bawah). Working tree bersih; isi branch = `main` (`064fbdc`) + commit dokumen.
+
+#### A. Rekam ulang video pratinjau Tugas 5 (diminta host, belum dikerjakan)
+
+Video yang dikirim (`STAGE=high node scripts/preview/record-film.cjs <data> <keluaran.mp4> desktop 0.04 stage`, 1920×1080, 38 dtk) **patah-patah**. Sebabnya: Chromium di sesi ini menggambar WebGL di CPU, ±1,4 frame per detik di 1080p tier High (Medium 1,6; Low 720p 4,4). Selama satu frame 3D digambar, seluruh halaman ikut tertahan, jadi dengan K = 0,04 video hanya mendapat ±35 frame per detik yang tidak rata. Supaya tiap frame video 60 fps punya gambar baru, perlu K ≤ fps nyata ÷ 60.
+
+Percobaan yang **gagal**, jangan diulang tanpa perubahan: waktu virtual Chrome (`Emulation.setVirtualTimePolicy` jeda/maju 16,7 ms per frame) + `Page.captureScreenshot` per frame. Jam halaman memang maju 16,7 ms per langkah, tetapi satu langkah memakan ±10 detik nyata, loop 3D tetap berjalan di waktu nyata (8–46 frame per langkah), dan transisi slide selesai dalam satu langkah, jadi geraknya tidak terekam. Penyebabnya belum dicari.
+
+Pilihan untuk sesi berikutnya (belum dicoba, urut dari yang paling pasti):
+1. Perekam yang sama dengan K lebih kecil, mesin dibiarkan sepi (tanpa build, tes, atau tangkapan layar lain selama merekam): `STAGE=high node scripts/preview/record-film.cjs <data> <keluaran.mp4> desktop 0.0125 stage`. Perkiraan ±50 menit untuk 38 dtk video. Adegan gallery siang kemungkinan lebih lambat dari 1,4 fps; kalau masih patah di sana, kecilkan K lagi atau pendekkan tur.
+2. Tangkap per frame dengan kendali frame (`HeadlessExperimental.beginFrame`, Chromium dijalankan dengan `--enable-begin-frame-control --run-all-compositor-stages-before-draw`). Menjamin satu frame render per frame video dan tidak terganggu pekerjaan lain, tetapi belum pernah dicoba di repo ini.
+3. Tanyakan host apakah video 1280×720 boleh (±3 kali lebih cepat digambar). Jangan diputuskan sendiri: host bilang kualitas jangan turun.
+
+Data tiruan untuk perekam (jangan pakai data tamu asli): `filmFixture("guest", { breakfast: true })` dari `e2e/helpers.ts`, ditulis ke JSON di luar repo dengan `pnpm exec tsx`. Server: `pnpm build && node scripts/serve-out.mjs` (port 4173).
+
+#### B. Rencana Tugas 6, gong ageng 3D (belum dimulai)
+
+Acuan yang sudah disetujui host 8 Nov: `prototypes/gong/scene.js` ("Gong Murka" + Batara Kala; lihat `docs/design/decisions.md` bagian "Gong v3"). Prototipe memakai MeshStandardMaterial, tekstur kanvas, bayangan, dan 69 ribu segitiga untuk badan gong; itu terlalu berat dan tidak cocok dengan panggung produksi (semua material shader sendiri, tanpa tekstur, uniform bersama). Jadi bentuk dan perilakunya disalin, cara menggambarnya ditulis ulang.
+
+Ukuran dan letak: prototipe ±2,5 m lebar (gong r 0,506 m di y 1,1; tiang gayor ±0,86; palang y 1,88; naga sampai x ±1,27). Shot kamera Tugas 5 dibuat untuk lebar 3,5 m dan pusat (0; 1,5; 0), jadi seluruh rakitan diskala ±1,35 kali.
+
+Susunan berkas yang direncanakan:
+- `src/engine/stage/gong.ts` (murni, dites): profil badan gong (titik `front` di prototipe baris 556–561), garis waktu pukulan (`IMPACT` 0,52 dtk, ancang-ancang 105°, pantulan 22°; baris 890–904), ayunan bandul (periode 1,6 dtk, luruh 2,6 dtk), dengung, panas bara, riak, denyut jantung (`beat`, baris 866).
+- `src/engine/stage/bus.ts` (murni): pesan kecil dari DOM ke panggung ("pukul gong") supaya komponen film tidak mengimpor three.
+- `src/components/film/stage3d/gong.ts`: badan gong (lathe, ±15 ribu segitiga di High, lebih sedikit di Low), gayor + kedua naga + tali + cincin digabung jadi **satu** jala dengan atribut jenis bahan (lak merah, prada, tulang, bara), tabuh, riak (satu bidang, cincin digambar shader), bunga api + napas api naga (satu Points, geraknya dihitung di vertex shader dari waktu pukulan).
+- Perunggu: bekas tempa dan patina dari derau, garis bubut, pantulan langit + pantulan hangat dari arah blencong dan lantai (langit malam gelap, jadi tanpa itu gong tampak hitam), retakan bara yang menjalar dari pencu hanya saat dipukul, pencu berdenyut.
+- Tambahan beban yang ditargetkan: ±5–7 draw call dan ±25 ribu segitiga, hanya saat gong di dalam layar (di shot vista gong ada di belakang kamera dan tidak digambar). Ukur dengan `scripts/preview/measure-stage.cjs`, lalu host cek lagi di HP dengan `/film/?fps`.
+
+Pukulan:
+- Satu pemicu untuk klik, tap, dan Enter: tombol DOM `.fs-strike` di slide gong (`GongClose` di `src/components/film/Slides.tsx`) tetap ada untuk screen reader dan keyboard. Saat 3D hidup tombol itu ditaruh tepat di atas gong di layar (letaknya dihitung dari proyeksi gong saat kamera tiba) dan gong CSS disembunyikan. Kanvas tetap `pointer-events: none`.
+- Bunyi: `gong` dan `api-naga` sudah ada di `src/engine/audio/catalog.ts`. `audioStatus` (`src/engine/audio/status.ts`) sekarang hanya mengenal bunyi klik; perlu satu jalur untuk SFX adegan, tetap hening bila tamu mematikan suara.
+- Efek: tabuh mengayun, gong terdorong lalu berayun, dengung, retakan bara, riak, bunga api, kedua naga menyembur api, kamera bergetar.
+
+Urutan kerja yang direncanakan, tiap langkah dirender dan dicek dulu:
+1. Mesin murni + tes unit.
+2. Badan gong, gayor, naga, tabuh; cek di shot hero, judul hari, dan gong, desktop dan HP.
+3. Pukulan + bunyi + tombol; e2e (klik, Enter, Calm tetap 2,5D, tanpa bunyi saat dimatikan).
+4. Momen hero: kepingan bara berkumpul menjadi gong.
+5. Batara Kala di puncak gayor.
+6. Ukur, video pratinjau yang mulus, dokumen, lalu PR saat host meminta.
+
+**Yang perlu diputuskan host sebelum atau selama Tugas 6** (jangan diputuskan sendiri):
+- **Batara Kala dan keris.** Di prototipe figur wayangnya digambar ke kanvas lalu dipakai sebagai tekstur (±200 baris), dan kerisnya model 3D tersendiri (±150 baris). Panggung produksi sejauh ini tanpa tekstur. Pilihan: tetap pakai gambar kanvas sebagai satu tekstur (paling setia pada yang disetujui), atau ditunda ke langkah sesudah gong dan pukulan selesai. Keris kemungkinan besar perlu langkah sendiri.
+- **Pukulan otomatis.** Usul Claude: gong dipukul sendiri saat tamu tiba di slide gong penutup hari (dengan bunyi bila suara menyala), dan bisa dipukul lagi dengan klik/tap/Enter. Slide hero hanya menampilkan gong terbentuk dari kepingan bara, tanpa pukulan.
+- **Tier awal iPhone.** Tetap mulai dari Medium (keadaan sekarang, penyebabnya belum dipastikan) atau dipaksa mulai dari High. HP host sempat turun satu anak tangga di Medium, jadi High kemungkinan terlalu berat.
 
 **Kata host (12 Nov, sesudah merge PR #6), prioritas tinggi:** "mesin film; panggung 3D React Three Fiber (target ≥ 55 fps di HP flagship); gong (buat jadi 3D); gunungan sebagai gerbang sinematik; benang emas (remodel/design) dan siklus waktu; diorama Solo, Lawu, dan canting; boarding pass 3D dengan fisika. Bebas menggunakan bahasa/pemrograman apa, yang penting hasil maksimal/lebih bagus dari sebelumnya. Boleh remodel, redesign, asal tidak jauh dari konsep. Intinya upgrade panggung 3D semaksimal mungkin. Step by step (output) per task/kerjaan."
 
