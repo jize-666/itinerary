@@ -49,6 +49,8 @@ Rekaman video sapuan (tur `kayon`) yang sedang berjalan dihentikan karena memaka
 
 Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya vektor: sisik api rapi, tanduk, kipas helai) kehilangan ciri wayang kulit, jadi muka Murka **dirombak total mengikuti susunan foto ketiga ini**. Cirinya ditiru lewat cara menggambar wayang kulit: tatahan tembus yang rapat (bubukan, seritan, mas-masan), sunggingan bertingkat (warna berjenjang dari gelap ke terang dengan garis tinta halus), dan prada di tepi. Susunannya: lidah api merah jambu menjulang, kala kecil di atas, sepasang garuda dan lar di bahu, barong kuning bertangan di bawah dengan api hitam bertepi kuning. Arahan sebelumnya tetap berlaku: seram (bukan badut), tidak ada pilin bulat seperti keong. Siluet lembaran tidak diubah, karena dipakai bersama muka Agung. Penyetelan api geni (shader) tetap dipakai dan diuji ulang di gambar baru.
 
+**Arahan host 13 Nov sore berikutnya (sesudah melihat muka Murka bergaya wayang), kata demi kata:** "revisi garuda nya dong, ga serem malah kaya bangau". Tafsir Claude: sepasang garuda di bahu terbaca sebagai bangau karena paruhnya panjang lurus, kepalanya kecil, dan matanya bulat polos. Yang dibuat: garuda wayang yang garang. Kepalanya besar dan berat, paruh pendek tebal bengkok seperti rajawali, mulut menganga lebar dengan gusi merah, deret taring tak rata, dan lidah. Alis tebal menaungi mata melotot yang miring, jamang dan sumping prada, jambul api yang berdiri, dan sisik atau bulu di pipi. Bagian lain muka Murka tidak diubah.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
