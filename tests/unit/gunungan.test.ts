@@ -15,18 +15,26 @@ describe("gunungan: ukuran lembaran", () => {
     expect(kayonHalfWidth(tall, TALL)).toBeGreaterThan(0.9);
   });
 
-  it("garis dasar dan mata kala cocok dengan gambar yang dipanggang (kanvas 1400×2000)", () => {
+  it("garis dasar dan mata barong cocok dengan gambar yang dipanggang (kanvas 1400×2000)", () => {
     const paint = readFileSync("scripts/assets/gunungan-paint.js", "utf8");
     const num = (re: RegExp) => Number(re.exec(paint)?.[1]);
     const [w, h, cx] = [num(/const W = (\d+)/), num(/H = (\d+), CX/), num(/CX = (\d+)/)];
     const base = num(/BASE = (\d+)/);
-    const ky = num(/const KY = (\d+)/);
+    const ky = num(/\bKY = (\d+)/);
     const [dx, dy] = [num(/KALA_EYES = \[\[CX - (\d+)/), num(/KALA_EYES = \[\[CX - \d+, KY - (\d+)/)];
     expect(KAYON.aspect).toBeCloseTo(w / h, 6);
     expect(KAYON.base).toBeCloseTo((h - base) / h, 6);
     expect(KAYON.eyes[0][0]).toBeCloseTo((cx - dx) / w, 3);
     expect(KAYON.eyes[1][0]).toBeCloseTo((cx + dx) / w, 3);
     for (const eye of KAYON.eyes) expect(eye[1]).toBeCloseTo(1 - (ky - dy) / h, 3);
+  });
+
+  it("elips wajah barong (yang tidak dibakar api geni) memuat kedua mata dan berada di dalam lembaran", () => {
+    const [u, v, ru, rv] = KAYON.face;
+    for (const [x, y] of KAYON.eyes) expect(Math.hypot((x - u) / ru, (y - v) / rv)).toBeLessThan(0.75);
+    expect(u - ru).toBeGreaterThan(0);
+    expect(u + ru).toBeLessThan(1);
+    expect(v - rv).toBeGreaterThan(KAYON.base);
   });
 });
 

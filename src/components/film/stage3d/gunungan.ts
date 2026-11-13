@@ -9,7 +9,7 @@
  * - prada mengilap mengikuti lampu dalang, yang bergeser mengikuti kursor;
  * - kulit tembus cahaya: pendar blencong dari balik lembaran;
  * - kulit melentur saat disapukan (pucuk tertinggal), tangkai tanduk di bawahnya;
- * - muka Murka: pupil bara di lubang mata kala, dan sisi geni yang menjalar dari bawah (`rage`).
+ * - muka Murka: pupil bara di lubang mata barong, dan sisi geni yang menjalar dari bawah mengitari wajahnya (`rage`).
  *
  * Lembaran dan tabir diletakkan langsung di ruang kamera (letak di layar dalam NDC), jadi tidak bergantung
  * pada shot kamera dan tetap sama saat kamera dipotong di tengah sapuan.
@@ -178,6 +178,9 @@ void main() {
       vec3 fire = texture2D(tGeni, fu).rgb;
       float front = rage * 1.35 - uv.y + (n1 - 0.5) * 0.3;
       float burn = smoothstep(0.0, 0.16, front);
+      // wajah barong tidak ikut terbakar: ia tampak muncul dari tengah kobaran
+      float face = length((uv - vec2(${f(KAYON.face[0])}, ${f(KAYON.face[1])})) / vec2(${f(KAYON.face[2])}, ${f(KAYON.face[3])}));
+      burn *= smoothstep(0.75, 1.05, face);
       float flick = 0.8 + 0.35 * n2 + 0.25 * beat;
       vec3 ablaze = fire * (0.72 + 0.95 * fire.r * fire.r) * flick;
       // tepi bakar: garis bara terang di batas api
@@ -186,7 +189,7 @@ void main() {
     }
   }
 
-  // pupil kala (muka Murka): bara dengan celah hitam, mengambang di lubang mata dan melirik mengikuti kursor
+  // pupil barong (muka Murka): bara dengan celah hitam, mengambang di lubang mata dan melirik mengikuti kursor
   if (back) {
     for (int i = 0; i < 2; i++) {
       vec2 e = (i == 0 ? vec2(${f(KAYON.eyes[0]![0])}, ${f(KAYON.eyes[0]![1])}) : vec2(${f(KAYON.eyes[1]![0])}, ${f(KAYON.eyes[1]![1])})) + uLook * vec2(0.007, 0.005);

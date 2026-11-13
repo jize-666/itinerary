@@ -4,8 +4,10 @@
  * `scripts/assets/bake-gunungan.cjs` ke `public/film/gunungan/`.
  *
  * Lembarannya bermuka dua (arahan host 12 Nov: "redesign/remodel/upgrade ... jangan yang murka aja"):
- * - muka **Agung**: pohon hayat, medali surya-padma, sepasang merak, bingkai nila (tenang, pembuka lakon);
- * - muka **Murka**: kala/banaspati dari prototipe yang disetujui 8 Nov, yang bisa menyala menjadi sisi geni.
+ * - muka **Agung** (13 Nov, acuan foto kayon gapuran): pohon hayat dililit naga, banteng dan macan, gapura dengan
+ *   makara yang menelan atap, lar, dua raksasa penjaga;
+ * - muka **Murka** (13 Nov sore, acuan foto sisi api sebuah kayon): seluruh lembaran kobaran lidah api dengan satu
+ *   wajah barong penuh di tengah-bawah; saat mundur, api geni menjalar dari bawah mengitari wajah itu.
  * Maju ke bab berikutnya memperlihatkan muka Agung; mundur memperlihatkan baliknya, muka Murka.
  *
  * Semua letak di layar dalam NDC: x −1 (kiri) … 1 (kanan), y −1 (bawah) … 1 (atas).
@@ -14,11 +16,16 @@
 export const KAYON = {
   /** Lebar ÷ tinggi lembaran (kanvas gambar 1400×2000). */
   aspect: 0.7,
-  /** Mata kala pada muka Murka (u dari kiri, v dari bawah): pupil bara digambar shader di lubangnya. */
+  /** Mata barong pada muka Murka (u dari kiri, v dari bawah): pupil bara digambar shader di lubangnya. */
   eyes: [
-    [0.4371, 0.429],
-    [0.5629, 0.429],
+    [0.415, 0.437],
+    [0.585, 0.437],
   ],
+  /**
+   * Wajah barong pada muka Murka sebagai elips (pusat u, v; jari-jari u, v): api geni tidak menutupinya, jadi
+   * wajah tampak muncul dari tengah kobaran. Sedikit lebih kecil dari gambarnya supaya api menjilat tepinya.
+   */
+  face: [0.5, 0.38, 0.3, 0.2],
   /** Tebal kulit sebagai bagian dari tinggi lembaran: lubang tatahan tampak berdinding saat lembaran miring. */
   thick: 0.004,
   /** Tinggi garis dasar daun kayon (v): di bawahnya tangkai, di atasnya gambar. Poros ayun dalang ada di sini. */
