@@ -9,7 +9,7 @@ import { filmFixture, json, seedSession, todayFixture, TRIP } from "./helpers";
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number };
+type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -25,10 +25,29 @@ async function open(page: Page, query = "", hash = "") {
   await settled(page);
 }
 
-/** Buka film dengan panggung 3D dipaksa hidup, dan tunggu sampai kanvas tampil penuh. */
-async function open3d(page: Page, query = "?stage=low", hash = "") {
+const gateOf = (page: Page) => film(page).getAttribute("data-gate");
+
+/**
+ * Film 3D yang dibuka di slide pertama mulai dengan gunungan pembuka tertancap (gate.ts): cabut dulu dengan satu
+ * langkah, supaya tes mulai dari prolog seperti sebelum ada gerbang.
+ */
+async function openGate(page: Page) {
+  await expect.poll(() => gateOf(page), { timeout: 30_000 }).not.toBe("wait");
+  if ((await gateOf(page)) === "head") {
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(async () => (await stats(page))?.gate.planted ?? 0, { timeout: 15_000 }).toBe(0);
+  }
+  await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+}
+
+/**
+ * Buka film dengan panggung 3D dipaksa hidup, dan tunggu sampai kanvas tampil penuh. Di slide pertama gunungan
+ * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang).
+ */
+async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" | "keep" = "open") {
   await open(page, query, hash);
   await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+  if (gate === "open" && !hash) await openGate(page);
 }
 
 async function step(page: Page, key = "ArrowDown") {
@@ -302,6 +321,8 @@ test.describe("gong ageng 3D", () => {
   const gongZoom = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
 
   test("dua tahap gulir: gulir maju pertama mendekat ke gong, berikutnya pindah slide; mundur saat dekat menjauh dulu", async ({ page }, testInfo) => {
+    // tujuh langkah gulir, masing-masing menunggu kamera 3D yang digambar tanpa GPU: lebih dari 30 dtk bawaan
+    test.slow();
     test.skip(testInfo.project.name !== "desktop", "roda mouse hanya di desktop");
     await toGong(page, "?stage=low");
     await film(page).hover();
@@ -428,6 +449,120 @@ test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan
     await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
     await expect.poll(() => got.length, { timeout: 30_000 }).toBe(5);
     expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
+  });
+});
+
+const opacity = (page: Page, selector: string) => page.locator(selector).first().evaluate((el) => Number(getComputedStyle(el).opacity));
+const HERO = ".fl-layer[data-pos='cur'] .fs-hero";
+const CREDITS = ".fl-layer[data-pos='cur'] .fs-credits";
+const planted = async (page: Page) => (await stats(page))?.gate.planted ?? -1;
+
+test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
+  test("film 3D dibuka dengan gunungan tertancap; gulir maju mencabutnya tanpa pindah slide, lalu teks prolog muncul", async ({ page }) => {
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    await expect.poll(() => opacity(page, HERO)).toBe(0);
+    await nextFrames(page);
+    expect((await stats(page))!.gate).toEqual({ end: "head", planted: 1, face: "agung" });
+    await expect(page.locator(".fl-kayon")).toBeVisible();
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect(page.locator(".fl-kayon")).toHaveCount(0);
+    expect(await film(page).getAttribute("data-index")).toBe("0");
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    // sesudah tercabut, langkah berikutnya memindah slide seperti biasa
+    await step(page);
+    expect(await film(page).getAttribute("data-index")).toBe("1");
+  });
+
+  test("klik dan Enter membalik gunungan ke muka Murka dan kembali ke muka Agung", async ({ page }) => {
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    const flip = page.locator(".fl-kayon");
+    await expect(flip).toHaveAttribute("aria-pressed", "false");
+    await flip.click();
+    await expect(film(page)).toHaveAttribute("data-face", "murka");
+    await expect(flip).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: 15_000 }).toBe("murka");
+    await flip.focus();
+    await page.keyboard.press("Enter");
+    await expect(film(page)).toHaveAttribute("data-face", "agung");
+    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: 15_000 }).toBe("agung");
+    // membalik tidak mencabut dan tidak memindah slide
+    expect(await film(page).getAttribute("data-index")).toBe("0");
+    await expect(film(page)).toHaveAttribute("data-gate", "head");
+  });
+
+  test("mundur di slide pertama menancapkannya lagi: teks prolog memudar; maju mencabutnya lagi", async ({ page }) => {
+    await open3d(page);
+    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await page.keyboard.press("ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-gate", "head");
+    await expect.poll(() => opacity(page, HERO)).toBe(0);
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(1);
+    expect((await stats(page))!.gate.face).toBe("agung");
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+    await expect.poll(() => opacity(page, HERO)).toBe(1);
+  });
+
+  test("penutup: gulir maju di credits menancapkan gunungan dan credits memudar; mundur mencabutnya", async ({ page }) => {
+    await open3d(page, "?stage=low", "#credits");
+    const last = await film(page).getAttribute("data-index");
+    await expect(film(page)).toHaveAttribute("data-kind", "credits");
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-gate", "tail");
+    await expect.poll(() => opacity(page, CREDITS)).toBe(0);
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(1);
+    expect((await stats(page))!.gate.end).toBe("tail");
+    expect(await film(page).getAttribute("data-index")).toBe(last);
+    await page.keyboard.press("ArrowUp");
+    await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+    await expect.poll(() => opacity(page, CREDITS)).toBe(1);
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    // tercabut: mundur berikutnya memindah slide
+    await step(page, "ArrowUp");
+    expect(await film(page).getAttribute("data-index")).not.toBe(last);
+  });
+
+  test("penutup ditancapkan sendiri bila tamu diam di credits", async ({ page }) => {
+    test.slow();
+    await open3d(page, "?stage=low", "#credits");
+    await expect(film(page)).toHaveAttribute("data-kind", "credits");
+    await expect(film(page)).toHaveAttribute("data-gate", "tail", { timeout: 30_000 });
+  });
+
+  test("geser jari mencabut gunungan mengikuti jari; dilepas sesudah ambang, tercabut habis", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "iphone", "geser jari di layar sentuh");
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type: "touchStart" | "touchMove" | "touchEnd", y = 0) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y }] });
+    await touch("touchStart", 560);
+    for (let i = 1; i <= 16; i++) {
+      await touch("touchMove", 560 - i * 10);
+      await page.waitForTimeout(30);
+    }
+    // ditahan di tengah: gunungan setengah tercabut, slide tidak pindah
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBeLessThan(0.95);
+    const held = await planted(page);
+    expect(held).toBeGreaterThan(0.05);
+    await touch("touchEnd");
+    await cdp.detach();
+    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+    expect(await film(page).getAttribute("data-index")).toBe("0");
+  });
+
+  test("film 2,5D: tanpa gerbang, teks prolog langsung tampil dan langkah pertama memindah slide", async ({ page }) => {
+    await open(page);
+    await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
+    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect(page.locator(".fl-kayon")).toHaveCount(0);
+    await step(page);
+    expect(await film(page).getAttribute("data-index")).toBe("1");
   });
 });
 

@@ -13,9 +13,10 @@ import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
 import { approach, GONG_ZOOM, scrollDepth, VIEW } from "@/engine/motion/view";
 import { lookMoving, startLook, stepLook } from "../look";
-import { sweepPose } from "@/engine/stage/gunungan";
+import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
+import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
-import { type Frame, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
+import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
@@ -52,14 +53,21 @@ export type StageStats = {
   strikes: number;
   /** Besar hentakan dan getar kamera pada frame terakhir (0 = kamera diam di shot-nya). */
   kick: number;
-  /** Gunungan 3D siap (teksturnya sudah di GPU), dan sedang menyapu di frame terakhir. */
+  /** Gunungan 3D siap (teksturnya sudah di GPU). */
   kayon: boolean;
+  /** Gunungan pembuka/penutup pada frame terakhir: ujungnya, kadar tertancap (0–1), dan muka yang tampak. */
+  gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" };
   /** Jam panggung pada frame terakhir (detik). */
   time: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
   sweepAt?: readonly number[];
+  /**
+   * Hanya untuk pratinjau dan uji: gunungan pembuka/penutup ditahan di [tertancap 0–1, ujung (1 pembuka, −1 penutup),
+   * sudut balik (rad), kadar geni 0–1]. Kamera ikut, seperti saat dicabut sungguhan.
+   */
+  gateAt?: readonly number[];
 };
 
 export type StageHooks = {
@@ -119,8 +127,18 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const unbindGong = stageBus.bindGong(() => gong.strike(clock));
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
-  // gunungan: tekstur dimuat di latar; sampai siap, sapuan antar bab tetap digambar lapisan DOM
-  const gunungan = createGunungan({ gl, shared, large: spec.dof, onReady: (ok) => stageBus.setKayon(ok) });
+  // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,
+  // gerbang boleh tampil dan memudar masuk
+  let kayonFade = 0;
+  const gunungan = createGunungan({
+    gl,
+    shared,
+    large: spec.dof,
+    onReady: (ok) => {
+      stageBus.setKayon(ok);
+      stageBus.gateReady(ok);
+    },
+  });
   const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh, ...gunungan.nodes];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
@@ -130,6 +148,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let track: SunTrack = SUN_TRACK;
   let shape: TerrainShape = shape0;
   let cues = createCues(film, frame);
+  let kayonAt = kayonShot(frame);
   let lastSky: SkyState | null = null;
   let mood: Mood | null = null;
   const sunDir = new Vector3();
@@ -157,6 +176,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     track = box && box.width > 0 ? { left: (2 * (box.left - o.left)) / w - 1, right: (2 * (box.right - o.left)) / w - 1, top: 1 - (2 * (box.top - o.top)) / h, bottom: 1 - (2 * (box.bottom - o.top)) / h } : SUN_TRACK;
     frame = { aspect: w / h, horizon: -track.bottom };
     cues = createCues(film, frame);
+    kayonAt = kayonShot(frame);
     lastSky = null;
     // lanskap mengikuti lebar dan tinggi lintasan matahari di layar ini
     const end = sunDirection(1, 1, track, frame.aspect);
@@ -179,7 +199,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     clock = t;
     const cursor = hooks().probe();
     const cue = cues(cursor);
-    const shot = cue.shot;
+    // gunungan pembuka/penutup tertancap: kamera ditarik ke shot kayon sebanyak tertancapnya (scroll-driven depth:
+    // mencabutnya, juga dengan jari, memajukan kamera ke shot prolog)
+    const gt = stageBus.clock();
+    const gate = stageBus.gate;
+    const held = stats.gateAt && stats.gateAt.length >= 2 ? stats.gateAt : null;
+    const gateEnd = held ? (held[1]! < 0 ? "tail" : "head") : gate.end();
+    const planted = held ? Math.max(0, Math.min(1, held[0]!)) : gateEnd ? gate.planted(gt) : 0;
+    const shot = planted > 0 ? blendShot(cue.shot, kayonAt, gateCamera(planted), "slide") : cue.shot;
     const s = cue.sky;
     if (s !== lastSky || !mood) {
       lastSky = s;
@@ -290,12 +317,23 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       spotKey = "";
     }
 
-    // gunungan: untuk pembuka dan penutup film (belum tersambung; keputusan host 13 Nov). Sapuan antar bab tetap
-    // bayangan kayon DOM. Sementara hanya digambar saat pratinjau menahannya lewat `sweepAt`.
-    const pin = stats.sweepAt;
-    gunungan.update(pin && pin.length >= 2 ? sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t) : null, camera, lk, heartbeat(t), pin?.[2] ?? 0);
-
+    // gunungan: pembuka dan penutup film (gate.ts). Sapuan antar bab tetap bayangan kayon DOM; `sweepAt` hanya
+    // untuk pratinjau sapuan lama.
     gl.getDrawingBufferSize(buf);
+    const pin = stats.sweepAt;
+    let pose: SweepPose | KayonPose | null = null;
+    let rage = 0;
+    if (pin && pin.length >= 2) {
+      pose = sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t);
+      rage = pin[2] ?? 0;
+    } else if (gateEnd && planted > 0.0005) {
+      pose = gatePose(planted, gateEnd, frame.aspect, t, lk, held ? (held[2] ?? 0) : gate.turn(gt), held ? 0 : gate.thud(gt));
+      rage = held ? (held[3] ?? 0) : gate.rage(gt);
+    }
+    if (gunungan.ready()) kayonFade = Math.min(1, kayonFade + dt / 0.6);
+    gunungan.update(pose, camera, lk, heartbeat(t), rage, pin ? 1 : kayonFade, buf.y);
+    stageBus.gateTick();
+
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
     dust.setPixel(pixel);
     village.setPixel(pixel);
@@ -313,6 +351,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.strikes = hit.count;
     stats.kick = kicked;
     stats.kayon = gunungan.ready();
+    stats.gate = { end: planted > 0 ? gateEnd : null, planted, face: pose && "turn" in pose ? pose.face : "agung" };
     stats.time = t;
   };
   layout();
@@ -357,7 +396,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const c = hooks().probe();
     const now = performance.now();
     const zoomGoal = stageBus.gongHere() ? stageBus.gongZoom() : 0;
-    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || now - born < 1500 || gong.busy();
+    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1);
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -390,6 +429,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     cancelAnimationFrame(raf);
     unbindGong();
     stageBus.setKayon(false);
+    stageBus.gateReady(false);
     stopLook();
     stageBus.setGongHere(false);
     host?.removeEventListener("gesturestart", noPageZoom);

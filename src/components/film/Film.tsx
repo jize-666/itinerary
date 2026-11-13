@@ -1,13 +1,17 @@
 "use client";
 import "./film.css";
-import { type CSSProperties, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, memo, type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
+import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { DEPTH, prefersReducedMotion } from "@/engine/motion/tokens";
 import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
 import { createLiveStore } from "@/engine/slides/live";
 import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
 import { styleAt } from "@/engine/slides/timeline";
+import { stageBus } from "@/engine/stage/bus";
+import { GATE, type GateSnapshot, logTop, plantSize } from "@/engine/stage/gate";
+import { KAYON as KAYON_SHEET } from "@/engine/stage/gunungan";
 import { sessionStore } from "@/lib/session";
 import { loadTrip, peekTrip, type TripLoad, type TripView } from "@/lib/trip";
 import { IconRefresh } from "../Icons";
@@ -177,6 +181,51 @@ function Kayon() {
   );
 }
 
+/**
+ * Gunungan pembuka/penutup yang tertancap (gate.ts): tombol tak terlihat tepat di atas gunungan 3D. Klik, tap,
+ * Enter, atau Spasi membaliknya (muka Agung ↔ muka Murka). Tombol ada untuk keyboard dan screen reader; gambarnya
+ * di kanvas.
+ */
+function KayonFlip({ root, face }: { root: RefObject<HTMLElement | null>; face: GateSnapshot["face"] }) {
+  const { t } = useI18n();
+  const [box, setBox] = useState<Var>({});
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const place = () => {
+      const [w, h] = [el.clientWidth, el.clientHeight];
+      if (!w || !h) return;
+      const size = plantSize(w / h);
+      setBox({
+        "--kayon-w": `${((size * KAYON_SHEET.aspect * h) / w) * 100}%`,
+        "--kayon-h": `${size * 100}%`,
+        "--kayon-top": `${((1 - (GATE.y + size)) / 2) * 100}%`,
+      });
+      // petunjuk gulir duduk di palemahan (pita gelap di atas gedebog), bukan di atas gunungan atau gedebog
+      el.style.setProperty("--kayon-foot", `${((1 + logTop(size)) / 2) * 100}%`);
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      el.style.removeProperty("--kayon-foot");
+    };
+  }, [root]);
+  return (
+    <button
+      type="button"
+      className="fl-kayon"
+      style={box}
+      aria-label={t("film.kayon")}
+      aria-pressed={face === "murka"}
+      onClick={() => {
+        if (stageBus.gateFlip()) audioStatus.scene("gunungan-balik");
+      }}
+    />
+  );
+}
+
 function Stage({ data }: { data: TripView }) {
   const { t, tx } = useI18n();
   const film = useMemo(() => buildFilm(data), [data]);
@@ -193,6 +242,14 @@ function Stage({ data }: { data: TripView }) {
   const filmNow = useRef(film);
   const director = useRef<Director | null>(null);
   const [stage, setStage] = useState<StagePhase>("off");
+  // gunungan pembuka dan penutup (gate.ts): keadaannya di bus panggung, dibaca juga oleh kanvas 3D
+  const gate = useSyncExternalStore(stageBus.gateSubscribe, stageBus.gateSnapshot, stageBus.gateServer);
+  /** Panggung 3D akan dipakai: dikabarkan StageMount sebelum efek di bawah berjalan. */
+  const stageWanted = useRef(false);
+  const onIntent = useCallback((wanted: boolean) => {
+    stageWanted.current = wanted;
+    if (!wanted) stageBus.gateDisarm();
+  }, []);
   /** Letak film untuk panggung 3D: sumber waktu yang sama dengan transisi DOM. */
   const probe = useCallback(() => director.current?.cursor() ?? { from: initial, to: initial, p: 0 }, [initial]);
 
@@ -221,9 +278,12 @@ function Stage({ data }: { data: TripView }) {
     });
     director.current = d;
     const detach = d.attach(el);
+    // gunungan pembuka: film dibuka di slide pertama dengan panggung 3D → teks prolog menunggu gunungannya dicabut
+    const gated = d.index === 0 && stageWanted.current;
+    if (gated) stageBus.gateArm();
     // slide pembuka hidup setelah tirai antar-halaman mulai membuka
     const first = d.film.slides[d.index];
-    const cancelLive = first ? live.add(first.id, prefersReducedMotion() ? 0 : 380) : undefined;
+    const cancelLive = first && !gated ? live.add(first.id, prefersReducedMotion() ? 0 : 380) : undefined;
     const onHash = () => {
       const to = indexForHash(d.film, window.location.hash);
       if (to !== null) d.jump(to);
@@ -234,8 +294,52 @@ function Stage({ data }: { data: TripView }) {
       cancelLive?.();
       detach();
       director.current = null;
+      stageBus.gateReset();
     };
   }, [initial, live]);
+
+  // Gunungan pembuka dicabut: teks prolog muncul seperti saat tiba. Ditancapkan lagi (mundur di slide pertama):
+  // teksnya memudar (film.css), lalu reveal-nya disiapkan untuk diputar ulang.
+  const gateShut = gate.phase === "wait" || gate.phase === "head";
+  const shutBefore = useRef(false);
+  useEffect(() => {
+    const first = film.slides[0];
+    const was = shutBefore.current;
+    shutBefore.current = gateShut;
+    if (!first || was === gateShut) return;
+    if (gateShut) {
+      const timer = setTimeout(() => live.remove(first.id), 520);
+      return () => clearTimeout(timer);
+    }
+    return live.add(first.id, 0);
+  }, [gateShut, film, live]);
+  // pembuka yang menunggu panggung terlalu lama dilepas: film dibuka tanpa gerbang
+  useEffect(() => {
+    if (gate.phase !== "wait") return;
+    const timer = setTimeout(() => stageBus.gateDisarm(), GATE.waitMs);
+    return () => clearTimeout(timer);
+  }, [gate.phase]);
+  // film berpindah dari ujungnya: gunungan yang tertancap di sana ikut dicabut
+  const lastIndex = film.slides.length - 1;
+  useEffect(() => {
+    stageBus.gateFollow(view.index, view.moving !== null, lastIndex);
+  }, [view, lastIndex]);
+  // penutup: diam di credits → gunungan ditancapkan sendiri (tancep kayon)
+  useEffect(() => {
+    if (view.index !== lastIndex || view.moving) return;
+    const timer = setTimeout(() => stageBus.gateAuto(lastIndex, lastIndex), GATE.autoTailMs);
+    return () => clearTimeout(timer);
+  }, [view, lastIndex]);
+  // tancep kayon diiringi gong, tepat saat gunungan menancap di gedebog
+  const tailShut = gate.phase === "tail";
+  useEffect(() => {
+    if (!tailShut) return;
+    const due = stageBus.gateLandsIn();
+    if (due !== null) audioStatus.scene("gong", due, 0.8);
+  }, [tailShut]);
+  useEffect(() => {
+    if (gate.end) audioStatus.prepare("gunungan-balik", "gong");
+  }, [gate.end]);
 
   useEffect(() => {
     if (director.current) director.current.calm = calm;
@@ -333,6 +437,8 @@ function Stage({ data }: { data: TripView }) {
       data-kind={slide?.kind}
       data-slide={slide?.id}
       data-index={view.index}
+      data-gate={gate.phase === "off" ? undefined : gate.phase}
+      data-face={gate.phase === "head" || gate.phase === "tail" ? gate.face : undefined}
       style={DEPTH_VARS}
     >
       <div className="fl-skies" aria-hidden="true">
@@ -354,7 +460,7 @@ function Stage({ data }: { data: TripView }) {
         ))}
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
-      <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} />
+      <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
       <div className="fl-grain" aria-hidden="true" />
       <LiveContext value={live}>
         <div className="fl-stage">
@@ -363,12 +469,13 @@ function Stage({ data }: { data: TripView }) {
           ))}
         </div>
       </LiveContext>
+      {(gate.phase === "head" || gate.phase === "tail") && <KayonFlip root={root} face={gate.face} />}
       <div className="fl-wipe" aria-hidden="true">
         <Kayon />
       </div>
       <div className="fl-chrome">
         <Corner calm={calm} onCalm={onCalm} />
-        <Hint shown={hint && view.index === 0 && !view.moving} />
+        <Hint shown={(hint || gateShut) && view.index === 0 && !view.moving} kayon={gate.phase === "head"} />
         <Rail film={film} index={view.index} onJump={onJump} />
       </div>
       <p className="sr-only" role="status" aria-live="polite">

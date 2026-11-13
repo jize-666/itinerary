@@ -9,10 +9,11 @@
  * Untuk uji dan pratinjau: `?stage=high|medium|low|static` memaksa tier (pengatur FPS hanya mengukur),
  * `?fps` menampilkan overlay FPS.
  */
-import { type ComponentType, type RefObject, useCallback, useEffect, useState } from "react";
+import { type ComponentType, type RefObject, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
+import { prefetchKayon } from "@/engine/stage/kayon-files";
 import { type Caps, guessTier, type Tier } from "@/engine/stage/tier";
 import type { Stage3DProps } from "./stage3d/Stage3D";
 
@@ -25,6 +26,11 @@ type Props = {
   root: RefObject<HTMLElement | null>;
   calm: boolean;
   onPhase: (phase: StagePhase) => void;
+  /**
+   * Panggung 3D akan dipakai (true) atau tidak (false: 2,5D, Calm, gagal). Dikabarkan sebelum efek biasa Film
+   * berjalan (layout effect), supaya Film tahu sejak awal apakah gunungan pembuka akan tampil.
+   */
+  onIntent?: (wanted: boolean) => void;
 };
 
 const TIERS: readonly Tier[] = ["high", "medium", "low", "static"];
@@ -63,7 +69,7 @@ function choose(): Choice {
   return { tier: guessTier(caps), locked: false, debug };
 }
 
-export function StageMount({ film, probe, root, calm, onPhase }: Props) {
+export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props) {
   const [choice] = useState(choose);
   const [Stage, setStage] = useState<ComponentType<Stage3DProps> | null>(null);
   const [failed, setFailed] = useState(false);
@@ -71,6 +77,15 @@ export function StageMount({ film, probe, root, calm, onPhase }: Props) {
   // Calm dan reduced motion: tanpa WebGL (reduced motion dibaca sekali; Calm bisa berganti di tengah film)
   const [reduced] = useState(prefersReducedMotion);
   const wanted = choice.tier !== "static" && !calm && !reduced && !failed;
+
+  useLayoutEffect(() => {
+    onIntent?.(wanted);
+  }, [wanted, onIntent]);
+
+  // gunungan pembuka menunggu teksturnya: diunduh bersamaan dengan bundle 3D, bukan sesudahnya
+  useEffect(() => {
+    if (wanted) prefetchKayon(choice.tier === "high");
+  }, [wanted, choice.tier]);
 
   useEffect(() => {
     if (!wanted || Stage) return;

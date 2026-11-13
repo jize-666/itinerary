@@ -134,6 +134,13 @@ export const GALLERY_HORIZON = -0.46;
  */
 const GONG_SHOT: Orbit = { az: -16, el: -2, r: 9.4, look: [0, 1.3, 0], fov: 32, lamp: 1.5, dim: 0.12, width: 5, tilt: 0.04 };
 
+/**
+ * Shot gunungan pembuka dan penutup (gate.ts): pendapa dari depan, sedikit lebih jauh dan lebih rendah dari shot
+ * prolog. Saat gunungan dicabut kamera maju dari sini ke shot prolog mengikuti kemajuan cabutan (di HP mengikuti
+ * jari): kedalaman ikut gulir. Saat ditancapkan di akhir film kamera kembali ke sini.
+ */
+export const kayonShot = (frame: Frame): Shot => orbitShot({ az: 0, el: -5, r: 9.8, look: [0, 1.55, 0], fov: 34, lamp: 1.3, width: GONG_WIDTH * 1.2 }, frame.aspect);
+
 /** Shot untuk satu slide pada layar `frame`. */
 export function shotFor(slide: Slide, frame: Frame): Shot {
   const aspect = frame.aspect;

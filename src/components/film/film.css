@@ -244,6 +244,64 @@ html.film-on body {
   translate: -50% -50%;
 }
 
+/* ---- gunungan pembuka dan penutup (engine/stage/gate.ts, Tugas 7) ----
+   Gunungan 3D tertancap di gedebog di depan kelir: di pembuka teks prolog menunggu sampai gunungan dicabut
+   (gulir/geser/panah), di penutup teks credits memudar saat gunungan ditancapkan. "wait" = panggung 3D dan
+   tekstur gunungan belum siap. Tombol .fl-kayon tak terlihat, tepat di atas gunungan: klik/tap/Enter membaliknya. */
+.fs-hero,
+.fs-credits {
+  transition: opacity 0.5s ease;
+}
+
+.film[data-gate="wait"] .fl-layer[data-pos="cur"] .fs-hero,
+.film[data-gate="head"] .fl-layer[data-pos="cur"] .fs-hero,
+.film[data-gate="tail"] .fl-layer[data-pos="cur"] .fs-credits {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fl-kayon {
+  position: absolute;
+  z-index: 8;
+  top: var(--kayon-top, 4%);
+  left: 50%;
+  width: var(--kayon-w, 30%);
+  height: var(--kayon-h, 84%);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 46% 46% 6% 6% / 34% 34% 3% 3%;
+  background: none;
+  translate: -50% 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fl-kayon:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 8px;
+}
+
+.fl-hint-kayon {
+  display: none;
+}
+
+.fl-hint[data-kayon] {
+  bottom: calc(var(--kayon-foot, 90px) + 6px);
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 6px;
+  max-width: calc(100vw - 32px);
+}
+
+.fl-hint[data-kayon] .fl-hint-kayon {
+  display: block;
+  flex-basis: 100%;
+  text-align: center;
+  color: color-mix(in srgb, var(--prada) 86%, transparent);
+}
+
 /* Gerak pandang 2,5D (aturan host 13 Nov: "perspective shift, scroll driven depth, kamera parallax" juga di film
    2,5D). --lx dan --ly (−1…1) ditulis Film.tsx dari kursor atau kemiringan HP. Lapisan bergeser menurut kedalamannya:
    langit sedikit dan berlawanan arah, isi slide searah pandang dan bidangnya sedikit memutar,

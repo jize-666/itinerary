@@ -12,8 +12,8 @@ export type AudioState = Readonly<{
 /** Bunyi klik tombol: pop (utama), click (sekunder), tok (sakelar). */
 export type ClickSound = "ui-pop" | "ui-click" | "ui-tok";
 
-/** Bunyi adegan film: pukulan gong ageng dan napas api naga gayor. */
-export type SceneSound = "gong" | "api-naga";
+/** Bunyi adegan film: pukulan gong ageng, napas api naga gayor, dan gunungan yang dibalik. */
+export type SceneSound = "gong" | "api-naga" | "gunungan-balik";
 
 /** Bagian mesin yang dipakai UI global. setEnabled dipanggil sinkron di handler klik (kebijakan autoplay iOS). */
 export type AudioControl = {

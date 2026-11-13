@@ -9,7 +9,21 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 **Arahan host, kata demi kata:** "kerjakan tugas 7, gunungan" (sesi baru sesudah `/clear`; PR #8 sudah di-merge host 13 Nov 17.26 UTC, jadi branch kerja dibuat ulang dari `main` `d785e65`).
 
-Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapuanya pakai yang lama"): gerbang pembuka sebelum prolog dan penutup sesudah film memakai gunungan 3D bermuka dua yang sudah diterima. Sapuan antar bab tetap bayangan kayon DOM. Dua tes e2e yang gagal di run terakhir sebelum PR #8 ikut dibereskan, karena sesi wajib ditutup dengan `pnpm test:e2e` hijau. Status dan hasilnya ditulis di bawah begitu tiap langkah selesai.
+Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapuanya pakai yang lama"): gerbang pembuka sebelum prolog dan penutup sesudah film memakai gunungan 3D bermuka dua yang sudah diterima. Sapuan antar bab tetap bayangan kayon DOM. Dua tes e2e yang gagal di run terakhir sebelum PR #8 ikut dibereskan, karena sesi wajib ditutup dengan `pnpm test:e2e` hijau.
+
+**Rancangan (mengikuti pagelaran wayang: gunungan tertancap sebelum lakon, bedhol kayon membuka, tancep kayon menutup).**
+- **Pembuka:** film 3D yang dibuka di slide pertama mulai dengan gunungan muka Agung tertancap di gedebog, di depan kelir yang disinari blencong. Teks prolog menunggu. Gulir, geser, atau panah maju mencabutnya (naik dulu dari gedebog, lalu disapukan ke kanan bersama kelirnya); kamera maju dari shot kayon ke shot prolog, dan teks prolog muncul di tengah jalan. Di HP cabutan mengikuti jari. Mundur di slide pertama menancapkannya lagi dari kanan.
+- **Penutup:** di credits, gulir maju menancapkan gunungan dari kiri (credits memudar, gong berbunyi saat menancap); bila tamu diam 9 dtk, ditancapkan sendiri. Mundur mencabutnya.
+- **Balik muka:** klik, tap, Enter, atau Spasi pada gunungan yang tertancap membaliknya dengan pegas (muka Murka: api geni menyala besar lalu membara; pupil barong mengikuti kursor), bunyi `gunungan-balik`.
+- **Kelir:** kain berlampu dengan kolam cahaya blencong yang mengikuti kursor, anyaman, plisir, palemahan (petunjuk gulir duduk di sini), gedebog, dan bayangan gunungan bertatahan tembus yang bergeser berlawanan arah lampu, dari muka mana pun (FR-28b).
+- **Gerak pandang (aturan tetap):** parallax (gunungan bergeser lebih jauh dari kelir), perspective shift (lembaran berpaling mengikuti kursor/kemiringan HP), kedalaman ikut gulir (kamera dan ukuran gunungan mengikuti kadar cabutan).
+- Film 2,5D (Calm, tanpa GPU, reduced motion) tanpa gerbang, seperti sebelumnya. Panggung yang belum siap dalam 6 dtk: film dibuka tanpa gerbang.
+
+**Berkas.** `src/engine/stage/gate.ts` (mesin dan pose, murni), `stageBus.gate*` di `bus.ts`, `kayonShot` di `shots.ts`, `kayon-files.ts` (tekstur diunduh bersamaan dengan bundle 3D), shader kelir di `stage3d/gunungan.ts`, sambungan di `stage3d/runtime.ts`, `director.ts` (langkah dan scrub ke gerbang), `Film.tsx` (`data-gate`, `data-face`, tombol `.fl-kayon`, penutup otomatis, bunyi), `film.css`, `Chrome.tsx` (petunjuk balik), string `film.kayon` dan `film.kayonHint`. Pratinjau: `window.__lakonStage.gateAt = [tertancap, ujung, sudut balik, geni]`.
+
+**Hasil tes (14 Nov pagi).** `pnpm lint` dan `pnpm typecheck` bersih; `pnpm test` 329 lulus (25 baru di `tests/unit/gate.test.ts`); `pnpm content:check` OK (peringatan lama). `e2e/stage.spec.ts`: **69 lulus, 5 dilewati** (khusus desktop/iPhone), termasuk 7 tes gerbang baru, "dua tahap gulir" (sekarang `test.slow()`, pemeriksaannya tidak dilonggarkan), dan "?fps overlay" (lulus sendiri maupun bersama spec; gagal sebelumnya karena beban). Tangkapan layar desktop dan iPhone tiruan sudah dicek: tertancap, kursor, muka Murka terbakar, setengah tercabut, pendapa terbuka, tancep di credits.
+
+**Langkah berikutnya.** e2e penuh sampai habis → video pratinjau (tur `gerbang`) ke host → `docs/design/decisions.md` → centang Tugas 7 di `CLAUDE.md` → PR.
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 

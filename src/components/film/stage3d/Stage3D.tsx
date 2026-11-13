@@ -81,7 +81,7 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
   return null;
 }
 
-const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, kayon: false, time: 0 });
+const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, kayon: false, gate: { end: null, planted: 0, face: "agung" }, time: 0 });
 
 export default function Stage3D({ film, probe, root, tier, locked, debug, onLive, onFail }: Stage3DProps) {
   const [rung, setRung] = useState<Rung>(() => LADDER[rungOf(tier)]!);

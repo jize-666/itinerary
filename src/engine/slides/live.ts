@@ -7,6 +7,8 @@ export type LiveStore = {
   has(id: string): boolean;
   /** Tandai hidup; boleh ditunda (ms). Mengembalikan pembatal. */
   add(id: string, delay?: number): () => void;
+  /** Tidak hidup lagi: reveal teksnya diputar ulang saat ditandai hidup kembali (gunungan pembuka ditancapkan lagi). */
+  remove(id: string): void;
   subscribe(fn: () => void): () => void;
   clear(): void;
 };
@@ -37,6 +39,9 @@ export function createLiveStore(): LiveStore {
         clearTimeout(timer);
         timers.delete(timer);
       };
+    },
+    remove(id) {
+      if (live.delete(id)) emit();
     },
     subscribe(fn) {
       listeners.add(fn);
