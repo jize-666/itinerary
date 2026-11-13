@@ -30,8 +30,8 @@ export const KAYON = {
   spare: [
     [0.5, 0.27, 0.26, 0.15],
     [0.5, 0.665, 0.12, 0.08],
-    [0.343, 0.485, 0.1, 0.07],
-    [0.657, 0.485, 0.1, 0.07],
+    [0.3, 0.5, 0.13, 0.085],
+    [0.7, 0.5, 0.13, 0.085],
   ],
   /** Tebal kulit sebagai bagian dari tinggi lembaran: lubang tatahan tampak berdinding saat lembaran miring. */
   thick: 0.004,
@@ -70,11 +70,11 @@ export const SWEEP = {
  */
 export const GENI = {
   /** Kadar geni terbesar, di tengah sapuan. */
-  peak: 0.62,
+  peak: 0.56,
   /** Tinggi garis bakar (v dari bawah) = kadar × reach: pada kadar terbesar garis bakar sudah melewati kepala barong. */
   reach: 1.35,
   /** Tinggi lidah api di atas garis bakar (v) pada kadar terbesar: menjilat sampai melewati pucuk. */
-  flame: 0.24,
+  flame: 0.3,
 } as const;
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));

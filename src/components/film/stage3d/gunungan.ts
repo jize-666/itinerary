@@ -105,7 +105,7 @@ void main() {
     vec3 horn = mix(vec3(0.05, 0.03, 0.02), vec3(0.75, 0.52, 0.2), band);
     vec3 rod = horn * (0.25 + 1.6 * round * round) + vec3(1.0, 0.8, 0.5) * pow(round, 12.0) * 0.5;
     rod += vec3(1.0, 0.5, 0.2) * uLight.x * 0.12 * (1.0 - round);
-    float edge = smoothstep(1.0, 0.8, abs(across)) * uLight.w;
+    float edge = (1.0 - smoothstep(0.8, 1.0, abs(across))) * uLight.w;
     gl_FragColor = vec4(rod * edge, edge);
     return;
   }
@@ -202,15 +202,17 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
     float fy = uLight.z * ${f(GENI.reach)} + (vnoise(vec2(uv.x * 7.0, uTime * 0.6)) - 0.5) * 0.12;
     float above = uv.y - fy;
     float H = ${f(GENI.flame)} * (0.55 + 0.45 * uLight.z / ${f(GENI.peak)});
-    float fuel = smoothstep(0.15, 0.55, texture2D(tMurka, vec2(st.x, 1.0 - clamp(fy, 0.0, 1.0)), 4.0).a);
-    // lidah api: gradien tegak yang dirobek noise bergerak naik; merah tua di kaki, jingga, lalu kuning di inti
+    float fuel = smoothstep(0.4, 0.85, texture2D(tMurka, vec2(st.x, 1.0 - clamp(fy, 0.0, 1.0)), 4.0).a);
+    // lidah api per kolom: noise memanjang tegak menentukan tinggi tiap lidah (pendek sampai menjulang), panas
+    // terbesar di kaki; memudar sebelum tepi bidang lembaran supaya tidak terpotong lurus
     // (warna di ruang linear: keluaran panggung dikodekan sRGB, jadi kuning linear yang terlalu tinggi memucat jadi krem)
-    float n = vnoise(vec2(uv.x * 19.0, uv.y * 4.0 - uTime * 2.6)) * 0.55 + vnoise(vec2(uv.x * 41.0 + 5.0, uv.y * 9.0 - uTime * 4.6)) * 0.45;
-    float d = max(above, 0.0) / H + (0.55 - n) * 2.4;
-    float heat = (1.0 - smoothstep(0.2, 1.0, d)) * step(-0.08, above) * fuel * mix(0.15, 1.0, spare);
+    float cn = vnoise(vec2(uv.x * 26.0, uv.y * 2.6 - uTime * 2.2)) * 0.7 + vnoise(vec2(uv.x * 57.0 + 3.0, uv.y * 6.0 - uTime * 4.1)) * 0.3;
+    float reach = max(cn * cn * 1.9, 0.04);
+    float heat = clamp(1.0 - max(above, 0.0) / H / reach, 0.0, 1.0) * smoothstep(-0.1, 0.02, above) * fuel * mix(0.15, 1.0, spare);
+    heat *= smoothstep(0.0, 0.1, uv.x) * (1.0 - smoothstep(0.9, 1.0, uv.x)) * (1.0 - smoothstep(0.84, 1.0, uv.y));
     vec3 fc = mix(vec3(0.25, 0.015, 0.0), vec3(1.0, 0.16, 0.01), smoothstep(0.0, 0.45, heat));
     fc = mix(fc, vec3(1.0, 0.5, 0.08), smoothstep(0.6, 1.0, heat));
-    flameA = smoothstep(0.05, 0.4, heat) * 0.94;
+    flameA = smoothstep(0.04, 0.32, heat) * 0.94;
     flame = fc * flameA * (1.0 + 0.2 * beat);
     vec2 q = vec2(uv.x * 34.0 + sin(uv.y * 9.0 + uTime) * 0.6, uv.y * 24.0 - uTime * 2.4);
     vec2 id = floor(q), fq = fract(q) - 0.5, off = vec2(hash21(id + 7.1), hash21(id + 3.3)) - 0.5;
