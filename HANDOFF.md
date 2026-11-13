@@ -182,7 +182,9 @@ Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegask
 - **2,5D** (`Film.tsx`, `film.css`, `transitions.ts`): `--lx/--ly` menggeser langit (berlawanan, sedikit), bukit (lebih jauh), dan isi slide (searah, bidang teks memutar ±2,4°); transisi slide dan kayon memakai `scale` sebagai kedalaman ikut gulir. Calm = diam.
 - Tangkapan layar sudah dicek: gong biasa, kursor kanan/kiri-bawah, gulir pertama (dekat), tombol −, gulir mundur (jauh); 2,5D kursor kiri/kanan dan tengah transisi (lapisan lama ×1,044, baru ×0,95).
 - e2e baru di `e2e/stage.spec.ts`: dua tahap gulir gong, zoom +/−/Ctrl+roda, parallax kamera 3D, parallax dan kedalaman 2,5D.
-- Belum: uji di HP sungguhan (giroskop, cubit), video pratinjau, ukur beban.
+- **Tes:** `pnpm test` 304 lulus; typecheck dan lint lulus. e2e penuh dengan gerak pandang dijalankan, lalu **dihentikan di tes ke-81 dari 222** supaya video bisa direkam (perekam butuh CPU sendirian). Sampai titik itu dua gagal, keduanya sudah diperbaiki dan dijalankan ulang: (1) `film.spec` "Calm: gallery datar": `scale` di wadah langit ikut menggeser bukit 19 px dalam Calm, sekarang hanya lapisan warna langit yang bergeser (24/24 tes gallery dan Calm lulus); (2) `stage.spec` "dua tahap gulir": lulus sendiri, gagal hanya di bawah beban penuh karena jeda roda 300 ms, diperlonggar jadi 700 ms. Tes gerak pandang 4/4 lulus (2 dilewati di iPhone: tes kursor). **e2e penuh belum dijalankan ulang sampai habis** sesudah perbaikan ini.
+- Video: tur `datar` (film 2,5D, STAGE=static, 28,5 dtk) sudah direkam dan frame-nya dicek; tur `kamera` (gong 3D) sedang direkam.
+- Belum: uji di HP sungguhan (giroskop, cubit), ukur beban (`measure-stage.cjs` sempat berhenti karena batas waktu).
 
 **Arahan host 13 Nov malam, kata demi kata:** "mana videonya? kirim preview nya, fitur 3d gong sama film nya. habis itu setelah di kirim, tunggu perintahku lagi". Artinya: kirim video pratinjau fitur gerak pandang di gong 3D (tur `kamera`) dan di film (2,5D), lalu **berhenti dan menunggu perintah host** (jangan memulai pekerjaan baru).
 
