@@ -276,6 +276,29 @@ test.describe("gong ageng 3D", () => {
     await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(3);
   });
 
+  test("hentakan kamera: diam sebelum pukulan, terhentak saat gong kena, lalu tenang lagi", async ({ page }) => {
+    const kick = () => page.evaluate(() => (window as unknown as { __lakonStage: { kick: number } }).__lakonStage.kick);
+    // pantau tiap frame: hentakan terbesar yang pernah tergambar
+    await page.addInitScript(() => {
+      const w = window as unknown as { __kickMax: number; __lakonStage?: { kick: number } };
+      w.__kickMax = 0;
+      const loop = () => {
+        w.__kickMax = Math.max(w.__kickMax, w.__lakonStage?.kick ?? 0);
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=low", "#day-2");
+    await nextFrames(page);
+    expect(await page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax)).toBe(0);
+    await step(page, "ArrowUp"); // ke slide gong penutup Hari 1: dipukul sendiri
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax), { timeout: 15_000 }).toBeGreaterThan(0);
+    // getar habis dalam ±1,5 dtk: kamera kembali diam
+    await expect.poll(kick, { timeout: 15_000 }).toBe(0);
+  });
+
   test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
     const strike = await toGong(page, "?stage=low");
     await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
