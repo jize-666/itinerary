@@ -174,6 +174,16 @@ Plus untuk gong (pilihan 1 dan 2 di atas): zoom cubit/Ctrl+roda dan dua tahap gu
 
 Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegaskan host): kedalaman mengikuti kemajuan gulir di dalam perpindahan slide, bukan menambah satu langkah gulir di setiap slide, karena itu menggandakan jumlah gulir sepanjang film dan melanggar FR-20a ("satu event roda = tepat satu slide", dijaga e2e). Dua tahap gulir hanya di slide gong, sesuai pilihan 2 yang diminta host.
 
+**Gerak pandang: yang sudah dibuat (13 Nov malam).**
+- `src/engine/motion/view.ts` (murni, 10 tes di `tests/unit/view.test.ts`): `VIEW` (besar geseran, lirikan, kemiringan HP, dorongan kedalaman, geseran lapisan 2,5D), `scrollDepth(p)`, `tiltLook`/`recenterBase` (kemiringan HP relatif terhadap cara memegang, ikut putaran layar), `GONG_ZOOM`, `gongStep` (dua tahap gulir), `zoomByWheel`, `zoomByPinch`.
+- `src/components/film/look.ts`: satu sumber arah pandang untuk 3D dan 2,5D (kursor mouse; giroskop di HP, izin iPhone diminta sekali dari sentuhan pertama; reduced motion = diam; getar tangan diabaikan supaya panggung bisa istirahat).
+- **3D, semua slide** (`stage3d/runtime.ts`): kamera bergeser `VIEW.shiftX/Y` lalu memandang ulang objeknya (perspective shift), dan maju `scrollDepth(p)` × jarak di tengah perpindahan slide (mengikuti gulir; di HP mengikuti jari).
+- **Gong** (`bus.ts`, `input.ts`, `director.ts`, `runtime.ts`): Ctrl+roda / cubit trackpad, cubit dua jari, tombol + dan −; gulir maju pertama mendekat (roda dan geser jari; panah keyboard tetap per slide); mundur saat dekat menjauh dulu. Saat dekat titik bidik berpindah ke pusat gong; bidang sentuh tombol pukul mengikuti gong tiap frame; teks penutup hari memudar (`--gong-zoom`); di slide itu cubit tidak menjadi zoom halaman (`data-gongzoom` → `touch-action: none`, `gesturestart` dicegah). Di slide gong 3D jari tidak men-scrub: tiap geser dinilai saat dilepas.
+- **2,5D** (`Film.tsx`, `film.css`, `transitions.ts`): `--lx/--ly` menggeser langit (berlawanan, sedikit), bukit (lebih jauh), dan isi slide (searah, bidang teks memutar ±2,4°); transisi slide dan kayon memakai `scale` sebagai kedalaman ikut gulir. Calm = diam.
+- Tangkapan layar sudah dicek: gong biasa, kursor kanan/kiri-bawah, gulir pertama (dekat), tombol −, gulir mundur (jauh); 2,5D kursor kiri/kanan dan tengah transisi (lapisan lama ×1,044, baru ×0,95).
+- e2e baru di `e2e/stage.spec.ts`: dua tahap gulir gong, zoom +/−/Ctrl+roda, parallax kamera 3D, parallax dan kedalaman 2,5D.
+- Belum: uji di HP sungguhan (giroskop, cubit), video pratinjau, ukur beban.
+
 **Hentakan dan getar kamera (arahan host no. 5), yang ditulis.** `cameraKick`, `KICK`, `kickSize` di `src/engine/stage/gong.ts` (murni); dijumlahkan per hantaman di `createStrikes().at()` (`kick`); dipasang ke kamera di `src/components/film/stage3d/runtime.ts` sesudah napas dan parallax. Angkanya: mundur ±0,9% jarak dalam ±0,08 dtk lalu berayun balik sekali; getar 3,6–4,8 Hz, paling jauh ±0,6% tinggi layar, habis ±1,5 dtk; mulai dari nol tanpa sentakan. Sekalian: hantaman lama sekarang dilupakan sesudah 12 dtk (dulu hanya 3 hantaman terakhir yang dihitung, sehingga pukulan keempat beruntun menggeser gong ±1 cm). Rinciannya di `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
 
 **Yang selesai (langkah 1–2).**
