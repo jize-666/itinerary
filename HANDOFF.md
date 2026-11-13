@@ -136,6 +136,8 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 | 5 | Batara Kala dan keris di puncak gayor | **dilewati** atas arahan host |
 | 6 | Ukur, dokumen, PR saat host meminta | sebagian (lihat di bawah) |
 
+**Arahan host 13 Nov malam (sesudah gambar muka Murka gaya wayang dan garuda dikirim), kata demi kata:** "sudah, gong agung kemarin belum di test ya? sama test e2e? kalau belum test sekalian. baca handoff.md harusnya ada". Tafsir Claude: "sudah" = rupa gunungan (muka Murka gaya wayang dan garuda) diterima; sekarang **utang gong di bawah dilunasi**: tes unit gong, e2e penuh sekali (termasuk tiga tes e2e gunungan yang baru), cek gambar bingkai slide gong, video gong ditabuh, dan ukur beban.
+
 **Utang gong (dikerjakan sesudah gunungan, arahan host no. 7).** Kode langkah 3 sudah ada di branch, tetapi belum boleh disebut teruji:
 - **Tes unit:** terakhir dijalankan hanya `tests/unit/gong.test.ts`: 29 dari 30 lulus. Yang gagal: tes hentakan kamera (ayunan balik 42% dari hentakan, batasnya 40%). Sesudah itu `KICK.backDecay` diubah 0,24 → 0,22 (hitungan tangan: ±32%), **belum dijalankan ulang**. `pnpm test` penuh belum dijalankan sejak langkah 3.
 - **e2e:** suite penuh belum pernah jalan dengan kode langkah 3 (suite terakhir dihentikan di tengah karena memakai build lama). Tes baru: pukulan di `e2e/stage.spec.ts`, bunyi di `e2e/sound.spec.ts`. Belum ada tes e2e untuk hentakan kamera (`window.__lakonStage.kick` sudah disediakan: 0 = kamera diam).
