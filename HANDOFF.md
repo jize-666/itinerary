@@ -39,6 +39,12 @@ Tafsir Claude atas revisinya (belum ditegaskan host): **muka Murka diganti selur
 
 Sesi berganti model di titik ini (host: "lanjut opus, baca handoff.md serta claude.md terlebih dahulu sebelum melanjutkan"). Versi ketiga muka Murka sudah ada di pelukis tetapi belum di-commit; versi keempat (di atas) menggantikannya.
 
+**Arahan host 13 Nov sore (sesudah melihat gambar muka Murka versi kelima), kata demi kata:** "mode murka, pas kebakar masih kurang. dan tanduk sama yang di pipinya iru kaya keong." Tafsir Claude (belum ditegaskan host):
+- "pas kebakar masih kurang": api geni saat mundur terlalu lemah. Sekarang api hanya naik ±40% dari kaki dengan kadar 0,3, dan muka Murka di atasnya tetap terlihat seperti gambar diam. Yang diminta: kebakaran yang sungguh terasa. Api menjalar lebih tinggi sampai mengitari kepala, lidah apinya bergerak hidup, lembaran tampak membara (tepi bakar dan kulit yang menghitam di belakang garis api), dan wajah barong ikut menyala (mata dan mulut berpendar), tetapi wajahnya tetap terbaca.
+- "tanduk sama yang di pipinya itu kaya keong": ukel mahkota (dibaca host sebagai tanduk) dan pilin pipi berbentuk pilin bulat rapat seperti cangkang keong. Yang diminta: bentuk lain yang tidak bulat memilin. Mahkota diganti tanduk sungguhan yang melengkung runcing dan beralur; pipi diganti sumping/jambang api: helai lancip bergerigi yang menyapu ke luar-belakang seperti lidah api, paling-paling ujungnya sedikit mengait, tanpa pilin bulat.
+
+Rekaman video sapuan (tur `kayon`) yang sedang berjalan dihentikan karena memakai desain yang baru dikritik; direkam ulang sesudah revisi ini.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
