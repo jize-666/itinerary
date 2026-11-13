@@ -10,7 +10,9 @@ import type { Film } from "@/engine/slides/build-slides";
 import type { SkyState } from "@/engine/slides/sky";
 import { stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
-import { heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
+import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
+import { approach, GONG_ZOOM, scrollDepth, VIEW } from "@/engine/motion/view";
+import { lookMoving, startLook, stepLook } from "../look";
 import { sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { type Frame, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
@@ -134,7 +136,16 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const sunLight = new Vector3();
   const buf = new Vector2();
   const look = new Vector3();
-  const pointer = { x: 0, y: 0, tx: 0, ty: 0, at: -1e9 };
+  const aim = new Vector3();
+  const GONG_CENTER = new Vector3(0, GONG.y * GONG_SCALE, 0.04 * GONG_SCALE);
+  const gongAt = new Vector3();
+  const gongEdge = new Vector3();
+  /** Zoom gong yang sedang digambar (dihaluskan menuju target di bus). */
+  let zoomNow = 0;
+  /** Letak gong di layar yang terakhir ditulis ke lapisan DOM (bidang sentuh tombol pukul). */
+  let spotEl: HTMLElement | null = null;
+  let spotKey = "";
+  const stopLook = startLook();
 
   const layout = () => {
     const el = root();
@@ -208,19 +219,29 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const flash = strikeLight(hit.st);
     shared.uFlash.value.setRGB(FLASH_RGB[0] * flash, FLASH_RGB[1] * flash, FLASH_RGB[2] * flash);
 
-    // kamera: shot + napas pelan + geseran kecil mengikuti kursor (parallax)
-    const ease = 1 - Math.exp(-Math.min(0.1, dt) * 4);
-    pointer.x += (pointer.tx - pointer.x) * ease;
-    pointer.y += (pointer.ty - pointer.y) * ease;
+    // Gerak pandang (aturan host 13 Nov, berlaku di semua slide): kamera parallax mengikuti kursor atau kemiringan
+    // HP, perspective shift (kamera berpindah lalu memandang ulang objeknya), dan kedalaman yang mengikuti gulir
+    // (maju di tengah perpindahan slide, mengikuti kemajuan gulir). Di slide gong ditambah zoom.
+    const lk = stepLook(dt);
+    const here = !cue.moving && film.slides[cursor.from]?.kind === "gong";
+    stageBus.setGongHere(here);
+    zoomNow = approach(zoomNow, here ? stageBus.gongZoom() : 0, dt, GONG_ZOOM.ease);
+    const zoomed = film.slides[cursor.from]?.kind === "gong" ? zoomNow * (cue.moving ? 1 - cursor.p : 1) : 0;
     if (camera.fov !== shot.fov) {
       camera.fov = shot.fov;
       camera.updateProjectionMatrix();
     }
     camera.position.set(shot.pos[0], shot.pos[1], shot.pos[2]);
-    camera.lookAt(look.set(shot.look[0], shot.look[1], shot.look[2]));
+    // makin dekat ke gong, titik bidik berpindah dari bingkai slide (yang memberi ruang teks) ke pusat gong
+    camera.lookAt(look.set(shot.look[0], shot.look[1], shot.look[2]).lerp(GONG_CENTER, Math.min(1, zoomed * 1.4)));
     const reach = shot.rig === "orbit" ? 1 : 0.6;
-    camera.translateX((Math.sin(t * 0.21) * 0.035 + pointer.x * 0.18) * reach);
-    camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - pointer.y * 0.09) * reach);
+    // jarak ke objek: bidikan lanskap berfokus jauh (40 m), jadi dorongannya dibatasi seperti di bidikan pendapa
+    const dist = Math.min(shot.focus, 12);
+    camera.translateX((Math.sin(t * 0.21) * 0.035 + lk.x * VIEW.shiftX) * reach);
+    camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - lk.y * VIEW.shiftY) * reach);
+    camera.translateZ(-Math.min(0.9, (cue.moving ? scrollDepth(cursor.p) : 0) + zoomed * GONG_ZOOM.close) * dist);
+    aim.set(lk.x * VIEW.shiftX * reach * VIEW.aim, -lk.y * VIEW.shiftY * reach * VIEW.aim, 0).applyQuaternion(camera.quaternion).add(look);
+    camera.lookAt(aim);
     // gong kena: kamera terhentak mundur dan bergetar pelan (simpangan getar dalam ukuran layar, jadi sama di lensa mana pun)
     const kick = hit.kick;
     const kicked = kickSize(kick);
@@ -241,10 +262,38 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     camera.updateMatrixWorld();
 
+    // slide gong: bidang sentuh tombol pukul mengikuti gong di layar (parallax, zoom, hentakan), teks penutup hari
+    // memudar saat didekati, dan cubit di layar menjadi zoom gong (bukan zoom halaman)
+    const host = root();
+    if (host && here) {
+      if (!spotEl?.isConnected) spotEl = host.querySelector<HTMLElement>(".fl-layer[data-pos='cur'] .fs-gongclose");
+      if (spotEl) {
+        gongAt.copy(GONG_CENTER).project(camera);
+        gongEdge.set(GONG.radius * GONG_SCALE, 0, 0).applyQuaternion(camera.quaternion).add(GONG_CENTER).project(camera);
+        const x = (gongAt.x * 0.5 + 0.5) * 100;
+        const y = (0.5 - gongAt.y * 0.5) * 100;
+        const d = Math.abs(gongEdge.x - gongAt.x) * 100 * 1.06;
+        const key = `${x.toFixed(1)}|${y.toFixed(1)}|${d.toFixed(1)}|${zoomed.toFixed(2)}`;
+        if (key !== spotKey) {
+          spotKey = key;
+          spotEl.style.setProperty("--gong-x", `${x.toFixed(2)}%`);
+          spotEl.style.setProperty("--gong-y", `${y.toFixed(2)}%`);
+          spotEl.style.setProperty("--gong-d", `${d.toFixed(2)}%`);
+          host.style.setProperty("--gong-zoom", zoomed.toFixed(3));
+        }
+      }
+      if (!("gongzoom" in host.dataset)) host.dataset.gongzoom = "";
+    } else if (host && "gongzoom" in host.dataset) {
+      delete host.dataset.gongzoom;
+      host.style.removeProperty("--gong-zoom");
+      spotEl = null;
+      spotKey = "";
+    }
+
     // gunungan: untuk pembuka dan penutup film (belum tersambung; keputusan host 13 Nov). Sapuan antar bab tetap
     // bayangan kayon DOM. Sementara hanya digambar saat pratinjau menahannya lewat `sweepAt`.
     const pin = stats.sweepAt;
-    gunungan.update(pin && pin.length >= 2 ? sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), pin?.[2] ?? 0);
+    gunungan.update(pin && pin.length >= 2 ? sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t) : null, camera, lk, heartbeat(t), pin?.[2] ?? 0);
 
     gl.getDrawingBufferSize(buf);
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
@@ -269,16 +318,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   layout();
   resize();
 
-  const onPointer = (e: PointerEvent) => {
-    if (e.pointerType !== "mouse") return;
-    pointer.tx = (e.clientX / window.innerWidth) * 2 - 1;
-    pointer.ty = (e.clientY / window.innerHeight) * 2 - 1;
-    pointer.at = performance.now();
-  };
-  window.addEventListener("pointermove", onPointer, { passive: true });
   const ro = new ResizeObserver(layout);
   const host = root();
   if (host) ro.observe(host);
+  // Safari iOS: cubit di slide gong adalah zoom gong, bukan zoom halaman
+  const noPageZoom = (e: Event) => {
+    if (stageBus.gongHere()) e.preventDefault();
+  };
+  host?.addEventListener("gesturestart", noPageZoom);
   const canvas = gl.domElement;
   const onLost = (e: Event) => {
     e.preventDefault();
@@ -309,7 +356,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     n++;
     const c = hooks().probe();
     const now = performance.now();
-    const active = c.to !== c.from || now - pointer.at < 900 || now - born < 1500 || gong.busy();
+    const zoomGoal = stageBus.gongHere() ? stageBus.gongZoom() : 0;
+    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || now - born < 1500 || gong.busy();
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -342,7 +390,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     cancelAnimationFrame(raf);
     unbindGong();
     stageBus.setKayon(false);
-    window.removeEventListener("pointermove", onPointer);
+    stopLook();
+    stageBus.setGongHere(false);
+    host?.removeEventListener("gesturestart", noPageZoom);
+    const el = root();
+    if (el) {
+      delete el.dataset.gongzoom;
+      el.style.removeProperty("--gong-zoom");
+    }
     ro.disconnect();
     canvas.removeEventListener("webglcontextlost", onLost);
     scene.remove(...nodes);

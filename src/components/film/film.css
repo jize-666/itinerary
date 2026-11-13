@@ -244,6 +244,16 @@ html.film-on body {
   translate: -50% -50%;
 }
 
+/* slide gong 3D (aturan host 13 Nov): cubit di layar adalah zoom gong, bukan zoom halaman (geser tetap dibaca
+   lapisan input); teks penutup hari memudar saat gong didekati, supaya tidak menutupi gong yang membesar */
+.film[data-gongzoom] {
+  touch-action: none;
+}
+
+.film[data-gongzoom] .fs-gongclose {
+  opacity: calc(1 - var(--gong-zoom, 0) * 0.92);
+}
+
 /* overlay FPS (?fps): hanya untuk uji */
 .fl-fps {
   position: absolute;
