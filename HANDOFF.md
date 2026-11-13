@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 13 Nov 2026 sore (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
+Diperbarui 13 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -183,7 +183,7 @@ Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegask
 - Tangkapan layar sudah dicek: gong biasa, kursor kanan/kiri-bawah, gulir pertama (dekat), tombol −, gulir mundur (jauh); 2,5D kursor kiri/kanan dan tengah transisi (lapisan lama ×1,044, baru ×0,95).
 - e2e baru di `e2e/stage.spec.ts`: dua tahap gulir gong, zoom +/−/Ctrl+roda, parallax kamera 3D, parallax dan kedalaman 2,5D.
 - **Tes:** `pnpm test` 304 lulus; typecheck dan lint lulus. e2e penuh dengan gerak pandang dijalankan, lalu **dihentikan di tes ke-81 dari 222** supaya video bisa direkam (perekam butuh CPU sendirian). Sampai titik itu dua gagal, keduanya sudah diperbaiki dan dijalankan ulang: (1) `film.spec` "Calm: gallery datar": `scale` di wadah langit ikut menggeser bukit 19 px dalam Calm, sekarang hanya lapisan warna langit yang bergeser (24/24 tes gallery dan Calm lulus); (2) `stage.spec` "dua tahap gulir": lulus sendiri, gagal hanya di bawah beban penuh karena jeda roda 300 ms, diperlonggar jadi 700 ms. Tes gerak pandang 4/4 lulus (2 dilewati di iPhone: tes kursor). **e2e penuh belum dijalankan ulang sampai habis** sesudah perbaikan ini.
-- Video: tur `datar` (film 2,5D, STAGE=static, 28,5 dtk) sudah direkam dan frame-nya dicek; tur `kamera` (gong 3D) sedang direkam.
+- **Video dikirim ke host (13 Nov malam):** tur `kamera` (gong 3D, desktop 1920×1080, 60 fps, 36,9 dtk, `STAGE=high`, K 0,04) dan tur `datar` (film 2,5D, `STAGE=static`, 28,5 dtk). Frame keduanya sudah dicek. Sesuai arahan host, **sesudah video dikirim pekerjaan berhenti dan menunggu perintah host**.
 - Belum: uji di HP sungguhan (giroskop, cubit), ukur beban (`measure-stage.cjs` sempat berhenti karena batas waktu).
 
 **Arahan host 13 Nov malam, kata demi kata:** "mana videonya? kirim preview nya, fitur 3d gong sama film nya. habis itu setelah di kirim, tunggu perintahku lagi". Artinya: kirim video pratinjau fitur gerak pandang di gong 3D (tur `kamera`) dan di film (2,5D), lalu **berhenti dan menunggu perintah host** (jangan memulai pekerjaan baru).
