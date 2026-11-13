@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { KAYON, SWEEP, SWEEP_TEXT, VEIL, kayonHalfWidth, kayonSize, sweepPose, veilAt } from "@/engine/stage/gunungan";
+import { GENI, KAYON, SWEEP, SWEEP_TEXT, VEIL, kayonHalfWidth, kayonSize, murkaRage, sweepPose, veilAt } from "@/engine/stage/gunungan";
 
 const WIDE = 16 / 9;
 const TALL = 393 / 852;
@@ -29,12 +29,15 @@ describe("gunungan: ukuran lembaran", () => {
     for (const eye of KAYON.eyes) expect(eye[1]).toBeCloseTo(1 - (ky - dy) / h, 3);
   });
 
-  it("elips wajah barong (yang tidak dibakar api geni) memuat kedua mata dan berada di dalam lembaran", () => {
-    const [u, v, ru, rv] = KAYON.face;
+  it("tokoh yang tidak dibakar api geni: elips barong memuat kedua mata, semua elips di dalam lembaran", () => {
+    const [u, v, ru, rv] = KAYON.spare[0];
     for (const [x, y] of KAYON.eyes) expect(Math.hypot((x - u) / ru, (y - v) / rv)).toBeLessThan(0.75);
-    expect(u - ru).toBeGreaterThan(0);
-    expect(u + ru).toBeLessThan(1);
-    expect(v - rv).toBeGreaterThan(KAYON.base);
+    for (const [eu, ev, eru, erv] of KAYON.spare) {
+      expect(eu - eru).toBeGreaterThan(0);
+      expect(eu + eru).toBeLessThan(1);
+      expect(ev - erv).toBeGreaterThan(KAYON.base);
+      expect(ev + erv).toBeLessThan(1);
+    }
   });
 });
 
@@ -134,5 +137,29 @@ describe("gunungan: sapuan antar bab", () => {
     // saat teks baru mulai muncul, tengah layar sudah tidak tertutup penuh
     expect(veilAt(0, sweepPose(SWEEP_TEXT.inStart, 1, WIDE, 0).veilX)).toBeLessThan(1);
     expect(veilAt(0, sweepPose(SWEEP_TEXT.inEnd, 1, WIDE, 0).veilX)).toBeLessThan(0.2);
+  });
+});
+
+describe("gunungan: api geni di muka Murka", () => {
+  it("menyala begitu lembaran masuk, penuh di tengah, padam di kedua ujung, tanpa lompatan", () => {
+    expect(murkaRage(0)).toBe(0);
+    expect(murkaRage(1)).toBe(0);
+    expect(murkaRage(0.5)).toBeCloseTo(GENI.peak, 9);
+    let prev = 0;
+    for (let i = 1; i <= 200; i++) {
+      const r = murkaRage(i / 200);
+      expect(Math.abs(r - prev)).toBeLessThan(0.02);
+      if (i / 200 <= 0.4) expect(r).toBeGreaterThanOrEqual(prev);
+      prev = r;
+    }
+    // sudah menyala saat lembaran masih masuk layar (sebelum tabir menutup penuh)
+    expect(murkaRage(0.3)).toBeGreaterThan(GENI.peak * 0.6);
+  });
+
+  it("pada kadar terbesar garis bakar sudah melewati kepala barong, dan lidah apinya menjilat melewati pucuk", () => {
+    const line = GENI.peak * GENI.reach;
+    expect(line).toBeGreaterThan(KAYON.spare[0][1] + KAYON.spare[0][3]);
+    expect(line).toBeLessThan(1);
+    expect(line + GENI.flame).toBeGreaterThan(1);
   });
 });

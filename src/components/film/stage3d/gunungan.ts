@@ -9,14 +9,15 @@
  * - prada mengilap mengikuti lampu dalang, yang bergeser mengikuti kursor;
  * - kulit tembus cahaya: pendar blencong dari balik lembaran;
  * - kulit melentur saat disapukan (pucuk tertinggal), tangkai tanduk di bawahnya;
- * - muka Murka: pupil bara di lubang mata barong, dan sisi geni yang menjalar dari bawah mengitari wajahnya (`rage`).
+ * - muka Murka: pupil bara di lubang mata barong, dan api geni (`rage`): kulit hangus berkobar di bawah garis bakar,
+ *   lidah api hidup dan percikan bara di atasnya sampai keluar dari tepi lembaran; tokoh-tokohnya tidak terbakar.
  *
  * Lembaran dan tabir diletakkan langsung di ruang kamera (letak di layar dalam NDC), jadi tidak bergantung
  * pada shot kamera dan tetap sama saat kamera dipotong di tengah sapuan.
  */
 import { CustomBlending, DoubleSide, type IUniform, LinearFilter, LinearMipmapLinearFilter, Mesh, NoColorSpace, OneFactor, OneMinusSrcAlphaFactor, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, SRGBColorSpace, Texture, Vector2, Vector3, Vector4, type WebGLRenderer } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { KAYON, type SweepPose, VEIL } from "@/engine/stage/gunungan";
+import { GENI, KAYON, type SweepPose, VEIL } from "@/engine/stage/gunungan";
 import type { Shared } from "./shared";
 
 const f = (x: number) => x.toFixed(4);
@@ -132,6 +133,9 @@ void main() {
   float cover = max(skin, wall);
 
   float glowBack = uLight.x;
+  // tokoh-tokoh muka Murka (barong, kala, dua garuda) tidak terbakar api geni: 0 di dalam elipsnya, 1 di luar
+  float spare = 1.0;
+${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length((uv - vec2(${f(u)}, ${f(v)})) / vec2(${f(ru)}, ${f(rv)})));`).join("\n")}
   float beat = uLight.y;
   float rage = back ? uLight.z : 0.0;
   vec3 warm = vec3(1.0, 0.52, 0.2);
@@ -170,23 +174,50 @@ void main() {
     vec3 rim = vec3(0.2, 0.11, 0.05) * (0.25 + warm * glowBack * 1.3);
     col = mix(lit, rim, wall / max(cover, 1e-3));
 
-    // sisi geni: api menjalar dari bawah menutupi muka Murka, lidahnya bergoyang
+    // api geni di kulit: di bawah garis bakar kulit hangus dengan retakan bara, dan kobaran geni bergoyang di atasnya
     if (rage > 0.001) {
       float n1 = vnoise(vec2(uv.x * 7.0, uv.y * 4.0 - uTime * 1.5));
       float n2 = vnoise(vec2(uv.x * 15.0 + 3.0, uv.y * 9.0 - uTime * 2.6));
-      vec2 fu = st + vec2((n1 - 0.5) * 0.045 + (n2 - 0.5) * 0.018, (n2 - 0.5) * 0.02) * smoothstep(0.05, 0.5, uv.y);
+      vec2 fu = st + vec2((n1 - 0.5) * 0.05 + (n2 - 0.5) * 0.02, (n2 - 0.5) * 0.024) * smoothstep(0.05, 0.5, uv.y);
       vec3 fire = texture2D(tGeni, fu).rgb;
-      float front = rage * 1.35 - uv.y + (n1 - 0.5) * 0.3;
-      float burn = smoothstep(0.0, 0.16, front);
-      // wajah barong tidak ikut terbakar: ia tampak muncul dari tengah kobaran
-      float face = length((uv - vec2(${f(KAYON.face[0])}, ${f(KAYON.face[1])})) / vec2(${f(KAYON.face[2])}, ${f(KAYON.face[3])}));
-      burn *= smoothstep(0.75, 1.05, face);
-      float flick = 0.8 + 0.35 * n2 + 0.25 * beat;
-      vec3 ablaze = fire * (0.72 + 0.95 * fire.r * fire.r) * flick;
+      float front = rage * ${f(GENI.reach)} - uv.y + (n1 - 0.5) * 0.3;
+      float burn = smoothstep(0.0, 0.16, front) * spare;
+      float flick = 0.85 + 0.35 * n2 + 0.3 * beat;
+      float crack = pow(1.0 - abs(vnoise(st * vec2(26.0, 38.0) + vec2(0.0, uTime * 0.25)) * 2.0 - 1.0), 10.0);
+      vec3 ablaze = lit * 0.08 + vec3(1.0, 0.3, 0.04) * crack * (0.9 + 0.6 * beat);
+      ablaze += fire * fire * (0.95 + 0.25 * fire.g) * flick;
       // tepi bakar: garis bara terang di batas api
-      ablaze += vec3(1.0, 0.45, 0.1) * smoothstep(0.0, 0.05, front) * (1.0 - smoothstep(0.05, 0.16, front)) * 1.6;
+      ablaze += vec3(1.0, 0.45, 0.1) * smoothstep(0.0, 0.05, front) * (1.0 - smoothstep(0.05, 0.16, front)) * 1.4;
       col = mix(col, ablaze, burn * skin);
+      // wajah disorot kobaran dari bawah
+      col += base * vec3(1.0, 0.42, 0.12) * rage * 1.1 * (1.0 - spare) * skin * clamp((0.66 - uv.y) / 0.5, 0.0, 1.0);
     }
+  }
+
+  // api geni di atas garis bakar: lidah api hidup yang menjilat ke atas (juga di lubang tatahan dan di luar tepi
+  // lembaran) dan percikan bara yang naik. Hanya di kolom yang punya kulit terbakar di bawahnya, dan tidak di wajah.
+  vec3 flame = vec3(0.0);
+  float flameA = 0.0;
+  if (back && uLight.z > 0.001) {
+    float fy = uLight.z * ${f(GENI.reach)} + (vnoise(vec2(uv.x * 7.0, uTime * 0.6)) - 0.5) * 0.12;
+    float above = uv.y - fy;
+    float H = ${f(GENI.flame)} * (0.55 + 0.45 * uLight.z / ${f(GENI.peak)});
+    float fuel = smoothstep(0.15, 0.55, texture2D(tMurka, vec2(st.x, 1.0 - clamp(fy, 0.0, 1.0)), 4.0).a);
+    // lidah api: gradien tegak yang dirobek noise bergerak naik; merah tua di kaki, jingga, lalu kuning di inti
+    // (warna di ruang linear: keluaran panggung dikodekan sRGB, jadi kuning linear yang terlalu tinggi memucat jadi krem)
+    float n = vnoise(vec2(uv.x * 19.0, uv.y * 4.0 - uTime * 2.6)) * 0.55 + vnoise(vec2(uv.x * 41.0 + 5.0, uv.y * 9.0 - uTime * 4.6)) * 0.45;
+    float d = max(above, 0.0) / H + (0.55 - n) * 2.4;
+    float heat = (1.0 - smoothstep(0.2, 1.0, d)) * step(-0.08, above) * fuel * mix(0.15, 1.0, spare);
+    vec3 fc = mix(vec3(0.25, 0.015, 0.0), vec3(1.0, 0.16, 0.01), smoothstep(0.0, 0.45, heat));
+    fc = mix(fc, vec3(1.0, 0.5, 0.08), smoothstep(0.6, 1.0, heat));
+    flameA = smoothstep(0.05, 0.4, heat) * 0.94;
+    flame = fc * flameA * (1.0 + 0.2 * beat);
+    vec2 q = vec2(uv.x * 34.0 + sin(uv.y * 9.0 + uTime) * 0.6, uv.y * 24.0 - uTime * 2.4);
+    vec2 id = floor(q), fq = fract(q) - 0.5, off = vec2(hash21(id + 7.1), hash21(id + 3.3)) - 0.5;
+    float spark = step(0.88, hash21(id)) * (1.0 - smoothstep(0.03, 0.11, length((fq - off * 0.6) * vec2(1.0, 0.6))));
+    spark *= smoothstep(-0.1, 0.0, above) * (1.0 - smoothstep(0.0, H * 2.2, above)) * mix(0.3, 1.0, fuel) * spare;
+    flame = mix(flame, vec3(1.0, 0.55, 0.14) * 1.3, spark);
+    flameA = max(flameA, spark);
   }
 
   // pupil barong (muka Murka): bara dengan celah hitam, mengambang di lubang mata dan melirik mengikuti kursor
@@ -203,7 +234,10 @@ void main() {
     }
   }
 
-  float alpha = cover * uLight.w;
+  // api menutupi kulit di belakangnya (bukan ditambahkan: tidak memutih); di lubang dan di luar tepi lembaran api
+  // itu sendiri yang menutupi tabir
+  col = col * cover * (1.0 - flameA) + flame;
+  float alpha = (flameA + cover * (1.0 - flameA)) * uLight.w;
   gl_FragColor = vec4(col * uLight.w, alpha);
 }`;
 

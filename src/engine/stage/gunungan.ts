@@ -6,8 +6,9 @@
  * Lembarannya bermuka dua (arahan host 12 Nov: "redesign/remodel/upgrade ... jangan yang murka aja"):
  * - muka **Agung** (13 Nov, acuan foto kayon gapuran): pohon hayat dililit naga, banteng dan macan, gapura dengan
  *   makara yang menelan atap, lar, dua raksasa penjaga;
- * - muka **Murka** (13 Nov sore, acuan foto sisi api sebuah kayon): seluruh lembaran kobaran lidah api dengan satu
- *   wajah barong penuh di tengah-bawah; saat mundur, api geni menjalar dari bawah mengitari wajah itu.
+ * - muka **Murka** (13 Nov sore, acuan foto gunungan wayang kulit): lidah api merah jambu menjulang, kala kecil di
+ *   atas, sepasang garuda dengan lar di bahu, barong kuning bertangan di bawah dalam api hitam; saat mundur, api
+ *   geni membakar lembaran tetapi tidak tokoh-tokohnya.
  * Maju ke bab berikutnya memperlihatkan muka Agung; mundur memperlihatkan baliknya, muka Murka.
  *
  * Semua letak di layar dalam NDC: x −1 (kiri) … 1 (kanan), y −1 (bawah) … 1 (atas).
@@ -18,14 +19,20 @@ export const KAYON = {
   aspect: 0.7,
   /** Mata barong pada muka Murka (u dari kiri, v dari bawah): pupil bara digambar shader di lubangnya. */
   eyes: [
-    [0.415, 0.437],
-    [0.585, 0.437],
+    [0.4343, 0.306],
+    [0.5657, 0.306],
   ],
   /**
-   * Wajah barong pada muka Murka sebagai elips (pusat u, v; jari-jari u, v): api geni tidak menutupinya, jadi
-   * wajah tampak muncul dari tengah kobaran. Sedikit lebih kecil dari gambarnya supaya api menjilat tepinya.
+   * Tokoh-tokoh di muka Murka sebagai elips (pusat u, v; jari-jari u, v) yang tidak dimakan api geni, jadi mereka
+   * tampak muncul dari tengah kobaran: barong bertangan (pertama, memuat kedua mata), kala kecil, dan sepasang
+   * garuda. Sedikit lebih kecil dari gambarnya supaya api menjilat tepinya.
    */
-  face: [0.5, 0.38, 0.3, 0.2],
+  spare: [
+    [0.5, 0.27, 0.26, 0.15],
+    [0.5, 0.665, 0.12, 0.08],
+    [0.343, 0.485, 0.1, 0.07],
+    [0.657, 0.485, 0.1, 0.07],
+  ],
   /** Tebal kulit sebagai bagian dari tinggi lembaran: lubang tatahan tampak berdinding saat lembaran miring. */
   thick: 0.004,
   /** Tinggi garis dasar daun kayon (v): di bawahnya tangkai, di atasnya gambar. Poros ayun dalang ada di sini. */
@@ -55,6 +62,19 @@ export const SWEEP = {
   /** Kibasan dalang di tengah sapuan: getar kecil pada putaran (rad) dan lajunya (Hz). */
   flutter: 0.045,
   flutterHz: 6.2,
+} as const;
+
+/**
+ * Api geni di muka Murka saat mundur (host 13 Nov: "pas kebakar masih kurang"). Di bawah garis bakar kulit hangus
+ * dan berkobar, di atasnya lidah api hidup menjilat sampai keluar dari tepi lembaran; wajah barong tidak terbakar.
+ */
+export const GENI = {
+  /** Kadar geni terbesar, di tengah sapuan. */
+  peak: 0.62,
+  /** Tinggi garis bakar (v dari bawah) = kadar × reach: pada kadar terbesar garis bakar sudah melewati kepala barong. */
+  reach: 1.35,
+  /** Tinggi lidah api di atas garis bakar (v) pada kadar terbesar: menjilat sampai melewati pucuk. */
+  flame: 0.24,
 } as const;
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
@@ -119,6 +139,15 @@ export function sweepPose(p: number, dir: 1 | -1, aspect: number, t: number): Sw
     veil: fade,
     glow: fade,
   };
+}
+
+/**
+ * Kadar geni pada sapuan mundur di kemajuan `p` (sudah di-ease): menyala begitu lembaran masuk layar, penuh saat
+ * lembaran di tengah, lalu surut saat keluar. Mulai dan berakhir di nol, tanpa lompatan.
+ */
+export function murkaRage(p: number): number {
+  const q = clamp01(p);
+  return GENI.peak * smooth(0.04, 0.4, q) * (1 - smooth(0.72, 0.98, q));
 }
 
 /** Bagian layar yang tertutup tabir pada letak `x` (NDC) saat pusat tabir di `veilX`: 1 = gelap penuh. */

@@ -11,7 +11,7 @@ import type { SkyState } from "@/engine/slides/sky";
 import { stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
-import { sweepPose } from "@/engine/stage/gunungan";
+import { murkaRage, sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { type Frame, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
@@ -242,12 +242,12 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     camera.updateMatrixWorld();
 
-    // sapuan antar bab: gunungan melintas di depan kamera; mundur memperlihatkan muka Murka yang membara dari bawah
+    // sapuan antar bab: gunungan melintas di depan kamera; mundur memperlihatkan muka Murka yang terbakar dari bawah
     const sweeping = cue.kind === "wipe" && cue.moving && stageBus.sweep();
     const back = cursor.to < cursor.from;
     const pin = stats.sweepAt;
     if (pin && pin.length >= 2) gunungan.update(sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t), camera, pointer, heartbeat(t), pin[2] ?? 0);
-    else gunungan.update(sweeping ? sweepPose(cursor.p, back ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), back ? 0.3 * Math.sin(Math.PI * cursor.p) : 0);
+    else gunungan.update(sweeping ? sweepPose(cursor.p, back ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), back ? murkaRage(cursor.p) : 0);
 
     gl.getDrawingBufferSize(buf);
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);

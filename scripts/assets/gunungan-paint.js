@@ -701,245 +701,296 @@ layer((g, s) => {
 }  // akhir rupa Agung
 
 // ───────────────────────────────────────── RUPA MURKA ─────────────────────────────────────────
-// Arahan host 13 Nov 2026 sore, dengan foto sisi api sebuah kayon sebagai acuan ("mode murka harusnya full muka
-// barong seperti ini"): seluruh lembaran adalah kobaran lidah api bersisik, dan satu wajah barong/kala besar
-// mengisi tengah-bawah. Tanpa gapura, pohon hayat, satwa, dan penjaga. Wajahnya pucat (putih tulang, merah
-// muda, abu) supaya terbaca di atas api; susunannya mengikuti foto, gambarnya dibuat sendiri.
-// Pusat wajah (di antara mata) dan letak mata. Pupil baranya digambar shader: harus sama dengan KAYON.eyes.
-// Wajah digambar di satuan dasar lalu diperbesar FACE_SCALE: mata di (±108, −40) satuan dasar = (±119, −44) piksel.
-const FACE_SCALE = 1.1, KY = 1170, KALA_EYES = [[CX - 119, KY - 44], [CX + 119, KY - 44]];
+// Arahan host 13 Nov 2026 sore, dengan foto acuan ketiga (gunungan wayang kulit sungguhan): "khas wayang nya bener
+// bener hilang, remodel. kaya refrensi". Susunannya mengikuti foto: lidah api merah jambu menjulang ke pucuk dengan
+// inti api jingga di tengah, kala kecil di tengah atas, sepasang garuda berjambul dengan lar emas di bahu, dan barong
+// kuning bertangan di bawah yang dikelilingi api hitam bertepi kuning; gapit naik di tengah. Ciri wayang kulit datang
+// dari cara menggambarnya: tatahan tembus yang rapat (bubukan, seritan), sunggingan berjenjang (pita warna bertingkat
+// dengan batas tegas), cawi (arsir tinta halus), drenjeman (deret titik tinta), dan prada di tepi.
+// Arahan sebelumnya tetap berlaku: seram (bukan badut), tidak ada pilin bulat seperti keong.
+// Mata barong: pupil baranya digambar shader, jadi letaknya harus sama dengan KAYON.eyes.
+const KY = 1440, KALA_EYES = [[CX - 92, KY - 52], [CX + 92, KY - 52]];
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-// satu lidah api: pangkal di (x0, 0), menjulur ke +x sepanjang L, setengah lebar w, ujungnya mengait sejauh k
-const tongueOf = (x0, L, w, k) => { const p = P(); p.moveTo(x0, 0); p.bezierCurveTo(x0 + L * 0.12, -w * 1.3, x0 + L * 0.55, -w, x0 + L, k); p.bezierCurveTo(x0 + L * 0.7, w * 0.25 + k, x0 + L * 0.3, w * 1.3, x0, 0); p.closePath(); return p; };
-// sumber kobaran: tengah wajah. Arah lidah api di (x, y): memancar dari wajah; makin jauh di atasnya makin tegak
-const FIRE = [CX, KY + 90];
-const fireDir = (x, y) => {
-  const rx = x - FIRE[0], ry = y - FIRE[1], d = Math.hypot(rx, ry) || 1;
-  const wr = Math.max(1 - smooth(400, 880, d), smooth(120, 380, ry)), lift = 0.55 * (1 - smooth(60, 360, ry));
-  return Math.atan2((ry / d) * wr - (1 - wr) - lift, (rx / d) * wr + 0.22 * (rx / 630) * (1 - wr));
-};
-// [tepi: ujung, tengah, pangkal], [inti: ujung, tengah, pangkal]
-const FLAME_TONES = [
-  [['#fff3a8', '#ffcb45', '#f08a1c'], ['#ffb22e', '#e4521a', '#8f1a0e']],
-  [['#ffd866', '#f59a25', '#d9521a'], ['#f07a1e', '#c22f14', '#6a0f08']],
-  [['#ffb347', '#e4611c', '#a82a12'], ['#d23a16', '#8f1a0e', '#3e0705']],
-];
-
-// pita: poligon di sekeliling garis tengah `pts`, setengah lebar wf(t) untuk t 0–1 sepanjang garis
+const bezPts = (a, b, c, d, N) => Array.from({ length: N + 1 }, (_, i) => bez(a, b, c, d, i / N));
+const normals = (pts) => pts.map((q, i) => { const p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(pts.length - 1, i + 1)]; const tx = p1[0] - p0[0], ty = p1[1] - p0[1], l = Math.hypot(tx, ty) || 1; return [-ty / l, tx / l]; });
+// pita: poligon di sekeliling garis tengah `pts`, setengah lebar wf(t)
 const ribbon = (pts, wf) => {
-  const n = pts.length - 1, a = [], b = [];
-  for (let i = 0; i <= n; i++) {
-    const p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(n, i + 1)]; let tx = p1[0] - p0[0], ty = p1[1] - p0[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
-    const w = wf(i / n); a.push([pts[i][0] - ty * w, pts[i][1] + tx * w]); b.push([pts[i][0] + ty * w, pts[i][1] - tx * w]);
-  }
-  const p = P(); a.forEach((q, i) => (i ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1]))); for (let i = n; i >= 0; i--) p.lineTo(b[i][0], b[i][1]); p.closePath(); return p;
+  const n = pts.length - 1, nm = normals(pts), p = P();
+  for (let i = 0; i <= n; i++) { const w = wf(i / n), x = pts[i][0] + nm[i][0] * w, y = pts[i][1] + nm[i][1] * w; i ? p.lineTo(x, y) : p.moveTo(x, y); }
+  for (let i = n; i >= 0; i--) { const w = wf(i / n); p.lineTo(pts[i][0] - nm[i][0] * w, pts[i][1] - nm[i][1] * w); }
+  p.closePath(); return p;
 };
 const lineOf = (pts) => { const p = P(); pts.forEach((q, i) => (i ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1]))); return p; };
-const bezPts = (a, b, c, d, N) => Array.from({ length: N + 1 }, (_, i) => bez(a, b, c, d, i / N));
-// pilin: dari jari-jari R di sudut a0, memilin ke pusat
-const spiral = (cx, cy, R, a0, dir, turns, shrink = 0.82, N = 60) => Array.from({ length: N + 1 }, (_, i) => { const t = i / N, th = a0 + dir * t * Math.PI * 2 * turns, r = R * (1 - shrink * t); return [cx + Math.cos(th) * r, cy + Math.sin(th) * r]; });
-// normal tiap titik garis: arah (−ty, tx). Untuk pilin searah jarum jam di layar, sisi positifnya menghadap pusat pilin.
-const normals = (pts) => pts.map((q, i) => { const p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(pts.length - 1, i + 1)]; const tx = p1[0] - p0[0], ty = p1[1] - p0[1], l = Math.hypot(tx, ty) || 1; return [-ty / l, tx / l]; });
+// sunggingan: pita warna berjenjang dengan batas tegas (bukan gradasi halus)
+const band = (cols) => cols.flatMap((c, i) => [[i / cols.length, c], [Math.min(1, (i + 1) / cols.length - 0.001), c]]);
+const PINK = ['#3a0616', '#741034', '#b22258', '#dc5288', '#f4a0bc'];
+const PINK_D = ['#2a0410', '#5a0c28', '#921a48', '#c23c70', '#e67aa0'];
+const CORE = ['#4a0e05', '#9a280a', '#d85a16', '#f29a28', '#ffd876'];
+const GOLDS = ['#4a2e06', '#94600f', '#d29a26', '#f2ce5a', '#fff0b4'];
+const LAR = ['#5e3606', '#a06c14', '#d8a232', '#f0cc66'], LAR_R = ['#4a0e06', '#94280c', '#d25c1c', '#f09a3a'];
+const EMBER = ['#5a0e06', '#a8280c', '#e0581a', '#f6a03a', '#ffe6a0'];
+const SOOTS = ['#020101', '#0b0806', '#17110c', '#261c14'];
+const VIOLET = ['#14082e', '#2e1666', '#4c2e9a', '#7a5ec6', '#b6a2ec'];
+const SKIN_K = ['#5a0c18', '#9a1a32', '#d0405a', '#f07a8a', '#ffc0c4'];
 
-// Wajah barong / kala. Titik asal (CX, KY); mata di (±108, −40). Susunannya mengikuti foto acuan (host 13 Nov sore:
-// "terlalu bulat muka mukanya, kaya kentang. revisi ambil kaya di referensi lah"): wajah lebar dan pendek yang
-// dirakit dari ukel bertepi tajam, bukan topeng berkontur bulat. Sepasang ukel mahkota, alis ukel yang memilin di
-// pelipis, mata melotot berdekatan, moncong lebar bercuping pilin, pilin pipi bergerigi, mulut menganga selebar
-// wajah dengan deret gigi tak rata, siung, dan taring, lalu lidah panjang. Warna acuan: putih tulang, abu-hitam,
-// merah darah, sedikit merah jambu kusam; cecek (bubukan tembus) di sepanjang alur.
-const barong = (g, s) => {
-  const F = (p, col, metal, lw = 6, glow) => fs(g, s, p, col, metal, lw, glow);
-  const ASH_D = '#4a403e', CHAR = '#1e1818';
-  const C_UKEL = [[0, '#fffaf0'], [0.4, '#ece3d6'], [0.74, '#c27a6c'], [1, '#5e1e1a']];
-  const C_DARK = [[0, '#a29898'], [0.5, ASH_D], [1, CHAR]];
-  const S_FIRE = [[0, '#6a0e08'], [0.55, '#d83a18'], [1, '#ffb347']], S_BONE = [[0, '#5e1e1a'], [0.45, '#d9cfc2'], [1, '#fffaf0']];
-  const mirror = (fn) => { for (const sd of [-1, 1]) { g.save(); g.scale(sd, 1); fn(sd); g.restore(); } };
-  const hatch = (x0, y0, x1, y1, lw = 2.2) => { g.strokeStyle = s('rgba(30,8,8,0.6)', false); g.lineWidth = lw; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); };
-  // ukel: pita berwarna `stops` sepanjang `pts` (setengah lebar wf). Gigi lancip di sisi luar (normal negatif) pada
-  // rentang `spikes` = [dari, sampai]; sawut di sisi luar, alur gelap bercecek tembus di tengah, garis prada di sisi dalam.
-  const ukel = (pts, wf, center, R, stops, spikes, spikeStops = S_FIRE) => {
-    const n = pts.length - 1, nm = normals(pts);
-    if (spikes) for (let i = Math.round(spikes[0] * n); i <= spikes[1] * n; i += 5) {
-      const w = wf(i / n), [x, y] = pts[i], [nx, ny] = nm[i], j = Math.min(n, i + 3), tl = Math.hypot(pts[j][0] - x, pts[j][1] - y) || 1, tx = (pts[j][0] - x) / tl, ty = (pts[j][1] - y) / tl;
-      const L = w * 1.1 + 12, bx = x - nx * w * 0.6, by = y - ny * w * 0.6, ex = x - nx * (w + L) + tx * L * 0.55, ey = y - ny * (w + L) + ty * L * 0.55, f = P();
-      f.moveTo(bx - tx * w * 0.55, by - ty * w * 0.55);
-      f.quadraticCurveTo(x - nx * (w + L * 0.55), y - ny * (w + L * 0.55), ex, ey);
-      f.quadraticCurveTo(x - nx * (w + L * 0.25) + tx * w * 0.45, y - ny * (w + L * 0.25) + ty * w * 0.45, bx + tx * w * 0.6, by + ty * w * 0.6);
-      f.closePath(); F(f, { lin: [bx, by, ex, ey], stops: spikeStops }, false, 4);
-    }
-    F(ribbon(pts, wf), { rad: [center[0], center[1], R * 0.1, center[0], center[1], R * 2.4], stops }, false, 7);
-    for (let i = 2; i < n * 0.86; i += 2) { const w = wf(i / n), [x, y] = pts[i], [nx, ny] = nm[i]; hatch(x - nx * w * 0.92, y - ny * w * 0.92, x - nx * w * 0.5, y - ny * w * 0.5, 1.8); }
-    const sub = pts.slice(2, n - 3), m = sub.length - 1;
-    g.fillStyle = s(CHAR, false); g.fill(ribbon(sub, (t) => Math.max(2.4, wf((2 + t * m) / n) * 0.26)));
-    g.fillStyle = s(INK, false, true); for (let i = 6; i < n - 8; i += 7) { g.beginPath(); g.arc(pts[i][0], pts[i][1], Math.max(2.4, wf(i / n) * 0.15), 0, Math.PI * 2); g.fill(); }
-    const rim = pts.map((q, i) => [q[0] + nm[i][0] * wf(i / n) * 0.62, q[1] + nm[i][1] * wf(i / n) * 0.62]).slice(3, -5);
-    g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = s(GOLD, true); g.lineWidth = 3.2; g.stroke(lineOf(rim));
-    const e = pts[n]; g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(e[0], e[1], Math.max(4.5, R * 0.09), 0, Math.PI * 2); g.fill();
-  };
-  const curl = (x, y, R, stops, spikes) => ukel(spiral(x, y, R, Math.atan2(60 - y, -x) - 0.6, 1, 1.7), (t) => R * 0.2 * (1 - 0.74 * t), [x, y], R, stops, spikes);
-  g.translate(CX, KY); g.scale(FACE_SCALE, FACE_SCALE);
-
-  // 1. lidah api di ubun-ubun, menjulang di antara ukel mahkota
-  for (const [x, L, ang, k] of [[0, 300, 0, 20]]) {
-    g.save(); g.translate(x, -150); g.rotate(-Math.PI / 2 + ang);
-    F(tongueOf(0, L, 50, k), { lin: [0, 0, L, 0], stops: [[0, '#1c0302'], [0.4, '#7a120a'], [0.8, '#d2401a'], [1, '#f59a2a']] }, false, 8, '#1c0502');
-    F(tongueOf(L * 0.16, L * 0.66, 25, k * 0.7), { lin: [0, 0, L, 0], stops: [[0, '#8f1a0e'], [0.6, '#f07a1e'], [1, '#ffd866']] }, false, 3, '#3a1204');
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(L * 0.26, 0); g.lineTo(L * 0.72, k * 0.45); g.stroke();
-    g.restore();
-  }
-  // 2. pilin abu-hitam di belakang pelipis dan rahang
-  mirror(() => { curl(362, -182, 54, C_DARK, [0.2, 0.55]); curl(398, 178, 62, C_DARK, [0.15, 0.5]); });
-  // 3. ukel mahkota: naik dari dahi, melengkung ke luar, memilin ke bawah; gigi api di punggungnya
-  mirror(() => {
-    const pts = bezPts([46, -150], [40, -262], [128, -344], [224, -336], 26).concat(spiral(224, -266, 70, -Math.PI / 2, 1, 1.35, 0.8, 64).slice(1));
-    ukel(pts, (t) => 30 + 16 * smooth(0, 0.25, t) - 40 * smooth(0.45, 1, t), [224, -266], 70, C_UKEL, [0.2, 0.62]);
-  });
-
-  // 4. rahang bawah merah darah dan rongga mulut; kerongkongan tembus (menyala oleh blencong)
-  const lipY = (x) => 118 + 34 * (x / 250) ** 2;
-  const JAW_OUT = [[266, 140], [322, 236], [232, 374], [0, 386]], JAW_IN = [[250, lipY(250)], [262, 262], [150, 330], [0, 336]];
-  const jaw = P(); jaw.moveTo(-JAW_OUT[0][0], JAW_OUT[0][1]); jaw.bezierCurveTo(-JAW_OUT[1][0], JAW_OUT[1][1], -JAW_OUT[2][0], JAW_OUT[2][1], ...JAW_OUT[3]); jaw.bezierCurveTo(...JAW_OUT[2], ...JAW_OUT[1], ...JAW_OUT[0]); jaw.closePath();
-  F(jaw, { lin: [0, 150, 0, 386], stops: [[0, '#d2301c'], [0.55, '#8f160c'], [1, '#3e0705']] }, false, 18, '#1c0301');
-  g.lineWidth = 6; g.strokeStyle = s(GOLD, true); g.stroke(jaw);
-  mirror(() => { for (let k = 2; k < 22; k++) { const [x, y] = bez(...JAW_OUT, k / 24), [x2, y2] = bez(...JAW_OUT, k / 24 + 0.01); let nx = y2 - y, ny = -(x2 - x); const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l; hatch(x + nx * 12, y + ny * 12, x + nx * (28 + (k % 2) * 8), y + ny * (28 + (k % 2) * 8)); } });
-  const mouth = P(); mouth.moveTo(-250, lipY(250)); for (let x = -240; x <= 250; x += 10) mouth.lineTo(x, lipY(x));
-  mouth.bezierCurveTo(...JAW_IN[1], ...JAW_IN[2], ...JAW_IN[3]); mouth.bezierCurveTo(-JAW_IN[2][0], JAW_IN[2][1], -JAW_IN[1][0], JAW_IN[1][1], -250, lipY(250)); mouth.closePath();
-  g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = s(INK, false); g.stroke(mouth);
-  g.fillStyle = s({ lin: [0, 110, 0, 336], stops: [[0, '#6a0c07'], [0.5, '#2e0403'], [1, '#120101']] }, false, false, '#160201'); g.fill(mouth);
-  { const th = P(); th.moveTo(-104, 238); th.bezierCurveTo(-84, 200, 84, 200, 104, 238); th.bezierCurveTo(86, 292, -86, 292, -104, 238); th.closePath(); g.fillStyle = s(INK, false, true); g.fill(th); }
-  // gigi bawah runcing tak rata, mencuat ke atas
-  mirror(() => [[0.2, 38], [0.32, 64], [0.44, 44], [0.56, 72], [0.68, 50]].forEach(([t, h]) => {
-    const [bx, by] = bez(...JAW_IN, t), q = P(); q.moveTo(bx + 17, by - 2); q.quadraticCurveTo(bx + 4, by - h * 0.5, bx - 6, by - h); q.quadraticCurveTo(bx - 10, by - h * 0.4, bx - 17, by + 3); q.closePath(); F(q, BONE(0, by - h, 0, by), false, 4);
-  }));
-  // lidah panjang menjulur melewati dagu, ujungnya sedikit terkulai
-  const tg = P(); tg.moveTo(-82, 250); tg.bezierCurveTo(-106, 346, -52, 424, 14, 480); tg.bezierCurveTo(72, 420, 110, 342, 82, 250); tg.quadraticCurveTo(0, 222, -82, 250); tg.closePath();
-  F(tg, { lin: [0, 230, 0, 480], stops: [[0, '#3e0705'], [0.3, '#b0220f'], [0.8, '#e04a2a'], [1, '#f07a52']] }, false, 10, '#2a0402');
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.stroke(tg);
-  g.save(); g.clip(tg); for (let y = 270; y < 480; y += 12) for (const sd of [-1, 1]) hatch(sd * 110 + 6, y - 10, sd * 60 + 6, y + 8); g.restore();
-  g.strokeStyle = s('#4a0806', false); g.lineCap = 'round'; g.lineWidth = 6; g.beginPath(); g.moveTo(0, 266); g.bezierCurveTo(-8, 330, 4, 400, 12, 452); g.stroke();
-
-  // 5. bidang wajah atas: dahi rendah, melebar ke pipi, tepi bawahnya bibir atas yang menyeringai (sebagian besar tertutup ukel)
-  const plate = P(); plate.moveTo(0, -178);
-  plate.bezierCurveTo(96, -186, 196, -170, 240, -122); plate.bezierCurveTo(268, -90, 300, -32, 350, 12); plate.bezierCurveTo(380, 40, 360, 112, 300, 136); plate.lineTo(262, lipY(262));
-  for (let x = 250; x >= -250; x -= 10) plate.lineTo(x, lipY(x));
-  plate.lineTo(-262, lipY(262)); plate.lineTo(-300, 136); plate.bezierCurveTo(-360, 112, -380, 40, -350, 12); plate.bezierCurveTo(-300, -32, -268, -90, -240, -122); plate.bezierCurveTo(-196, -170, -96, -186, 0, -178); plate.closePath();
-  g.lineJoin = 'round'; g.lineWidth = 16; g.strokeStyle = s(INK, false); g.stroke(plate);
-  g.fillStyle = s({ rad: [0, 10, 20, 0, 10, 380], stops: [[0, '#efe8da'], [0.45, '#cfc5b8'], [0.78, '#8a7f78'], [1, '#3a3030']] }, false); g.fill(plate);
-  g.save(); g.clip(plate);
-  for (const sd of [-1, 1]) { g.fillStyle = s({ rad: [sd * 108, -40, 60, sd * 108, -40, 170], stops: [[0, 'rgba(14,4,6,0.95)'], [0.55, 'rgba(60,12,12,0.6)'], [1, 'rgba(90,20,16,0)']] }, false); g.beginPath(); g.arc(sd * 108, -40, 170, 0, Math.PI * 2); g.fill(); }
-  // bibir atas merah darah
-  { const band = P(); for (let x = -270; x <= 270; x += 10) (x === -270 ? band.moveTo(x, lipY(x) - 34) : band.lineTo(x, lipY(x) - 34)); for (let x = 270; x >= -270; x -= 10) band.lineTo(x, lipY(x) + 4); band.closePath();
-    g.fillStyle = s(INK, false); g.fill(band); g.fillStyle = s({ lin: [0, 80, 0, 160], stops: [[0, '#e0341e'], [1, '#7a120a']] }, false, false, '#1c0301');
-    const inner = P(); for (let x = -270; x <= 270; x += 10) (x === -270 ? inner.moveTo(x, lipY(x) - 28) : inner.lineTo(x, lipY(x) - 28)); for (let x = 270; x >= -270; x -= 10) inner.lineTo(x, lipY(x) + 4); inner.closePath(); g.fill(inner);
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.beginPath(); for (let x = -260; x <= 260; x += 10) (x === -260 ? g.moveTo(x, lipY(x) - 22) : g.lineTo(x, lipY(x) - 22)); g.stroke(); }
-  g.restore();
-  g.lineWidth = 6; g.strokeStyle = s(GOLD, true); g.stroke(plate);
-  // gigi atas runcing tak rata, dan dua siung panjang
-  for (let i = -5; i <= 5; i++) {
-    const x = i * 40, y0 = lipY(x) + 2, len = [44, 64, 40, 70, 48, 58][Math.abs(i)], lean = -Math.sign(i) * 6, t = P();
-    t.moveTo(x - 17, y0); t.lineTo(x + 17, y0); t.quadraticCurveTo(x + 8, y0 + len * 0.55, x + lean, y0 + len); t.quadraticCurveTo(x - 8, y0 + len * 0.55, x - 17, y0); t.closePath(); F(t, BONE(0, y0, 0, y0 + len), false, 4);
-  }
-  mirror(() => {
-    const y0 = lipY(228) + 2, f = P(); f.moveTo(252, y0 + 6); f.bezierCurveTo(262, y0 + 82, 246, y0 + 150, 214, y0 + 206); f.bezierCurveTo(206, y0 + 132, 202, y0 + 64, 200, y0 - 4); f.closePath();
-    F(f, BONE(0, y0, 0, y0 + 206), false, 6); hatch(232, y0 + 36, 224, y0 + 130, 3);
-  });
-  // lipatan seringai dari cuping hidung ke sudut mulut; cecek kumis di bantalan moncong
-  mirror(() => {
-    g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 9; g.beginPath(); g.moveTo(104, 52); g.bezierCurveTo(156, 50, 212, 76, 240, 118); g.stroke();
-    g.fillStyle = s(INK, false, true); for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) { g.beginPath(); g.arc(120 + c * 30 + r * 14, 82 + r * 18 + c * 4, 4.8, 0, Math.PI * 2); g.fill(); }
-  });
-
-  // 6. pilin pipi bergerigi: lingkar besar putih tulang di kiri-kanan wajah
-  mirror(() => ukel(spiral(300, 50, 90, Math.PI, 1, 1.6, 0.84, 90), (t) => 90 * 0.24 * (1 - 0.72 * t), [300, 50], 90, C_UKEL, [0.22, 0.62], S_BONE));
-
-  // 7. mata melotot berdekatan: putih kekuningan berurat merah, iris merah menyala, pupil = lubang tembus
-  for (const sd of [-1, 1]) {
-    const ex = sd * 108, ey = -40, disc = (r, col, metal, hole, glow) => { g.fillStyle = s(col, metal, hole, glow); g.beginPath(); g.arc(ex, ey, r, 0, Math.PI * 2); g.fill(); };
-    disc(84, INK, false); disc(77, { rad: [ex, ey, 62, ex, ey, 78], stops: [[0, '#5a0806'], [1, '#c21a10']] }, false, false, '#3a0402');
-    disc(68, { rad: [ex - sd * 8, ey + 10, 14, ex, ey, 69], stops: [[0, '#fff3d0'], [0.65, '#e6c98a'], [1, '#a8763a']] }, false);
-    g.strokeStyle = s('#a8140a', false); g.lineCap = 'round';
-    for (let k = 0; k < 17; k++) { const a = (k / 17) * Math.PI * 2 + 0.3, pt = (da, r) => [ex + Math.cos(a + da) * r, ey + Math.sin(a + da) * r]; g.lineWidth = k % 3 ? 2.6 : 4; g.beginPath(); g.moveTo(...pt(0, 67)); g.quadraticCurveTo(...pt(0.22, 58), ...pt(-0.08, 47)); g.stroke(); }
-    disc(47, INK, false); disc(43, { rad: [ex, ey, 26, ex, ey, 43], stops: [[0, '#ffb23a'], [0.4, '#e0260f'], [1, '#4a0503']] }, false, false, EYE_GLOW);
-    g.strokeStyle = s('#2a0302', false); g.lineWidth = 2.4; for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2; g.beginPath(); g.moveTo(ex + Math.cos(a) * 31, ey + Math.sin(a) * 31); g.lineTo(ex + Math.cos(a) * 42, ey + Math.sin(a) * 42); g.stroke(); }
-    disc(26, INK, false, true);
-    // kelopak atas curam ke pangkal hidung, kelopak bawah menyipit: tatapan murka
-    g.save(); g.beginPath(); g.arc(ex, ey, 85, 0, Math.PI * 2); g.clip();
-    const lid = P(); lid.moveTo(ex + sd * 96, ey - 74); lid.lineTo(ex - sd * 96, ey - 6); lid.lineTo(ex - sd * 96, ey - 130); lid.lineTo(ex + sd * 96, ey - 130); lid.closePath();
-    g.fillStyle = s({ lin: [0, ey - 100, 0, ey - 10], stops: [[0, '#140606'], [1, '#5a2420']] }, false); g.fill(lid);
-    g.lineCap = 'butt'; g.strokeStyle = s(INK, false); g.lineWidth = 14; g.beginPath(); g.moveTo(ex + sd * 96, ey - 74); g.lineTo(ex - sd * 96, ey - 6); g.stroke(); g.strokeStyle = s(GOLD, true); g.lineWidth = 5; g.stroke();
-    const low = P(); low.moveTo(ex - sd * 96, ey + 46); low.lineTo(ex + sd * 96, ey + 64); low.lineTo(ex + sd * 96, ey + 130); low.lineTo(ex - sd * 96, ey + 130); low.closePath();
-    g.fillStyle = s('#2a0e0e', false); g.fill(low); g.strokeStyle = s(INK, false); g.lineWidth = 9; g.beginPath(); g.moveTo(ex - sd * 96, ey + 46); g.lineTo(ex + sd * 96, ey + 64); g.stroke();
-    g.restore();
-  }
-
-  // 8. alis ukel: dari pangkal hidung menyapu ke atas-luar dan memilin di pelipis; bulu api merah di punggungnya
-  mirror(() => {
-    const pts = bezPts([14, -66], [72, -118], [164, -154], [240, -152], 28).concat(spiral(240, -118, 34, -Math.PI / 2, 1, 1.2, 0.78, 44).slice(1));
-    ukel(pts, (t) => 12 + 24 * smooth(0, 0.3, t) - 30 * smooth(0.58, 1, t), [240, -118], 34, C_UKEL, [0.08, 0.66]);
-  });
-
-  // 9. moncong lebar bersudut, cuping berlis prada, lubang hidung gelap (tidak tembus: kalau menyala, tampak seperti sepasang mata kedua)
-  const nose = P(); nose.moveTo(0, -48);
-  nose.quadraticCurveTo(22, -42, 28, -8); nose.quadraticCurveTo(38, 26, 74, 30); nose.quadraticCurveTo(120, 40, 112, 82); nose.quadraticCurveTo(104, 110, 66, 104); nose.quadraticCurveTo(30, 100, 0, 114);
-  nose.quadraticCurveTo(-30, 100, -66, 104); nose.quadraticCurveTo(-104, 110, -112, 82); nose.quadraticCurveTo(-120, 40, -74, 30); nose.quadraticCurveTo(-38, 26, -28, -8); nose.quadraticCurveTo(-22, -42, 0, -48); nose.closePath();
-  F(nose, { lin: [0, -48, 0, 114], stops: [[0, '#ece4d8'], [0.5, '#8f857e'], [1, '#2a2222']] }, false, 9); g.lineWidth = 3.5; g.strokeStyle = s(GOLD, true); g.stroke(nose);
-  mirror(() => {
-    g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 8; g.beginPath(); g.moveTo(40, 30); g.bezierCurveTo(70, 18, 112, 34, 108, 74); g.stroke(); g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.stroke();
-    g.fillStyle = s({ lin: [60, 60, 60, 98], stops: [[0, '#0c0404'], [1, '#3a0a06']] }, false); g.beginPath(); g.moveTo(34, 86); g.bezierCurveTo(44, 58, 86, 54, 96, 78); g.bezierCurveTo(84, 96, 52, 100, 34, 86); g.closePath(); g.fill();
-  });
-  g.strokeStyle = s(INK, false); g.lineWidth = 5; g.lineCap = 'round';
-  for (const [y, w] of [[-26, 12], [-8, 18], [12, 26]]) { g.beginPath(); g.moveTo(-w, y); g.quadraticCurveTo(0, y + 12, w, y); g.stroke(); }
-
-  // 10. tanda api di dahi, di antara pangkal ukel mahkota
-  { const u = P(); u.moveTo(0, -250); u.bezierCurveTo(30, -210, 24, -168, 0, -138); u.bezierCurveTo(-24, -168, -30, -210, 0, -250); u.closePath();
-    F(u, { lin: [0, -250, 0, -138], stops: [[0, '#f0562e'], [1, '#7a0c06']] }, false, 8, '#5a0a02'); g.lineWidth = 4; g.strokeStyle = s(GOLD, true); g.stroke(u); }
-
-  // 11. taring bawah panjang, mencuat ke atas di luar pilin pipi
-  mirror(() => {
-    const tk = P(); tk.moveTo(226, 368); tk.bezierCurveTo(330, 356, 440, 250, 424, 84); tk.bezierCurveTo(404, 200, 336, 288, 250, 322); tk.closePath();
-    F(tk, BONE(0, 368, 0, 84), false, 7);
-    g.strokeStyle = s('#8a7248', false); g.lineWidth = 3.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(276, 344); g.bezierCurveTo(350, 312, 404, 236, 418, 150); g.stroke();
-  });
+// lidah api wayang: pita meruncing berliku dari pangkal (bx, by) ke ujung (tx, ty); sunggingan berjenjang dari pangkal
+// ke ujung, prada di punggung, bubukan di tengah, seritan (celah tipis tembus) di tepi seberang
+const lidah = (g, s, bx, by, tx, ty, w, cols, o = {}) => {
+  const dx = tx - bx, dy = ty - by, L = Math.hypot(dx, dy) || 1, px = -dy / L, py = dx / L, wave = o.wave ?? 0.8;
+  const pts = bezPts([bx, by], [bx + dx * 0.33 + px * w * wave, by + dy * 0.33 + py * w * wave], [bx + dx * 0.68 - px * w * wave, by + dy * 0.68 - py * w * wave], [tx, ty], 26);
+  const wf = (t) => w * Math.pow(1 - t, 0.8) * (0.7 + 0.3 * Math.sin(Math.PI * Math.min(1, t * 1.7)));
+  const body = ribbon(pts, wf), nm = normals(pts), n = pts.length - 1;
+  g.lineJoin = 'round'; g.lineWidth = o.lw ?? 4; g.strokeStyle = s(o.rim ?? INK, o.rim === GOLD); g.stroke(body);
+  g.fillStyle = s({ lin: [bx, by, tx, ty], stops: band(cols) }, false, false, o.glow); g.fill(body);
+  if (o.plain) return;
+  const side = (k, a, b) => lineOf(pts.slice(Math.round(a * n), Math.round(b * n) + 1).map((q, j) => { const i = j + Math.round(a * n); return [q[0] + nm[i][0] * wf(i / n) * k, q[1] + nm[i][1] * wf(i / n) * k]; }));
+  g.lineCap = 'round'; g.strokeStyle = s(GOLD, true); g.lineWidth = 2.4; g.stroke(side(0.5, 0.04, 0.8));
+  g.fillStyle = s(INK, false, true);
+  for (const t of [0.14, 0.27, 0.4, 0.53, 0.66]) { const i = Math.round(t * n), r = Math.max(1.8, wf(t) * 0.16); g.beginPath(); g.arc(pts[i][0] - nm[i][0] * wf(t) * 0.05, pts[i][1] - nm[i][1] * wf(t) * 0.05, r, 0, Math.PI * 2); g.fill(); }
+  g.strokeStyle = s(INK, false, true); g.lineWidth = 2;
+  for (let t = 0.1; t < 0.72; t += 0.075) { const i = Math.round(t * n), w = wf(t); g.beginPath(); g.moveTo(pts[i][0] - nm[i][0] * w * 0.85, pts[i][1] - nm[i][1] * w * 0.85); g.lineTo(pts[i][0] - nm[i][0] * w * 0.42, pts[i][1] - nm[i][1] * w * 0.42); g.stroke(); }
+};
+// deret titik tinta (drenjeman) dan arsir halus (cawi) di sepanjang garis
+const drenjem = (g, s, pts, step, r) => { g.fillStyle = s(INK, false); for (let i = 0; i < pts.length; i += step) { g.beginPath(); g.arc(pts[i][0], pts[i][1], r, 0, Math.PI * 2); g.fill(); } };
+const cawi = (g, s, pts, d0, d1, step = 2, lw = 1.8) => { const nm = normals(pts); g.strokeStyle = s('rgba(20,6,4,0.62)', false); g.lineWidth = lw; g.lineCap = 'round'; for (let i = 1; i < pts.length - 1; i += step) { g.beginPath(); g.moveTo(pts[i][0] + nm[i][0] * d0, pts[i][1] + nm[i][1] * d0); g.lineTo(pts[i][0] + nm[i][0] * d1, pts[i][1] + nm[i][1] * d1); g.stroke(); } };
+const holesOn = (g, s, pts, step, r) => { g.fillStyle = s(INK, false, true); for (let i = 0; i < pts.length; i += step) { g.beginPath(); g.arc(pts[i][0], pts[i][1], r, 0, Math.PI * 2); g.fill(); } };
+// mata thelengan (bulat melotot) dengan pupil hitam; `hole` = pupil tembus (tempat bara 3D)
+const thelengan = (g, s, x, y, r, hole) => {
+  const disc = (rr, col, metal, h, glow) => { g.fillStyle = s(col, metal, h, glow); g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill(); };
+  disc(r + 7, INK, false); disc(r + 3, GOLD, true); disc(r, INK, false);
+  disc(r - 3, { rad: [x - r * 0.25, y - r * 0.3, r * 0.1, x, y, r], stops: [[0, '#fffdf4'], [0.7, '#f1e6cc'], [1, '#c9b48e']] }, false);
+  g.strokeStyle = s('#b0180c', false); g.lineWidth = 2; g.lineCap = 'round';
+  for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2 + 0.4; g.beginPath(); g.moveTo(x + Math.cos(a) * (r - 4), y + Math.sin(a) * (r - 4)); g.quadraticCurveTo(x + Math.cos(a + 0.2) * r * 0.8, y + Math.sin(a + 0.2) * r * 0.8, x + Math.cos(a - 0.1) * r * 0.62, y + Math.sin(a - 0.1) * r * 0.62); g.stroke(); }
+  disc(r * 0.5 + 3, INK, false); disc(r * 0.5, { rad: [x, y, 2, x, y, r * 0.5], stops: [[0, '#2a0402'], [1, '#0a0101']] }, false, false, hole ? undefined : '#3a0400');
+  if (hole) disc(r * 0.46, INK, false, true);
+  else { g.fillStyle = s('#fff4d8', false); g.beginPath(); g.arc(x - r * 0.18, y - r * 0.18, r * 0.12, 0, Math.PI * 2); g.fill(); }
 };
 
 if (!AGUNG) {
-  // dasar: bara merah tua di sela lidah api
-  layer((g, s) => { g.clip(SIL); g.fillStyle = s({ lin: [0, 0, 0, BASE], stops: [[0, '#8f1c0c'], [0.6, '#6a1208'], [1, '#7a160a']] }, false); g.fillRect(0, 0, W, H); });
-  // kobaran: lidah api bersisik di kisi berselang. Yang jauh dari wajah digambar dulu, jadi tiap ujung menindih pangkal di depannya
+  // 1. dasar: kulit gelap merah anggur, ditatah bubukan rapat (tampak sebagai renda di sela lidah api)
+  layer((g, s) => {
+    g.clip(SIL); g.fillStyle = s({ lin: [0, 0, 0, BASE], stops: [[0, '#2a0510'], [0.5, '#3e0818'], [0.64, '#16060a'], [1, '#060806']] }, false); g.fillRect(0, 0, W, H);
+    g.fillStyle = s(INK, false, true);
+    for (let y = 110; y < 1180; y += 19) for (let x = CX - halfAt(y) + 50 + ((y / 19) % 2) * 9; x < CX + halfAt(y) - 50; x += 18) { g.beginPath(); g.arc(x, y, 3.2, 0, Math.PI * 2); g.fill(); }
+  });
+
+  // 2. lidah api merah jambu (dan inti jingga di tengah) menjulang ke pucuk, condong ke sumbu. Baris atas dulu, jadi
+  //    ujung lidah di bawahnya menindih pangkal lidah di atasnya.
   const tongues = [];
-  for (let row = 0, y = 70; y < BASE + 30; y += 60, row++) for (let x = CX - 10 * 76 + (row % 2 ? 38 : 0); x <= CX + 10 * 76; x += 76) {
-    const px = x + (rnd() - 0.5) * 18, py = y + (rnd() - 0.5) * 16;
-    if (Math.abs(px - CX) > halfAt(Math.min(py, PALE_TOP)) + 110) { rnd(); rnd(); rnd(); rnd(); continue; }
-    const d = Math.hypot(px - FIRE[0], py - FIRE[1]), v = 0.62 * rnd() + 0.38 * (0.5 + 0.5 * Math.sin(px * 0.013 + py * 0.009)) + (d < 470 ? 0.16 : 0) - (py < 520 ? 0.08 : 0);
-    tongues.push({ x: px, y: py, d, tone: v < 0.44 ? 0 : v < 0.82 ? 1 : 2, L: 184 + rnd() * 64, w: 32 + rnd() * 9, k: (rnd() > 0.5 ? 1 : -1) * (10 + rnd() * 15) });
+  for (let row = 0, y = 170; y < 1330; y += 84, row++) {
+    const half = halfAt(y), sc = Math.max(0.5, Math.min(1, half / 560));
+    for (let x = CX - half + 40 + (row % 2) * 44; x <= CX + half - 40; x += 88 * Math.max(0.72, sc)) {
+      const bx = x + (rnd() - 0.5) * 20, by = y + (rnd() - 0.5) * 16, L = (250 + rnd() * 90) * sc, w = (46 + rnd() * 12) * sc;
+      const lean = -(bx - CX) / Math.max(120, half) * 0.5, ux = lean, uy = -1, ul = Math.hypot(ux, uy);
+      const core = Math.abs(bx - CX) < 96 && by > 700;
+      tongues.push({ bx, by, tx: bx + (ux / ul) * L, ty: by + (uy / ul) * L, w, cols: core ? CORE : (rnd() < 0.3 ? PINK_D : PINK), wave: (rnd() > 0.5 ? 1 : -1) * (0.8 + rnd() * 0.5), glow: core ? '#3a1204' : undefined });
+    }
   }
-  tongues.sort((a, b) => b.d - a.d);
+  layer((g, s) => { g.clip(SIL); for (const t of tongues) lidah(g, s, t.bx, t.by, t.tx, t.ty, t.w, t.cols, { wave: t.wave, glow: t.glow }); });
+
+  // 3. api hitam bertepi kuning yang membingkai barong, menjilat dari kaki dan sisi lembaran
   layer((g, s) => {
     g.clip(SIL);
-    for (const { x, y, tone, L, w, k } of tongues) {
-      const [rim, core] = FLAME_TONES[tone];
-      g.save(); g.translate(x, y); g.rotate(fireDir(x, y));
-      fs(g, s, tongueOf(0, L, w, k), { lin: [0, 0, L, 0], stops: [[0, rim[2]], [0.5, rim[1]], [1, rim[0]]] }, false, 7);
-      fs(g, s, tongueOf(L * 0.1, L * 0.72, w * 0.56, k * 0.8), { lin: [L * 0.1, 0, L * 0.82, 0], stops: [[0, core[2]], [0.55, core[1]], [1, core[0]]] }, false, 2.5, '#2a0c03');
-      // urat prada dan bubukan (lubang tembus) di sepanjang urat
-      const vx = (t) => L * (0.2 + 0.56 * t), vy = (t) => k * 0.62 * t * t;
-      g.lineCap = 'round'; g.strokeStyle = s(GOLD, true); g.lineWidth = 2.6; g.beginPath(); g.moveTo(vx(0), vy(0)); g.quadraticCurveTo(vx(0.5), vy(0.5) - k * 0.1, vx(1), vy(1)); g.stroke();
-      g.fillStyle = s(INK, false, true); for (const t of [0.34, 0.52, 0.7, 0.86]) { g.beginPath(); g.arc(vx(t), vy(t), 6 - 2.6 * t, 0, Math.PI * 2); g.fill(); }
+    // dua lapis: yang jauh (lebih besar) dulu, lalu yang dekat barong. Tiap lidah memancar dari pusat barong.
+    for (const [r0, n, L0, w0] of [[470, 15, 250, 58], [380, 13, 190, 50], [300, 9, 170, 54]]) for (let k = 0; k < n; k++) {
+      const a = Math.PI * (0.2 + 0.6 * k / (n - 1)) + (rnd() - 0.5) * 0.08, ca = Math.cos(a), sa = Math.sin(a);
+      const x = CX + ca * r0 * 1.12, y = KY + 120 - sa * r0 * 0.78 * -1 * -1, out = [ca, -Math.abs(sa) * 0.6 - 0.55], ol = Math.hypot(out[0], out[1]);
+      const bx = CX + ca * r0 * 1.1, by = KY + 150 - sa * r0 * 0.62 + (1 - sa) * 260, L = L0 + rnd() * 70;
+      const tx = bx + (out[0] / ol) * L, ty = by + (out[1] / ol) * L, sd = ca < 0 ? -1 : 1;
+      lidah(g, s, bx, by, tx, ty, w0 + rnd() * 10, SOOTS, { wave: sd * 1.5, rim: '#c9a23a', lw: 4.5, plain: true });
+      // sawut kuning di tepi luar dan cecek tembus
+      const dx = tx - bx, dy = ty - by, l = Math.hypot(dx, dy), px = -dy / l * sd, py = dx / l * sd;
+      g.strokeStyle = s('#e2bc4c', true); g.lineWidth = 2.2; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(bx + dx * 0.12 + px * 18, by + dy * 0.12 + py * 18); g.bezierCurveTo(bx + dx * 0.4 + px * 34, by + dy * 0.4 + py * 34, bx + dx * 0.68 - px * 8, by + dy * 0.68 - py * 8, bx + dx * 0.9, by + dy * 0.9); g.stroke();
+      g.fillStyle = s(INK, false, true); for (const t of [0.25, 0.42, 0.58]) { g.beginPath(); g.arc(bx + dx * t + px * 6, by + dy * t + py * 6, 3.4, 0, Math.PI * 2); g.fill(); }
+    }
+  });
+
+  // 4. lar (sayap) emas berlapis di bahu: bulu panjang di belakang, makin pendek ke depan; ujung menunjuk ke luar-bawah
+  const feather = (g, s, x, y, ang, L, w, cols) => {
+    g.save(); g.translate(x, y); g.rotate(ang);
+    const f = P(); f.moveTo(0, -w * 0.5); f.bezierCurveTo(L * 0.4, -w * 0.75, L * 0.86, -w * 0.62, L, -w * 0.1); f.quadraticCurveTo(L * 1.02, w * 0.3, L * 0.9, w * 0.5); f.bezierCurveTo(L * 0.6, w * 0.7, L * 0.25, w * 0.6, 0, w * 0.5); f.closePath();
+    fs(g, s, f, { lin: [0, 0, L, 0], stops: band(cols) }, cols === LAR, 4);
+    g.strokeStyle = s(GOLD, true); g.lineWidth = 2.6; g.lineCap = 'round'; g.beginPath(); g.moveTo(L * 0.06, 0); g.quadraticCurveTo(L * 0.5, -w * 0.06, L * 0.9, w * 0.12); g.stroke();
+    g.fillStyle = s(INK, false, true); for (const t of [0.22, 0.38, 0.54, 0.7]) { g.beginPath(); g.arc(L * t, -w * 0.02 + t * w * 0.1, Math.max(2, w * 0.11), 0, Math.PI * 2); g.fill(); }
+    g.strokeStyle = s(INK, false, true); g.lineWidth = 2; for (let t = 0.16; t < 0.82; t += 0.07) { g.beginPath(); g.moveTo(L * t, w * 0.5); g.lineTo(L * t + 4, w * 0.26); g.stroke(); }
+    g.restore();
+  };
+  const GAR = [292, 1030];   // kepala garuda kanan: jarak dari sumbu, tinggi (kiri dicerminkan). Menghadap ke dalam seperti di foto.
+  layer((g, s) => {
+    g.clip(SIL);
+    for (const sd of [-1, 1]) {
+      g.save(); g.translate(CX, 0); g.scale(sd, 1);
+      const rows = [[LAR, 9, 250, 36, 0], [LAR_R, 8, 190, 32, 0.05], [LAR, 7, 128, 30, 0.1]];
+      for (const [cols, n, L0, w, lift] of rows) for (let k = 0; k < n; k++) {
+        const u = k / (n - 1), bx = GAR[0] + 70 + 16 * Math.sin(u * Math.PI), by = 900 + u * 300 - lift * 200, ang = -0.75 + u * 1.45, L = L0 * (0.85 + 0.15 * Math.sin(u * Math.PI));
+        feather(g, s, bx, by, ang, L, w, cols);
+      }
       g.restore();
     }
   });
-  layer((g, s) => barong(g, s));
-  // tepi: garis tinta dan prada mengikuti siluet; gegel
-  layer((g, s) => { g.clip(SIL); g.lineJoin = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 32; g.stroke(SIL); g.strokeStyle = s(GOLD, true); g.lineWidth = 20; g.stroke(SIL); gegel(g, s); });
+
+  // 5. sepasang garuda berjambul menghadap ke luar: paruh bengkok menganga bertaring, mata thelengan, sumping dan kalung prada
+  const garuda = (g, s) => {
+    const F = (p, col, metal, lw = 5, glow) => fs(g, s, p, col, metal, lw, glow);
+    // jambul: helai api merah jambu menyapu ke belakang-atas
+    for (const [x, y, tx, ty, w] of [[-10, -52, -130, -170, 24], [-30, -40, -160, -116, 22], [6, -60, -80, -200, 20], [-44, -20, -170, -60, 18], [20, -62, -24, -204, 16]]) lidah(g, s, x, y, tx, ty, w, PINK, { wave: 0.6 });
+    // leher bersisik turun ke bahu
+    // kerah bulu: helai merah jambu dan emas mengipas ke bawah dari bawah kepala, lalu kalung prada
+    for (const [x, ang, L, cols] of [[-60, 2.0, 120, PINK_D], [40, 1.2, 110, PINK_D], [-36, 1.8, 130, PINK], [16, 1.4, 124, PINK], [-12, 1.6, 140, CORE]]) lidah(g, s, x, 30, x + Math.cos(ang) * L, 30 + Math.sin(ang) * L, 26, cols, { wave: 0.6 });
+    const necklace = P(); necklace.moveTo(-66, 26); necklace.quadraticCurveTo(-14, 52, 44, 26); necklace.lineTo(46, 44); necklace.quadraticCurveTo(-14, 72, -68, 44); necklace.closePath(); F(necklace, { lin: [0, 26, 0, 70], stops: band(GOLDS) }, true, 4);
+    holesOn(g, s, bezPts([-58, 38], [-28, 56], [6, 58], [36, 38], 10), 2, 3);
+    // kepala
+    const head = P(); head.moveTo(-60, 12); head.bezierCurveTo(-70, -30, -40, -62, 6, -64); head.bezierCurveTo(48, -66, 78, -46, 92, -22); head.lineTo(70, 30); head.bezierCurveTo(30, 44, -20, 42, -60, 12); head.closePath();
+    F(head, { lin: [-60, -60, 90, 30], stops: band(SKIN_K) }, false, 6);
+    cawi(g, s, bezPts([-60, 12], [-70, -30], [-40, -62], [6, -64], 20), 4, 14, 2);
+    drenjem(g, s, bezPts([-40, 16], [-10, 26], [30, 24], [60, 14], 14), 2, 2.2);
+    drenjem(g, s, bezPts([-48, -10], [-30, -30], [-6, -44], [20, -50], 12), 2, 2);
+    // paruh atas: bengkok ke bawah, merah tua; paruh bawah terbuka; rongga dan lidah; taring
+    const beak = P(); beak.moveTo(54, -40); beak.bezierCurveTo(118, -48, 168, -14, 172, 34); beak.bezierCurveTo(164, 18, 150, 8, 132, 6); beak.lineTo(70, 4); beak.closePath();
+    F(beak, { lin: [54, -48, 172, 34], stops: band(['#4a0608', '#8a1218', '#c8302a', '#ee6a4a']) }, false, 5);
+    const jaw = P(); jaw.moveTo(70, 26); jaw.lineTo(140, 40); jaw.bezierCurveTo(146, 58, 130, 74, 110, 76); jaw.bezierCurveTo(90, 74, 72, 60, 62, 44); jaw.closePath();
+    F(jaw, { lin: [62, 26, 146, 76], stops: band(['#4a0608', '#8a1218', '#c8302a']) }, false, 5);
+    const mouth = P(); mouth.moveTo(70, 6); mouth.lineTo(132, 8); mouth.bezierCurveTo(140, 16, 142, 30, 140, 40); mouth.lineTo(70, 26); mouth.closePath(); g.fillStyle = s('#1a0202', false, false, '#160201'); g.fill(mouth);
+    g.strokeStyle = s('#c8302a', false); g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(76, 18); g.quadraticCurveTo(110, 30, 150, 22); g.stroke();
+    for (const [x, y0, h] of [[90, 6, 16], [112, 7, 20], [100, 27, -14], [124, 34, -16]]) { const t = P(); t.moveTo(x - 6, y0); t.lineTo(x + 6, y0); t.lineTo(x, y0 + h); t.closePath(); F(t, IVORY, false, 2.5); }
+    // mata, alis, sumping
+    thelengan(g, s, 34, -24, 17, false);
+    const brow = P(); brow.moveTo(4, -40); brow.bezierCurveTo(24, -58, 54, -60, 76, -40); brow.lineTo(70, -34); brow.bezierCurveTo(52, -46, 28, -46, 10, -32); brow.closePath(); F(brow, { lin: [0, -60, 0, -32], stops: band(['#4a0608', '#a8201c', '#e85a3a']) }, false, 4);
+    const sump = P(); sump.moveTo(-34, -10); sump.bezierCurveTo(-58, -4, -66, 26, -50, 44); sump.bezierCurveTo(-36, 30, -26, 12, -34, -10); sump.closePath(); F(sump, { lin: [-60, -10, -30, 44], stops: band(GOLDS) }, true, 4);
+    holesOn(g, s, bezPts([-40, -2], [-54, 8], [-56, 24], [-48, 36], 8), 2, 2.6);
+  };
+  layer((g, s) => { g.clip(SIL); for (const sd of [-1, 1]) { g.save(); g.translate(CX + sd * GAR[0], GAR[1]); g.scale(-sd * 1.4, 1.4); garuda(g, s); g.restore(); } });
+
+  // 6. kala kecil di tengah atas: rambut gimbal hitam bertepi prada, wajah merah jambu, mata thelengan, taring
+  layer((g, s) => {
+    g.clip(SIL); g.translate(CX, 669);
+    const F = (p, col, metal, lw = 5, glow) => fs(g, s, p, col, metal, lw, glow);
+    for (const [r, n, L0, w] of [[78, 9, 150, 40], [72, 11, 104, 32]]) for (let k = 0; k < n; k++) {
+      const u = k / (n - 1), a = Math.PI * (0.86 + 1.28 * u), L = L0 * (0.7 + 0.3 * Math.sin(u * Math.PI)), sd = u < 0.5 ? -1 : 1;
+      const bx = Math.cos(a) * r, by = Math.sin(a) * r * 0.82, tx = Math.cos(a) * (r + L) + sd * 30, ty = Math.sin(a) * (r + L) * 0.82 - 50;
+      lidah(g, s, bx, by, tx, ty, w, SOOTS, { wave: -sd * 1.3, rim: '#c9a23a', lw: 4.5, plain: true });
+      g.strokeStyle = s('#e2bc4c', true); g.lineWidth = 2; g.lineCap = 'round'; g.beginPath(); g.moveTo(bx + (tx - bx) * 0.15, by + (ty - by) * 0.15); g.quadraticCurveTo((bx + tx) / 2 - sd * 14, (by + ty) / 2, bx + (tx - bx) * 0.85, by + (ty - by) * 0.85); g.stroke();
+    }
+    const face = P(); face.moveTo(-96, -10); face.bezierCurveTo(-100, -64, -54, -92, 0, -92); face.bezierCurveTo(54, -92, 100, -64, 96, -10); face.lineTo(84, 40); face.bezierCurveTo(60, 82, -60, 82, -84, 40); face.closePath();
+    F(face, { lin: [0, -92, 0, 80], stops: band(SKIN_K.slice().reverse()) }, false, 7);
+    const jam = P(); jam.moveTo(-90, -46); jam.bezierCurveTo(-50, -90, 50, -90, 90, -46); jam.lineTo(84, -34); jam.bezierCurveTo(46, -74, -46, -74, -84, -34); jam.closePath(); F(jam, { lin: [0, -90, 0, -34], stops: band(GOLDS) }, true, 4);
+    holesOn(g, s, bezPts([-74, -48], [-36, -78], [36, -78], [74, -48], 16), 2, 3);
+    for (const sd of [-1, 1]) {
+      thelengan(g, s, sd * 38, -16, 20, false);
+      const br = P(); br.moveTo(sd * 8, -36); br.bezierCurveTo(sd * 30, -58, sd * 66, -56, sd * 84, -30); br.lineTo(sd * 76, -26); br.bezierCurveTo(sd * 60, -44, sd * 32, -44, sd * 14, -28); br.closePath(); F(br, { lin: [0, -58, 0, -26], stops: band(['#140404', '#4a0a0a', '#8a1a14']) }, false, 4);
+    }
+    const nose = P(); nose.moveTo(0, -8); nose.bezierCurveTo(16, 0, 30, 16, 26, 28); nose.bezierCurveTo(16, 34, -16, 34, -26, 28); nose.bezierCurveTo(-30, 16, -16, 0, 0, -8); nose.closePath(); F(nose, { lin: [0, -8, 0, 34], stops: band(['#7a1020', '#c03048', '#f07080']) }, false, 4);
+    const m = P(); m.moveTo(-58, 34); m.quadraticCurveTo(0, 46, 58, 34); m.bezierCurveTo(50, 70, -50, 70, -58, 34); m.closePath(); F(m, { lin: [0, 34, 0, 66], stops: band(['#1a0202', '#4a0606']) }, false, 5, '#160201');
+    for (const sd of [-1, 1]) { const f = P(); f.moveTo(sd * 30, 38); f.lineTo(sd * 42, 38); f.lineTo(sd * 37, 76); f.closePath(); F(f, BONE(0, 38, 0, 76), false, 3); const f2 = P(); f2.moveTo(sd * 46, 60); f2.lineTo(sd * 56, 58); f2.lineTo(sd * 56, 22); f2.closePath(); F(f2, BONE(0, 60, 0, 22), false, 3); }
+    for (let i = -2; i <= 2; i++) { const t = P(); t.moveTo(i * 10 - 4, 41); t.lineTo(i * 10 + 4, 41); t.lineTo(i * 10, 52); t.closePath(); F(t, IVORY, false, 2); }
+  });
+
+  // 7. barong kuning di bawah: mahkota api, wajah bersungging kuning ke merah di tepi, mata thelengan bercincin merah,
+  //    hidung besar, mulut lebar menyeringai dengan gigi runcing dan taring, janggut ungu, tangan bercakar
+  layer((g, s) => {
+    g.clip(SIL); g.translate(CX, KY);
+    const F = (p, col, metal, lw = 6, glow) => fs(g, s, p, col, metal, lw, glow);
+    // janggut: lidah ungu menjulur ke bawah dari dagu
+    for (const [x, ang, L] of [[-130, 2.25, 150], [130, 0.89, 150], [-78, 1.98, 190], [78, 1.16, 190], [-26, 1.7, 214], [26, 1.44, 214]]) lidah(g, s, x, 170, x + Math.cos(ang) * L, 170 + Math.sin(ang) * L, 42, VIOLET, { wave: x < 0 ? 0.8 : -0.8 });
+    // mahkota api di atas dahi
+    for (const [x, L, ang] of [[-150, 120, -2.3], [150, 120, -0.84], [-100, 150, -2.0], [100, 150, -1.14], [-50, 170, -1.78], [50, 170, -1.36], [0, 190, -1.57]]) lidah(g, s, x, -126 + Math.abs(x) * 0.25, x + Math.cos(ang) * L, -126 + Math.abs(x) * 0.25 + Math.sin(ang) * L, 30, x === 0 ? CORE : EMBER, { wave: x < 0 ? -0.7 : 0.7, glow: '#2a0c02' });
+    // wajah: dahi sempit, pelipis, tulang pipi menonjol, rahang bersudut
+    const face = P(); face.moveTo(0, -172); face.bezierCurveTo(110, -170, 166, -132, 190, -92); face.lineTo(252, -52); face.bezierCurveTo(276, -18, 274, 40, 250, 74); face.lineTo(222, 132);
+    face.bezierCurveTo(170, 182, 86, 200, 0, 200); face.bezierCurveTo(-86, 200, -170, 182, -222, 132); face.lineTo(-250, 74); face.bezierCurveTo(-274, 40, -276, -18, -252, -52); face.lineTo(-190, -92); face.bezierCurveTo(-166, -132, -110, -170, 0, -172); face.closePath();
+    g.lineJoin = 'round'; g.lineWidth = 16; g.strokeStyle = s(INK, false); g.stroke(face);
+    g.fillStyle = s({ rad: [0, -30, 10, 0, -20, 300], stops: band(['#fff0b0', '#f6d05a', '#eaa22e', '#d8661c', '#a8320f']) }, false); g.fill(face);
+    g.lineWidth = 6; g.strokeStyle = s(GOLD, true); g.stroke(face);
+    g.save(); g.clip(face);
+    for (const sd of [-1, 1]) {
+      cawi(g, s, bezPts([sd * 252, -52], [sd * 276, -18], [sd * 274, 40], [sd * 250, 74], 22), sd > 0 ? 6 : -6, sd > 0 ? 26 : -26, 2, 2);
+      cawi(g, s, bezPts([sd * 222, 132], [sd * 170, 182], [sd * 86, 200], [0, 200], 26), sd > 0 ? 6 : -6, sd > 0 ? 22 : -22, 2, 2);
+      // rongga mata gelap
+      g.fillStyle = s({ rad: [sd * 92, -52, 44, sd * 92, -52, 96], stops: [[0, 'rgba(60,10,4,0.9)'], [1, 'rgba(60,10,4,0)']] }, false); g.beginPath(); g.arc(sd * 92, -52, 96, 0, Math.PI * 2); g.fill();
+      // drenjeman di pipi dan dahi
+      for (let r = 0; r < 3; r++) drenjem(g, s, bezPts([sd * (60 + r * 16), 40 + r * 18], [sd * (110 + r * 16), 60 + r * 18], [sd * (160 + r * 12), 64 + r * 14], [sd * (206 + r * 6), 50 + r * 12], 16), 2, 2.6);
+      drenjem(g, s, bezPts([sd * 30, -150], [sd * 70, -150], [sd * 110, -138], [sd * 150, -116], 12), 2, 2.4);
+    }
+    g.restore();
+    // jamang prada di dahi, bermata permata dan bertatah
+    const jam = P(); jam.moveTo(-180, -98); jam.bezierCurveTo(-116, -176, 116, -176, 180, -98); jam.lineTo(160, -80); jam.bezierCurveTo(104, -146, -104, -146, -160, -80); jam.closePath(); F(jam, { lin: [0, -176, 0, -80], stops: band(GOLDS) }, true, 5);
+    holesOn(g, s, bezPts([-156, -98], [-96, -156], [96, -156], [156, -98], 28), 2, 3.6);
+    { const j = P(); j.moveTo(0, -200); j.lineTo(24, -156); j.lineTo(0, -120); j.lineTo(-24, -156); j.closePath(); F(j, { lin: [0, -200, 0, -120], stops: band(GOLDS) }, true, 5); g.fillStyle = s('#b0180c', false, false, '#5a0a02'); g.beginPath(); g.arc(0, -158, 10, 0, Math.PI * 2); g.fill(); }
+    // sumping prada dan lipatan pipi merah
+    for (const sd of [-1, 1]) {
+      const sp = P(); sp.moveTo(sd * 250, -70); sp.bezierCurveTo(sd * 316, -86, sd * 344, -14, sd * 306, 50); sp.bezierCurveTo(sd * 296, 6, sd * 280, -34, sd * 250, -70); sp.closePath(); F(sp, { lin: [sd * 250, -86, sd * 330, 50], stops: band(GOLDS) }, true, 4);
+      holesOn(g, s, bezPts([sd * 266, -66], [sd * 310, -62], [sd * 322, -16], [sd * 306, 22], 12), 2, 3);
+      const ch = P(); ch.moveTo(sd * 140, 8); ch.bezierCurveTo(sd * 196, -4, sd * 240, 24, sd * 240, 70); ch.bezierCurveTo(sd * 214, 46, sd * 178, 34, sd * 140, 8); ch.closePath(); F(ch, { lin: [sd * 140, 0, sd * 240, 70], stops: band(['#6a0a0a', '#b8261a', '#e8562e']) }, false, 4);
+    }
+    // alis tebal merah, bulu api di punggungnya; kerut murka di antara alis
+    for (const sd of [-1, 1]) {
+      const c = [[sd * 16, -86], [sd * 62, -136], [sd * 146, -142], [sd * 200, -88]];
+      const br = P(); br.moveTo(...c[0]); br.bezierCurveTo(...c[1], ...c[2], ...c[3]); br.lineTo(sd * 184, -70); br.bezierCurveTo(sd * 138, -114, sd * 72, -110, sd * 30, -66); br.closePath();
+      F(br, { lin: [0, -142, 0, -66], stops: band(['#2a0404', '#7a1010', '#c8301e', '#ee6a3a']) }, false, 6, '#200602');
+      for (let k = 0; k < 6; k++) { const [x, y] = bez(...c, 0.12 + k * 0.15); lidah(g, s, x, y + 6, x + sd * 28, y - 42 - k * 2, 12, EMBER, { wave: sd * 0.5, plain: true, lw: 3 }); }
+    }
+    g.strokeStyle = s(INK, false); g.lineCap = 'round'; g.lineWidth = 5; for (const x of [-14, 0, 14]) { g.beginPath(); g.moveTo(x, -126); g.quadraticCurveTo(x * 1.4, -102, x * 0.6, -80); g.stroke(); }
+    // mata thelengan bercincin merah: pupilnya tembus (bara 3D), kelopak atas gelap miring ke dalam
+    for (const sd of [-1, 1]) {
+      const ex = sd * 92, ey = -52;
+      const ring = P(); ring.arc(ex, ey, 60, 0, Math.PI * 2); F(ring, { rad: [ex, ey, 48, ex, ey, 60], stops: band(['#3a0408', '#8a1222', '#c8323e']) }, false, 5);
+      thelengan(g, s, ex, ey, 46, true);
+      g.save(); g.beginPath(); g.arc(ex, ey, 47, 0, Math.PI * 2); g.clip();
+      const lid = P(); lid.moveTo(ex + sd * 56, ey - 46); lid.lineTo(ex - sd * 56, ey - 20); lid.lineTo(ex - sd * 56, ey - 80); lid.lineTo(ex + sd * 56, ey - 80); lid.closePath();
+      g.fillStyle = s({ lin: [0, ey - 60, 0, ey - 22], stops: band(['#2a0404', '#7a1010', '#c8301e']) }, false); g.fill(lid);
+      g.strokeStyle = s(INK, false); g.lineWidth = 9; g.beginPath(); g.moveTo(ex + sd * 56, ey - 46); g.lineTo(ex - sd * 56, ey - 20); g.stroke(); g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.stroke();
+      g.restore();
+      // kerut di bawah mata dan di samping hidung
+      g.strokeStyle = s(INK, false); g.lineWidth = 4.5; g.lineCap = 'round';
+      for (const r of [78, 92]) { g.beginPath(); g.arc(ex, ey, r, sd > 0 ? 0.25 : Math.PI * 0.45, sd > 0 ? Math.PI * 0.55 : Math.PI - 0.25); g.stroke(); }
+    }
+    // hidung besar bercuping lebar, alur prada di cuping
+    const nose = P(); nose.moveTo(0, -62); nose.bezierCurveTo(24, -50, 32, -10, 50, 6); nose.bezierCurveTo(92, 6, 104, 44, 76, 62); nose.bezierCurveTo(48, 76, 22, 66, 0, 76); nose.bezierCurveTo(-22, 66, -48, 76, -76, 62); nose.bezierCurveTo(-104, 44, -92, 6, -50, 6); nose.bezierCurveTo(-32, -10, -24, -50, 0, -62); nose.closePath();
+    F(nose, { lin: [0, -62, 0, 76], stops: band(['#f6c070', '#ee8a3a', '#d0501e', '#9a2a10']) }, false, 7);
+    for (const sd of [-1, 1]) { g.fillStyle = s('#1a0402', false); g.beginPath(); g.ellipse(sd * 46, 50, 18, 11, sd * 0.4, 0, Math.PI * 2); g.fill(); g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.beginPath(); g.arc(sd * 62, 38, 24, sd > 0 ? -1.2 : Math.PI - 0.4, sd > 0 ? 0.4 : Math.PI + 1.2); g.stroke(); }
+    // mulut lebar menyeringai, sudutnya naik ke pipi: bibir merah, gusi, gigi atas runcing, taring, rongga, gigi bawah
+    const up = (x) => 92 - 38 * (x / 206) ** 2, lo = (x) => 160 - 34 * (x / 206) ** 4;
+    const mouth = P(); mouth.moveTo(-212, up(212) - 8); for (let x = -206; x <= 206; x += 10) mouth.lineTo(x, up(x)); mouth.lineTo(212, up(212) - 8); for (let x = 206; x >= -206; x -= 10) mouth.lineTo(x, lo(x)); mouth.closePath();
+    g.lineJoin = 'round'; g.lineWidth = 28; g.strokeStyle = s(INK, false); g.stroke(mouth); g.lineWidth = 19; g.strokeStyle = s({ lin: [0, 60, 0, 170], stops: band(['#e8402a', '#b01e12', '#7a0e08']) }, false); g.stroke(mouth);
+    g.fillStyle = s({ lin: [0, 60, 0, 160], stops: band(['#6a0a06', '#3a0404', '#1a0202']) }, false, false, '#160201'); g.fill(mouth);
+    { const gum = P(); for (let x = -196; x <= 196; x += 10) (x === -196 ? gum.moveTo(x, up(x)) : gum.lineTo(x, up(x))); for (let x = 196; x >= -196; x -= 10) gum.lineTo(x, up(x) + 12); gum.closePath(); g.fillStyle = s('#d84a4a', false); g.fill(gum); }
+    for (let i = -3; i <= 3; i++) { const x = i * 40, y = up(x) + 10, len = [40, 32, 44, 30][Math.abs(i)], t = P(); t.moveTo(x - 17, y); t.lineTo(x + 17, y); t.lineTo(x + 15, y + len * 0.55); t.lineTo(x, y + len); t.lineTo(x - 15, y + len * 0.55); t.closePath(); F(t, BONE(0, y, 0, y + len), false, 3); }
+    for (const sd of [-1, 1]) { const f = P(); f.moveTo(sd * 152, up(152) + 6); f.lineTo(sd * 188, up(188) + 4); f.quadraticCurveTo(sd * 184, up(176) + 60, sd * 166, up(170) + 104); f.quadraticCurveTo(sd * 158, up(160) + 50, sd * 152, up(152) + 6); f.closePath(); F(f, BONE(0, up(170), 0, up(170) + 104), false, 4); }
+    for (const [x, h] of [[-100, 30], [-60, 38], [-20, 28], [20, 28], [60, 38], [100, 30]]) { const y = lo(x) - 4, t = P(); t.moveTo(x - 15, y); t.lineTo(x + 15, y); t.lineTo(x + Math.sign(x) * 3, y - h); t.closePath(); F(t, BONE(0, y, 0, y - h), false, 3); }
+    const throat = P(); throat.ellipse(0, 138, 58, 13, 0, 0, Math.PI * 2); g.fillStyle = s(INK, false, true); g.fill(throat);
+    // tangan bercakar di kiri-kanan mulut, telapak menghadap depan; pergelangannya keluar dari balik api hitam
+    for (const sd of [-1, 1]) {
+      g.save(); g.scale(sd, 1);
+      const bangle = P(); bangle.moveTo(318, 214); bangle.lineTo(352, 186); bangle.lineTo(370, 206); bangle.lineTo(336, 236); bangle.closePath(); F(bangle, { lin: [318, 186, 368, 234], stops: band(['#4a0608', '#a8201c', '#e85a3a']) }, false, 4);
+      const palm = P(); palm.moveTo(270, 186); palm.bezierCurveTo(268, 140, 300, 116, 336, 128); palm.bezierCurveTo(364, 140, 368, 180, 344, 206); palm.bezierCurveTo(320, 224, 284, 216, 270, 186); palm.closePath();
+      F(palm, { lin: [270, 120, 360, 220], stops: band(['#f6d05a', '#eaa22e', '#d8661c']) }, false, 6);
+      for (const [a, len] of [[-2.2, 70], [-1.85, 86], [-1.5, 84], [-1.15, 70], [-0.6, 54]]) {
+        const bx = 318 + Math.cos(a) * 40, by = 168 + Math.sin(a) * 40, kx = bx + Math.cos(a) * len * 0.55, ky = by + Math.sin(a) * len * 0.55, a2 = a - 0.45, tx = kx + Math.cos(a2) * len * 0.45, ty = ky + Math.sin(a2) * len * 0.45;
+        g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); g.moveTo(bx, by); g.lineTo(kx, ky); g.lineTo(tx, ty); g.strokeStyle = s(INK, false); g.lineWidth = 22; g.stroke(); g.strokeStyle = s('#e2a030', false); g.lineWidth = 14; g.stroke();
+        const a3 = a2 - 0.6, nx = tx + Math.cos(a3) * 34, ny = ty + Math.sin(a3) * 34, qx = Math.cos(a2 + Math.PI / 2) * 7, qy = Math.sin(a2 + Math.PI / 2) * 7;
+        const nail = P(); nail.moveTo(tx + qx, ty + qy); nail.quadraticCurveTo(tx + Math.cos(a2) * 26, ty + Math.sin(a2) * 26, nx, ny); nail.lineTo(tx - qx, ty - qy); nail.closePath(); F(nail, BONE(tx, ty, nx, ny), false, 3.5);
+      }
+      g.restore();
+    }
+  });
+
+  // 8. gapit: tangkai naik di tengah lembaran (seperti di foto), dan tepi prada
+  layer((g, s) => {
+    g.clip(SIL);
+    const rod = P(); rod.moveTo(CX - 6, BASE); rod.lineTo(CX - 4, 230); rod.lineTo(CX + 4, 230); rod.lineTo(CX + 6, BASE); rod.closePath();
+    g.fillStyle = s(INK, false); g.fill(rod); g.fillStyle = s({ lin: [CX - 6, 0, CX + 6, 0], stops: [[0, '#2a1608'], [0.45, '#a8803e'], [1, '#2a1608']] }, false); g.fillRect(CX - 3, 230, 6, BASE - 230);
+    g.lineJoin = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 30; g.stroke(SIL); g.strokeStyle = s(GOLD, true); g.lineWidth = 18; g.stroke(SIL);
+    gegel(g, s);
+  });
 }
 
-// Sisi geni: kobaran api yang menjalar di muka Murka saat `rage` naik (digoyang shader). Wajah barong tidak
-// ikut tertutup (shader menyisakannya), jadi di sini hanya api.
+// Sisi geni: kobaran api yang menjalar di muka Murka saat `rage` naik (digoyang shader, di atas kulit yang hangus).
+// Wajah barong tidak ikut tertutup (shader menyisakannya), jadi di sini hanya api: rapat dan terang, tanpa celah hitam.
 const cB = mk();
 if (!AGUNG) {
   const g = cB.getContext('2d', { willReadFrequently: true }); g.save(); g.clip(SIL);
-  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0e0201'); bg.addColorStop(0.6, '#2a0603'); bg.addColorStop(1, '#5a1206'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  const core = g.createRadialGradient(CX, 1720, 40, CX, 1500, 950); core.addColorStop(0, 'rgba(255,170,60,0.6)'); core.addColorStop(1, 'rgba(255,90,20,0)'); g.fillStyle = core; g.fillRect(0, 0, W, H);
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#3a0803'); bg.addColorStop(0.6, '#6a1406'); bg.addColorStop(1, '#a0280a'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const core = g.createRadialGradient(CX, 1720, 40, CX, 1500, 1100); core.addColorStop(0, 'rgba(255,190,80,0.85)'); core.addColorStop(1, 'rgba(255,90,20,0.1)'); g.fillStyle = core; g.fillRect(0, 0, W, H);
   // lidah api melengkung-S, gradasi dari pangkal gelap ke ujung terang
   const tongue = (x, base, w, h, sway, c0, c1) => {
     const gr = g.createLinearGradient(0, base, 0, base - h); gr.addColorStop(0, c0); gr.addColorStop(1, c1);
@@ -947,9 +998,9 @@ if (!AGUNG) {
     g.bezierCurveTo(x - w, base - h * 0.35, x - w * 0.2 + sway, base - h * 0.62, x + sway * 1.3, base - h);
     g.bezierCurveTo(x + w * 0.35 + sway, base - h * 0.55, x + w, base - h * 0.3, x + w, base); g.quadraticCurveTo(x, base + w * 1.3, x - w, base); g.closePath(); g.fill();
   };
-  const PAL = [['#2a0503', '#7a160a'], ['#6a1208', '#c8381a'], ['#a8280e', '#f07a2a'], ['#e05a1c', '#ffc560'], ['#ffa63a', '#fff2c0']];
+  const PAL = [['#5a0e06', '#a8280e'], ['#8a1a08', '#e0501c'], ['#b8320e', '#f58a2e'], ['#e86a1e', '#ffcf6a'], ['#ffb04a', '#fff6d0']];
   PAL.forEach(([c0, c1], L) => {
-    for (let i = 0; i < 200 - L * 22; i++) {
+    for (let i = 0; i < 260 - L * 26; i++) {
       const base = 1840 - rnd() * (1560 - L * 140) - L * 30, half = Math.max(70, halfAt(base) - 20), x = CX + (rnd() - 0.5) * 2 * half;
       const w = 16 + rnd() * 34 - L * 2.5, h = 190 + rnd() * 430 - L * 34, sway = (rnd() - 0.5) * w * 2.4;
       tongue(x, base, w, h, sway, c0, c1);
