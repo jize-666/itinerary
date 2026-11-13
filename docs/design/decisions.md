@@ -357,7 +357,7 @@ Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (
 
 ## Gunungan 3D di panggung: sapuan antar bab dan dua muka (12–13 Nov 2026), arahan host: "redesign/remodel/upgrade ke duanya", lalu dua foto acuan
 
-**Status: sapuan berjalan; muka Murka versi kelima menunggu tanggapan host. Gerbang pembuka belum dikerjakan.**
+**Status: sapuan berjalan; muka Murka gaya wayang dan garuda menunggu tanggapan host. Gerbang pembuka belum dikerjakan.**
 
 **Cara menggambar.** Gambar gunungan dilukis kode kanvas (`scripts/assets/gunungan-paint.js`) dan dipanggang menjadi tekstur WebP (`scripts/assets/bake-gunungan.cjs` → `public/film/gunungan/`). Di perangkat tamu tidak ada kode melukis dan tidak ada jeda: tekstur diunduh di latar sesudah panggung 3D tampil (tier High 2000 px, lainnya 1500 px), dan sampai siap sapuan memakai bayangan kayon DOM yang lama. Lembaran dan tabirnya dua draw call, nol saat tidak menyapu. Relief, kilap prada, lubang tembus berdinding, kulit tembus cahaya, lentur, pupil bara, dan api geni semuanya dari shader dan dua tekstur per muka (warna + alpha, dan aux: prada, bagian menyala, tinggi relief).
 
@@ -365,12 +365,22 @@ Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (
 
 **Muka Agung (13 Nov).** Acuan host: foto kayon gapuran gaya Surakarta ("jangan mirip 100%, cukup jadi acuan"). Siluet berbahu dengan palemahan merah bersudut jungkit; bidang merah tua penuh lung-lungan prada yang lekuknya ditatah tembus; pohon hayat dililit naga hijau dengan burung dan kembang; banteng dan macan berhadapan; gapura beratap tumpang dengan pintu hijau, undakan, dan lantai ubin; sepasang makara biru yang rahangnya mengapit atap seolah menelan pendapa (host: "seolah olah menelan pendapa"), dibuat seram karena versi pertama ditolak ("ini kaya badut"); kala kecil di puncak gapura; sepasang lar; dua raksasa penjaga bertameng.
 
-**Muka Murka (13 Nov sore).** Acuan host: foto sisi api sebuah kayon ("revisi gunungan mode murka harusnya full muka barong seperti ini"). Wajah kala 8 Nov di atas gapura ditinggalkan. Seluruh lembaran berupa sisik lidah api, dan satu wajah barong penuh mengisi tengah-bawah. Dua versi pertama ditolak: "kaya badut, revisi buat lebih mengerikan lagi" (wajah pucat merah jambu, pilin pastel, hidung bulat, gigi rapi) dan "terlalu bulat muka mukanya, kaya kentang. revisi ambil kaya di referensi lah". Pelajarannya, dan aturan untuk revisi berikutnya:
-- **Jangan membungkus wajah dengan satu kontur bulat atau lonjong.** Sosok barong di foto dibentuk rakitan ukel bertepi tajam: sepasang ukel mahkota di atas kepala, alis ukel yang memilin di pelipis, pilin pipi bergerigi di kiri-kanan, lalu rahang. Bidang wajah di bawahnya hampir seluruhnya tertutup.
-- **Wajahnya lebar dan pendek** (±0,67 lebar lembaran), mata berdekatan, mulut menganga selebar wajah.
-- **Seram datang dari** mata merah melotot dalam rongga gelap dengan kelopak curam, deret gigi yang tidak rata, siung dan taring panjang, lidah panjang, bulu api di alis, dan warna abu tulang, abu-hitam, merah darah. Merah jambu hanya sedikit dan kusam di ujung gradasi ukel.
-- **Jangan ada lubang tembus yang terbaca sebagai mata kedua.** Lubang hidung dicat gelap; yang tembus hanya pupil (tempat bara 3D), cecek di alur, dan kerongkongan.
-- **Api geni tidak membakar wajah.** Shader menyisakan elips wajah (`KAYON.face`), jadi saat mundur wajah tampak muncul dari tengah kobaran.
+**Muka Murka (13 Nov sore–malam).** Lima putaran arahan host, urut:
+1. Foto sisi api sebuah kayon: "harusnya full muka barong seperti ini". Versi 1–2 (wajah pucat bulat) ditolak: "kaya badut", lalu "terlalu bulat muka mukanya, kaya kentang".
+2. Versi 5 (wajah dirakit dari ukel, sisik api) ditolak: "mode murka, pas kebakar masih kurang. dan tanduk sama yang di pipinya itu kaya keong".
+3. Foto gunungan wayang kulit sungguhan: "khas wayang nya bener bener hilang, remodel. kaya refrensi". Muka Murka dirombak total mengikuti susunan foto ini.
+4. Garuda di bahu: "ga serem malah kaya bangau", lalu foto topeng garuda Bali ("ikuti garuda seperti foto yang saya kirim"), lalu "kayak tokek ... jelek giginya", lalu "lebih serem, lidah tajam, gigi tidak beraturan, muka monster, mahkota mewah".
+
+Susunan sekarang (mengikuti foto gunungan): lidah api merah jambu bertatah menjulang ke pucuk dengan inti jingga, kala kecil berambut gimbal hitam di tengah atas, sepasang garuda menghadap ke dalam dengan lar emas, barong kuning bertangan di bawah dalam api hitam bertepi kuning, dan gapit naik di tengah.
+
+Aturan menggambar muka Murka, dari penolakan-penolakan di atas:
+- **Ciri wayang kulit datang dari cara menggambar**: tatahan tembus yang rapat (bubukan, seritan), sunggingan berjenjang dengan batas tegas (`band()`, bukan gradasi halus), cawi (arsir tinta halus), drenjeman (deret titik), dan prada di tepi. Gaya vektor rapi (sisik seragam, bidang polos) kehilangan ciri ini.
+- **Jangan ada pilin bulat rapat** (dibaca "keong"), dan jangan bungkus wajah dengan satu kontur bulat ("kentang").
+- **Seram, bukan lucu**: gigi tidak beraturan (panjang, lebar, dan kemiringan acak, ada celah, banyak taring), lidah tajam bercabang, mata merah berurat dengan pupil celah atau mata thelengan dalam rongga gelap, alis berat. Gigi bulat rapi dan mata bulat polos dibaca badut atau kadal.
+- **Garuda mengikuti foto topeng garuda Bali**: paruh pendek yang bengkok tajam dengan ujung emas (paruh panjang lurus dibaca bangau atau tokek), kulit hijau bervolume (bukan pita warna), kumis hitam bergaris putih, telinga runcing bersumping emas, dan mahkota mewah (gelungan berukir, kelopak emas berenamel merah, permata bersetting).
+- **Lubang tembus yang menyala tidak boleh terbaca sebagai mata kedua.** Yang tembus hanya pupil barong (tempat bara 3D), tatahan, dan kerongkongan.
+
+**Api geni saat mundur** (host: "pas kebakar masih kurang"): kadar api naik begitu lembaran masuk layar dan penuh di tengah (`murkaRage`, puncak `GENI.peak` 0,56). Di bawah garis bakar kulit hangus dengan retakan bara dan kobaran tekstur geni; di atasnya lidah api per kolom yang tingginya acak dan percikan bara, sampai menjilat melewati pucuk dan keluar dari tepi lembaran (memudar sebelum batas bidang, jadi tidak terpotong lurus). Api menutupi kulit, bukan ditambahkan, supaya tidak memutih; warnanya ditulis di ruang linear karena keluaran panggung dikodekan sRGB. Barong, kala, dan kedua garuda tidak terbakar (`KAYON.spare`), jadi mereka tampak muncul dari tengah kobaran. Biayanya hanya saat mundur: beberapa noise dan satu sampel tekstur per piksel lembaran.
 
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
