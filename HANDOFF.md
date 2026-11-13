@@ -184,6 +184,8 @@ Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegask
 - e2e baru di `e2e/stage.spec.ts`: dua tahap gulir gong, zoom +/−/Ctrl+roda, parallax kamera 3D, parallax dan kedalaman 2,5D.
 - Belum: uji di HP sungguhan (giroskop, cubit), video pratinjau, ukur beban.
 
+**Arahan host 13 Nov malam, kata demi kata:** "mana videonya? kirim preview nya, fitur 3d gong sama film nya. habis itu setelah di kirim, tunggu perintahku lagi". Artinya: kirim video pratinjau fitur gerak pandang di gong 3D (tur `kamera`) dan di film (2,5D), lalu **berhenti dan menunggu perintah host** (jangan memulai pekerjaan baru).
+
 **Hentakan dan getar kamera (arahan host no. 5), yang ditulis.** `cameraKick`, `KICK`, `kickSize` di `src/engine/stage/gong.ts` (murni); dijumlahkan per hantaman di `createStrikes().at()` (`kick`); dipasang ke kamera di `src/components/film/stage3d/runtime.ts` sesudah napas dan parallax. Angkanya: mundur ±0,9% jarak dalam ±0,08 dtk lalu berayun balik sekali; getar 3,6–4,8 Hz, paling jauh ±0,6% tinggi layar, habis ±1,5 dtk; mulai dari nol tanpa sentakan. Sekalian: hantaman lama sekarang dilupakan sesudah 12 dtk (dulu hanya 3 hantaman terakhir yang dihitung, sehingga pukulan keempat beruntun menggeser gong ±1 cm). Rinciannya di `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
 
 **Yang selesai (langkah 1–2).**
