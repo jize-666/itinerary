@@ -186,6 +186,8 @@ Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegask
 - **Video dikirim ke host (13 Nov malam):** tur `kamera` (gong 3D, desktop 1920×1080, 60 fps, 36,9 dtk, `STAGE=high`, K 0,04) dan tur `datar` (film 2,5D, `STAGE=static`, 28,5 dtk). Frame keduanya sudah dicek. Sesuai arahan host, **sesudah video dikirim pekerjaan berhenti dan menunggu perintah host**.
 
 **Arahan host 13 Nov malam, kata demi kata:** "buatkan pr tugas semua sesi ini, aku ingin merge". Yang dikerjakan: jalankan semua cek (lint, typecheck, test, content:check, build, e2e penuh sampai habis), pastikan tanpa konflik dengan `main`, perbarui `CLAUDE.md` dan `HANDOFF.md`, lalu buka PR siap **Squash and merge** berisi semua pekerjaan sejak PR #7 (gong 3D, gunungan, gerak pandang). Host sendiri yang menekan merge.
+
+**Pertanyaan host (saat e2e untuk PR berjalan), kata demi kata:** "itu previews nya ngeframe, yang frame record an mu atau web nya? jika record anmu, biarkan. jika webnya, optimalkan". Diperiksa dengan data: frame kembar di video (tanda perekam) dan waktu frame web saat kursor bergerak.
 - Belum: uji di HP sungguhan (giroskop, cubit), ukur beban (`measure-stage.cjs` sempat berhenti karena batas waktu).
 
 **Arahan host 13 Nov malam, kata demi kata:** "mana videonya? kirim preview nya, fitur 3d gong sama film nya. habis itu setelah di kirim, tunggu perintahku lagi". Artinya: kirim video pratinjau fitur gerak pandang di gong 3D (tur `kamera`) dan di film (2,5D), lalu **berhenti dan menunggu perintah host** (jangan memulai pekerjaan baru).
