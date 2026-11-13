@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D (prolog, kamera
-// mengitari gong, lalu slide gong penutup Hari 1: dipukul sendiri saat tiba, lalu dipukul lagi dengan klik).
+// mengitari gong, lalu slide gong penutup Hari 1: dipukul sendiri saat tiba, lalu dipukul lagi dengan klik);
+// kayon = sapuan gunungan 3D: maju ke Hari 1 (muka Agung), mundur ke prolog (muka Murka, api geni naik), maju lagi.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -115,6 +116,15 @@ const fs = require('fs');
     await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 4200); // lompat ke Hari 2: sapuan kayon
     await key('ArrowUp', 6800); // mundur ke gong penutup Hari 1: begitu tiba gong dipukul sendiri, kedua naga menyembur api
     await tap(p.locator(".fl-layer[data-pos='cur'] .fs-strike"), 5400); // dipukul lagi dengan klik (tabuh terangkat saat kursor di atas gong)
+    await finish();
+    return;
+  }
+
+  if (tour === 'kayon') {
+    await w(1800); // prolog
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // maju ke Hari 1: muka Agung melintas kiri → kanan
+    await tap(p.locator('.fl-rail-list li:nth-child(1) button'), 3400); // mundur ke prolog: muka Murka kanan → kiri, api geni naik dari kaki
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3000); // maju lagi
     await finish();
     return;
   }

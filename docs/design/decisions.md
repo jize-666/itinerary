@@ -355,6 +355,23 @@ Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (
 
 **Kamera pratinjau.** `window.__lakonStage.cam = [x, y, z, lihatX, lihatY, lihatZ, fov]` memaksa kamera, untuk memotret detail dari dekat. Hanya dipakai skrip pratinjau.
 
+## Gunungan 3D di panggung: sapuan antar bab dan dua muka (12–13 Nov 2026), arahan host: "redesign/remodel/upgrade ke duanya", lalu dua foto acuan
+
+**Status: sapuan berjalan; muka Murka versi kelima menunggu tanggapan host. Gerbang pembuka belum dikerjakan.**
+
+**Cara menggambar.** Gambar gunungan dilukis kode kanvas (`scripts/assets/gunungan-paint.js`) dan dipanggang menjadi tekstur WebP (`scripts/assets/bake-gunungan.cjs` → `public/film/gunungan/`). Di perangkat tamu tidak ada kode melukis dan tidak ada jeda: tekstur diunduh di latar sesudah panggung 3D tampil (tier High 2000 px, lainnya 1500 px), dan sampai siap sapuan memakai bayangan kayon DOM yang lama. Lembaran dan tabirnya dua draw call, nol saat tidak menyapu. Relief, kilap prada, lubang tembus berdinding, kulit tembus cahaya, lentur, pupil bara, dan api geni semuanya dari shader dan dua tekstur per muka (warna + alpha, dan aux: prada, bagian menyala, tinggi relief).
+
+**Dua muka pada satu lembaran.** Maju ke bab berikutnya memperlihatkan muka **Agung**, mundur memperlihatkan baliknya, muka **Murka**, dengan api geni yang naik dari kaki.
+
+**Muka Agung (13 Nov).** Acuan host: foto kayon gapuran gaya Surakarta ("jangan mirip 100%, cukup jadi acuan"). Siluet berbahu dengan palemahan merah bersudut jungkit; bidang merah tua penuh lung-lungan prada yang lekuknya ditatah tembus; pohon hayat dililit naga hijau dengan burung dan kembang; banteng dan macan berhadapan; gapura beratap tumpang dengan pintu hijau, undakan, dan lantai ubin; sepasang makara biru yang rahangnya mengapit atap seolah menelan pendapa (host: "seolah olah menelan pendapa"), dibuat seram karena versi pertama ditolak ("ini kaya badut"); kala kecil di puncak gapura; sepasang lar; dua raksasa penjaga bertameng.
+
+**Muka Murka (13 Nov sore).** Acuan host: foto sisi api sebuah kayon ("revisi gunungan mode murka harusnya full muka barong seperti ini"). Wajah kala 8 Nov di atas gapura ditinggalkan. Seluruh lembaran berupa sisik lidah api, dan satu wajah barong penuh mengisi tengah-bawah. Dua versi pertama ditolak: "kaya badut, revisi buat lebih mengerikan lagi" (wajah pucat merah jambu, pilin pastel, hidung bulat, gigi rapi) dan "terlalu bulat muka mukanya, kaya kentang. revisi ambil kaya di referensi lah". Pelajarannya, dan aturan untuk revisi berikutnya:
+- **Jangan membungkus wajah dengan satu kontur bulat atau lonjong.** Sosok barong di foto dibentuk rakitan ukel bertepi tajam: sepasang ukel mahkota di atas kepala, alis ukel yang memilin di pelipis, pilin pipi bergerigi di kiri-kanan, lalu rahang. Bidang wajah di bawahnya hampir seluruhnya tertutup.
+- **Wajahnya lebar dan pendek** (±0,67 lebar lembaran), mata berdekatan, mulut menganga selebar wajah.
+- **Seram datang dari** mata merah melotot dalam rongga gelap dengan kelopak curam, deret gigi yang tidak rata, siung dan taring panjang, lidah panjang, bulu api di alis, dan warna abu tulang, abu-hitam, merah darah. Merah jambu hanya sedikit dan kusam di ujung gradasi ukel.
+- **Jangan ada lubang tembus yang terbaca sebagai mata kedua.** Lubang hidung dicat gelap; yang tembus hanya pupil (tempat bara 3D), cecek di alur, dan kerongkongan.
+- **Api geni tidak membakar wajah.** Shader menyisakan elips wajah (`KAYON.face`), jadi saat mundur wajah tampak muncul dari tengah kobaran.
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

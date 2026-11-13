@@ -299,6 +299,73 @@ test.describe("gong ageng 3D", () => {
   });
 });
 
+type SweepWatch = { sweep: boolean; wipe: number };
+/** Pantau tiap frame mulai sekarang: apakah gunungan 3D sedang menyapu, dan seberapa tampak bayangan kayon DOM. */
+async function watchSweep(page: Page) {
+  await page.evaluate(() => {
+    const w = { sweep: false, wipe: 0 };
+    const win = window as unknown as { __sweepWatch: typeof w; __lakonStage?: { sweep: boolean } };
+    win.__sweepWatch = w;
+    const el = document.querySelector(".fl-wipe");
+    const loop = () => {
+      if (win.__sweepWatch !== w) return;
+      if (win.__lakonStage?.sweep) w.sweep = true;
+      if (el) w.wipe = Math.max(w.wipe, Number(getComputedStyle(el).opacity));
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  });
+}
+const sweepSeen = (page: Page) => page.evaluate(() => (window as unknown as { __sweepWatch: SweepWatch }).__sweepWatch);
+/** Lompat ke bab ke-`n` (0 = prolog) lewat rail, dan tunggu sampai transisinya selesai. */
+async function jump(page: Page, n: number) {
+  const before = await film(page).getAttribute("data-index");
+  await page.getByRole("navigation", { name: "Chapters" }).getByRole("button").nth(n).click();
+  await expect(film(page)).not.toHaveAttribute("data-index", before ?? "");
+  await settled(page);
+}
+
+test.describe("gunungan 3D: sapuan antar bab", () => {
+  test("lompat bab maju dan mundur: gunungan 3D yang menyapu, bayangan kayon DOM tidak tampak", async ({ page }) => {
+    await open3d(page);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
+    for (const n of [1, 0]) {
+      await watchSweep(page);
+      await jump(page, n);
+      const seen = await sweepSeen(page);
+      expect(seen.sweep).toBe(true);
+      expect(seen.wipe).toBeLessThan(0.05);
+    }
+    // sesudah sapuan gunungan tidak tertinggal di layar
+    await nextFrames(page);
+    expect(await page.evaluate(() => (window as unknown as { __lakonStage: { sweep: boolean } }).__lakonStage.sweep)).toBe(false);
+  });
+
+  test("film 2,5D: bayangan kayon DOM tetap menyapu", async ({ page }) => {
+    await open(page);
+    await watchSweep(page);
+    await jump(page, 1);
+    const seen = await sweepSeen(page);
+    expect(seen.sweep).toBe(false);
+    expect(seen.wipe).toBeGreaterThan(0.5);
+  });
+
+  test("tekstur gunungan hanya diunduh saat panggung 3D hidup, seukuran tier-nya", async ({ page }) => {
+    const got: string[] = [];
+    page.on("request", (r) => {
+      const m = /\/film\/gunungan\/([^?]+)/.exec(r.url());
+      if (m) got.push(m[1]!);
+    });
+    await open(page);
+    await page.waitForTimeout(1500);
+    expect(got).toEqual([]);
+    await page.goto("/film/?stage=low");
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await expect.poll(() => got.length, { timeout: 30_000 }).toBe(5);
+    expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
+  });
+});
+
 test.describe("bundle 3D hanya dimuat saat dipakai", () => {
   /** Kumpulkan isi semua JS yang dimuat halaman; three dikenali dari nama kelas penggambarnya. */
   async function loadsThree(page: Page, go: () => Promise<void>) {
