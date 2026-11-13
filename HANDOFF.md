@@ -33,6 +33,8 @@ Jawaban atas "sudah selesai?", dari jejak di disk (sesi sebelumnya terputus ±05
 
 Tafsir Claude atas revisinya (belum ditegaskan host): **muka Murka diganti seluruhnya**. Gapura, pohon hayat, naga, banteng, macan, sayap, dan penjaga dihapus dari muka Murka; seluruh lembaran menjadi kobaran lidah api bersisik, dan satu wajah barong/kala besar mengisi bagian tengah-bawah, seperti foto. Wajahnya pucat (putih tulang, merah muda, abu) supaya terbaca di atas api, bukan merah seperti versi 8 Nov. Muka Agung tidak diubah. Sisi geni (api yang menjalar saat mundur) digambar ulang supaya cocok dengan wajah baru. Arahan lama "jangan mirip 100%, cukup jadi acuan" dianggap tetap berlaku: susunannya mengikuti foto, gambarnya dibuat sendiri.
 
+**Arahan susulan 13 Nov sore (sesudah melihat gambar kedua muka Murka baru), kata demi kata:** "kaya badut, revisi buat lebih mengerikan lagi". Yang ditolak: wajah pucat merah muda berkepala bulat, pilin pastel di sekeliling kepala (mirip telinga dan permen), hidung bulat, kumis pilin, gigi rata dan rapi, lidah pendek membulat. Arah perbaikannya (tafsir Claude): kulit abu tulang dengan bayang gelap dan aksen merah darah, tulang pipi bersudut, alis berat yang menaungi mata, mata dalam rongga hitam dengan urat merah, hidung pesek seperti tengkorak, mulut menganga sangat lebar dengan taring panjang tak rata, lidah panjang runcing, tanduk, dan surai api merah gelap.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
