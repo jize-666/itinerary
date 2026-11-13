@@ -51,7 +51,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
   - Pengatur sempat menurunkan resolusi satu anak tangga, jadi HP itu tidak punya banyak ruang di atas Medium: tiap isi baru perlu dicek lagi di perangkat.
   - Belum diuji di MacBook, Android, atau iPhone lama.
 - [ ] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi.
-- [ ] **7. Gunungan** sebagai gerbang sinematik dan sapuan antar bab.
+- [ ] **7. Gunungan** sebagai pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"; sapuan antar bab tetap bayangan kayon DOM). Rupa dua muka (Agung, dan Murka gaya wayang dengan garuda) sudah diterima host 13 Nov.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**
