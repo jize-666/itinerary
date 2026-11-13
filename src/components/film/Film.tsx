@@ -19,6 +19,7 @@ import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
+import { startLook, stepLook } from "./look";
 import { StageMount, type StagePhase } from "./StageMount";
 import { HILLS, hillShift, sunPlace } from "./transitions";
 
@@ -238,6 +239,32 @@ function Stage({ data }: { data: TripView }) {
 
   useEffect(() => {
     if (director.current) director.current.calm = calm;
+  }, [calm]);
+  // Gerak pandang 2,5D (aturan host 13 Nov): --lx dan --ly (−1…1) dari kursor atau kemiringan HP; langit, bukit,
+  // dan isi slide bergeser menurut kedalamannya dan bidang teks sedikit memutar (film.css). Calm: diam.
+  useEffect(() => {
+    const el = root.current;
+    if (!el || calm) return;
+    const stop = startLook();
+    let raf = 0;
+    let lx = 0;
+    let ly = 0;
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      const l = stepLook();
+      if (Math.abs(l.x - lx) < 0.01 && Math.abs(l.y - ly) < 0.01) return;
+      lx = l.x;
+      ly = l.y;
+      el.style.setProperty("--lx", lx.toFixed(3));
+      el.style.setProperty("--ly", ly.toFixed(3));
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      stop();
+      el.style.removeProperty("--lx");
+      el.style.removeProperty("--ly");
+    };
   }, [calm]);
   useEffect(() => {
     if (director.current) director.current.paused = sheet !== null;

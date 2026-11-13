@@ -222,7 +222,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // Gerak pandang (aturan host 13 Nov, berlaku di semua slide): kamera parallax mengikuti kursor atau kemiringan
     // HP, perspective shift (kamera berpindah lalu memandang ulang objeknya), dan kedalaman yang mengikuti gulir
     // (maju di tengah perpindahan slide, mengikuti kemajuan gulir). Di slide gong ditambah zoom.
-    const lk = stepLook(dt);
+    const lk = stepLook();
     const here = !cue.moving && film.slides[cursor.from]?.kind === "gong";
     stageBus.setGongHere(here);
     zoomNow = approach(zoomNow, here ? stageBus.gongZoom() : 0, dt, GONG_ZOOM.ease);

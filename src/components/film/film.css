@@ -244,6 +244,33 @@ html.film-on body {
   translate: -50% -50%;
 }
 
+/* Gerak pandang 2,5D (aturan host 13 Nov: "perspective shift, scroll driven depth, kamera parallax" juga di film
+   2,5D). --lx dan --ly (−1…1) ditulis Film.tsx dari kursor atau kemiringan HP. Lapisan bergeser menurut kedalamannya:
+   langit paling sedikit dan berlawanan arah, bukit lebih jauh, isi slide searah pandang dan bidangnya sedikit memutar,
+   jadi perspektifnya sungguh berubah. Pakai properti translate/rotate/scale sendiri, yang ditumpuk di atas transform
+   yang dianimasikan transisi (tidak saling menimpa). Kedalaman ikut gulir ada di lintasan transisi (transitions.ts). */
+.fl-skies {
+  translate: calc(var(--lx, 0) * -6px) calc(var(--ly, 0) * -4px);
+  scale: 1.03;
+}
+
+.fl-hills {
+  translate: calc(var(--lx, 0) * -12px) calc(var(--ly, 0) * -6px);
+}
+
+.fl-layer {
+  perspective: 1400px;
+}
+
+.fl-layer[data-pos="cur"] > .fl-body {
+  translate: calc(var(--lx, 0) * 14px) calc(var(--ly, 0) * 8px);
+  rotate: y calc(var(--lx, 0) * 2.4deg);
+}
+
+.fl-layer[data-pos="cur"] > .fl-body--gallery {
+  rotate: none;
+}
+
 /* slide gong 3D (aturan host 13 Nov): cubit di layar adalah zoom gong, bukan zoom halaman (geser tetap dibaca
    lapisan input); teks penutup hari memudar saat gong didekati, supaya tidak menutupi gong yang membesar */
 .film[data-gongzoom] {

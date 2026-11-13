@@ -299,6 +299,54 @@ test.describe("gong ageng 3D", () => {
     await expect.poll(kick, { timeout: 15_000 }).toBe(0);
   });
 
+  const gongZoom = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
+
+  test("dua tahap gulir: gulir maju pertama mendekat ke gong, berikutnya pindah slide; mundur saat dekat menjauh dulu", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "roda mouse hanya di desktop");
+    await toGong(page, "?stage=low");
+    await film(page).hover();
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+    // mundur saat dekat: menjauh dulu, tetap di slide gong
+    await page.waitForTimeout(300);
+    await page.mouse.wheel(0, -100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+    // maju dua kali: dekat, lalu pindah ke Hari 2
+    await page.waitForTimeout(300);
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    await page.waitForTimeout(300);
+    await page.mouse.wheel(0, 100);
+    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong", { timeout: 15_000 });
+    // panah keyboard tetap per slide (tanpa tahap dekat)
+    await settled(page);
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await step(page, "ArrowDown");
+    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong");
+  });
+
+  test("zoom gong: tombol + dan −, dan Ctrl+roda; bidang sentuh tombol pukul ikut membesar", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    const strike = await toGong(page, "?stage=low");
+    const w0 = (await strike.boundingBox())!.width;
+    await page.keyboard.press("+");
+    await page.keyboard.press("+");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.4);
+    await expect.poll(async () => (await strike.boundingBox())!.width, { timeout: 15_000 }).toBeGreaterThan(w0 * 1.3);
+    await page.keyboard.press("-");
+    await page.keyboard.press("-");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    await film(page).hover();
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -200);
+    await page.keyboard.up("Control");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.5);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+  });
+
   test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
     const strike = await toGong(page, "?stage=low");
     await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
@@ -380,6 +428,52 @@ test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan
     await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
     await expect.poll(() => got.length, { timeout: 30_000 }).toBe(5);
     expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
+  });
+});
+
+test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspective shift", () => {
+  test("panggung 3D: kursor di tepi layar menggeser kamera", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open3d(page);
+    await page.mouse.move(640, 360);
+    await nextFrames(page, 6);
+    await page.waitForTimeout(1500);
+    const a = (await stats(page))!.camera;
+    await page.mouse.move(1270, 360);
+    await page.waitForTimeout(2000);
+    await nextFrames(page, 4);
+    const b = (await stats(page))!.camera;
+    expect(far(a, b)).toBeGreaterThan(0.15);
+  });
+
+  test("film 2,5D: kursor menggeser lapisan (--lx) dan memutar bidang teks", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open(page, "?stage=static");
+    await page.mouse.move(1270, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeGreaterThan(0.6);
+    const body = page.locator(".fl-layer[data-pos='cur'] > .fl-body");
+    expect(await body.evaluate((el) => getComputedStyle(el).rotate)).toMatch(/^y [1-9]/);
+    await page.mouse.move(10, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeLessThan(-0.6);
+  });
+
+  test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {
+    await open(page, "?stage=static");
+    await page.keyboard.press("ArrowDown");
+    const scales = await page.evaluate(async () => {
+      await new Promise((r) => setTimeout(r, 120));
+      const out: number[] = [];
+      for (const a of document.getAnimations()) {
+        const el = (a.effect as KeyframeEffect | null)?.target as Element | null;
+        if (!el?.classList.contains("fl-layer")) continue;
+        a.pause();
+        a.currentTime = Number(a.effect!.getComputedTiming().duration) * 0.45;
+        out.push(new DOMMatrix(getComputedStyle(el).transform).a);
+      }
+      return out;
+    });
+    expect(Math.max(...scales)).toBeGreaterThan(1.01);
+    expect(Math.min(...scales)).toBeLessThan(0.99);
   });
 });
 

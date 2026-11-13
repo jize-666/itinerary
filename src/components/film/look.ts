@@ -27,6 +27,8 @@ const state = {
   mouse: -1e9,
   base: null as Orientation | null,
   lastTilt: 0,
+  /** Saat penghalus terakhir dimajukan (ms): beberapa pemakai di frame yang sama tidak melajukannya dua kali. */
+  lastStep: 0,
 };
 let users = 0;
 let asked = false;
@@ -91,13 +93,15 @@ export function startLook(): () => void {
     if (--users === 0) {
       unbind?.();
       unbind = null;
-      Object.assign(state, { tx: 0, ty: 0, x: 0, y: 0, base: null, lastTilt: 0 });
+      Object.assign(state, { tx: 0, ty: 0, x: 0, y: 0, base: null, lastTilt: 0, lastStep: 0 });
     }
   };
 }
 
-/** Arah pandang yang dihaluskan, dimajukan `dt` detik. */
-export function stepLook(dt: number): Look {
+/** Arah pandang yang dihaluskan, dimajukan sampai sekarang (aman dipanggil beberapa pemakai di frame yang sama). */
+export function stepLook(now = performance.now()): Look {
+  const dt = state.lastStep ? Math.min(0.1, Math.max(0, (now - state.lastStep) / 1000)) : 0;
+  state.lastStep = now;
   state.x = approach(state.x, state.tx, dt, VIEW.ease);
   state.y = approach(state.y, state.ty, dt, VIEW.ease);
   return { x: state.x, y: state.y };
