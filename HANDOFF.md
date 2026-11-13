@@ -55,6 +55,8 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 
 **Tanggapan host atas garuda versi pertama yang mengikuti foto, kata demi kata:** "kayak tokek jir, jelek giginya kenap gitu". Tafsir Claude: kepala hijau rata berpita warna dengan moncong lurus panjang terbaca sebagai kadal (tokek), dan gigi bulat telur yang lepas-lepas terlihat jelek. Yang diubah: paruh atas melengkung dan mengait tajam ke bawah seperti rajawali dengan ujung emas besar, warna kepala bervolume (tidak bergaris), ukiran emas di pipi dan alis, rongga mata hitam, dan deret gigi runcing yang rapat menempel di gusi merah, dengan taring panjang di atas dan di bawah.
 
+**Arahan host berikutnya (dikirim saat garuda versi paruh bengkok sedang digambar), kata demi kata:** "baut lebih serem, lidah tajam, gigi tidak beraturan, muka monster, mahkota mewah". Yang dibuat: gigi dengan panjang, lebar, dan kemiringan acak (ada yang renggang, ada taring tambahan); lidah panjang meruncing dan bercabang tajam; muka monster (kulit hijau gelap, mata merah berurat dengan pupil celah, alis berat, duri emas di punggung paruh, kerut di moncong, tanduk lebih besar); mahkota mewah (jamang bertingkat dengan kelopak emas tinggi berlapis enamel merah, puncak berpermata, permata besar bersetting emas, dan lingkaran lidah api emas di tepi gelungan).
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
