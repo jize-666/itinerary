@@ -51,6 +51,8 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 
 **Arahan host 13 Nov sore berikutnya (sesudah melihat muka Murka bergaya wayang), kata demi kata:** "revisi garuda nya dong, ga serem malah kaya bangau". Tafsir Claude: sepasang garuda di bahu terbaca sebagai bangau karena paruhnya panjang lurus, kepalanya kecil, dan matanya bulat polos. Yang dibuat: garuda wayang yang garang. Kepalanya besar dan berat, paruh pendek tebal bengkok seperti rajawali, mulut menganga lebar dengan gusi merah, deret taring tak rata, dan lidah. Alis tebal menaungi mata melotot yang miring, jamang dan sumping prada, jambul api yang berdiri, dan sisik atau bulu di pipi. Bagian lain muka Murka tidak diubah.
 
+**Susulan host (dikirim saat garuda baru sedang digambar), kata demi kata:** "nih referensi", disertai dua foto topeng garuda Bali (tampak samping). Isi fotonya: kepala hijau (foto kedua abu kehijauan), moncong panjang dengan ujung paruh emas yang mengait, mulut menganga sangat lebar dengan rongga merah-jingga, deret gigi putih bulat di kedua rahang, taring panjang di belakang, lidah merah jambu menjulur; mata bulat besar melotot (putih, cincin jingga dan merah, pupil hitam); pita hitam bergaris putih halus di sepanjang rahang; telinga runcing dengan sumping emas yang menggantung; tanduk emas kecil di dahi; dan mahkota (gelungan) emas berukir tembus berlatar merah dengan permata merah dan hijau di belakang kepala. Garuda digambar ulang mengikuti foto ini, menghadap ke dalam seperti di foto gunungan.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
