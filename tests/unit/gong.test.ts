@@ -385,6 +385,14 @@ describe("hentakan dan getar kamera (cameraKick)", () => {
     }
   });
 
+  it("habis tepat nol sesudah KICK.end, dan potongannya tidak terlihat (< 0,01 piksel di layar 1080p)", () => {
+    expect(kickSize(cameraKick(KICK.end))).toBe(0);
+    expect(kickSize(cameraKick(KICK.end + 5))).toBe(0);
+    const before = cameraKick(KICK.end - 1e-6);
+    expect(Math.hypot(before.up, before.side) * 540).toBeLessThan(0.01);
+    expect(Math.abs(before.back)).toBeLessThan(1e-5);
+  });
+
   it("getarnya pelan: di bawah 5 Hz, jadi satu gelombang terbagi atas ≥ 12 frame di 60 fps", () => {
     for (const hz of [KICK.upHz, KICK.sideHz, KICK.rollHz]) expect(hz).toBeLessThanOrEqual(5);
     expect(KICK.backHz).toBeLessThan(2);

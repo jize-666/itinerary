@@ -321,6 +321,11 @@ export const KICK = {
   sideHz: 3.6,
   rollHz: 4.1,
   decay: 0.34,
+  /**
+   * Sesudah sekian detik hentakan dianggap habis dan tepat nol: kamera kembali diam di shot-nya dan panggung tidak
+   * lagi menghitungnya. Saat itu simpangannya tinggal < 0,01 piksel (e^(−2,5/0,34) × getar), jadi potongannya tak terlihat.
+   */
+  end: 2.5,
 } as const;
 
 export type CameraKick = Readonly<{
@@ -338,7 +343,7 @@ const NO_KICK: CameraKick = { back: 0, up: 0, side: 0, roll: 0 };
 
 /** Hentakan dan getar kamera `st` detik sesudah hantaman: nol dan tanpa kecepatan tepat saat kena, lalu meluruh. */
 export function cameraKick(st: number): CameraKick {
-  if (st <= 0) return NO_KICK;
+  if (st <= 0 || st >= KICK.end) return NO_KICK;
   const a = 1 - Math.exp(-st / KICK.rise);
   const attack = a * a;
   const shake = attack * Math.exp(-st / KICK.decay);
