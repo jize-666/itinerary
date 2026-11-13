@@ -148,13 +148,13 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 - **Sapuan antar bab kembali ke bayangan kayon DOM yang lama** (`.fl-wipe`), juga saat panggung 3D hidup. Gunungan 3D tidak lagi menyapu antar bab.
 - **Gunungan 3D dipakai untuk pembuka dan penutup film**: pembuka = gerbang sebelum prolog (adegan seperti prototipe: gunungan di depan blencong, bayangan di kelir, mata mengikuti kursor, klik membalik ke muka Murka, lalu disibak ke prolog); penutup = gunungan ditancapkan lagi sesudah film (tancep kayon). Rupa dua mukanya yang sudah diterima tetap dipakai.
 
-**Utang gong (dikerjakan sesudah gunungan, arahan host no. 7).** Kode langkah 3 sudah ada di branch, tetapi belum boleh disebut teruji:
-- **Tes unit:** terakhir dijalankan hanya `tests/unit/gong.test.ts`: 29 dari 30 lulus. Yang gagal: tes hentakan kamera (ayunan balik 42% dari hentakan, batasnya 40%). Sesudah itu `KICK.backDecay` diubah 0,24 → 0,22 (hitungan tangan: ±32%), **belum dijalankan ulang**. `pnpm test` penuh belum dijalankan sejak langkah 3.
-- **e2e:** suite penuh belum pernah jalan dengan kode langkah 3 (suite terakhir dihentikan di tengah karena memakai build lama). Tes baru: pukulan di `e2e/stage.spec.ts`, bunyi di `e2e/sound.spec.ts`. Belum ada tes e2e untuk hentakan kamera (`window.__lakonStage.kick` sudah disediakan: 0 = kamera diam).
-- **Cek gambar bingkai baru slide gong** (shot dilebarkan supaya kedua naga terlihat): belum dilihat sesudah build ulang.
-- **Video pratinjau gong saat ditabuh** (tur `gong` di `record-film.cjs`): belum direkam. Hentakan kamera baru dihitung angkanya, belum pernah ditonton.
-- `scripts/preview/measure-stage.cjs` belum dijalankan ulang; belum diuji di perangkat nyata.
-- Yang sudah lulus sesudah hentakan kamera dipasang: `pnpm typecheck` dan `pnpm lint`.
+**Utang gong (arahan host no. 7), dilunasi 13 Nov malam atas arahan "kalau belum test sekalian":**
+- **Tes unit:** `tests/unit/gong.test.ts` **31/31 lulus**, termasuk tes hentakan kamera yang dulu gagal (sesudah `KICK.backDecay` 0,22) dan satu tes baru (hentakan habis tepat nol sesudah `KICK.end`). `pnpm test` penuh: 294 lulus.
+- **Bug yang ditemukan e2e dan diperbaiki:** hentakan kamera meluruh eksponensial tanpa pernah tepat nol, jadi panggung terus menghitung transformasi kamera (sesudah 15 dtk masih 7,7e-22). Sekarang `cameraKick` mengembalikan nol sesudah `KICK.end` = 2,5 dtk; potongannya < 0,01 piksel (`e3be5fb`).
+- **e2e:** suite penuh pertama (sebelum perbaikan): 207 lulus, 13 dilewati (sama dengan sebelumnya), 2 gagal (tes hentakan kamera baru, desktop dan iPhone, karena bug di atas). Sesudah perbaikan, kelompok "gong ageng 3D" **16/16 lulus** (desktop + iPhone). Tes baru: hentakan kamera di `e2e/stage.spec.ts`. Suite penuh kedua (sesudah perbaikan dan pengembalian sapuan) sedang berjalan.
+- **Gambar bingkai baru slide gong:** sudah dicek di video: seluruh gayor, kedua naga, dan semburan apinya masuk layar; teks penutup hari di bawah gong.
+- **Video gong ditabuh:** direkam (tur `gong`, desktop 1920×1080, 60 fps) lalu dipotong ke bagian gong saja (11,4 dtk, dari tiba di slide gong sampai pukulan kedua dengan klik), karena lompatan bab di rekaman masih memakai gunungan 3D yang sesudahnya dikembalikan ke kayon lama. Dikirim ke host 13 Nov malam.
+- `scripts/preview/measure-stage.cjs`: belum dijalankan ulang (sesudah e2e). Belum diuji di perangkat nyata.
 
 **Hentakan dan getar kamera (arahan host no. 5), yang ditulis.** `cameraKick`, `KICK`, `kickSize` di `src/engine/stage/gong.ts` (murni); dijumlahkan per hantaman di `createStrikes().at()` (`kick`); dipasang ke kamera di `src/components/film/stage3d/runtime.ts` sesudah napas dan parallax. Angkanya: mundur ±0,9% jarak dalam ±0,08 dtk lalu berayun balik sekali; getar 3,6–4,8 Hz, paling jauh ±0,6% tinggi layar, habis ±1,5 dtk; mulai dari nol tanpa sentakan. Sekalian: hantaman lama sekarang dilupakan sesudah 12 dtk (dulu hanya 3 hantaman terakhir yang dihitung, sehingga pukulan keempat beruntun menggeser gong ±1 cm). Rinciannya di `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
 
