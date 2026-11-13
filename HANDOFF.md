@@ -35,6 +35,10 @@ Tafsir Claude atas revisinya (belum ditegaskan host): **muka Murka diganti selur
 
 **Arahan susulan 13 Nov sore (sesudah melihat gambar kedua muka Murka baru), kata demi kata:** "kaya badut, revisi buat lebih mengerikan lagi". Yang ditolak: wajah pucat merah muda berkepala bulat, pilin pastel di sekeliling kepala (mirip telinga dan permen), hidung bulat, kumis pilin, gigi rata dan rapi, lidah pendek membulat. Arah perbaikannya (tafsir Claude): kulit abu tulang dengan bayang gelap dan aksen merah darah, tulang pipi bersudut, alis berat yang menaungi mata, mata dalam rongga hitam dengan urat merah, hidung pesek seperti tengkorak, mulut menganga sangat lebar dengan taring panjang tak rata, lidah panjang runcing, tanduk, dan surai api merah gelap.
 
+**Arahan susulan berikutnya 13 Nov sore (dikirim saat versi ketiga sedang digambar), kata demi kata:** "terlalu bulat muka mukanya, kaya kentang. revisi ambil kaya di referensi lah". Yang ditolak: wajah yang dibungkus satu kontur bulat atau lonjong (versi pertama dan kedua bulat seperti kentang; versi ketiga, pelat abu bertanduk dengan surai api, masih berupa satu topeng utuh). Arah perbaikannya (tafsir Claude): susunan wajah mengikuti foto acuan sungguh-sungguh. Wajahnya lebar dan pendek, dan sosoknya tidak dibentuk kontur melainkan rakitan ukel (pilin) bertepi tajam: sepasang ukel mahkota putih di atas kepala, alis ukel yang memilin di pelipis, mata merah melotot yang berdekatan, moncong lebar bercuping pilin, pilin pipi bergerigi di kiri-kanan, mulut menganga selebar wajah dengan deret gigi, siung, dan taring, serta lidah panjang. Warnanya putih tulang, abu-hitam, merah darah, dan sedikit merah jambu kusam, dengan cecek di sepanjang alur seperti di foto. Tetap seram, sesuai arahan "badut" sebelumnya.
+
+Sesi berganti model di titik ini (host: "lanjut opus, baca handoff.md serta claude.md terlebih dahulu sebelum melanjutkan"). Versi ketiga muka Murka sudah ada di pelukis tetapi belum di-commit; versi keempat (di atas) menggantikannya.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
