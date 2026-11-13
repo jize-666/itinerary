@@ -7,7 +7,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
-**Status singkat (13 Nov sore): muka Murka baru (wajah barong penuh dari ukel, mengikuti foto acuan) sudah dipanggang, dilihat di panggung desktop dan HP tegak, di-commit (`a85965a`), dan gambarnya sudah dikirim ke host; menunggu tanggapan host. Video sapuan (tur `kayon`) sedang direkam. Yang BELUM: e2e, gerbang pembuka.** Jangan dianggap selesai.
+**Status singkat (13 Nov malam): muka Murka sudah dirombak bergaya wayang kulit mengikuti foto gunungan dari host, dengan garuda mengikuti foto topeng garuda Bali. Api geni saat mundur sudah diperkuat. Semuanya di-commit (`6f0e9db`), dan gambar datar serta tangkapan layar panggung (desktop, saat terbakar, HP tegak) sudah dikirim ke host; menunggu tanggapan. Yang BELUM: video sapuan (sedang direkam), e2e, gerbang pembuka.** Jangan dianggap selesai.
 
 **Arahan host yang berlaku** (kata demi kata ada di "Tugas 6: kemajuan" di bawah, no. 4, 7, 8): gunungan dikerjakan dulu dengan prioritas tertinggi; tes unit dan e2e gong ditunda sampai gunungan selesai; "redesign/remodel/upgrade ke duanya. jangan yang 'murka' aja". Tafsir Claude atas kalimat terakhir (belum ditegaskan host): sapuan antar bab dan gerbang pembuka dua-duanya dirancang ulang, dan gunungannya tidak hanya berwajah "Murka".
 
@@ -64,15 +64,20 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 | 1 | Kedua muka digambar ulang mengikuti foto kayon gapuran (siluet berbahu, bidang merah penuh lung prada, pohon hayat dililit naga, gapura, lar, penjaga) | **selesai**, sudah dilihat hasil panggang dan di panggung |
 | 2 | Kepala "merak" (makara) menelan atap pendapa, dibuat seram | **selesai** (belum ada tanggapan host atas versi seramnya) |
 | 3 | Cahaya shader diturunkan (lampu dalang, kilap prada, pendar blencong) karena gambar baru jauh lebih terang dari renda lama | **selesai** |
-| 4 | Muka Murka = wajah barong penuh di tengah kobaran api (arahan 13 Nov sore) | **selesai, versi kelima** (`a85965a`); gambar dikirim ke host, menunggu tanggapan. Versi 1–2 ditolak ("kaya badut", "kaya kentang"), versi 3–4 tidak dikirim |
-| 5 | Video sapuan kedua muka ke host | sedang direkam (tur `kayon`, desktop, tier High) |
+| 4 | Muka Murka: wajah barong penuh (versi 1–6, gaya vektor) | **diganti** oleh langkah 6; versi 1–2 ditolak ("kaya badut", "kaya kentang"), versi 5 ditolak ("kebakar masih kurang", tanduk dan pipi "kaya keong") |
+| 5 | Api geni lebih hebat (shader) | **selesai**: kulit hangus dengan retakan bara, lidah api hidup di atas garis bakar sampai keluar pucuk, percikan bara, tokoh tidak terbakar (`KAYON.spare`), kadar puncak `GENI.peak` 0,56 |
+| 6 | Muka Murka bergaya wayang mengikuti foto gunungan (arahan "khas wayang nya bener bener hilang") | **selesai**, menunggu tanggapan host |
+| 7 | Garuda mengikuti foto topeng garuda Bali (arahan "kaya bangau", "kayak tokek", "lebih serem ... mahkota mewah") | **selesai**, menunggu tanggapan host |
+| 8 | Video sapuan kedua muka ke host | sedang direkam (tur `kayon`) |
 
-**Muka Murka versi kelima, yang dibuat (13 Nov sore).** Di `scripts/assets/gunungan-paint.js`, bagian "RUPA MURKA":
-- Seluruh lembaran: sisik lidah api (kisi berselang, ±250 lidah, tepi kuning dan inti merah, urat prada, cecek tembus) yang memancar dari wajah dan makin tegak di atasnya.
-- Wajah (`barong`, digambar di satuan dasar lalu ×`FACE_SCALE` 1,1): lidah api di ubun-ubun, pilin abu-hitam di belakang pelipis dan rahang, sepasang ukel mahkota putih bergigi api, rahang bawah merah darah, rongga mulut gelap dengan kerongkongan tembus, deret gigi bawah dan atas yang tak rata, dua siung, lidah panjang, pilin pipi putih bergerigi, mata merah melotot berdekatan dengan kelopak curam, alis ukel dengan bulu api, moncong abu bersudut (lubang hidung dicat gelap, tidak tembus: kalau menyala tampak seperti sepasang mata kedua), tanda api di dahi, dan dua taring panjang.
-- Mata di (CX ± 119, KY − 44) dengan KY 1170 → `KAYON.eyes` = [0,415, 0,437] dan [0,585, 0,437].
-- Sisi geni (`geni-1000.webp`) sekarang hanya api, tanpa wajah iblis lama. Di shader, api geni tidak membakar elips wajah (`KAYON.face` = [0,5, 0,38, 0,3, 0,2]), jadi saat mundur wajah barong tampak muncul dari tengah kobaran dan api hanya menjilat rahang dan taringnya.
-- Muka Agung tidak berubah (teksturnya tidak ikut berubah saat dipanggang ulang).
+**Muka Murka sekarang (13 Nov malam), yang dibuat.** Di `scripts/assets/gunungan-paint.js`, bagian "RUPA MURKA", digambar dengan cara wayang kulit (tatahan tembus, sunggingan berjenjang lewat `band()`, cawi, drenjeman, prada):
+- Lidah api merah jambu bertatah (`lidah()`) menjulang ke pucuk dan condong ke sumbu, dengan inti api jingga di tengah; dasar merah anggur bertatah bubukan.
+- Kala kecil di tengah atas: rambut gimbal hitam bertepi kuning, wajah merah jambu, mata thelengan, taring.
+- Sepasang garuda menghadap ke dalam, mengikuti foto topeng garuda Bali: kepala hijau gelap, paruh bengkok berujung emas, mulut menganga dengan gigi tak beraturan dan banyak taring, lidah tajam bercabang, mata merah berurat berpupil celah, kumis hitam bergaris putih, duri dan tanduk emas, telinga runcing bersumping emas, gelungan merah berukir kelopak emas dengan permata dan lingkar lidah api emas, serta jamang bertingkat berenamel merah. Di belakangnya lar (sayap) emas berlapis.
+- Barong kuning di bawah (mata di `KY` 1440, `KAYON.eyes` [0,4343, 0,306] dan [0,5657, 0,306]): mahkota api, wajah bersungging kuning ke merah, mata thelengan bercincin merah dengan pupil tembus (tempat bara 3D), hidung besar, mulut lebar menyeringai dengan gigi runcing dan taring, janggut ungu, dan tangan bercakar yang keluar dari api hitam bertepi kuning.
+- Gapit naik di tengah lembaran, seperti di foto.
+- Api geni tidak membakar barong, kala, dan kedua garuda (`KAYON.spare`, empat elips).
+- Muka Agung tidak berubah.
 
 **Rancangan yang dipilih (12 Nov; rupanya diganti arahan 13 Nov di atas, susunan dua mukanya tetap).** Satu lembaran gunungan bermuka dua:
 - muka **Agung** (baru): bingkai dan panel dasar nila, pohon hayat utuh, medali surya-padma berlubang (cahaya tembus di sela kelopak), sepasang merak, naga, banteng dan macan, gapura dan dua raksasa penjaga. Tanpa wajah kala besar dan tanpa gigi api.
@@ -88,7 +93,7 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 - `src/components/film/stage3d/runtime.ts`: gunungan dibuat dan diperbarui tiap frame; `window.__lakonStage.kayon` (tekstur siap) dan `.sweep` (sedang menyapu).
 
 **Hasil tes dan kendala.**
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (292 tes; 11 di `tests/unit/gunungan.test.ts`, termasuk elips wajah yang memuat kedua mata) dan `pnpm build` lulus (13 Nov sore, sesudah muka Murka versi kelima). `pnpm test:e2e` **belum dijalankan** sejak gunungan ditulis.
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (294 tes; 13 di `tests/unit/gunungan.test.ts`: elips tokoh yang tidak terbakar, kurva `murkaRage`, jangkauan api) dan `pnpm build` lulus (13 Nov malam, sesudah garuda versi terakhir). Tiga tes e2e baru untuk sapuan 3D di `e2e/stage.spec.ts` sudah ditulis tetapi **belum dijalankan**. `pnpm test:e2e` **belum dijalankan** sejak gunungan ditulis.
 - Beban di panggung saat gunungan tampil (tier High, Chromium tanpa GPU): 24 draw call, ±52 ribu segitiga, kerja CPU per frame 1–3 ms. Tekstur Murka sedikit lebih besar karena api yang rapat (2000 px: 573 KB, sebelumnya 485 KB).
 - Shader gunungan sudah jalan di Chromium (tanpa GPU): arah muka, letak, lubang tembus, dan geni benar di tangkapan layar desktop dan iPhone tiruan.
 - Tes e2e sapuan kayon yang lama mungkin gagal bila mengandalkan `.fl-wipe` saat 3D hidup (belum dicek).
@@ -97,7 +102,7 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 
 **Langkah berikutnya, urut.**
 1. ~~Lihat sapuan di layar~~ sudah (13 Nov): desktop dan HP tegak, maju dan mundur. Alat: `window.__lakonStage.sweepAt = [p, arah, geni]` menahan gunungan di satu titik sapuan.
-2. ~~Muka Murka baru (wajah barong penuh)~~ sudah (versi kelima, `a85965a`); tunggu tanggapan host atas gambarnya.
+2. ~~Muka Murka baru~~ sudah: bergaya wayang dengan garuda mengikuti foto (`6f0e9db`); tunggu tanggapan host atas gambarnya.
 3. ~~Tes unit `gunungan.ts`~~ sudah (10 tes); e2e sapuan belum disesuaikan.
 3b. Video pratinjau sapuan (kedua muka) ke host.
 4. Gerbang pembuka: gunungan ditancapkan di depan blencong saat film dibuka, lalu disibak ke prolog; klik membaliknya ke muka Murka. Video ke host.
