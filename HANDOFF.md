@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 13 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
+Diperbarui 13 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **PR untuk semua pekerjaan sesi ini dibuka atas permintaan host (lihat bagian 0, akhir "Gerak pandang").** Tugas 6 (gong) selesai dan dicentang; Tugas 7 (gunungan): rupa diterima, sapuan kembali ke kayon lama, sisa pembuka dan penutup; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) terpasang di 3D dan 2,5D sebagai aturan tetap.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)

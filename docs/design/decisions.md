@@ -382,6 +382,16 @@ Aturan menggambar muka Murka, dari penolakan-penolakan di atas:
 
 **Api geni saat mundur** (host: "pas kebakar masih kurang"): kadar api naik begitu lembaran masuk layar dan penuh di tengah (`murkaRage`, puncak `GENI.peak` 0,56). Di bawah garis bakar kulit hangus dengan retakan bara dan kobaran tekstur geni; di atasnya lidah api per kolom yang tingginya acak dan percikan bara, sampai menjilat melewati pucuk dan keluar dari tepi lembaran (memudar sebelum batas bidang, jadi tidak terpotong lurus). Api menutupi kulit, bukan ditambahkan, supaya tidak memutih; warnanya ditulis di ruang linear karena keluaran panggung dikodekan sRGB. Barong, kala, dan kedua garuda tidak terbakar (`KAYON.spare`), jadi mereka tampak muncul dari tengah kobaran. Biayanya hanya saat mundur: beberapa noise dan satu sampel tekstur per piksel lembaran.
 
+## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
+
+Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).
+
+- **Satu sumber arah pandang** (`components/film/look.ts`) untuk 3D dan 2,5D: kursor mouse di desktop, kemiringan HP di HP (relatif terhadap cara memegang, yang pelan-pelan menjadi netral; ikut putaran layar). Izin sensor di iPhone diminta sekali dari sentuhan pertama di film. Reduced motion dan Calm: diam. Getar tangan diabaikan supaya panggung bisa beristirahat.
+- **3D:** kamera bergeser (`VIEW.shiftX/Y`) lalu memandang ulang objeknya, jadi perspektif sungguh berubah (bukan gambar yang digeser). Di tengah perpindahan slide kamera maju (`scrollDepth`) mengikuti kemajuan gulir; di HP mengikuti jari.
+- **Gong:** zoom dengan cubit dua jari, Ctrl+roda / cubit trackpad, dan tombol + / −; dua tahap gulir (maju pertama mendekat, berikutnya pindah; mundur saat dekat menjauh dulu). Panah keyboard tetap per slide. Saat dekat titik bidik berpindah ke pusat gong, bidang sentuh tombol pukul mengikuti gong tiap frame, dan teks penutup hari memudar.
+- **2,5D:** lapisan warna langit bergeser berlawanan arah dan sedikit; isi slide searah pandang dan bidang teksnya memutar ±2,4° (perspective shift). Kedalaman ikut gulir memakai `scale` di lintasan transisi: lapisan lama membesar seperti ditembus kamera, yang baru tumbuh dari kedalaman. Bukit tidak ikut bergeser (letaknya parallax gallery, harus nol dalam Calm). Semua lewat properti `translate`/`rotate`/`scale` sendiri, ditumpuk di atas `transform` yang dianimasikan transisi.
+- **Tafsir "scroll-driven depth" di slide selain gong** (belum ditegaskan host): kedalaman mengikuti kemajuan gulir di dalam perpindahan slide, bukan satu langkah gulir tambahan per slide, karena itu menggandakan jumlah gulir dan melanggar FR-20a ("satu event roda = tepat satu slide").
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].
