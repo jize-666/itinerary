@@ -45,6 +45,10 @@ Sesi berganti model di titik ini (host: "lanjut opus, baca handoff.md serta clau
 
 Rekaman video sapuan (tur `kayon`) yang sedang berjalan dihentikan karena memakai desain yang baru dikritik; direkam ulang sesudah revisi ini.
 
+**Arahan host 13 Nov sore berikutnya (dikirim saat api geni sedang disetel), kata demi kata, disertai foto acuan ketiga:** "khas wayang nya bener bener hilang, remodel. kaya refrensi". Foto acuan: sebuah gunungan wayang kulit sungguhan. Badan atasnya lidah-lidah api merah jambu-magenta yang menjulang ke pucuk, penuh tatahan tembus dan garis prada, dengan inti api jingga-kuning di tengah. Di tengah atas ada kala kecil berwajah merah jambu dengan rambut hitam, bertaring. Di kiri-kanan bahu ada sepasang kepala garuda merah jambu berjambul, paruh menganga, dengan sayap lar emas berlapis di tepi luar. Di bawah ada wajah barong besar kuning keemasan: mata bulat melotot berpupil hitam, hidung besar, mulut merah lebar menyeringai dengan deret gigi putih, janggut atau lidah ungu, dua tangan bercakar di kiri-kanan, dan dikelilingi lidah api hitam bertepi kuning. Gapit (tangkai) terlihat naik di tengah.
+
+Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya vektor: sisik api rapi, tanduk, kipas helai) kehilangan ciri wayang kulit, jadi muka Murka **dirombak total mengikuti susunan foto ketiga ini**. Cirinya ditiru lewat cara menggambar wayang kulit: tatahan tembus yang rapat (bubukan, seritan, mas-masan), sunggingan bertingkat (warna berjenjang dari gelap ke terang dengan garis tinta halus), dan prada di tepi. Susunannya: lidah api merah jambu menjulang, kala kecil di atas, sepasang garuda dan lar di bahu, barong kuning bertangan di bawah dengan api hitam bertepi kuning. Arahan sebelumnya tetap berlaku: seram (bukan badut), tidak ada pilin bulat seperti keong. Siluet lembaran tidak diubah, karena dipakai bersama muka Agung. Penyetelan api geni (shader) tetap dipakai dan diuji ulang di gambar baru.
+
 ### Revisi rupa (13 Nov)
 
 | Langkah | Isi | Status |
