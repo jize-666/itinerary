@@ -152,11 +152,3 @@ export function murkaRage(p: number): number {
 
 /** Bagian layar yang tertutup tabir pada letak `x` (NDC) saat pusat tabir di `veilX`: 1 = gelap penuh. */
 export const veilAt = (x: number, veilX: number) => 1 - smooth(VEIL.core, VEIL.core + VEIL.soft, Math.abs(x - veilX));
-
-/**
- * Jendela teks pada sapuan 3D, dalam kemajuan yang sudah di-ease: teks lama hilang sebelum gunungan masuk layar,
- * teks baru muncul sesudah tabir tersibak dari tengah layar. Teks itu DOM di atas kanvas, jadi tidak tertutup
- * tabir; karena itu dipudarkan lebih awal dan dimunculkan lebih lambat daripada sapuan DOM. `textAt` = saat
- * reveal teks baru dimulai, bagian dari lama transisi (waktu, bukan kemajuan).
- */
-export const SWEEP_TEXT = { outEnd: 0.1, inStart: 0.74, inEnd: 0.9, textAt: 0.66 } as const;

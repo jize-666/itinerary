@@ -10,9 +10,7 @@ import { DEPTH, type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
 import { type Film, galleryDrift, transitionKind } from "@/engine/slides/build-slides";
 import { SKY_LAYERS, type SkyKey, skyPath, type SunState } from "@/engine/slides/sky";
 import type { Key, Track } from "@/engine/slides/timeline";
-import { stageBus } from "@/engine/stage/bus";
 import { SKY_WINDOW } from "@/engine/stage/cue";
-import { SWEEP_TEXT } from "@/engine/stage/gunungan";
 
 export type Plan = {
   kind: "slide" | "inner" | "wipe" | "fade";
@@ -132,8 +130,6 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   const kind: Plan["kind"] = calm ? "fade" : base;
   const out = layerOf(root, a.scene);
   const inn = layerOf(root, b.scene);
-  // sapuan antar bab: gunungan 3D bila panggung hidup dan gunungannya siap; selain itu bayangan kayon DOM
-  const sweep3d = stageBus.claimSweep(kind === "wipe" && root.dataset.stage === "on");
 
   // ---- langit & matahari: mengikuti jam slide (gallery) atau crossfade antar langit tetap ----
   tracks.push(...skyTracks(root, skyPath(a, b), SKY_WINDOW[kind], kind === "fade", [galleryDrift(a), galleryDrift(b)]));
@@ -174,14 +170,8 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   }
 
   if (kind === "wipe") {
-    if (sweep3d) {
-      // panggung 3D hidup dan gunungannya siap: gunungan 3D yang menyapu (stage3d/gunungan.ts). Teks ada di atas
-      // kanvas, jadi tidak tertutup tabirnya: yang lama dipudarkan sebelum gunungan masuk, yang baru sesudah lewat.
-      if (out) tracks.push({ el: out, opacity: [[0, 1], [SWEEP_TEXT.outEnd, 0]] });
-      if (inn) tracks.push({ el: inn, opacity: [[SWEEP_TEXT.inStart, 0], [SWEEP_TEXT.inEnd, 1]] });
-      return { kind, tracks, dur: SLIDE.wipeDur, ease: "sineInOut", textAt: Math.round(SLIDE.wipeDur * SWEEP_TEXT.textAt) };
-    }
-    // bayangan kayon menyapu searah perjalanan; isi berganti saat intinya menutup layar
+    // bayangan kayon menyapu searah perjalanan; isi berganti saat intinya menutup layar. Juga saat panggung 3D
+    // hidup: keputusan host 13 Nov, gunungan 3D hanya untuk pembuka dan penutup film ("sapuanya pakai yang lama").
     const wipe = find(root, ".fl-wipe");
     if (wipe) tracks.push({ el: wipe, unit: "%", x: [[0, -66 * dir], [1, 66 * dir]], opacity: [[0, 0], [0.03, 1], [0.97, 1], [1, 0]] });
     if (out) tracks.push({ el: out, opacity: [[0, 1], [0.42, 1], [0.5, 0]] });

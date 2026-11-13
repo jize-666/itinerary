@@ -322,17 +322,16 @@ test.describe("gong ageng 3D", () => {
   });
 });
 
-type SweepWatch = { sweep: boolean; wipe: number };
-/** Pantau tiap frame mulai sekarang: apakah gunungan 3D sedang menyapu, dan seberapa tampak bayangan kayon DOM. */
+type SweepWatch = { wipe: number };
+/** Pantau tiap frame mulai sekarang: seberapa tampak bayangan kayon DOM. */
 async function watchSweep(page: Page) {
   await page.evaluate(() => {
-    const w = { sweep: false, wipe: 0 };
-    const win = window as unknown as { __sweepWatch: typeof w; __lakonStage?: { sweep: boolean } };
+    const w = { wipe: 0 };
+    const win = window as unknown as { __sweepWatch: typeof w };
     win.__sweepWatch = w;
     const el = document.querySelector(".fl-wipe");
     const loop = () => {
       if (win.__sweepWatch !== w) return;
-      if (win.__lakonStage?.sweep) w.sweep = true;
       if (el) w.wipe = Math.max(w.wipe, Number(getComputedStyle(el).opacity));
       requestAnimationFrame(loop);
     };
@@ -348,20 +347,16 @@ async function jump(page: Page, n: number) {
   await settled(page);
 }
 
-test.describe("gunungan 3D: sapuan antar bab", () => {
-  test("lompat bab maju dan mundur: gunungan 3D yang menyapu, bayangan kayon DOM tidak tampak", async ({ page }) => {
+test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan host 13 Nov)", () => {
+  test("panggung 3D hidup: lompat bab maju dan mundur disapu bayangan kayon DOM, gunungan 3D tidak menyapu", async ({ page }) => {
     await open3d(page);
     await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
     for (const n of [1, 0]) {
       await watchSweep(page);
       await jump(page, n);
       const seen = await sweepSeen(page);
-      expect(seen.sweep).toBe(true);
-      expect(seen.wipe).toBeLessThan(0.05);
+      expect(seen.wipe).toBeGreaterThan(0.5);
     }
-    // sesudah sapuan gunungan tidak tertinggal di layar
-    await nextFrames(page);
-    expect(await page.evaluate(() => (window as unknown as { __lakonStage: { sweep: boolean } }).__lakonStage.sweep)).toBe(false);
   });
 
   test("film 2,5D: bayangan kayon DOM tetap menyapu", async ({ page }) => {
@@ -369,7 +364,6 @@ test.describe("gunungan 3D: sapuan antar bab", () => {
     await watchSweep(page);
     await jump(page, 1);
     const seen = await sweepSeen(page);
-    expect(seen.sweep).toBe(false);
     expect(seen.wipe).toBeGreaterThan(0.5);
   });
 

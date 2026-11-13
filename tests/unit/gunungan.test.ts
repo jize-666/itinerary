@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { GENI, KAYON, SWEEP, SWEEP_TEXT, VEIL, kayonHalfWidth, kayonSize, murkaRage, sweepPose, veilAt } from "@/engine/stage/gunungan";
+import { GENI, KAYON, SWEEP, VEIL, kayonHalfWidth, kayonSize, murkaRage, sweepPose, veilAt } from "@/engine/stage/gunungan";
 
 const WIDE = 16 / 9;
 const TALL = 393 / 852;
@@ -130,14 +130,6 @@ describe("gunungan: sapuan antar bab", () => {
     expect(sweepPose(0.5, 1, WIDE, t).yaw).toBeCloseTo(SWEEP.flutter, 6);
   });
 
-  it("jendela teks: teks lama hilang sebelum teks baru muncul, dan teks baru baru muncul sesudah tabir tersibak", () => {
-    expect(SWEEP_TEXT.outEnd).toBeLessThan(SWEEP_TEXT.inStart);
-    expect(SWEEP_TEXT.inStart).toBeLessThan(SWEEP_TEXT.inEnd);
-    expect(SWEEP_TEXT.inEnd).toBeLessThanOrEqual(1);
-    // saat teks baru mulai muncul, tengah layar sudah tidak tertutup penuh
-    expect(veilAt(0, sweepPose(SWEEP_TEXT.inStart, 1, WIDE, 0).veilX)).toBeLessThan(1);
-    expect(veilAt(0, sweepPose(SWEEP_TEXT.inEnd, 1, WIDE, 0).veilX)).toBeLessThan(0.2);
-  });
 });
 
 describe("gunungan: api geni di muka Murka", () => {

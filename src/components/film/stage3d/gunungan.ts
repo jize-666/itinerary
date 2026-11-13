@@ -1,6 +1,7 @@
 /**
  * Gunungan (kayon) di depan kamera: lembaran kulit bertatah bermuka dua dan tabir gelap yang mengikutinya.
- * Dipakai untuk sapuan antar bab (pengganti bayangan kayon DOM saat panggung 3D hidup).
+ * Untuk pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama");
+ * sapuan antar bab tetap bayangan kayon DOM. Gerak `sweepPose` sekarang hanya dipakai pratinjau (`sweepAt`).
  *
  * Gambarnya dipanggang (`scripts/assets/bake-gunungan.cjs`), jadi di sini tidak ada kode melukis. Yang dibuat
  * 3D oleh shader, semuanya dalam satu draw call lembaran + satu draw call tabir, dan nol saat tidak dipakai:
