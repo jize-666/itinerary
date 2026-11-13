@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera|datar]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D (prolog, kamera
 // mengitari gong, lalu slide gong penutup Hari 1: dipukul sendiri saat tiba, lalu dipukul lagi dengan klik);
 // kayon = sapuan gunungan 3D: maju ke Hari 1 (muka Agung), mundur ke prolog (muka Murka, api geni naik), maju lagi;
 // kamera = gerak pandang di slide gong (desktop): parallax kursor, dua tahap gulir (dekat), zoom − dan +, menjauh,
-// lalu pindah slide dengan kedalaman ikut gulir.
+// lalu pindah slide dengan kedalaman ikut gulir; datar = gerak pandang film 2,5D (pakai STAGE=static): parallax
+// kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -118,6 +119,26 @@ const fs = require('fs');
     await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 4200); // lompat ke Hari 2: sapuan kayon
     await key('ArrowUp', 6800); // mundur ke gong penutup Hari 1: begitu tiba gong dipukul sendiri, kedua naga menyembur api
     await tap(p.locator(".fl-layer[data-pos='cur'] .fs-strike"), 5400); // dipukul lagi dengan klik (tabuh terangkat saat kursor di atas gong)
+    await finish();
+    return;
+  }
+
+  if (tour === 'datar') {
+    const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };
+    await w(1400); // prolog
+    await glide(1240, 300, 1800); // kursor ke kanan: langit bergeser berlawanan, judul searah dan memutar
+    await glide(60, 620, 1800); // ke kiri bawah
+    await glide(640, 360, 1000);
+    await key('ArrowDown', 2600); // perpindahan slide: yang lama membesar, yang baru tumbuh dari kedalaman
+    await key('ArrowDown', 2600);
+    await glide(1200, 360, 1500);
+    await glide(100, 360, 1500);
+    await glide(640, 360, 800);
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // lompat bab: bayangan kayon, kedalaman di baliknya
+    await key('ArrowDown', 2600); // ke gallery Hari 1
+    await glide(1200, 300, 1500);
+    await glide(100, 520, 1500);
+    await glide(640, 360, 800);
     await finish();
     return;
   }

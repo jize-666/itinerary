@@ -309,15 +309,15 @@ test.describe("gong ageng 3D", () => {
     await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
     expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
     // mundur saat dekat: menjauh dulu, tetap di slide gong
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(700); // gerakan roda baru = sesudah jeda (di bawah beban suite penuh, jeda pendek terbaca satu gerakan)
     await page.mouse.wheel(0, -100);
     await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
     expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
     // maju dua kali: dekat, lalu pindah ke Hari 2
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(700);
     await page.mouse.wheel(0, 100);
     await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(700);
     await page.mouse.wheel(0, 100);
     await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong", { timeout: 15_000 });
     // panah keyboard tetap per slide (tanpa tahap dekat)

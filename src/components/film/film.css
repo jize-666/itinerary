@@ -246,16 +246,14 @@ html.film-on body {
 
 /* Gerak pandang 2,5D (aturan host 13 Nov: "perspective shift, scroll driven depth, kamera parallax" juga di film
    2,5D). --lx dan --ly (−1…1) ditulis Film.tsx dari kursor atau kemiringan HP. Lapisan bergeser menurut kedalamannya:
-   langit paling sedikit dan berlawanan arah, bukit lebih jauh, isi slide searah pandang dan bidangnya sedikit memutar,
+   langit sedikit dan berlawanan arah, isi slide searah pandang dan bidangnya sedikit memutar,
    jadi perspektifnya sungguh berubah. Pakai properti translate/rotate/scale sendiri, yang ditumpuk di atas transform
    yang dianimasikan transisi (tidak saling menimpa). Kedalaman ikut gulir ada di lintasan transisi (transitions.ts). */
-.fl-skies {
+/* hanya lapisan warna langit yang bergeser (dilebarkan 10 px supaya tepi layar tidak terbuka); bukit dan wadah
+   langit tidak, karena letak bukit adalah parallax gallery yang diukur e2e dan harus nol dalam Calm */
+.fl-skies > .fl-sky {
+  inset: -10px;
   translate: calc(var(--lx, 0) * -6px) calc(var(--ly, 0) * -4px);
-  scale: 1.03;
-}
-
-.fl-hills {
-  translate: calc(var(--lx, 0) * -12px) calc(var(--ly, 0) * -6px);
 }
 
 .fl-layer {
