@@ -1,8 +1,12 @@
 "use client";
-import { createContext, type CSSProperties, type ReactNode, useContext, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, type CSSProperties, type ReactNode, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
 import type { Slide } from "@/engine/slides/build-slides";
 import type { LiveStore } from "@/engine/slides/live";
+import { stageBus } from "@/engine/stage/bus";
+import { gongSpot } from "@/engine/stage/gong";
+import { shotFor } from "@/engine/stage/shots";
 import { fmtDay, fmtSpan, waLink, waNumber } from "@/engine/today/format";
 import { guestShortName, type TripView } from "@/lib/trip";
 import { IconChat, IconClose, IconGong, IconHomeAdd, IconToday } from "../Icons";
@@ -38,7 +42,9 @@ const Rise = ({ as: Tag = "p", className = "", delay = 0, children }: { as?: "p"
   </Tag>
 );
 
-type Ctx = { data: TripView; slide: Slide };
+/** Letak lapisan slide di panggung: sedang ditonton, sedang masuk, sedang keluar, atau di luar layar. */
+export type LayerPos = "cur" | "in" | "out" | "away";
+type Ctx = { data: TripView; slide: Slide; pos?: LayerPos };
 
 function Hero({ data }: Ctx) {
   const { t, tx } = useI18n();
@@ -281,14 +287,83 @@ function DayIntro({ slide }: Ctx) {
   );
 }
 
-function GongClose({ slide }: Ctx) {
+/** Jeda sesudah tiba di slide gong sebelum gong dipukul sendiri (ms): kamera sudah diam, teks mulai muncul. */
+const AUTO_STRIKE_MS = 260;
+/** Film 2,5D: bunyi gong tidak ditumpuk lebih rapat dari ini (detik). Di 3D jaraknya diatur ayunan tabuh. */
+const FLAT_GAP_S = 0.6;
+
+function GongClose({ slide, pos }: Ctx) {
   const { t, tx } = useI18n();
   const [strikes, setStrikes] = useState(0);
+  const wrap = useRef<HTMLDivElement>(null);
+  const [spot, setSpot] = useState<Var>({});
+  const lastFlat = useRef(-1e9);
+  const cameFrom = useRef<LayerPos | undefined>(undefined);
+
+  /**
+   * Satu pukulan, dari tombol (klik, tap, Enter) atau otomatis saat tiba. Panggung 3D mengayun tabuh dan
+   * bunyinya dijadwalkan tepat saat tabuh kena; di film 2,5D riak cakram CSS dan bunyinya langsung.
+   */
+  const strike = useCallback(() => {
+    const due = stageBus.strikeGong();
+    if (due === "busy") return;
+    if (due === "flat") {
+      const now = performance.now() / 1000;
+      if (now - lastFlat.current >= FLAT_GAP_S) {
+        lastFlat.current = now;
+        audioStatus.scene("gong");
+      }
+    } else {
+      audioStatus.scene("gong", due);
+      audioStatus.scene("api-naga", due + 0.08, 0.55); // kedua naga menyembur begitu gong berbunyi
+    }
+    setStrikes((n) => n + 1);
+  }, []);
+
+  // tiba di slide gong: gong dipukul sendiri. Geseran jari yang dibatalkan ("out" → "cur") bukan tiba.
+  useEffect(() => {
+    const from = cameFrom.current;
+    cameFrom.current = pos;
+    if (pos === "in" || pos === "cur") audioStatus.prepare("gong", "api-naga");
+    if (pos !== "cur" || from === "out") return;
+    const timer = setTimeout(strike, AUTO_STRIKE_MS);
+    return () => clearTimeout(timer);
+  }, [pos, strike]);
+  useEffect(() => () => stageBus.setReady(false), []);
+
+  // bidang sentuh tombol ditaruh tepat di atas gong 3D: letak gong di layar dihitung dari shot slide ini
+  useLayoutEffect(() => {
+    const film = wrap.current?.closest<HTMLElement>(".film");
+    if (!film) return;
+    const place = () => {
+      const [w, h] = [film.clientWidth, film.clientHeight];
+      if (!w || !h) return;
+      const g = gongSpot(shotFor(slide, { aspect: w / h }), w / h);
+      setSpot({ "--gong-x": `${g.x.toFixed(2)}%`, "--gong-y": `${g.y.toFixed(2)}%`, "--gong-d": `${g.d.toFixed(2)}%` });
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(film);
+    return () => ro.disconnect();
+  }, [slide]);
+
   if (slide.kind !== "gong") return null;
   return (
-    <div className="fl-body fl-body--center fs-gongclose">
-      {/* pukulan gong menutup satu hari (gongan). Gong 3D + bunyinya menyusul di F3; ini versi panggung 2D. */}
-      <button type="button" className="fs-strike" data-press="" data-sfx="ui-pop" data-struck={strikes || undefined} aria-label={t("film.gong")} onClick={() => setStrikes((n) => n + 1)}>
+    <div ref={wrap} className="fl-body fl-body--center fs-gongclose" style={spot}>
+      {/* pukulan gong menutup satu hari (gongan): gong ageng 3D di panggung, atau cakram CSS di film 2,5D */}
+      <button
+        type="button"
+        className="fs-strike"
+        data-press=""
+        data-sfx="ui-pop"
+        data-struck={strikes || undefined}
+        aria-label={t("film.gong")}
+        onClick={strike}
+        onPointerEnter={(e) => e.pointerType === "mouse" && stageBus.setReady(true)}
+        onPointerLeave={() => stageBus.setReady(false)}
+        onFocus={(e) => e.currentTarget.matches(":focus-visible") && stageBus.setReady(true)}
+        onBlur={() => stageBus.setReady(false)}
+      >
         <span key={strikes} className="fs-gong fs-gong--small" aria-hidden="true">
           <i />
           <i />
@@ -457,7 +532,7 @@ const VIEWS: Partial<Record<Slide["kind"], (p: Ctx) => ReactNode>> = {
 };
 
 /** Isi satu slide (selain panel gallery, yang punya lapisan sendiri). */
-export function SlideContent({ data, slide }: Ctx) {
+export function SlideContent({ data, slide, pos }: Ctx) {
   const View = VIEWS[slide.kind];
-  return View ? <View data={data} slide={slide} /> : null;
+  return View ? <View data={data} slide={slide} pos={pos} /> : null;
 }

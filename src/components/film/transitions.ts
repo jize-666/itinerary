@@ -7,6 +7,7 @@
  *  - fade : Calm mode, crossfade tanpa gerak
  */
 import { DEPTH, type EaseName, INPUT, SLIDE } from "@/engine/motion/tokens";
+import { VIEW } from "@/engine/motion/view";
 import { type Film, galleryDrift, transitionKind } from "@/engine/slides/build-slides";
 import { SKY_LAYERS, type SkyKey, skyPath, type SunState } from "@/engine/slides/sky";
 import type { Key, Track } from "@/engine/slides/timeline";
@@ -170,16 +171,22 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
   }
 
   if (kind === "wipe") {
-    // bayangan kayon menyapu searah perjalanan; isi berganti saat intinya menutup layar
+    // bayangan kayon menyapu searah perjalanan; isi berganti saat intinya menutup layar. Juga saat panggung 3D
+    // hidup: keputusan host 13 Nov, gunungan 3D hanya untuk pembuka dan penutup film ("sapuanya pakai yang lama").
     const wipe = find(root, ".fl-wipe");
     if (wipe) tracks.push({ el: wipe, unit: "%", x: [[0, -66 * dir], [1, 66 * dir]], opacity: [[0, 0], [0.03, 1], [0.97, 1], [1, 0]] });
-    if (out) tracks.push({ el: out, opacity: [[0, 1], [0.42, 1], [0.5, 0]] });
-    if (inn) tracks.push({ el: inn, opacity: [[0.5, 0], [0.58, 1]] });
+    // kedalaman ikut gulir di balik bayangan kayon: yang lama terdorong ke depan, yang baru muncul dari kedalaman
+    const push = VIEW.layerPush * dir;
+    if (out) tracks.push({ el: out, opacity: [[0, 1], [0.42, 1], [0.5, 0]], scale: [[0, 1], [0.5, 1 + push]] });
+    if (inn) tracks.push({ el: inn, opacity: [[0.5, 0], [0.58, 1]], scale: [[0.5, 1 - push], [0.9, 1]] });
     return { kind, tracks, dur: SLIDE.wipeDur, ease: "sineInOut", textAt: Math.round(SLIDE.wipeDur * 0.52) };
   }
 
-  // slide: lapisan lama memudar sambil bergeser tipis; lapisan baru masuk dari arah perjalanan
-  if (out) tracks.push({ el: out, unit: "%", opacity: [[0, 1], [0.4, 0]], y: [[0, 0], [0.5, -7 * dir]] });
-  if (inn) tracks.push({ el: inn, unit: "%", opacity: [[0.24, 0], [0.72, 1]], y: [[0.24, 10 * dir], [1, 0]] });
+  // slide: lapisan lama memudar sambil bergeser tipis; lapisan baru masuk dari arah perjalanan. Kedalaman ikut gulir
+  // (aturan host 13 Nov): maju = yang lama membesar seperti ditembus kamera dan yang baru tumbuh dari kedalaman;
+  // mundur kebalikannya. Mengikuti kemajuan transisi, jadi di HP mengikuti jari.
+  const push = VIEW.layerPush * dir;
+  if (out) tracks.push({ el: out, unit: "%", opacity: [[0, 1], [0.4, 0]], y: [[0, 0], [0.5, -7 * dir]], scale: [[0, 1], [0.5, 1 + push]] });
+  if (inn) tracks.push({ el: inn, unit: "%", opacity: [[0.24, 0], [0.72, 1]], y: [[0.24, 10 * dir], [1, 0]], scale: [[0.24, 1 - push], [1, 1]] });
   return { kind, tracks, dur: SLIDE.dur, ease: "power3InOut", textAt: SLIDE.textIn };
 }

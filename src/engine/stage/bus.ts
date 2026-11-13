@@ -1,0 +1,79 @@
+/**
+ * Pesan kecil dari lapisan DOM film ke panggung 3D, supaya komponen film tidak perlu mengimpor three.
+ * Murni: tanpa DOM, tanpa three. Panggung mendaftarkan gong-nya saat hidup dan melepasnya saat dibongkar.
+ */
+
+import { clampZoom, GONG_ZOOM, gongStep, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
+
+/** Memulai satu pukulan. Mengembalikan detik sampai tabuh mengenai gong, atau `null` bila pukulan sebelumnya belum selesai. */
+type Striker = () => number | null;
+
+let striker: Striker | null = null;
+let ready = false;
+let kayon = false;
+/** Penonton sedang diam di slide gong dengan panggung 3D hidup: zoom dan dua tahap gulir berlaku. */
+let gongHere = false;
+/** Target zoom gong (0 = bidikan biasa, 1 = dekat); panggung menghaluskannya. */
+let zoom = 0;
+let pinchFrom = 0;
+
+export const stageBus = {
+  /** Panggung 3D: daftarkan gong. Mengembalikan pembatal. */
+  bindGong(fn: Striker): () => void {
+    striker = fn;
+    return () => {
+      if (striker === fn) striker = null;
+    };
+  },
+  /**
+   * Minta gong dipukul. Angka = pukulan dimulai, hantamannya sekian detik lagi; "busy" = pukulan sebelumnya
+   * belum selesai; "flat" = tidak ada gong 3D (film 2,5D), pemanggil mengurus sendiri bunyi dan riaknya.
+   */
+  strikeGong(): number | "busy" | "flat" {
+    if (!striker) return "flat";
+    return striker() ?? "busy";
+  },
+  /** Kursor atau fokus ada di atas gong: tabuh terangkat sedikit, tanda siap dipukul. */
+  setReady(on: boolean) {
+    ready = on;
+  },
+  ready: () => ready,
+  /** Panggung 3D: gunungan siap dipakai (teksturnya sudah di GPU) atau tidak lagi (panggung dibongkar). */
+  setKayon(on: boolean) {
+    kayon = on;
+  },
+  kayon: () => kayon,
+
+  // ---- zoom dan dua tahap gulir di slide gong (aturan host 13 Nov) ----
+  /** Panggung 3D, tiap frame: penonton diam di slide gong atau tidak. Meninggalkannya mengembalikan zoom ke 0. */
+  setGongHere(on: boolean) {
+    gongHere = on;
+    if (!on) zoom = 0;
+  },
+  gongHere: () => gongHere,
+  gongZoom: () => zoom,
+  /** Dua tahap gulir: true bila langkah ini dipakai untuk mendekat atau menjauh (slide tidak berpindah). */
+  gongStep(dir: 1 | -1): boolean {
+    if (!gongHere) return false;
+    const next = gongStep(zoom, dir);
+    if (next === null) return false;
+    zoom = next;
+    return true;
+  },
+  /** Ctrl+roda / cubit trackpad (`amount` = deltaY) atau tombol + / − (`amount` = ±1). true bila dipakai. */
+  gongZoomBy(kind: "wheel" | "key", amount: number): boolean {
+    if (!gongHere) return false;
+    zoom = kind === "wheel" ? zoomByWheel(zoom, amount) : clampZoom(zoom + amount * GONG_ZOOM.key);
+    return true;
+  },
+  /** Cubit dua jari mulai: true bila zoom gong berlaku (jari tidak lagi dibaca sebagai geser slide). */
+  gongPinchStart(): boolean {
+    if (!gongHere) return false;
+    pinchFrom = zoom;
+    return true;
+  },
+  /** Cubit berlangsung: jarak jari sekarang ÷ jarak awal. */
+  gongPinch(ratio: number) {
+    if (gongHere) zoom = zoomByPinch(pinchFrom, ratio);
+  },
+};

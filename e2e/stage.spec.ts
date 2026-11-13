@@ -9,7 +9,7 @@ import { filmFixture, json, seedSession, todayFixture, TRIP } from "./helpers";
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean };
+type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -184,6 +184,296 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
   test("tanpa ?fps tidak ada overlay", async ({ page }) => {
     await open3d(page);
     await expect(page.locator(".fl-fps")).toHaveCount(0);
+  });
+});
+
+test.describe("gong ageng 3D", () => {
+  test("gong 3D menggantikan cakram gong CSS; tanpa 3D cakram CSS tetap digambar", async ({ page }) => {
+    await open3d(page);
+    await expect(page.locator(".fs-hero .fs-gong")).toBeHidden();
+    await nextFrames(page);
+    const s = (await stats(page))!;
+    // prolog: gong, gayor, dan tabuh ada di layar (±25 ribu segitiga, tiga draw call di atas latar)
+    expect(s.triangles).toBeGreaterThan(40_000);
+    expect(s.triangles).toBeLessThan(60_000);
+    expect(s.calls).toBeLessThanOrEqual(26);
+  });
+
+  test("film 2,5D: cakram gong CSS tetap ada", async ({ page }) => {
+    await open(page, "?stage=static");
+    await expect(page.locator(".fs-hero .fs-gong")).toBeVisible();
+  });
+
+  test("memandang lanskap: gong di belakang kamera tidak digambar", async ({ page }) => {
+    await open3d(page);
+    await nextFrames(page);
+    const front = (await stats(page))!;
+    await page.goto("/film/?stage=low#day-1");
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await settled(page);
+    await step(page); // intro hari
+    await step(page); // panel pertama: kamera di tepi belakang pendapa, memandang Lawu
+    await expect(film(page)).toHaveAttribute("data-kind", "panel");
+    await nextFrames(page);
+    const vista = (await stats(page))!;
+    expect(vista.triangles).toBeLessThan(front.triangles - 20_000);
+    expect(vista.calls).toBeLessThan(front.calls);
+  });
+
+  /** Ke slide gong penutup Hari 1 (dari judul Hari 2, satu langkah mundur). */
+  async function toGong(page: Page, query: string) {
+    if (query.includes("static")) await open(page, query, "#day-2");
+    else await open3d(page, query, "#day-2");
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    return page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+  }
+  const strikes = async (page: Page) => (await stats(page))?.strikes ?? -1;
+
+  test("slide gong: bidang sentuh tombol pukul tepat di atas gong, teks berada di bawahnya", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
+    await expect(strike).toBeVisible();
+    await expect(strike).toHaveAccessibleName(/gong/i);
+    await expect(strike.locator(".fs-gong")).toBeHidden();
+    const [hit, text, view] = [await strike.boundingBox(), await page.locator(".fl-layer[data-pos='cur'] .fs-gongclose .fs-kicker").boundingBox(), page.viewportSize()!];
+    const [cx, cy] = [hit!.x + hit!.width / 2, hit!.y + hit!.height / 2];
+    // letaknya dihitung dari shot kamera: dekat tengah layar, di atas teks penutup hari, seluruhnya di dalam layar
+    expect(Math.abs(cx - view.width / 2)).toBeLessThan(view.width * 0.1);
+    expect(cy).toBeLessThan(view.height * 0.6);
+    expect(text!.y).toBeGreaterThan(cy);
+    expect(hit!.y).toBeGreaterThanOrEqual(0);
+    expect(hit!.width).toBeGreaterThan(Math.min(view.width, view.height) * 0.25);
+    expect(hit!.width).toBeLessThan(view.width);
+  });
+
+  test("tiba di slide gong: gong dipukul sendiri; klik dan Enter memukul lagi, tetapi tidak selama tabuh masih berayun", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
+    // otomatis: tabuh diayun ±0,26 dtk sesudah tiba dan kena ±0,5 dtk kemudian
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    // Pukulan baru ditolak sampai tabuh kembali menggantung (1,5 dtk sejak diayun). Dua klik dalam satu giliran:
+    // paling banyak satu yang diterima, berapa pun lambatnya halaman menggambar.
+    const twice = () =>
+      page.evaluate(() => {
+        const b = document.querySelector<HTMLButtonElement>(".fl-layer[data-pos='cur'] .fs-strike")!;
+        b.click();
+        b.click();
+        return b.dataset.struck ?? "";
+      });
+    await expect.poll(twice, { timeout: 20_000, intervals: [400] }).toBe("2");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+    // keyboard: Enter di tombol yang terfokus
+    await strike.focus();
+    await expect
+      .poll(
+        async () => {
+          await page.keyboard.press("Enter");
+          return strike.getAttribute("data-struck");
+        },
+        { timeout: 20_000, intervals: [400] },
+      )
+      .toBe("3");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(3);
+  });
+
+  test("hentakan kamera: diam sebelum pukulan, terhentak saat gong kena, lalu tenang lagi", async ({ page }) => {
+    const kick = () => page.evaluate(() => (window as unknown as { __lakonStage: { kick: number } }).__lakonStage.kick);
+    // pantau tiap frame: hentakan terbesar yang pernah tergambar
+    await page.addInitScript(() => {
+      const w = window as unknown as { __kickMax: number; __lakonStage?: { kick: number } };
+      w.__kickMax = 0;
+      const loop = () => {
+        w.__kickMax = Math.max(w.__kickMax, w.__lakonStage?.kick ?? 0);
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=low", "#day-2");
+    await nextFrames(page);
+    expect(await page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax)).toBe(0);
+    await step(page, "ArrowUp"); // ke slide gong penutup Hari 1: dipukul sendiri
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax), { timeout: 15_000 }).toBeGreaterThan(0);
+    // getar habis dalam ±1,5 dtk: kamera kembali diam
+    await expect.poll(kick, { timeout: 15_000 }).toBe(0);
+  });
+
+  const gongZoom = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
+
+  test("dua tahap gulir: gulir maju pertama mendekat ke gong, berikutnya pindah slide; mundur saat dekat menjauh dulu", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "roda mouse hanya di desktop");
+    await toGong(page, "?stage=low");
+    await film(page).hover();
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+    // mundur saat dekat: menjauh dulu, tetap di slide gong
+    await page.waitForTimeout(700); // gerakan roda baru = sesudah jeda (di bawah beban suite penuh, jeda pendek terbaca satu gerakan)
+    await page.mouse.wheel(0, -100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+    // maju dua kali: dekat, lalu pindah ke Hari 2
+    await page.waitForTimeout(700);
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    await page.waitForTimeout(700);
+    await page.mouse.wheel(0, 100);
+    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong", { timeout: 15_000 });
+    // panah keyboard tetap per slide (tanpa tahap dekat)
+    await settled(page);
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await step(page, "ArrowDown");
+    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong");
+  });
+
+  test("zoom gong: tombol + dan −, dan Ctrl+roda; bidang sentuh tombol pukul ikut membesar", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    const strike = await toGong(page, "?stage=low");
+    const w0 = (await strike.boundingBox())!.width;
+    await page.keyboard.press("+");
+    await page.keyboard.press("+");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.4);
+    await expect.poll(async () => (await strike.boundingBox())!.width, { timeout: 15_000 }).toBeGreaterThan(w0 * 1.3);
+    await page.keyboard.press("-");
+    await page.keyboard.press("-");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    await film(page).hover();
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -200);
+    await page.keyboard.up("Control");
+    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.5);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
+  });
+
+  test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
+    const strike = await toGong(page, "?stage=low");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await step(page, "ArrowDown"); // judul Hari 2
+    await page.waitForTimeout(1700);
+    expect(await strikes(page)).toBe(1);
+    await step(page, "ArrowUp");
+    await expect(strike).toHaveAttribute("data-struck", "2");
+    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+  });
+
+  test("film 2,5D: cakram gong CSS dipukul sendiri saat tiba dan beriak lagi tiap diklik", async ({ page }) => {
+    const strike = await toGong(page, "?stage=static");
+    await expect(strike.locator(".fs-gong")).toBeVisible();
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await strike.click();
+    await expect(strike).toHaveAttribute("data-struck", "2");
+    await strike.focus();
+    await page.keyboard.press("Enter");
+    await expect(strike).toHaveAttribute("data-struck", "3");
+  });
+});
+
+type SweepWatch = { wipe: number };
+/** Pantau tiap frame mulai sekarang: seberapa tampak bayangan kayon DOM. */
+async function watchSweep(page: Page) {
+  await page.evaluate(() => {
+    const w = { wipe: 0 };
+    const win = window as unknown as { __sweepWatch: typeof w };
+    win.__sweepWatch = w;
+    const el = document.querySelector(".fl-wipe");
+    const loop = () => {
+      if (win.__sweepWatch !== w) return;
+      if (el) w.wipe = Math.max(w.wipe, Number(getComputedStyle(el).opacity));
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  });
+}
+const sweepSeen = (page: Page) => page.evaluate(() => (window as unknown as { __sweepWatch: SweepWatch }).__sweepWatch);
+/** Lompat ke bab ke-`n` (0 = prolog) lewat rail, dan tunggu sampai transisinya selesai. */
+async function jump(page: Page, n: number) {
+  const before = await film(page).getAttribute("data-index");
+  await page.getByRole("navigation", { name: "Chapters" }).getByRole("button").nth(n).click();
+  await expect(film(page)).not.toHaveAttribute("data-index", before ?? "");
+  await settled(page);
+}
+
+test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan host 13 Nov)", () => {
+  test("panggung 3D hidup: lompat bab maju dan mundur disapu bayangan kayon DOM, gunungan 3D tidak menyapu", async ({ page }) => {
+    await open3d(page);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
+    for (const n of [1, 0]) {
+      await watchSweep(page);
+      await jump(page, n);
+      const seen = await sweepSeen(page);
+      expect(seen.wipe).toBeGreaterThan(0.5);
+    }
+  });
+
+  test("film 2,5D: bayangan kayon DOM tetap menyapu", async ({ page }) => {
+    await open(page);
+    await watchSweep(page);
+    await jump(page, 1);
+    const seen = await sweepSeen(page);
+    expect(seen.wipe).toBeGreaterThan(0.5);
+  });
+
+  test("tekstur gunungan hanya diunduh saat panggung 3D hidup, seukuran tier-nya", async ({ page }) => {
+    const got: string[] = [];
+    page.on("request", (r) => {
+      const m = /\/film\/gunungan\/([^?]+)/.exec(r.url());
+      if (m) got.push(m[1]!);
+    });
+    await open(page);
+    await page.waitForTimeout(1500);
+    expect(got).toEqual([]);
+    await page.goto("/film/?stage=low");
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await expect.poll(() => got.length, { timeout: 30_000 }).toBe(5);
+    expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
+  });
+});
+
+test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspective shift", () => {
+  test("panggung 3D: kursor di tepi layar menggeser kamera", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open3d(page);
+    await page.mouse.move(640, 360);
+    await nextFrames(page, 6);
+    await page.waitForTimeout(1500);
+    const a = (await stats(page))!.camera;
+    await page.mouse.move(1270, 360);
+    await page.waitForTimeout(2000);
+    await nextFrames(page, 4);
+    const b = (await stats(page))!.camera;
+    expect(far(a, b)).toBeGreaterThan(0.15);
+  });
+
+  test("film 2,5D: kursor menggeser lapisan (--lx) dan memutar bidang teks", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open(page, "?stage=static");
+    await page.mouse.move(1270, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeGreaterThan(0.6);
+    const body = page.locator(".fl-layer[data-pos='cur'] > .fl-body");
+    expect(await body.evaluate((el) => getComputedStyle(el).rotate)).toMatch(/^y [1-9]/);
+    await page.mouse.move(10, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeLessThan(-0.6);
+  });
+
+  test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {
+    await open(page, "?stage=static");
+    await page.keyboard.press("ArrowDown");
+    const scales = await page.evaluate(async () => {
+      await new Promise((r) => setTimeout(r, 120));
+      const out: number[] = [];
+      for (const a of document.getAnimations()) {
+        const el = (a.effect as KeyframeEffect | null)?.target as Element | null;
+        if (!el?.classList.contains("fl-layer")) continue;
+        a.pause();
+        a.currentTime = Number(a.effect!.getComputedTiming().duration) * 0.45;
+        out.push(new DOMMatrix(getComputedStyle(el).transform).a);
+      }
+      return out;
+    });
+    expect(Math.max(...scales)).toBeGreaterThan(1.01);
+    expect(Math.min(...scales)).toBeLessThan(0.99);
   });
 });
 

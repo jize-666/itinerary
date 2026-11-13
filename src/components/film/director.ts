@@ -10,6 +10,7 @@ import { type Axis, bindInput } from "@/engine/slides/input";
 import type { LiveStore } from "@/engine/slides/live";
 import { Timeline } from "@/engine/slides/timeline";
 import type { Cursor } from "@/engine/stage/cue";
+import { stageBus } from "@/engine/stage/bus";
 import { type Plan, planTransition, scrubSpan } from "./transitions";
 
 export type FilmView = Readonly<{ index: number; moving: { from: number; to: number } | null }>;
@@ -55,13 +56,21 @@ export class Director {
     this.unbind = bindInput(root, {
       axisFor: (dir) => this.axisFor(dir),
       spanFor: (dir) => scrubSpan(root, this.film, this.index, this.index + dir),
-      step: (dir, source) => this.store.dispatch({ type: "step", dir, source }),
+      // slide gong 3D: gulir maju pertama mendekat ke gong, gulir mundur saat dekat menjauh dulu (keyboard tetap per slide)
+      step: (dir, source) => {
+        if (source !== "key" && stageBus.gongStep(dir)) return;
+        this.store.dispatch({ type: "step", dir, source });
+      },
       edge: (to) => this.jump(to === "first" ? 0 : this.film.slides.length - 1),
       scrubStart: () => this.store.dispatch({ type: "scrubStart" }),
       scrub: (signed) => this.store.dispatch({ type: "scrub", signed }),
       scrubEnd: (flick) => this.store.dispatch({ type: "scrubEnd", flick }),
-      canScrub: () => !this.calm,
+      // di slide gong 3D jari tidak men-scrub: tiap geser dinilai saat dilepas, jadi dua tahap gulir berlaku juga di HP
+      canScrub: () => !this.calm && !stageBus.gongHere(),
       paused: () => this.paused,
+      zoom: (kind, amount) => stageBus.gongZoomBy(kind, amount),
+      pinchStart: () => stageBus.gongPinchStart(),
+      pinch: (ratio) => stageBus.gongPinch(ratio),
     });
     return () => {
       this.unbind?.();

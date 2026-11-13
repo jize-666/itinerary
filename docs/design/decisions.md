@@ -316,6 +316,82 @@ Tugas 5 di `CLAUDE.md`: kanvas, mesin film 3D, tier kualitas, pemantau FPS, dan 
 
 **Yang belum diketahui.** fps di perangkat nyata. Sesi kerja tidak punya GPU, jadi target ≥ 55 fps di HP flagship hanya bisa diukur host dengan membuka `/film/?fps`. Belum diuji di Safari, iPhone, atau MacBook.
 
+## Gong ageng 3D di panggung (12 Nov 2026), arahan host: "remodel/redesign gong kan? kerjakan", "per tugas output dulu, step by step"
+
+Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (mesin, model, dan pukulan beserta bunyinya). Atas arahan host 12 Nov malam ("lewati keris dan batara kala, lanjut langsung ke gunungan"), Batara Kala dan keris tidak dikerjakan di tugas ini; kepingan bara di prolog ikut ditunda.
+
+**Acuan dan yang diubah.** Bentuk dan perilakunya mengikuti prototipe "Gong Murka" yang disetujui host 8 Nov (`prototypes/gong/scene.js`): profil badan (pencu, leher, dua punggung recep, pundak, bau), gayor berlak merah dengan dua naga prada di ujung palang, tabuh berbantal kain, jantung bara di pencu. Cara menggambarnya ditulis ulang: prototipe memakai bahan bawaan three, tekstur kanvas 2048 px, bayangan dinamis, dan ±69 ribu segitiga hanya untuk badan gong.
+
+**Tiga draw call, tanpa tekstur.** Badan gong satu jala (52 titik profil × 88 juring, ±14 ribu segitiga); gayor, kedua naga, tali, cincin, dan cantolan satu jala; tabuh satu jala. Bahan (lak, prada, sisik, tulang, bara, tali, kayu, kain) dibedakan di shader lewat atribut `aTag`, bukan lewat material terpisah. Tambahan beban: ±25 ribu segitiga dan 3 draw call, hanya saat gong terlihat; saat kamera memandang lanskap (gallery) gong ada di belakang kamera dan tidak digambar (dijaga e2e).
+
+**Perunggu.** Semua detail dihitung di shader dari letak di muka gong: bekas tempa (sel Voronoi, kemiringannya dihitung langsung tanpa cuplikan tambahan), garis bubut di pencu dan punggung recep, patina kehijauan di tempat yang jarang tersentuh, pencu dan punggung recep yang mengilap karena sering tergosok. Detail yang lebih kecil dari satu piksel dipudarkan supaya tidak berkedip saat kamera bergerak. Karena langit malam nyaris hitam, pantulan logam tidak diambil dari langit saja: `stageEnv` menghitung lingkungan dari langit, lantai yang disinari blencong, dan pendar di sekitar arah lampu.
+
+**Bayangan tanpa shadow map.** Shader lantai memotong sinar dari tiap titik lantai ke blencong dengan bidang gayor; di bidang itu rakitan cukup diwakili bentuk 2D (cakram gong, dua tiang, palang, dua naga). Tepi bayangan makin lembut makin jauh jatuhnya. Biayanya beberapa operasi per piksel lantai, sama di semua tier.
+
+**Yang diubah dari prototipe, dan alasannya.**
+- **Tabuh digantung di cantolan tiang kanan**, tegak. Di prototipe tabuh melayang miring di udara; di adegan film itu terbaca sebagai benda yang lupa ditaruh. Saat dipukul tabuh lepas dari cantolan dan diayun dari titik yang sama dengan prototipe.
+- **Poros ayun gong di sisi bawah palang**, tempat talinya diikat, jadi tali dan gong berayun sebagai satu benda. Di prototipe porosnya di tengah tali dan talinya diam. Simpangan di pusat gong dipertahankan (±3,8 cm); periodenya 1,8 dtk (prototipe 1,6) karena bandulnya lebih panjang.
+- **Gelang naga digambar shader** (sisik prada berselang gelang lak), bukan cincin geometri: lebih hemat dan tepinya tetap tajam.
+- **Gigi bawah naga berdiri di rahangnya.** Di prototipe gigi itu melayang di bawah rahang (tidak terlihat dari jarak prototipe).
+- **Kamera terhentak dan bergetar saat gong kena, tetapi halus.** Audit host 8 Nov meminta "kamera diam, tanpa getar"; host 12 Nov malam: "pasang aja, asal lebih smooth dari yang kemarin". Getar lama (prototipe) langsung muncul dengan simpangan penuh dan bergetar 9–11 Hz. Yang sekarang (`cameraKick` di `src/engine/stage/gong.ts`): naik dari nol dengan kecepatan nol (frame pertama di 60 fps baru ±seperempat jalan), hentakan = kamera mundur ±1% jaraknya dalam ±0,08 dtk lalu berayun balik sekali (±sepertiga) seperti pegas berperedam, getar = sinus 3,6–4,8 Hz yang meluruh dalam ±1,5 dtk, paling jauh ±0,6% tinggi layar. Rumus tertutup dari detik sejak hantaman, jadi sama di laju frame berapa pun; pukulan beruntun dijumlahkan sehingga tidak melompat. Simpangan getar dihitung dalam ukuran layar, jadi sama di layar lebar dan tegak. Teks dan tombol (DOM) tidak ikut bergetar.
+
+**Pukulan (langkah 3).**
+- **Satu pemicu.** Lapisan DOM memanggil `stageBus.strikeGong()` (`src/engine/stage/bus.ts`, tanpa three). Otomatis 0,26 dtk sesudah tamu tiba di slide gong penutup hari (keputusan host 12 Nov: "otomatis dan manual"), dan manual lewat tombol `.fs-strike` (klik, tap, Enter). Geseran jari yang dibatalkan tidak dihitung tiba. Pukulan baru ditolak sampai tabuh kembali menggantung (1,5 dtk sejak diayun), jadi ketukan beruntun tidak menumpuk.
+- **Garis waktu** sama dengan prototipe: ancang-ancang, jeda, ayunan makin cepat, kena pencu di 0,52 dtk, pantulan, kembali ke cantolan. Semua efek dimulai tepat saat kena.
+- **Retakan bara dan riak digambar di shader badan gong**, tanpa jala atau draw call tambahan. Riak menempel di muka gong (audit host 8 Nov), empat cincin yang menyusul tiap 0,16 dtk.
+- **Bunga api dan napas api kedua naga = satu `Points`.** Geraknya rumus tertutup dari jam hantaman di vertex shader (tanpa pembaruan buffer dari JS), dan hanya digambar ±2,2 dtk per pukulan: satu draw call tambahan, nol saat diam. Di tier rendah titiknya lebih jarang (49% di Low), ukurannya tetap.
+- **Kilatan menerangi seluruh pendapa.** Satu lampu titik di depan pencu ada di uniform bersama (`uFlash`), jadi lantai, tiang, dan gayor ikut terang sesaat. Saat diam nilainya nol dan cabangnya di shader tidak dihitung.
+- **Pukulan beruntun.** Ayunan, dengung, dan panas adalah jumlah tanggapan tiap hantaman (bandul itu linear), jadi memukul gong yang masih berayun tidak membuatnya melompat. Riak dan api memakai dua lajur bergantian, supaya efek pukulan sebelumnya selesai dengan wajar.
+- **Satu jam.** Pukulan dicatat pada jam panggung (jam frame 3D terakhir), bukan jam dinding, supaya ayunan tabuh, efek, dan kamera tidak bisa saling bergeser.
+- **Bunyi.** `gong` dijadwalkan di Web Audio tepat saat tabuh kena (0,52 dtk sesudah dipicu) dan merendahkan gendhing sebentar; `api-naga` menyusul 0,08 dtk kemudian pada 55%. Keduanya dimuat lebih dulu saat tamu menuju slide gong. Suara dimatikan atau lakon belum dimulai: hening dan tidak ada yang diunduh (dijaga e2e).
+- **Film 2,5D** (Static, Calm, reduced motion): cakram gong CSS beriak dan bunyi gong langsung, otomatis saat tiba dan tiap diklik.
+- **Tabuh terangkat sedikit** saat kursor atau fokus keyboard ada di tombol pukul: tanda bahwa gong bisa dipukul.
+
+**Bingkai slide gong.** Di langkah 2 gong memenuhi paruh atas layar dan kedua naga terpotong tepi atas. Api naga tidak akan terlihat di bingkai itu. Jadi shot slide gong dilebarkan (`GONG_SHOT` di `shots.ts`): seluruh gayor, kedua naga, dan ruang semburan apinya ada di layar, gong di atas teks penutup hari. Harganya: gong lebih kecil di layar (±25% tinggi layar di desktop, sebelumnya ±48%). Bidang sentuh tombol pukul dihitung dari proyeksi gong pada shot ini (`gongSpot`), jadi selalu tepat di atas gong di layar lebar maupun tegak. Bingkai lebar ini dipertahankan sesudah hentakan kamera dipasang lagi (tafsir Claude, belum ditegaskan host): hentakannya mundur, jadi kedua naga dan apinya tetap di dalam layar.
+
+**Belum dikerjakan dari daftar prototipe:** gelombang kejut selayar (distorsi di rantai post) dan pendar api di mulut naga sebagai lampu tersendiri. Keduanya masuk akal digarap bersama post-FX di Tugas 8.
+
+**Lapisan DOM.** Saat 3D hidup, cakram gong CSS di prolog dan di slide penutup hari tidak digambar. Tombol pukul (`.fs-strike`) tetap ada untuk keyboard dan screen reader, menjadi bidang sentuh di atas gong, dan teks penutup hari turun ke bawah gong. Film 2,5D (Static, Calm, reduced motion) tidak berubah.
+
+**Kamera pratinjau.** `window.__lakonStage.cam = [x, y, z, lihatX, lihatY, lihatZ, fov]` memaksa kamera, untuk memotret detail dari dekat. Hanya dipakai skrip pratinjau.
+
+## Gunungan 3D di panggung: sapuan antar bab dan dua muka (12–13 Nov 2026), arahan host: "redesign/remodel/upgrade ke duanya", lalu dua foto acuan
+
+**Status: sapuan berjalan; muka Murka gaya wayang dan garuda menunggu tanggapan host. Gerbang pembuka belum dikerjakan.**
+
+**Cara menggambar.** Gambar gunungan dilukis kode kanvas (`scripts/assets/gunungan-paint.js`) dan dipanggang menjadi tekstur WebP (`scripts/assets/bake-gunungan.cjs` → `public/film/gunungan/`). Di perangkat tamu tidak ada kode melukis dan tidak ada jeda: tekstur diunduh di latar sesudah panggung 3D tampil (tier High 2000 px, lainnya 1500 px), dan sampai siap sapuan memakai bayangan kayon DOM yang lama. Lembaran dan tabirnya dua draw call, nol saat tidak menyapu. Relief, kilap prada, lubang tembus berdinding, kulit tembus cahaya, lentur, pupil bara, dan api geni semuanya dari shader dan dua tekstur per muka (warna + alpha, dan aux: prada, bagian menyala, tinggi relief).
+
+**Dua muka pada satu lembaran.** Maju ke bab berikutnya memperlihatkan muka **Agung**, mundur memperlihatkan baliknya, muka **Murka**, dengan api geni yang naik dari kaki.
+
+**Muka Agung (13 Nov).** Acuan host: foto kayon gapuran gaya Surakarta ("jangan mirip 100%, cukup jadi acuan"). Siluet berbahu dengan palemahan merah bersudut jungkit; bidang merah tua penuh lung-lungan prada yang lekuknya ditatah tembus; pohon hayat dililit naga hijau dengan burung dan kembang; banteng dan macan berhadapan; gapura beratap tumpang dengan pintu hijau, undakan, dan lantai ubin; sepasang makara biru yang rahangnya mengapit atap seolah menelan pendapa (host: "seolah olah menelan pendapa"), dibuat seram karena versi pertama ditolak ("ini kaya badut"); kala kecil di puncak gapura; sepasang lar; dua raksasa penjaga bertameng.
+
+**Muka Murka (13 Nov sore–malam).** Arahan host, urut:
+1. Foto sisi api sebuah kayon: "harusnya full muka barong seperti ini". Versi 1–2 (wajah pucat bulat) ditolak: "kaya badut", lalu "terlalu bulat muka mukanya, kaya kentang".
+2. Versi 5 (wajah dirakit dari ukel, sisik api) ditolak: "mode murka, pas kebakar masih kurang. dan tanduk sama yang di pipinya itu kaya keong".
+3. Foto gunungan wayang kulit sungguhan: "khas wayang nya bener bener hilang, remodel. kaya refrensi". Muka Murka dirombak total mengikuti susunan foto ini.
+4. Garuda di bahu: "ga serem malah kaya bangau", lalu foto topeng garuda Bali ("ikuti garuda seperti foto yang saya kirim"), lalu "kayak tokek ... jelek giginya", lalu "lebih serem, lidah tajam, gigi tidak beraturan, muka monster, mahkota mewah".
+
+Susunan sekarang (mengikuti foto gunungan): lidah api merah jambu bertatah menjulang ke pucuk dengan inti jingga, kala kecil berambut gimbal hitam di tengah atas, sepasang garuda menghadap ke dalam dengan lar emas, barong kuning bertangan di bawah dalam api hitam bertepi kuning, dan gapit naik di tengah.
+
+Aturan menggambar muka Murka, dari penolakan-penolakan di atas:
+- **Ciri wayang kulit datang dari cara menggambar**: tatahan tembus yang rapat (bubukan, seritan), sunggingan berjenjang dengan batas tegas (`band()`, bukan gradasi halus), cawi (arsir tinta halus), drenjeman (deret titik), dan prada di tepi. Gaya vektor rapi (sisik seragam, bidang polos) kehilangan ciri ini.
+- **Jangan ada pilin bulat rapat** (dibaca "keong"), dan jangan bungkus wajah dengan satu kontur bulat ("kentang").
+- **Seram, bukan lucu**: gigi tidak beraturan (panjang, lebar, dan kemiringan acak, ada celah, banyak taring), lidah tajam bercabang, mata merah berurat dengan pupil celah atau mata thelengan dalam rongga gelap, alis berat. Gigi bulat rapi dan mata bulat polos dibaca badut atau kadal.
+- **Garuda mengikuti foto topeng garuda Bali**: paruh pendek yang bengkok tajam dengan ujung emas (paruh panjang lurus dibaca bangau atau tokek), kulit hijau bervolume (bukan pita warna), kumis hitam bergaris putih, telinga runcing bersumping emas, dan mahkota mewah (gelungan berukir, kelopak emas berenamel merah, permata bersetting).
+- **Lubang tembus yang menyala tidak boleh terbaca sebagai mata kedua.** Yang tembus hanya pupil barong (tempat bara 3D), tatahan, dan kerongkongan.
+
+**Api geni saat mundur** (host: "pas kebakar masih kurang"): kadar api naik begitu lembaran masuk layar dan penuh di tengah (`murkaRage`, puncak `GENI.peak` 0,56). Di bawah garis bakar kulit hangus dengan retakan bara dan kobaran tekstur geni; di atasnya lidah api per kolom yang tingginya acak dan percikan bara, sampai menjilat melewati pucuk dan keluar dari tepi lembaran (memudar sebelum batas bidang, jadi tidak terpotong lurus). Api menutupi kulit, bukan ditambahkan, supaya tidak memutih; warnanya ditulis di ruang linear karena keluaran panggung dikodekan sRGB. Barong, kala, dan kedua garuda tidak terbakar (`KAYON.spare`), jadi mereka tampak muncul dari tengah kobaran. Biayanya hanya saat mundur: beberapa noise dan satu sampel tekstur per piksel lembaran.
+
+## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
+
+Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).
+
+- **Satu sumber arah pandang** (`components/film/look.ts`) untuk 3D dan 2,5D: kursor mouse di desktop, kemiringan HP di HP (relatif terhadap cara memegang, yang pelan-pelan menjadi netral; ikut putaran layar). Izin sensor di iPhone diminta sekali dari sentuhan pertama di film. Reduced motion dan Calm: diam. Getar tangan diabaikan supaya panggung bisa beristirahat.
+- **3D:** kamera bergeser (`VIEW.shiftX/Y`) lalu memandang ulang objeknya, jadi perspektif sungguh berubah (bukan gambar yang digeser). Di tengah perpindahan slide kamera maju (`scrollDepth`) mengikuti kemajuan gulir; di HP mengikuti jari.
+- **Gong:** zoom dengan cubit dua jari, Ctrl+roda / cubit trackpad, dan tombol + / −; dua tahap gulir (maju pertama mendekat, berikutnya pindah; mundur saat dekat menjauh dulu). Panah keyboard tetap per slide. Saat dekat titik bidik berpindah ke pusat gong, bidang sentuh tombol pukul mengikuti gong tiap frame, dan teks penutup hari memudar.
+- **2,5D:** lapisan warna langit bergeser berlawanan arah dan sedikit; isi slide searah pandang dan bidang teksnya memutar ±2,4° (perspective shift). Kedalaman ikut gulir memakai `scale` di lintasan transisi: lapisan lama membesar seperti ditembus kamera, yang baru tumbuh dari kedalaman. Bukit tidak ikut bergeser (letaknya parallax gallery, harus nol dalam Calm). Semua lewat properti `translate`/`rotate`/`scale` sendiri, ditumpuk di atas `transform` yang dianimasikan transisi.
+- **Tafsir "scroll-driven depth" di slide selain gong** (belum ditegaskan host): kedalaman mengikuti kemajuan gulir di dalam perpindahan slide, bukan satu langkah gulir tambahan per slide, karena itu menggandakan jumlah gulir dan melanggar FR-20a ("satu event roda = tepat satu slide").
+
 ## Belum masuk preview v1 (direncanakan setelah arah disetujui)
 - ~~Dua raksasa penjaga & burung~~ (sudah di v2). ~~Banteng & macan~~ (sudah di v3). **Kera** belum.
 - Sisi belakang bergambar api sudah ada di v2. Kebenaran detailnya tetap perlu dicek guide/translator [V].

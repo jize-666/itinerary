@@ -50,7 +50,19 @@ export function skyStretch(pos: Vec3, look: Vec3, fov: number): number {
   return clamp(SKY_TOP / Math.max(top, 1), 1, 5);
 }
 
-type Orbit = { az: number; el: number; r: number; look?: Vec3; fov: number; lamp?: number; dim?: number; /** Lebar adegan (m) yang harus muat mendatar. */ width?: number };
+type Orbit = {
+  az: number;
+  el: number;
+  r: number;
+  look?: Vec3;
+  fov: number;
+  lamp?: number;
+  dim?: number;
+  /** Lebar adegan (m) yang harus muat mendatar. */
+  width?: number;
+  /** Layar tegak: seberapa jauh titik pandang dinaikkan (bawaan `PORTRAIT_TILT`). */
+  tilt?: number;
+};
 
 /**
  * Lensa untuk layar tegak: sudut vertikal dilebarkan (sampai batas wajar), sisanya dikejar dengan memundurkan
@@ -77,7 +89,7 @@ function orbitShot(o: Orbit, aspect: number): Shot {
   const [az, el] = [o.az * RAD, o.el * RAD];
   const pos: Vec3 = [look[0] + r * Math.sin(az) * Math.cos(el), Math.max(0.35, look[1] + r * Math.sin(el)), look[2] + r * Math.cos(az) * Math.cos(el)];
   // layar tegak: kamera mendongak sedikit, supaya lantai tidak memenuhi separuh layar di belakang teks
-  const aim: Vec3 = [look[0], look[1] + PORTRAIT_TILT * r * clamp(1 - aspect, 0, 0.6), look[2]];
+  const aim: Vec3 = [look[0], look[1] + (o.tilt ?? PORTRAIT_TILT) * r * clamp(1 - aspect, 0, 0.6), look[2]];
   return { pos, look: aim, fov, lamp: o.lamp ?? 1, dim: o.dim ?? 0, focus: dist(pos, look), rig: "orbit", sky: skyStretch(pos, aim, fov) };
 }
 
@@ -115,6 +127,13 @@ export type Frame = Readonly<{ aspect: number; horizon?: number }>;
 /** Cakrawala gallery bila ukuran lintasan matahari belum diketahui. */
 export const GALLERY_HORIZON = -0.46;
 
+/**
+ * Shot slide gong penutup hari: seluruh gayor muat di layar, kedua naga di tepi atas (dengan ruang untuk semburan
+ * apinya), gong di atas teks penutup hari. Saat gong kena kamera hanya terhentak mundur dan bergetar sedikit
+ * (`cameraKick` di gong.ts), jadi semua yang terjadi saat pukulan harus sudah ada di dalam bingkai ini.
+ */
+const GONG_SHOT: Orbit = { az: -16, el: -2, r: 9.4, look: [0, 1.3, 0], fov: 32, lamp: 1.5, dim: 0.12, width: 5, tilt: 0.04 };
+
 /** Shot untuk satu slide pada layar `frame`. */
 export function shotFor(slide: Slide, frame: Frame): Shot {
   const aspect = frame.aspect;
@@ -149,7 +168,7 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
       // memandang dari atas: lanskap terhampar di balik kartu, langit dan matahari di pita atas
       return galleryShot(galleryDrift(slide), frame);
     case "gong":
-      return orbitShot({ az: -20, el: -6, r: 4.3, look: [0, 1.28, 0], fov: 32, lamp: 1.5, dim: 0.12, width: GONG_WIDTH * 0.72 }, aspect);
+      return orbitShot(GONG_SHOT, aspect);
     case "epilogue":
       return orbitShot({ az: 0, el: 14, r: 11, look: [0, 1.8, 0], fov: 36, lamp: 0.8, dim: 0.12, width: 7 }, aspect);
     case "pass":
@@ -220,6 +239,16 @@ export function rayThrough(shot: Pick<Shot, "pos" | "look" | "fov">, aspect: num
   const h = Math.tan((shot.fov * RAD) / 2);
   const [x, y] = [nx * h * aspect, ny * h];
   return norm([fwd[0] + right[0] * x + up[0] * y, fwd[1] + right[1] * x + up[1] * y, fwd[2] + right[2] * x + up[2] * y]);
+}
+
+/** Titik dunia `p` di layar: `x`, `y` dalam NDC (−1…1, y ke atas) dan jaraknya di depan kamera (`depth` ≤ 0 = di belakang). */
+export function projectPoint(shot: Pick<Shot, "pos" | "look" | "fov">, aspect: number, p: Vec3): { x: number; y: number; depth: number } {
+  const { right, up, fwd } = basisOf(shot);
+  const v: Vec3 = [p[0] - shot.pos[0], p[1] - shot.pos[1], p[2] - shot.pos[2]];
+  const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const depth = dot(v, fwd);
+  const h = Math.tan((shot.fov * RAD) / 2) * (Math.abs(depth) || 1e-6);
+  return { x: dot(v, right) / (h * aspect), y: dot(v, up) / h, depth };
 }
 
 /**

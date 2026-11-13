@@ -222,6 +222,63 @@ html.film-on body {
   background: var(--fl-grain-tex);
 }
 
+/* gong ageng sekarang 3D di kanvas: cakram gong CSS (prolog dan penutup hari) tidak digambar. Tombol pukul tetap
+   ada untuk keyboard dan screen reader; ia menjadi bidang sentuh tak terlihat di atas gong, teks turun ke bawahnya. */
+.film[data-stage] .fs-gong,
+.film[data-stage] .fs-strike svg {
+  visibility: hidden;
+}
+
+.film[data-stage] .fs-gongclose {
+  align-content: end;
+  padding-bottom: calc(var(--bottom) + clamp(14px, 5vh, 56px));
+}
+
+/* letak dan garis tengah gong di layar dihitung dari shot kamera (GongClose di Slides.tsx) */
+.film[data-stage] .fs-strike {
+  position: absolute;
+  top: var(--gong-y, 38%);
+  left: var(--gong-x, 50%);
+  width: var(--gong-d, min(46vh, 70vw));
+  margin: 0;
+  translate: -50% -50%;
+}
+
+/* Gerak pandang 2,5D (aturan host 13 Nov: "perspective shift, scroll driven depth, kamera parallax" juga di film
+   2,5D). --lx dan --ly (−1…1) ditulis Film.tsx dari kursor atau kemiringan HP. Lapisan bergeser menurut kedalamannya:
+   langit sedikit dan berlawanan arah, isi slide searah pandang dan bidangnya sedikit memutar,
+   jadi perspektifnya sungguh berubah. Pakai properti translate/rotate/scale sendiri, yang ditumpuk di atas transform
+   yang dianimasikan transisi (tidak saling menimpa). Kedalaman ikut gulir ada di lintasan transisi (transitions.ts). */
+/* hanya lapisan warna langit yang bergeser (dilebarkan 10 px supaya tepi layar tidak terbuka); bukit dan wadah
+   langit tidak, karena letak bukit adalah parallax gallery yang diukur e2e dan harus nol dalam Calm */
+.fl-skies > .fl-sky {
+  inset: -10px;
+  translate: calc(var(--lx, 0) * -6px) calc(var(--ly, 0) * -4px);
+}
+
+.fl-layer {
+  perspective: 1400px;
+}
+
+.fl-layer[data-pos="cur"] > .fl-body {
+  translate: calc(var(--lx, 0) * 14px) calc(var(--ly, 0) * 8px);
+  rotate: y calc(var(--lx, 0) * 2.4deg);
+}
+
+.fl-layer[data-pos="cur"] > .fl-body--gallery {
+  rotate: none;
+}
+
+/* slide gong 3D (aturan host 13 Nov): cubit di layar adalah zoom gong, bukan zoom halaman (geser tetap dibaca
+   lapisan input); teks penutup hari memudar saat gong didekati, supaya tidak menutupi gong yang membesar */
+.film[data-gongzoom] {
+  touch-action: none;
+}
+
+.film[data-gongzoom] .fs-gongclose {
+  opacity: calc(1 - var(--gong-zoom, 0) * 0.92);
+}
+
 /* overlay FPS (?fps): hanya untuk uji */
 .fl-fps {
   position: absolute;

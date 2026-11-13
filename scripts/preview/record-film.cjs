@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera|datar]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
-// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong).
+// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D (prolog, kamera
+// mengitari gong, lalu slide gong penutup Hari 1: dipukul sendiri saat tiba, lalu dipukul lagi dengan klik);
+// kayon = sapuan gunungan 3D: maju ke Hari 1 (muka Agung), mundur ke prolog (muka Murka, api geni naik), maju lagi;
+// kamera = gerak pandang di slide gong (desktop): parallax kursor, dua tahap gulir (dekat), zoom − dan +, menjauh,
+// lalu pindah slide dengan kedalaman ikut gulir; datar = gerak pandang film 2,5D (pakai STAGE=static): parallax
+// kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
-// Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p), jadi pakai K kecil (0,04) supaya
-// gerak kamera tetap mulus di video; rekaman 35 detik lalu memakan ±15 menit.
+// Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
+// tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
+// kecil, dan jangan menjalankan pekerjaan berat lain selama merekam. Rekaman 38 detik memakan ±35 menit.
+// Semua frame screencast diambil (everyNthFrame 1): melewatkan frame membuat video patah-patah.
 // <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo).
-// Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI lewat CDP
-// Animation.setPlaybackRate; timer & rAF diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
+// Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI dan jam rAF lewat CDP
+// Animation.setPlaybackRate; timer dan performance.now diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
 // 60 fps. desktop = 1920×1080, iphone = 1080 px lebar (tegak). Butuh: playwright (Chromium), ffmpeg.
 const { chromium, devices } = require('playwright');
 const { spawn } = require('child_process');
@@ -34,7 +41,10 @@ const fs = require('fs');
     const st = window.setTimeout.bind(window), si = window.setInterval.bind(window), raf = window.requestAnimationFrame.bind(window);
     window.setTimeout = (fn, ms = 0, ...a) => st(fn, ms / k, ...a);
     window.setInterval = (fn, ms = 0, ...a) => si(fn, ms / k, ...a);
-    window.requestAnimationFrame = (cb) => raf((ts) => cb(t0 + (ts - t0) * k));
+    // Jam rAF sudah diperlambat Animation.setPlaybackRate (rAF memakai jam document.timeline), jadi tidak diskalakan
+    // lagi di sini: dulu terskala dua kali dan jam panggung 3D berjalan K kali terlalu lambat. Sebelum laju itu
+    // terpasang (awal muat halaman) jam rAF masih jam nyata; di situ dipakai jam virtual.
+    window.requestAnimationFrame = (cb) => raf((ts) => cb(Math.min(ts, performance.now())));
   }, K);
   await ctx.route('**/functions/v1/trip-data', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(DATA, 'utf8') }));
   const p = await ctx.newPage();
@@ -68,8 +78,8 @@ const fs = require('fs');
   await p.goto('about:blank');
   rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: Math.max(1, Math.floor(0.25 / K)) });
-  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' ? '#day-1' : ''}`, { waitUntil: 'commit' });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
+  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
   if (STAGE && STAGE !== 'static') {
@@ -98,6 +108,66 @@ const fs = require('fs');
     await key('ArrowDown', 2800); // panel pertama: naik ke atas lanskap
     for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2500); // subuh → siang → senja → malam
     await w(2600); // gong penutup hari
+    await finish();
+    return;
+  }
+
+  if (tour === 'gong') {
+    await w(2600); // prolog: gong ageng di tengah pendapa
+    await key('ArrowDown', 3200); // pembuka: kamera mengitari gong ke kanan
+    await key('ArrowDown', 2800); // intro: mundur, seluruh pendapa
+    await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 4200); // lompat ke Hari 2: sapuan kayon
+    await key('ArrowUp', 6800); // mundur ke gong penutup Hari 1: begitu tiba gong dipukul sendiri, kedua naga menyembur api
+    await tap(p.locator(".fl-layer[data-pos='cur'] .fs-strike"), 5400); // dipukul lagi dengan klik (tabuh terangkat saat kursor di atas gong)
+    await finish();
+    return;
+  }
+
+  if (tour === 'datar') {
+    const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };
+    await w(1400); // prolog
+    await glide(1240, 300, 1800); // kursor ke kanan: langit bergeser berlawanan, judul searah dan memutar
+    await glide(60, 620, 1800); // ke kiri bawah
+    await glide(640, 360, 1000);
+    await key('ArrowDown', 2600); // perpindahan slide: yang lama membesar, yang baru tumbuh dari kedalaman
+    await key('ArrowDown', 2600);
+    await glide(1200, 360, 1500);
+    await glide(100, 360, 1500);
+    await glide(640, 360, 800);
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // lompat bab: bayangan kayon, kedalaman di baliknya
+    await key('ArrowDown', 2600); // ke gallery Hari 1
+    await glide(1200, 300, 1500);
+    await glide(100, 520, 1500);
+    await glide(640, 360, 800);
+    await finish();
+    return;
+  }
+
+  if (tour === 'kamera') {
+    const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };
+    await w(1200); // judul Hari 2
+    await key('ArrowUp', 3600); // ke gong penutup Hari 1: dipukul sendiri
+    await glide(640, 360, 600);
+    await glide(1240, 300, 2200); // kursor ke kanan: kamera bergeser, perspektif berubah
+    await glide(60, 640, 2400); // ke kiri bawah
+    await glide(640, 360, 1600);
+    await p.mouse.wheel(0, 100); await w(2800); // gulir pertama: mendekat ke gong
+    await glide(900, 300, 1800); // parallax saat dekat
+    await glide(640, 360, 1000);
+    await key('-', 1600); // zoom menjauh sedikit
+    await key('+', 1600); // mendekat lagi
+    await p.mouse.wheel(0, -100); await w(2600); // gulir mundur saat dekat: menjauh dulu
+    await p.mouse.wheel(0, 100); await w(2200); // dekat lagi
+    await p.mouse.wheel(0, 100); await w(3200); // gulir berikutnya: pindah slide, kamera maju mengikuti gulir
+    await finish();
+    return;
+  }
+
+  if (tour === 'kayon') {
+    await w(1800); // prolog
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // maju ke Hari 1: muka Agung melintas kiri → kanan
+    await tap(p.locator('.fl-rail-list li:nth-child(1) button'), 3400); // mundur ke prolog: muka Murka kanan → kiri, api geni naik dari kaki
+    await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3000); // maju lagi
     await finish();
     return;
   }

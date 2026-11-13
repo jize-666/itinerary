@@ -5,6 +5,7 @@
  * Semua shader menulis warna linear HDR; tone mapping dan sRGB dikerjakan di rantai post (post.ts).
  */
 import { Color, type IUniform, Vector3 } from "three";
+import { GONG, GONG_SCALE } from "@/engine/stage/gong";
 import { SKY_STOPS } from "@/engine/stage/mood";
 
 export type Shared = {
@@ -27,6 +28,8 @@ export type Shared = {
   uFogDensity: IUniform<number>;
   /** 0 siang … 1 malam: lampu desa, pendar bara. */
   uNight: IUniform<number>;
+  /** Kilatan pukulan gong: warna × kuat cahaya titik di depan pencu (nol saat diam). Menerangi seluruh pendapa. */
+  uFlash: IUniform<Color>;
 };
 
 export function createShared(): Shared {
@@ -48,6 +51,7 @@ export function createShared(): Shared {
     uFogColor: { value: new Color(0, 0, 0) },
     uFogDensity: { value: 0.01 },
     uNight: { value: 1 },
+    uFlash: { value: new Color(0, 0, 0) },
   };
 }
 
@@ -72,6 +76,7 @@ uniform vec3 uLampColor;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
 uniform float uNight;
+uniform vec3 uFlash;
 
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float hash21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
@@ -108,11 +113,19 @@ vec3 lampAt(vec3 wp, out vec3 L) {
   return uLampColor / (1.0 + 0.22 * r2);
 }
 
-/* Difus: sekitar + kunci (matahari/bulan) + blencong. */
+/* Kilatan pukulan gong: cahaya titik di depan pencu. Nol saat diam, jadi cabangnya hampir tanpa biaya. */
+vec3 flashLight(vec3 n, vec3 wp) {
+  if (uFlash.r <= 0.0) return vec3(0.0);
+  vec3 d = vec3(0.0, ${(GONG.y * GONG_SCALE).toFixed(3)}, ${(0.45 * GONG_SCALE).toFixed(3)}) - wp;
+  float r2 = dot(d, d);
+  return uFlash * max(dot(n, d * inversesqrt(max(r2, 1e-4))), 0.0) / (1.0 + 0.6 * r2);
+}
+
+/* Difus: sekitar + kunci (matahari/bulan) + blencong + kilatan pukulan gong. */
 vec3 diffuseLight(vec3 n, vec3 wp) {
   vec3 L;
   vec3 lamp = lampAt(wp, L);
-  return hemi(n) + uKeyColor * max(dot(n, uKeyDir), 0.0) + lamp * max(dot(n, L), 0.0);
+  return hemi(n) + uKeyColor * max(dot(n, uKeyDir), 0.0) + lamp * max(dot(n, L), 0.0) + flashLight(n, wp);
 }
 
 /* Kilap Blinn-Phong dari kunci + blencong. */

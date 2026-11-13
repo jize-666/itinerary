@@ -18,7 +18,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 12 Nov 2026.
+Diperbarui 13 Nov 2026.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -40,12 +40,21 @@ Diperbarui 12 Nov 2026.
 
 Kata host: "upgrade panggung 3D semaksimal mungkin", "step by step (output) per task/kerjaan", bebas teknologi, boleh remodel dan redesign asal tidak jauh dari konsep. Rincian dan status: `HANDOFF.md` bagian 0. Tiap tugas ditutup dengan output yang sudah dites, pratinjau ke host, commit + push, dan pembaruan `HANDOFF.md`.
 
+Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
+- **"beban hemat tapi jangan turunkan kualitas"**: hemat lewat cara menggambar, bukan lewat menurunkan resolusi atau detail.
+- **"video=output"**: pratinjau tiap tugas berupa video yang mulus. Video Tugas 5 yang pertama patah-patah dan host minta direkam ulang; cara dan kendalanya ada di `HANDOFF.md` bagian 0.
+- **"tunggu arahan ku dulu"**: sesudah Tugas 5, jangan mulai rekam ulang atau Tugas 6 sebelum host memberi arahan.
+- **Gerak kamera di semua objek (13 Nov):** "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Setiap objek dan slide 3D yang sudah ada maupun yang akan dibuat, dan film 2,5D, wajib punya: kamera parallax (kursor di desktop, kemiringan HP di HP), perspective shift (perspektif sungguh berubah), dan kedalaman yang mengikuti gulir. Rinciannya di `HANDOFF.md` bagian 0.
+
 - [x] **5. Panggung 3D (React Three Fiber) + mesin film 3D.** ✅ 12 Nov 2026. Kanvas lazy hanya di `/film/`, shot kamera per slide yang mengikuti transisi, tier kualitas High/Medium/Low/Static, pemantau FPS, overlay FPS (`/film/?fps`), dan latar pertama (pendapa, blencong, lanskap sawah dan Lawu, langit yang mengikuti jam). Rinciannya: `docs/design/decisions.md` bagian "Panggung 3D, fondasi" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
-  - **fps di perangkat nyata belum diukur** (sesi kerja tanpa GPU). Target ≥ 55 fps di HP flagship menunggu uji host lewat `/film/?fps`; kalau di bawah target, setel dulu sebelum Tugas 6.
-  - Video HP dan foto pratinjau belum dibuat (video desktop HD sudah dikirim).
-  - Belum diuji di Safari, iPhone, atau MacBook asli.
-- [ ] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi.
-- [ ] **7. Gunungan** sebagai gerbang sinematik dan sapuan antar bab.
+  PR #7 di-merge host 12 Nov. Uji host di iPhone (produksi, `/film/?fps`): 59–60 fps di tier Medium; host: "oke sih, aku anggep udah selesai". Catatan:
+  - Tier High tidak pernah terlihat di HP host dan penyebabnya belum dipastikan (lihat `HANDOFF.md` bagian 0). Cek dengan `/film/?fps&stage=high`.
+  - Pengatur sempat menurunkan resolusi satu anak tangga, jadi HP itu tidak punya banyak ruang di atas Medium: tiap isi baru perlu dicek lagi di perangkat.
+  - Belum diuji di MacBook, Android, atau iPhone lama.
+- [x] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi. ✅ 13 Nov 2026. Gong, gayor, dan naga 3D; dipukul sendiri saat tiba di slide gong dan lagi dengan klik/tap/Enter; kilatan, retakan bara, riak, bunga api, napas api naga, bunyi, hentakan kamera (habis tepat di 2,5 dtk); bingkai slide gong dilebarkan. Ditambah atas arahan host 13 Nov: zoom gong (cubit, Ctrl+roda, tombol +/−) dan dua tahap gulir. Rinciannya: `docs/design/decisions.md` bagian "Gong ageng 3D di panggung" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+  - Uji di perangkat nyata (`/film/?fps`), termasuk cubit dan giroskop.
+  - Kepingan bara yang berkumpul jadi gong di prolog: ditunda, dikerjakan bila host masih mau. Batara Kala dan keris: dilewati atas arahan host.
+- [ ] **7. Gunungan** sebagai pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"; sapuan antar bab tetap bayangan kayon DOM). Rupa dua muka (Agung, dan Murka gaya wayang dengan garuda) sudah diterima host 13 Nov. Sisa: gerbang pembuka sebelum prolog dan penutup sesudah film.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**

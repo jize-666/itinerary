@@ -276,6 +276,15 @@ export type InputHandlers = {
   canScrub(): boolean;
   /** true = input film sedang dimatikan (sheet detail terbuka). */
   paused(): boolean;
+  /**
+   * Zoom objek di slide ini (slide gong 3D): Ctrl+roda / cubit trackpad (`amount` = deltaY) atau tombol + / −
+   * (`amount` = +1 mendekat, −1 menjauh). true = dipakai; false = biarkan perilaku bawaan (zoom browser).
+   */
+  zoom?(kind: "wheel" | "key", amount: number): boolean;
+  /** Cubit dua jari mulai: true = dipakai untuk zoom objek (jari tidak lagi dibaca sebagai geser slide). */
+  pinchStart?(): boolean;
+  /** Cubit berlangsung: jarak jari sekarang ÷ jarak awal. */
+  pinch?(ratio: number): void;
 };
 
 const CONTROL = "a[href], button, input, select, textarea, summary, [role='button'], [contenteditable='true']";
@@ -289,7 +298,12 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   const wheel = new WheelGestures();
 
   const onWheel = (e: WheelEvent) => {
-    if (e.ctrlKey || h.paused() || within(e.target, SCROLLER)) return; // ctrl+roda = zoom browser
+    // ctrl+roda (dan cubit trackpad, yang tiba sebagai ctrl+roda): zoom objek bila slide ini punya, selain itu zoom browser
+    if (e.ctrlKey) {
+      if (!h.paused() && h.zoom?.("wheel", e.deltaY)) e.preventDefault();
+      return;
+    }
+    if (h.paused() || within(e.target, SCROLLER)) return;
     e.preventDefault(); // tanpa scroll bawaan dan tanpa gestur "kembali" trackpad
     const allowX = h.axisFor(1) === "x" || h.axisFor(-1) === "x";
     const dir = wheel.push(wheelSample(e, allowX, root.clientHeight));
@@ -298,6 +312,11 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
 
   const onKey = (e: KeyboardEvent) => {
     if (h.paused() || e.defaultPrevented || within(e.target, "input, select, textarea, [contenteditable='true'], dialog")) return;
+    // + / − : zoom objek di slide ini (tanpa Ctrl/Cmd, yang tetap zoom browser)
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_")) {
+      if (h.zoom?.("key", e.key === "-" || e.key === "_" ? -1 : 1)) e.preventDefault();
+      return;
+    }
     const action = keyAction(e, within(e.target, CONTROL));
     if (!action) return;
     e.preventDefault();
@@ -315,13 +334,41 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     return px / Math.max(1, h.spanFor(dir));
   };
 
+  // ---- cubit dua jari: zoom objek (slide gong 3D). Jari kedua membatalkan geser slide yang sedang dibaca. ----
+  const fingers = new Map<number, { x: number; y: number }>();
+  let pinch: { from: number } | null = null;
+  const spread = () => {
+    const [a, b] = [...fingers.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  };
+  const onFinger = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" || h.paused()) return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (fingers.size !== 2 || pinch || !h.pinchStart) return;
+    if (!h.pinchStart()) return;
+    pinch = { from: Math.max(1, spread()) };
+    if (touch?.scrubbing) h.scrubEnd(0);
+    touch = null;
+  };
+  const onFingerMove = (e: PointerEvent) => {
+    const f = fingers.get(e.pointerId);
+    if (!f) return;
+    f.x = e.clientX;
+    f.y = e.clientY;
+    if (pinch && fingers.size === 2) h.pinch?.(spread() / pinch.from);
+  };
+  const onFingerUp = (e: PointerEvent) => {
+    fingers.delete(e.pointerId);
+    if (fingers.size < 2) pinch = null;
+  };
+
   const onDown = (e: PointerEvent) => {
-    if (e.pointerType === "mouse" || !e.isPrimary || touch || h.paused() || within(e.target, SCROLLER)) return;
+    if (e.pointerType === "mouse" || !e.isPrimary || touch || pinch || h.paused() || within(e.target, SCROLLER)) return;
     touch = { id: e.pointerId, tracker: new TouchTracker(e.clientX, e.clientY, e.timeStamp), scrubbing: false, dragged: false };
   };
 
   const onMove = (e: PointerEvent) => {
-    if (!touch || e.pointerId !== touch.id) return;
+    if (!touch || pinch || e.pointerId !== touch.id) return;
     const px = touch.tracker.move(e.clientX, e.clientY, e.timeStamp);
     if (px === null) return;
     if (!touch.dragged) {
@@ -370,6 +417,10 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   window.addEventListener("keydown", onKey);
   root.addEventListener("pointerdown", onDown, { passive: true });
   root.addEventListener("pointermove", onMove, { passive: true });
+  root.addEventListener("pointerdown", onFinger, { passive: true });
+  root.addEventListener("pointermove", onFingerMove, { passive: true });
+  root.addEventListener("pointerup", onFingerUp, { passive: true });
+  root.addEventListener("pointercancel", onFingerUp, { passive: true });
   root.addEventListener("pointerup", onUpCapture, { capture: true, passive: true });
   root.addEventListener("pointerup", onUp, { passive: true });
   root.addEventListener("pointercancel", onCancel, { passive: true });
@@ -379,6 +430,10 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     window.removeEventListener("keydown", onKey);
     root.removeEventListener("pointerdown", onDown);
     root.removeEventListener("pointermove", onMove);
+    root.removeEventListener("pointerdown", onFinger);
+    root.removeEventListener("pointermove", onFingerMove);
+    root.removeEventListener("pointerup", onFingerUp);
+    root.removeEventListener("pointercancel", onFingerUp);
     root.removeEventListener("pointerup", onUpCapture, { capture: true });
     root.removeEventListener("pointerup", onUp);
     root.removeEventListener("pointercancel", onCancel);
