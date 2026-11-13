@@ -148,7 +148,7 @@ void main() {
 
     vec3 L = normalize(uLamp - vView);
     float ndl = dot(n, L);
-    vec3 lamp = vec3(1.0, 0.76, 0.5) * 2.3;
+    vec3 lamp = vec3(1.0, 0.78, 0.54) * 1.55;
     vec3 base = c.rgb;
     // sungging: cahaya lampu membungkus sedikit, supaya sisi yang berpaling tidak hitam
     vec3 lit = base * (lamp * clamp(ndl * 0.72 + 0.28, 0.0, 1.0) * (1.0 - 0.7 * metal) + vec3(0.05, 0.045, 0.065));
@@ -157,17 +157,17 @@ void main() {
     float nh = max(dot(n, Hh), 0.0);
     float gate = smoothstep(-0.05, 0.15, ndl);
     vec3 gold = base * 1.7 + 0.06;
-    lit += (pow(nh, 56.0) * 3.2 + pow(nh, 10.0) * 0.55) * lamp * mix(vec3(0.035), gold, metal) * gate;
+    lit += (pow(nh, 56.0) * 1.5 + pow(nh, 10.0) * 0.3) * lamp * mix(vec3(0.035), gold, metal) * gate;
     vec3 R = reflect(-V, n);
     float sky = 0.5 + 0.5 * R.y;
-    lit += metal * gold * mix(vec3(0.05, 0.02, 0.01), vec3(0.85, 0.55, 0.26), sky * sky) * 0.42;
+    lit += metal * gold * mix(vec3(0.05, 0.02, 0.01), vec3(0.85, 0.55, 0.26), sky * sky) * 0.3;
     // kulit tembus cahaya: pendar blencong dari balik, paling kuat di kulit tipis tanpa prada
-    lit += base * warm * glowBack * 0.55 * (1.0 - 0.8 * metal);
+    lit += base * warm * glowBack * 0.26 * (1.0 - 0.8 * metal);
     // bagian yang menyala (permata, mata satwa, lidah kala) ikut denyut
     lit += base * aux.g * (1.4 + 2.6 * beat);
 
     // dinding lubang: tepi kulit mentah, tersorot cahaya dari balik
-    vec3 rim = vec3(0.2, 0.11, 0.05) * (0.25 + warm * glowBack * 2.4);
+    vec3 rim = vec3(0.2, 0.11, 0.05) * (0.25 + warm * glowBack * 1.3);
     col = mix(lit, rim, wall / max(cover, 1e-3));
 
     // sisi geni: api menjalar dari bawah menutupi muka Murka, lidahnya bergoyang
@@ -179,9 +179,9 @@ void main() {
       float front = rage * 1.35 - uv.y + (n1 - 0.5) * 0.3;
       float burn = smoothstep(0.0, 0.16, front);
       float flick = 0.8 + 0.35 * n2 + 0.25 * beat;
-      vec3 ablaze = fire * (0.9 + 2.2 * fire.r * fire.r) * flick;
+      vec3 ablaze = fire * (0.72 + 0.95 * fire.r * fire.r) * flick;
       // tepi bakar: garis bara terang di batas api
-      ablaze += vec3(1.0, 0.45, 0.1) * smoothstep(0.0, 0.05, front) * (1.0 - smoothstep(0.05, 0.16, front)) * 2.5;
+      ablaze += vec3(1.0, 0.45, 0.1) * smoothstep(0.0, 0.05, front) * (1.0 - smoothstep(0.05, 0.16, front)) * 1.6;
       col = mix(col, ablaze, burn * skin);
     }
   }
@@ -224,11 +224,11 @@ void main() {
   float r = length(d);
   float flick = 0.92 + 0.05 * sin(uTime * 9.1) + 0.03 * sin(uTime * 23.7 + 1.3);
   vec3 lamp = vec3(1.0, 0.55, 0.22);
-  vec3 glow = lamp * (2.6 * exp(-r * r * 7.0) + 0.5 * exp(-r * r * 1.1) + 0.06 * exp(-r * 0.9));
+  vec3 glow = lamp * (1.15 * exp(-r * r * 7.0) + 0.34 * exp(-r * r * 1.1) + 0.05 * exp(-r * 0.9));
   float ang = atan(d.y, d.x);
   float rays = pow(0.5 + 0.5 * sin(ang * 11.0 + sin(ang * 5.0 + uTime * 0.23) * 1.6 + uTime * 0.11), 3.0);
   rays *= 0.5 + 0.5 * sin(ang * 23.0 - uTime * 0.17);
-  glow += lamp * rays * 0.34 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);
+  glow += lamp * rays * 0.18 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);
   vec3 col = vec3(0.010, 0.007, 0.006) + glow * flick * uVeil.z;
   // dither halus: gradasi pendar di kegelapan tidak bergaris
   col += (hash11(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) - 0.5) * 0.0035;

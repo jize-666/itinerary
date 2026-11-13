@@ -57,6 +57,8 @@ export type StageStats = {
   time: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
+  /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
+  sweepAt?: readonly number[];
 };
 
 export type StageHooks = {
@@ -243,7 +245,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // sapuan antar bab: gunungan melintas di depan kamera; mundur memperlihatkan muka Murka yang membara dari bawah
     const sweeping = cue.kind === "wipe" && cue.moving && stageBus.sweep();
     const back = cursor.to < cursor.from;
-    gunungan.update(sweeping ? sweepPose(cursor.p, back ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), back ? 0.3 * Math.sin(Math.PI * cursor.p) : 0);
+    const pin = stats.sweepAt;
+    if (pin && pin.length >= 2) gunungan.update(sweepPose(pin[0]!, pin[1]! < 0 ? -1 : 1, frame.aspect, t), camera, pointer, heartbeat(t), pin[2] ?? 0);
+    else gunungan.update(sweeping ? sweepPose(cursor.p, back ? -1 : 1, frame.aspect, t) : null, camera, pointer, heartbeat(t), back ? 0.3 * Math.sin(Math.PI * cursor.p) : 0);
 
     gl.getDrawingBufferSize(buf);
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);

@@ -1,8 +1,13 @@
 // Pelukis gunungan untuk panggung 3D (kode browser; dijalankan oleh scripts/assets/bake-gunungan.cjs).
 // Asalnya bagian "1. GAMBAR GUNUNGAN" di prototypes/gunungan/scene.js (rupa "Murka", disetujui host 8 Nov 2026),
-// disalin ke sini supaya gambar produksi bisa berkembang tanpa mengubah prototipe acuan. Tambahan di sini:
-// rupa "Agung" (arahan host 12 Nov: "redesign/remodel/upgrade ... jangan yang murka aja"): bingkai dan panel
-// nila, tanpa gigi api, wajah kala besar diganti medali surya-padma berlubang dan sepasang merak.
+// disalin ke sini supaya gambar produksi bisa berkembang tanpa mengubah prototipe acuan.
+// Rancangan sekarang (arahan host 13 Nov 2026, dengan foto kayon gapuran gaya Surakarta sebagai acuan: "jangan
+// mirip 100%, cukup jadi acuan"): siluet berbahu dengan palemahan merah, bidang sungging merah tua penuh
+// lung-lungan prada (lekuknya ditatah tembus), pohon hayat dililit seekor naga, banteng dan macan, gapura
+// dengan pintu hijau dan undakan, sepasang lar (sayap), dan dua raksasa penjaga bertameng.
+// - rupa "agung": atap tumpang, makara biru mengapit atap, dan kala kecil (banaspati) di puncak gapura;
+// - rupa "murka": wajah kala/barong besar yang disetujui 8 Nov tetap ada (host: "untuk mode murka tetap harus
+//   ada muka barong/wayangan nya"), menggantikan atap gapura, dengan surai api, tanduk, dan tangan bercakar.
 // Empat kanvas dilukis sekaligus: alpha (lubang tatahan), warna (sungging), logam (prada), dan emisi (yang menyala).
 /* eslint-disable -- kode gambar padat hasil salinan prototipe; dipakai hanya saat memanggang tekstur */
 function paintGunungan(THREE, variant) {
@@ -29,7 +34,8 @@ let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 214748364
 const P = () => new Path2D();
 const bez = (a, b, c, d, t) => { const u = 1 - t; return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]]; };
 
-const GOLD = '#c9a052', GOLD_D = '#7a5a24', INK = '#140804', RED = '#8f2418', RED_D = '#4a0f0a', IVORY = '#eadcbc', LEATHER = '#c4a273';
+const GOLD = '#c9a052', GOLD_D = '#7a5a24', GOLD_L = '#f1dc9a', INK = '#140804', RED = '#8f2418', RED_B = '#c8321e', RED_D = '#4a0f0a', IVORY = '#eadcbc', LEATHER = '#c4a273';
+const GREEN = '#2f9a4e', GREEN_D = '#0f4a26', BLUE = '#2a62b8', BLUE_D = '#143a7c', BLUE_L = '#a6d8ee', WHITE = '#f6f1e2', SOOT = '#261c1a';
 const EYE_GLOW = '#ff3a10';
 const SKIN = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#c9432c'], [1, '#5c140c']] });
 const BONE = (x0, y0, x1, y1) => ({ lin: [x0, y0, x1, y1], stops: [[0, '#fff6e0'], [1, '#c4ad80']] });
@@ -42,79 +48,88 @@ const ukel = (g, s, x, y, r0, dir, lw) => {
   g.lineCap = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = lw + 5; g.stroke(p); g.strokeStyle = s(GOLD, true); g.lineWidth = lw; g.stroke(p);
 };
 
-// Siluet: ujung lancip, melebar di sepertiga bawah, dasar datar + tangkai
+// Siluet (acuan kayon gapuran): pucuk lancip, bahu melekuk (lengkeh), badan paling lebar di tengah, menyempit ke
+// palemahan (pita dasar merah) yang sudutnya menjungkit; garis dasar datar + tangkai
+const FLOOR_TOP = 1622, PALE_TOP = 1716, BASE = 1815;
 const sil = new THREE.Shape();
 sil.moveTo(700, 30);
-sil.bezierCurveTo(760, 160, 1010, 520, 1180, 850);
-sil.bezierCurveTo(1330, 1140, 1360, 1400, 1300, 1590);
-sil.bezierCurveTo(1260, 1720, 1150, 1800, 1020, 1815);
-sil.lineTo(770, 1815); sil.lineTo(748, 1990); sil.lineTo(652, 1990); sil.lineTo(630, 1815);
-sil.lineTo(380, 1815);
-sil.bezierCurveTo(250, 1800, 140, 1720, 100, 1590);
-sil.bezierCurveTo(40, 1400, 70, 1140, 220, 850);
-sil.bezierCurveTo(390, 520, 640, 160, 700, 30);
+sil.bezierCurveTo(742, 118, 826, 248, 880, 334);
+sil.bezierCurveTo(934, 420, 1012, 520, 1078, 640);
+sil.bezierCurveTo(1112, 702, 1236, 770, 1292, 906);
+sil.bezierCurveTo(1346, 1036, 1338, 1236, 1276, 1424);
+sil.bezierCurveTo(1242, 1528, 1190, 1632, 1162, PALE_TOP);
+sil.bezierCurveTo(1190, 1712, 1222, 1700, 1240, 1672);
+sil.bezierCurveTo(1246, 1716, 1226, 1768, 1176, 1796);
+sil.bezierCurveTo(1150, 1810, 1120, BASE, 1090, BASE);
+sil.lineTo(770, BASE); sil.lineTo(748, 1990); sil.lineTo(652, 1990); sil.lineTo(630, BASE);
+sil.lineTo(310, BASE);
+sil.bezierCurveTo(280, BASE, 250, 1810, 224, 1796);
+sil.bezierCurveTo(174, 1768, 154, 1716, 160, 1672);
+sil.bezierCurveTo(178, 1700, 210, 1712, 238, PALE_TOP);
+sil.bezierCurveTo(210, 1632, 158, 1528, 124, 1424);
+sil.bezierCurveTo(62, 1236, 54, 1036, 108, 906);
+sil.bezierCurveTo(164, 770, 288, 702, 322, 640);
+sil.bezierCurveTo(388, 520, 466, 420, 520, 334);
+sil.bezierCurveTo(574, 248, 658, 118, 700, 30);
 const silPts = sil.getSpacedPoints(900);
 const toPath2D = (pts) => { const p = new Path2D(); pts.forEach((v, i) => i ? p.lineTo(v.x, v.y) : p.moveTo(v.x, v.y)); p.closePath(); return p; };
 const SIL = toPath2D(silPts);
-const GATE_TOP = 1440;
 const inset = (d) => silPts.map((p, i) => {
   const a = silPts[(i + silPts.length - 1) % silPts.length], b = silPts[(i + 1) % silPts.length];
   let nx = -(b.y - a.y), ny = b.x - a.x; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
   if ((CX - p.x) * nx + (1100 - p.y) * ny < 0) { nx = -nx; ny = -ny; }
   return new THREE.Vector2(p.x + nx * d, p.y + ny * d);
 });
-const innerEdge = toPath2D(inset(58)), outerEdge = toPath2D(inset(6)), midEdge = toPath2D(inset(44));
-const FIELD = (g) => { g.clip(SIL); g.clip(toPath2D(inset(56))); g.beginPath(); g.rect(0, 120, W, GATE_TOP - 120); g.clip(); };
+// setengah lebar siluet per tinggi (per 10 px)
+const HALF = new Float32Array(H / 10 + 1);
+silPts.forEach((p) => { if (p.y > PALE_TOP) return; const k = Math.round(p.y / 10); HALF[k] = Math.max(HALF[k], Math.abs(p.x - CX)); });
+for (let k = 1; k < HALF.length; k++) if (!HALF[k]) HALF[k] = HALF[k - 1];
+const halfAt = (y) => HALF[Math.max(0, Math.min(HALF.length - 1, Math.round(y / 10)))];
+const outerEdge = toPath2D(inset(6)), innerEdge = toPath2D(inset(46)), midEdge = toPath2D(inset(36)), FIELD_EDGE = toPath2D(inset(44));
+// bidang gambar: di dalam bingkai, di atas lantai gapura
+const FIELD = (g) => { g.clip(SIL); g.clip(FIELD_EDGE); g.beginPath(); g.rect(0, 130, W, FLOOR_TOP - 130); g.clip(); };
 
 // 1a. dasar kulit
 layer((g, s) => { g.fillStyle = s(LEATHER, false); g.fill(SIL); });
-// 1b. bidang dalam dibolongi (renda), bingkai merah darah dikembalikan
+// 1b. bidang dalam: sungging merah tua (bukan renda tembus); bingkai merah
 layer((g, s) => {
-  g.clip(SIL); g.beginPath(); g.rect(0, 0, W, GATE_TOP); g.clip();
-  g.fillStyle = s(INK, false, true); g.fillRect(0, 0, W, GATE_TOP);
-  g.lineJoin = 'round'; g.strokeStyle = s({ lin: [0, 0, 0, GATE_TOP], stops: AGUNG ? [[0, '#0d1640'], [0.55, '#1f3186'], [1, '#0a1030']] : [[0, '#4a0c08'], [0.55, '#8a2215'], [1, '#330805']] }, false); g.lineWidth = 118; g.stroke(SIL);
+  g.clip(SIL); g.beginPath(); g.rect(0, 0, W, FLOOR_TOP); g.clip();
+  g.fillStyle = s({ lin: [0, 100, 0, FLOOR_TOP], stops: AGUNG ? [[0, '#3c0e0a'], [0.5, '#561810'], [1, '#33100b']] : [[0, '#2a0605'], [0.5, '#470c08'], [1, '#1f0403']] }, false); g.fillRect(0, 0, W, FLOOR_TOP);
+  g.lineJoin = 'round'; g.strokeStyle = s({ lin: [0, 0, 0, FLOOR_TOP], stops: AGUNG ? [[0, '#7a1a10'], [0.5, '#a52a18'], [1, '#6a150d']] : [[0, '#4a0c08'], [0.55, '#8a2215'], [1, '#330805']] }, false); g.lineWidth = 92; g.stroke(SIL);
 });
 layer((g, s) => {
   g.clip(SIL);
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 9; g.stroke(outerEdge);
-  g.beginPath(); g.rect(0, 150, W, GATE_TOP + 8 - 150); g.clip();
-  g.lineWidth = 10; g.stroke(innerEdge); g.lineWidth = 3; g.stroke(midEdge);
+  g.lineJoin = 'round'; g.strokeStyle = s(GOLD, true); g.lineWidth = 16; g.stroke(SIL);   // tepi luar prada, utuh sampai sudut palemahan
+  g.beginPath(); g.rect(0, 150, W, FLOOR_TOP - 150); g.clip();
+  g.lineWidth = 9; g.stroke(innerEdge); g.lineWidth = 3; g.stroke(midEdge);
 });
 // lubang bubukan + mas-masan sepanjang bingkai
-const ringPts = inset(26), dotPts = inset(48);
+const ringPts = inset(23);
 layer((g, s) => {
-  for (let i = 0; i < ringPts.length; i += 7) { const p = ringPts[i]; if (p.y > GATE_TOP - 10 || p.y < 70) continue; g.fillStyle = s(INK, false, true); g.beginPath(); g.ellipse(p.x, p.y, 9, 9, 0, 0, Math.PI * 2); g.fill(); }
-  for (let i = 3; i < dotPts.length; i += 7) { const p = dotPts[i]; if (p.y > GATE_TOP - 16 || p.y < 110) continue; g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(p.x, p.y, 4, 0, Math.PI * 2); g.fill(); }
+  for (let i = 0; i < ringPts.length; i += 6) { const p = ringPts[i]; if (p.y > FLOOR_TOP - 14 || p.y < 78) continue; g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(p.x, p.y, 7.5, 0, Math.PI * 2); g.fill(); }
+  for (let i = 3; i < ringPts.length; i += 6) { const p = ringPts[i]; if (p.y > FLOOR_TOP - 14 || p.y < 110) continue; g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(p.x, p.y, 3.2, 0, Math.PI * 2); g.fill(); }
 });
-// gigi api di tepi dalam bingkai (seperti duri), condong ke atas: hanya rupa Murka
-if (!AGUNG) layer((g, s) => {
-  g.clip(SIL); g.beginPath(); g.rect(0, 0, W, GATE_TOP); g.clip();
-  const E = inset(62);
-  for (let i = 0; i < E.length; i += 13) {
-    const p = E[i], q = E[(i + 2) % E.length]; if (p.y > GATE_TOP - 40 || p.y < 150) continue;
+// sorot di tepi dalam bingkai: rupa Agung = tumpal ramping menunjuk ke dalam; rupa Murka = gigi api condong ke atas
+layer((g, s) => {
+  g.clip(SIL); g.beginPath(); g.rect(0, 0, W, FLOOR_TOP - 20); g.clip();
+  const E = inset(50);
+  for (let i = 0; i < E.length; i += AGUNG ? 5 : 11) {
+    const p = E[i], q = E[(i + 2) % E.length]; if (p.y > FLOOR_TOP - 44 || p.y < 280) continue;
     let tx = q.x - p.x, ty = q.y - p.y; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
     let nx = -ty, ny = tx; if ((CX - p.x) * nx + (1100 - p.y) * ny < 0) { nx = -nx; ny = -ny; }
-    const L = 34, w = 10, ux = (nx + 0) * 0.7, uy = (ny - 0.7) * 0.7, ul = Math.hypot(ux, uy) || 1;
-    const dx = ux / ul, dy = uy / ul;
-    const f = P(); f.moveTo(p.x - tx * w, p.y - ty * w);
-    f.quadraticCurveTo(p.x + nx * L * 0.5, p.y + ny * L * 0.5, p.x + dx * L, p.y + dy * L);
-    f.quadraticCurveTo(p.x + nx * L * 0.3 + tx * w * 0.6, p.y + ny * L * 0.3 + ty * w * 0.6, p.x + tx * w, p.y + ty * w); f.closePath();
+    const f = P();
+    if (AGUNG) { const L = 30, w = 9; f.moveTo(p.x - tx * w, p.y - ty * w); f.lineTo(p.x + nx * L, p.y + ny * L); f.lineTo(p.x + tx * w, p.y + ty * w); f.closePath(); }
+    else {
+      const L = 36, w = 10, ux = nx * 0.7, uy = (ny - 0.7) * 0.7, ul = Math.hypot(ux, uy) || 1, dx = ux / ul, dy = uy / ul;
+      f.moveTo(p.x - tx * w, p.y - ty * w);
+      f.quadraticCurveTo(p.x + nx * L * 0.5, p.y + ny * L * 0.5, p.x + dx * L, p.y + dy * L);
+      f.quadraticCurveTo(p.x + nx * L * 0.3 + tx * w * 0.6, p.y + ny * L * 0.3 + ty * w * 0.6, p.x + tx * w, p.y + ty * w); f.closePath();
+    }
     fs(g, s, f, GOLD, true, 3);
   }
 });
-// 1c. renda belah ketupat + titik inten di persilangan
-layer((g, s) => {
-  FIELD(g); g.strokeStyle = s(GOLD_D, true); g.lineWidth = 4;
-  for (let k = -H; k < W + H; k += 52) {
-    g.beginPath(); g.moveTo(k, 0); g.lineTo(k + H, H); g.stroke();
-    g.beginPath(); g.moveTo(k, H); g.lineTo(k + H, 0); g.stroke();
-  }
-  g.fillStyle = s(GOLD_D, true);
-  for (let i = 0; i < 120; i++) for (let j = 0; j < 120; j++) { const k1 = -H + 52 * i, k2 = 52 * j, x = (k1 + k2) / 2, y = (k2 - k1) / 2; if (x < 0 || x > W || y < 0 || y > GATE_TOP) continue; g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill(); }
-});
 
-// 1d. pohon hayat: batang bertatah, cabang berukel, daun gelap bergradasi
-const halfWidthAt = (y) => { let maxX = CX; for (const p of inset(70)) if (Math.abs(p.y - y) < 8) maxX = Math.max(maxX, p.x); return maxX - CX; };
+// tatahan garis ganda (tinta + warna) dan daun
 const strokeBoth = (g, s, path, w, col, metal) => {
   g.lineCap = 'round'; g.lineJoin = 'round';
   g.strokeStyle = s(INK, false); g.lineWidth = w + 7; g.stroke(path);
@@ -129,37 +144,65 @@ const leaf = (g, s, x, y, ang, len, red) => {
   g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.beginPath(); g.moveTo(len * 0.12, 0); g.lineTo(len * 0.85, 0); g.stroke();
   g.restore();
 };
+
+// 1d. lung-lungan: sulur berombak dari batang ke bingkai. Tiap lekuk berisi pilin dan kembang; dasar lekuknya
+//     ditatah tembus, jadi cahaya blencong menyala di sela pilin (pengganti renda belah ketupat rancangan lama).
+const KEMBANG = [RED_B, WHITE, BLUE];
+// burung kecil di dahan (acuan: burung di sela sulur). Menghadap +x, kaki di (0, 0). Kunci BIRDS = "baris:lekuk".
+const BIRDS = { '9:2': 0, '10:3': 1, '11:1': 2, '13:1': 0 };
+const bird = (g, s, kind) => {
+  const [body, wingC] = [[WHITE, BLUE], [RED_B, GOLD], [BLUE_L, RED_B]][kind];
+  const tail = P(); tail.moveTo(-10, -12); tail.lineTo(-40, -26); tail.lineTo(-34, -14); tail.lineTo(-42, -6); tail.lineTo(-12, -4); tail.closePath(); fs(g, s, tail, wingC, wingC === GOLD, 3.5);
+  const b = P(); b.moveTo(-16, -10); b.bezierCurveTo(-12, -30, 14, -32, 22, -20); b.bezierCurveTo(22, -6, 4, 0, -8, -2); b.closePath(); fs(g, s, b, body, false, 4);
+  const w = P(); w.moveTo(-10, -18); w.bezierCurveTo(-2, -26, 10, -24, 12, -14); w.bezierCurveTo(4, -8, -6, -8, -14, -6); w.closePath(); fs(g, s, w, wingC, wingC === GOLD, 3);
+  const hd = P(); hd.arc(22, -27, 9.5, 0, Math.PI * 2); fs(g, s, hd, body, false, 4);
+  const bk = P(); bk.moveTo(29, -31); bk.lineTo(42, -26); bk.lineTo(29, -22); bk.closePath(); fs(g, s, bk, GOLD, true, 3);
+  const cr = P(); cr.moveTo(18, -35); cr.lineTo(12, -46); cr.lineTo(24, -37); cr.closePath(); fs(g, s, cr, RED_B, false, 2.5);
+  g.fillStyle = s(INK, false); g.beginPath(); g.arc(24, -28, 2.4, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(2, -3); g.lineTo(4, 5); g.moveTo(-5, -3); g.lineTo(-4, 5); g.stroke();
+};
+const lungRow = (g, s, y0, sd, k, holes) => {
+  const yEnd = y0 - 52, hw = halfAt(yEnd) - 94; if (hw < 64) return;
+  const a = [CX + sd * 10, y0], b = [CX + sd * hw * 0.34, y0 + 10], c = [CX + sd * hw * 0.7, y0 - 30], d = [CX + sd * hw, yEnd];
+  const M = 120, pts = [], acc = [0];
+  for (let i = 0; i <= M; i++) { pts.push(bez(a, b, c, d, i / M)); if (i) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); }
+  const len = acc[M], n = Math.max(1, Math.round(len / 70)), h = len / n, R = Math.min(34, h * 0.5);
+  // titik pada sulur dasar sejauh q: [x, y, arah-x, arah-y]; normal "atas" = (sd·ty, −sd·tx)
+  const at = (q) => { let i = 1; while (i < M && acc[i] < q) i++; const f = (q - acc[i - 1]) / Math.max(1e-6, acc[i] - acc[i - 1]), p0 = pts[i - 1], p1 = pts[i], tx = p1[0] - p0[0], ty = p1[1] - p0[1], l = Math.hypot(tx, ty) || 1; return [p0[0] + tx * f, p0[1] + ty * f, tx / l, ty / l]; };
+  const lw = Math.max(6, 10 - k * 0.25);
+  for (let j = 0; j < n; j++) {
+    const sg = (j + k) % 2 ? -1 : 1, [cx, cy, tx, ty] = at((j + 0.5) * h), nx = sd * ty * sg, ny = -sd * tx * sg;
+    if (holes) {
+      // tatahan sabit di antara sulur dan pilin; tengah lekuk tetap kulit (bantalan merah tempat pilin)
+      g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(cx, cy, R - 9, 0, Math.PI * 2); g.fill();
+      g.fillStyle = s(AGUNG ? '#7a1f14' : '#5e120b', false); g.beginPath(); g.arc(cx - nx * 7, cy - ny * 7, R - 15, 0, Math.PI * 2); g.fill();
+      continue;
+    }
+    // sulur: setengah gelombang mengitari lekuk
+    const stem = P();
+    for (let i = 0; i <= 14; i++) { const [x, y, ux, uy] = at((j + i / 14) * h), o = R * Math.sin(Math.PI * i / 14) * sg; const px = x + sd * uy * o, py = y - sd * ux * o; i ? stem.lineTo(px, py) : stem.moveTo(px, py); }
+    strokeBoth(g, s, stem, lw, GOLD, true);
+    // pilin: bertunas dari pangkal lekuk, memilin searah sulur, berakhir di kembang
+    const [ix, iy] = at(j * h), vx = ix - cx, vy = iy - cy, r0 = Math.hypot(vx, vy), a0 = Math.atan2(vy, vx), dir = sd * sg;
+    const sp = P(); let ex = cx, ey = cy;
+    for (let i = 0; i <= 44; i++) { const th = (i / 44) * Math.PI * 2.5, rr = r0 * (0.45 + 0.55 * Math.exp(-th / 0.5)) * (1 - 0.29 * th / Math.PI); ex = cx + Math.cos(a0 + dir * th) * rr; ey = cy + Math.sin(a0 + dir * th) * rr; i ? sp.lineTo(ex, ey) : sp.moveTo(ex, ey); }
+    strokeBoth(g, s, sp, lw * 0.6, GOLD, true);
+    g.fillStyle = s(GOLD_L, true); g.beginPath(); g.arc(ex, ey, 4.4, 0, Math.PI * 2); g.fill();
+    // burung bertengger di punggung lekuk (beberapa saja), selebihnya daun yang condong ke arah ujung sulur
+    const perch = sg > 0 ? BIRDS[k + ':' + j] : undefined;
+    if (perch !== undefined) { g.save(); g.translate(cx + nx * (R + 7), cy + ny * (R + 7)); g.rotate(Math.atan2(ty, tx)); if (sd < 0) g.scale(1, -1); bird(g, s, perch); g.restore(); }
+    else leaf(g, s, cx + nx * (R + 2), cy + ny * (R + 2), Math.atan2(ny, nx) + sd * sg * 0.75, 22, (j + k) % 3 === 0);
+    // kuncup kembang di pangkal lekuk, di sisi luar sulur
+    if (j) { const bx = ix - nx * 15, by = iy - ny * 15; g.fillStyle = s(INK, false); g.beginPath(); g.arc(bx, by, 9, 0, Math.PI * 2); g.fill(); g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(bx, by, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = s(KEMBANG[(j + 2 * k) % 3], false); g.beginPath(); g.arc(bx, by, 4.2, 0, Math.PI * 2); g.fill(); }
+  }
+};
+const ROWS = []; for (let y0 = FLOOR_TOP - 36, k = 0; y0 > 320; y0 -= 88, k++) ROWS.push([y0, k]);
 layer((g, s) => {
   FIELD(g);
-  const trunk = P(); trunk.moveTo(CX, GATE_TOP + 4);
-  for (let y = GATE_TOP; y >= 300; y -= 20) trunk.lineTo(CX + Math.sin(y * 0.012) * 9, y);
-  strokeBoth(g, s, trunk, 32, GOLD, true);
-  g.fillStyle = s(INK, false, true);
-  for (let y = GATE_TOP - 30; y > 330; y -= 26) { g.beginPath(); g.arc(CX + Math.sin(y * 0.012) * 9, y, 4.5, 0, Math.PI * 2); g.fill(); }
-  let k = 0;
-  for (let y0 = 1360; y0 > 330; y0 -= 92, k++) {
-    const hw = Math.max(60, halfWidthAt(y0 - 110) - 30);
-    for (const sd of [-1, 1]) {
-      const ex = CX + sd * hw * 0.82, ey = y0 - 115;
-      const br = P(); br.moveTo(CX, y0);
-      br.bezierCurveTo(CX + sd * hw * 0.25, y0 - 40, CX + sd * hw * 0.55, y0 - 30, ex, ey);
-      const R0 = Math.min(42, hw * 0.22); let px = ex, py = ey;
-      for (let i = 1; i <= 30; i++) { const t = i / 30, ang = -Math.PI / 2 + sd * t * Math.PI * 1.8, r = R0 * (1 - t * 0.85); px = ex + Math.cos(ang) * r * sd; py = ey + R0 + Math.sin(ang) * r; br.lineTo(px, py); }
-      strokeBoth(g, s, br, Math.max(9, 17 - k * 0.8), '#a8823e', true);
-      for (const t of [0.35, 0.62]) {
-        const lx = CX + sd * hw * 0.55 * t * 1.4, ly = y0 - 60 * t - 18;
-        leaf(g, s, lx, ly, sd > 0 ? -0.9 : Math.PI + 0.9, 46 - k * 1.6, (k + (t > 0.5 ? 1 : 0)) % 2);
-        leaf(g, s, lx, ly + 8, sd > 0 ? 0.55 : Math.PI - 0.55, 36 - k * 1.2, !(k % 2));
-      }
-      g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(px, py, 7, 0, Math.PI * 2); g.fill();
-      g.fillStyle = s(RED, false); g.beginPath(); g.arc(px, py, 3, 0, Math.PI * 2); g.fill();
-    }
-  }
-  const bud = P(); bud.moveTo(CX, 340); bud.bezierCurveTo(CX + 40, 300, CX + 26, 240, CX, 190); bud.bezierCurveTo(CX - 26, 240, CX - 40, 300, CX, 340);
-  g.fillStyle = s({ lin: [CX, 340, CX, 190], stops: [[0, '#4a0c08'], [1, '#e0623f']] }, false, false, '#3a0802'); g.fill(bud); g.lineWidth = 6; g.strokeStyle = s(GOLD, true); g.stroke(bud);
+  for (const holes of [true, false]) for (const [y0, k] of ROWS) for (const sd of [-1, 1]) lungRow(g, s, y0, sd, k, holes);
 });
 
-// 1d'. sepasang naga melilit batang, kepala bermahkota, rahang menganga ke luar
+// 1d'. kepala naga: bermahkota, rahang menganga
 const nagaHead = (g, s) => {
   const crown = P(); crown.moveTo(4, -24); crown.lineTo(8, -50); crown.lineTo(18, -44); crown.lineTo(24, -74); crown.lineTo(34, -48); crown.lineTo(44, -60); crown.lineTo(48, -30); crown.closePath();
   fs(g, s, crown, GOLD, true, 4);
@@ -180,26 +223,53 @@ const nagaHead = (g, s) => {
   // jenggot api di bawah rahang
   for (let k = 0; k < 4; k++) { const x = 14 + k * 18, y = 24 + k * 4; const f = P(); f.moveTo(x - 8, y); f.quadraticCurveTo(x - 10, y + 20, x - 22, y + 34 - k * 3); f.quadraticCurveTo(x, y + 18, x + 8, y + 2); f.closePath(); fs(g, s, f, GOLD, true, 3); }
 };
-const naga = (g, s) => {
-  const pts = [[690, 905], [760, 862], [705, 800], [625, 742], [700, 682], [780, 624], [800, 572], [830, 538]];
-  const curve = new THREE.CatmullRomCurve3(pts.map(([x, y]) => new THREE.Vector3(x, y, 0)));
-  const N = 140, Q = curve.getPoints(N), wAt = (i) => 7 + 19 * Math.pow(i / N, 0.8);
-  const pass = (extra, col, metal, wf = 1) => { g.lineCap = 'round'; g.strokeStyle = s(col, metal); for (let i = 1; i <= N; i++) { g.lineWidth = wAt(i) * wf + extra; g.beginPath(); g.moveTo(Q[i - 1].x, Q[i - 1].y); g.lineTo(Q[i].x, Q[i].y); g.stroke(); } };
-  pass(8, INK, false); pass(0, '#163626', false); pass(0, '#3f7a54', false, 0.42);
+// naga melilit batang dari pucuk (ekor) sampai di atas kepala satwa; lilitan di balik batang digambar lebih dulu
+const TREE_FOOT = AGUNG ? 1000 : 900, TREE_TOP = 262;
+const NAGA = (() => {
+  const yA = 306, yB = AGUNG ? 728 : 648, turns = Math.round((yB - yA) / 150 - 0.75) + 0.75, A = 46, n = Math.round((yB - yA) / 3), Q = [], front = [];
+  for (let i = 0; i <= n; i++) { const u = i / n, ph = Math.PI * 2 * turns * u; Q.push([CX + A * Math.min(1, 0.35 + u * 4) * Math.sin(ph), yA + (yB - yA) * u]); front.push(Math.cos(ph) > 0); }
+  // leher: dari lilitan terakhir (kiri) mengayun di depan batang lalu naik di kanan; kepala menghadap kanan-atas
+  const a = [CX - A, yB], b = [CX - A, yB + 52], c = [CX + 34, yB + 74], d = [CX + 104, yB + 22];
+  for (let i = 1; i <= 26; i++) { Q.push(bez(a, b, c, d, i / 26)); front.push(true); }
+  return { Q, front };
+})();
+const nagaDraw = (g, s, isFront) => {
+  const { Q, front } = NAGA, N = Q.length - 1, wAt = (i) => 5 + 20 * Math.pow(i / N, 0.8);
+  const pass = (extra, col, metal, wf = 1) => { g.lineCap = 'round'; g.strokeStyle = s(col, metal); for (let i = 1; i <= N; i++) { if (front[i] !== isFront) continue; g.lineWidth = wAt(i) * wf + extra; g.beginPath(); g.moveTo(Q[i - 1][0], Q[i - 1][1]); g.lineTo(Q[i][0], Q[i][1]); g.stroke(); } };
+  pass(8, INK, false); pass(0, GREEN_D, false); pass(0, GREEN, false, 0.5);
   for (let i = 4; i < N - 2; i += 5) {
+    if (front[i] !== isFront) continue;
     const p = Q[i], q = Q[i + 1], w = wAt(i);
-    let tx = q.x - p.x, ty = q.y - p.y; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l; const nx = -ty, ny = tx;
-    g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(p.x, p.y, Math.max(2, w * 0.14), 0, Math.PI * 2); g.fill();
+    let tx = q[0] - p[0], ty = q[1] - p[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l; const nx = -ty, ny = tx;
+    g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(p[0], p[1], Math.max(2, w * 0.14), 0, Math.PI * 2); g.fill();
     if (i % 10 === 4) { // sirip punggung, menyapu ke arah ekor
-      const bx = p.x + nx * w * 0.45, by = p.y + ny * w * 0.45, f = P();
+      const bx = p[0] + nx * w * 0.45, by = p[1] + ny * w * 0.45, f = P();
       f.moveTo(bx + tx * w * 0.35, by + ty * w * 0.35); f.lineTo(bx + nx * w * 0.75 - tx * w * 0.5, by + ny * w * 0.75 - ty * w * 0.5); f.lineTo(bx - tx * w * 0.35, by - ty * w * 0.35); f.closePath();
       fs(g, s, f, GOLD, true, 3);
     }
   }
-  const e = Q[N], b = Q[N - 6];
-  g.save(); g.translate(e.x, e.y); g.rotate(Math.atan2(e.y - b.y, e.x - b.x)); g.scale(1.1, 1.1); g.translate(-6, 0); nagaHead(g, s); g.restore();
+  if (!isFront) return;
+  const e = Q[N], b = Q[N - 5];
+  g.save(); g.translate(e[0], e[1]); g.rotate(Math.atan2(e[1] - b[1], e[0] - b[0])); g.scale(1.05, 1.05); g.translate(-6, 0); nagaHead(g, s); g.restore();
 };
-layer((g, s) => { FIELD(g); naga(g, s); g.translate(2 * CX, 0); g.scale(-1, 1); naga(g, s); });
+// pohon hayat: batang prada, mega (awan) biru-putih dan kudhup di pucuk
+layer((g, s) => {
+  FIELD(g);
+  nagaDraw(g, s, false);
+  const tw = (y) => 8 + 9 * Math.min(1, Math.max(0, (y - TREE_TOP) / 640));
+  const trunk = P(); trunk.moveTo(CX - tw(TREE_FOOT), TREE_FOOT);
+  for (let y = TREE_FOOT; y >= TREE_TOP; y -= 18) trunk.lineTo(CX - tw(y), y);
+  for (let y = TREE_TOP; y <= TREE_FOOT; y += 18) trunk.lineTo(CX + tw(y), y);
+  trunk.closePath();
+  fs(g, s, trunk, { lin: [CX - 17, 0, CX + 17, 0], stops: [[0, GOLD_D], [0.4, GOLD_L], [1, '#8a6a2c']] }, true, 6);
+  g.strokeStyle = s(INK, false); g.lineWidth = 2.5; g.lineCap = 'round';
+  for (let y = TREE_FOOT - 24; y > TREE_TOP + 20; y -= 30) { const w = tw(y) - 3; g.beginPath(); g.moveTo(CX - w, y - 6); g.quadraticCurveTo(CX, y + 6, CX + w, y - 6); g.stroke(); }
+  nagaDraw(g, s, true);
+  for (const [ox, r, col] of [[-34, 13, BLUE], [34, 13, BLUE], [-17, 15, BLUE_L], [17, 15, BLUE_L], [0, 17, WHITE]]) { const c = P(); c.arc(CX + ox, TREE_TOP - 9 + r, r, 0, Math.PI * 2); fs(g, s, c, col, false, 4); }
+  const bud = P(); bud.moveTo(CX, TREE_TOP - 4); bud.bezierCurveTo(CX + 34, TREE_TOP - 40, CX + 22, TREE_TOP - 92, CX, TREE_TOP - 128); bud.bezierCurveTo(CX - 22, TREE_TOP - 92, CX - 34, TREE_TOP - 40, CX, TREE_TOP - 4);
+  g.lineJoin = 'round'; g.lineWidth = 9; g.strokeStyle = s(INK, false); g.stroke(bud);
+  g.fillStyle = s({ lin: [CX, TREE_TOP, CX, TREE_TOP - 128], stops: [[0, '#4a0c08'], [1, '#e0623f']] }, false, false, '#3a0802'); g.fill(bud); g.lineWidth = 5; g.strokeStyle = s(GOLD, true); g.stroke(bud);
+});
 
 // 1d''. banteng (kiri) vs macan (kanan) berhadapan di bawah pohon, siap bertarung
 const banteng = (g, s) => {
@@ -267,117 +337,281 @@ const macan = (g, s) => {
   g.strokeStyle = s(GOLD, true); g.lineWidth = 2;
   for (const [x, y] of [[212, -52], [216, -40], [210, -28]]) { g.beginPath(); g.moveTo(180, -46); g.lineTo(x, y); g.stroke(); }
 };
-layer((g, s) => {
-  FIELD(g);
-  g.save(); g.translate(CX - 240, 822); g.scale(0.92, 0.92); banteng(g, s); g.restore();
-  g.save(); g.translate(CX + 240, 822); g.scale(-0.92, 0.92); macan(g, s); g.restore();
-});
 
-// 1f. gapura di dasar + panel samping bertatah
-layer((g, s) => {
-  g.clip(SIL);
-  const side = P(); side.rect(0, GATE_TOP, W, 1815 - GATE_TOP);
-  g.fillStyle = s({ lin: [0, GATE_TOP, 0, 1815], stops: AGUNG ? [[0, '#1b2a72'], [1, '#080d28']] : [[0, '#5e140c'], [1, '#2a0805']] }, false); g.fill(side);
-  g.fillStyle = s(INK, false, true);
-  for (let y = GATE_TOP + 40; y < 1790; y += 34) for (let x = 120 + ((y / 34) % 2) * 17; x < 1290; x += 34) { if (x > 505 && x < 895) continue; g.beginPath(); g.arc(x, y, 6.5, 0, Math.PI * 2); g.fill(); }
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 10; g.beginPath(); g.moveTo(0, GATE_TOP + 4); g.lineTo(W, GATE_TOP + 4); g.stroke();
-  const tier = (x0, x1, y0, x2, x3, y1, col) => {
-    const p = P(); p.moveTo(x0, y0); p.lineTo(x1, y0); p.lineTo(x3, y1); p.lineTo(x2, y1); p.closePath();
-    g.fillStyle = s(col, false); g.fill(p); g.lineWidth = 7; g.strokeStyle = s(GOLD, true); g.stroke(p);
+// 1e. lar: sepasang sayap di kiri-kanan gapura; bulunya mengipas dari bahu (digambar untuk sisi kiri, lalu dicerminkan)
+const MAKARA = [266, 1276, 1];   // engsel rahang: jarak dari sumbu, tinggi, skala
+const WING = AGUNG ? [CX - MAKARA[0] - 96, MAKARA[1] + 14] : [CX - 304, 1300];
+const wing = (g, s) => {
+  const feather = (ang, len, wid, stops, rib) => {
+    g.save(); g.translate(WING[0], WING[1]); g.rotate(ang); g.scale(1, -1);
+    const p = P(); p.moveTo(0, -wid * 0.5); p.bezierCurveTo(len * 0.4, -wid, len * 0.86, -wid * 0.8, len, -wid * 0.12);
+    p.bezierCurveTo(len * 0.84, wid * 0.4, len * 0.4, wid * 0.6, 0, wid * 0.5); p.closePath();
+    g.lineJoin = 'round'; g.lineWidth = 6; g.strokeStyle = s(INK, false); g.stroke(p);
+    g.fillStyle = s({ lin: [0, 0, len, 0], stops }, false); g.fill(p);
+    g.strokeStyle = s(GOLD, true); g.lineWidth = rib; g.lineCap = 'round'; g.beginPath(); g.moveTo(len * 0.12, 0); g.quadraticCurveTo(len * 0.55, -wid * 0.32, len * 0.9, -wid * 0.16); g.stroke();
+    g.restore();
   };
-  const slate = { lin: [0, 1500, 0, 1815], stops: [[0, '#21474f'], [1, '#0a1c21']] }, red = { lin: [0, 1450, 0, 1580], stops: [[0, '#a8321f'], [1, '#4a0f0a']] };
-  tier(510, 890, 1815, 520, 880, 1770, slate); tier(560, 840, 1770, 560, 840, 1580, slate);
-  tier(535, 865, 1580, 585, 815, 1515, red); tier(585, 815, 1515, 625, 775, 1462, red);
-  const top = P(); top.moveTo(650, 1462); top.lineTo(750, 1462); top.lineTo(CX, 1398); top.closePath(); g.fillStyle = s(GOLD, true); g.fill(top);
-  g.strokeStyle = s(GOLD_D, true); g.lineWidth = 2;
-  for (let y = 1600; y < 1770; y += 20) { g.beginPath(); g.moveTo(566, y); g.lineTo(624, y); g.moveTo(776, y); g.lineTo(834, y); g.stroke(); }
-  for (const sd of [-1, 1]) {
-    const x0 = sd < 0 ? 630 : 706, x1 = x0 + 64;
-    const d = P(); d.moveTo(x0, 1770); d.lineTo(x0, 1660); d.quadraticCurveTo((x0 + x1) / 2, 1610, x1, 1660); d.lineTo(x1, 1770); d.closePath();
-    g.fillStyle = s(INK, false, true); g.fill(d);
-    g.beginPath(); const wx = CX + sd * 112; g.moveTo(wx, 1620); g.lineTo(wx + 18, 1650); g.lineTo(wx, 1680); g.lineTo(wx - 18, 1650); g.closePath(); g.fill();
-  }
-});
-
-// 1e. wajah kala / banaspati murka di atas gapura (digambar setelah gapura: lidahnya menjilat puncak gapura)
-const KY = 1178, KALA_EYES = [[CX - 88, KY - 36], [CX + 88, KY - 36]];
-// 1e'. rupa Agung: medali surya-padma berlubang di batang pohon hayat, diapit sepasang merak
-const TEAL = '#2f8a7a', NILA = '#12205c';
-const merak = (g, s) => {
-  const bx = CX - 372, by = 1346;      // pangkal ekor
-  // ekor terangkat: lima helai mengipas ke atas-luar, tiap ujungnya bermata (lubang kecil tembus cahaya)
-  const tips = [[-44, -300], [-104, -262], [-150, -196], [-166, -116], [-148, -40]];
-  tips.forEach(([dx, dy], i) => {
-    const tx = bx + dx, ty = by + dy;
-    const pl = P(); pl.moveTo(bx + 6, by); pl.bezierCurveTo(bx - 20, by - 60, tx + 50 - i * 8, ty + 110, tx, ty);
-    strokeBoth(g, s, pl, 9, i % 2 ? TEAL : GOLD, i % 2 === 0);
-    const eye = P(); eye.arc(tx, ty, 24, 0, Math.PI * 2);
-    fs(g, s, eye, GOLD, true, 5);
-    g.fillStyle = s({ rad: [tx, ty, 2, tx, ty, 15], stops: [[0, '#49c2b2'], [1, NILA]] }, false); g.beginPath(); g.arc(tx, ty, 15, 0, Math.PI * 2); g.fill();
-    g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(tx, ty, 5.5, 0, Math.PI * 2); g.fill();
-  });
-  // badan dan sayap
-  const body = P(); body.moveTo(bx - 16, by + 6); body.bezierCurveTo(bx + 4, by - 52, bx + 96, by - 48, bx + 122, by + 2);
-  body.bezierCurveTo(bx + 112, by + 56, bx + 24, by + 66, bx - 16, by + 6); body.closePath();
-  fs(g, s, body, { lin: [bx, by - 46, bx + 70, by + 58], stops: [[0, '#3aa392'], [1, NILA]] }, false, 6);
-  const wing = P(); wing.moveTo(bx + 2, by + 6); wing.bezierCurveTo(bx + 32, by - 26, bx + 80, by - 14, bx + 92, by + 16);
-  wing.bezierCurveTo(bx + 58, by + 36, bx + 24, by + 30, bx + 2, by + 6); wing.closePath();
-  fs(g, s, wing, GOLD, true, 4);
-  g.strokeStyle = s(GOLD_D, true); g.lineWidth = 3; g.lineCap = 'round';
-  for (const k of [0.3, 0.55, 0.8]) { g.beginPath(); g.moveTo(bx + 10 + 70 * k, by + 4 - 8 * k); g.lineTo(bx + 4 + 62 * k, by + 24); g.stroke(); }
-  // leher S, kepala, paruh, jambul
-  const neck = P(); neck.moveTo(bx + 106, by - 8); neck.bezierCurveTo(bx + 152, by - 46, bx + 96, by - 96, bx + 134, by - 138);
-  strokeBoth(g, s, neck, 22, TEAL, false);
-  const hx = bx + 142, hy = by - 150;
-  const head = P(); head.arc(hx, hy, 20, 0, Math.PI * 2); fs(g, s, head, TEAL, false, 5);
-  const beak = P(); beak.moveTo(hx + 16, hy - 8); beak.lineTo(hx + 46, hy + 3); beak.lineTo(hx + 15, hy + 11); beak.closePath(); fs(g, s, beak, GOLD, true, 4);
-  g.fillStyle = s(IVORY, false); g.beginPath(); g.arc(hx + 5, hy - 5, 5.5, 0, Math.PI * 2); g.fill();
-  g.fillStyle = s(INK, false); g.beginPath(); g.arc(hx + 6.5, hy - 5, 2.4, 0, Math.PI * 2); g.fill();
-  for (const [ax, ay] of [[-14, -46], [0, -54], [15, -47]]) {
-    g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(hx, hy - 18); g.lineTo(hx + ax, hy + ay); g.stroke();
-    g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(hx + ax, hy + ay, 5.5, 0, Math.PI * 2); g.fill();
-  }
-  // kaki: berdiri di garis emas di atas panel dasar
-  g.strokeStyle = s(GOLD, true); g.lineWidth = 5; g.lineCap = 'round';
-  for (const lx of [bx + 40, bx + 72]) { g.beginPath(); g.moveTo(lx, by + 48); g.lineTo(lx + 5, GATE_TOP - 4); g.lineTo(lx + 19, GATE_TOP - 4); g.stroke(); }
+  // panjang bulu sampai tepi dalam bingkai (tidak terpotong bingkai)
+  const reach = (ang, max) => { let L = 80; for (; L < max; L += 6) { const x = WING[0] + Math.cos(ang) * L, y = WING[1] + Math.sin(ang) * L; if (Math.abs(x - CX) > halfAt(y) - 64) break; } return L; };
+  const LONG = [[0, '#6a150d'], [0.22, '#efe4c4'], [0.6, '#e2c26a'], [0.84, '#2f8a48'], [1, '#0f4a26']];
+  const MID = [[0, '#4a0f0a'], [0.3, '#c8321e'], [0.75, '#f0b04a'], [1, '#fff0b0']];
+  const SHORT = [[0, BLUE_D], [0.5, BLUE], [1, BLUE_L]];
+  for (let i = 0; i < 11; i++) { const a = Math.PI * (0.94 + 0.57 * i / 10); feather(a, reach(a, 322 - 7 * Math.abs(i - 6)), 46, LONG, 3.5); }
+  for (let i = 0; i < 8; i++) { const a = Math.PI * (1.0 + 0.46 * i / 7); feather(a, Math.min(196 - 5 * Math.abs(i - 3.5), reach(a, 322) * 0.66), 40, MID, 3); }
+  for (let i = 0; i < 6; i++) feather(Math.PI * (1.04 + 0.4 * i / 5), 110, 34, SHORT, 2.5);
+  const boss = P(); boss.arc(WING[0], WING[1], 34, 0, Math.PI * 2);
+  fs(g, s, boss, { rad: [WING[0] - 8, WING[1] - 8, 4, WING[0], WING[1], 34], stops: [[0, GOLD_L], [1, GOLD_D]] }, true, 6);
+  ukel(g, s, WING[0], WING[1], 22, -1, 4);
 };
-if (AGUNG) layer((g, s) => { FIELD(g); merak(g, s); g.translate(2 * CX, 0); g.scale(-1, 1); merak(g, s); });
-if (AGUNG) layer((g, s) => {
-  g.clip(SIL); g.translate(CX, KY - 28);
-  // praba: 16 sinar emas, panjang dan pendek berselang
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2 - Math.PI / 2, long = i % 2 === 0, r0 = 148, r1 = long ? 236 : 200, hw = long ? 0.11 : 0.09, rm = r0 + (r1 - r0) * 0.5;
-    const ray = P(); ray.moveTo(Math.cos(a - hw) * r0, Math.sin(a - hw) * r0);
-    ray.quadraticCurveTo(Math.cos(a - hw * 0.25) * rm, Math.sin(a - hw * 0.25) * rm, Math.cos(a) * r1, Math.sin(a) * r1);
-    ray.quadraticCurveTo(Math.cos(a + hw * 0.25) * rm, Math.sin(a + hw * 0.25) * rm, Math.cos(a + hw) * r0, Math.sin(a + hw) * r0); ray.closePath();
-    fs(g, s, ray, long ? { lin: [0, 0, Math.cos(a) * r1, Math.sin(a) * r1], stops: [[0.6, GOLD], [1, '#f1dc9a']] } : '#a8823e', true, 5);
-  }
-  // cakram berlubang: dua belas kelopak padma; sela-selanya tembus cahaya blencong
-  g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(0, 0, 150, 0, Math.PI * 2); g.fill();
-  for (let i = 0; i < 12; i++) {
-    g.save(); g.rotate((i / 12) * Math.PI * 2);
-    const pt = P(); pt.moveTo(0, -56); pt.bezierCurveTo(31, -84, 31, -122, 0, -147); pt.bezierCurveTo(-31, -122, -31, -84, 0, -56); pt.closePath();
-    fs(g, s, pt, { lin: [0, -56, 0, -147], stops: [[0, GOLD], [1, '#f6e7b8']] }, true, 5);
-    g.strokeStyle = s(GOLD_D, true); g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, -72); g.lineTo(0, -128); g.stroke();
-    g.restore();
-  }
-  g.lineWidth = 18; g.strokeStyle = s(INK, false); g.beginPath(); g.arc(0, 0, 151, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 11; g.strokeStyle = s(GOLD, true); g.beginPath(); g.arc(0, 0, 151, 0, Math.PI * 2); g.stroke();
-  // pusat: cakram nila, padma kecil, dan permata yang berpendar pelan
-  const hub = P(); hub.arc(0, 0, 62, 0, Math.PI * 2);
-  fs(g, s, hub, { rad: [0, 0, 6, 0, 0, 62], stops: [[0, '#2a3f9a'], [1, '#0a1030']] }, false, 7);
-  g.lineWidth = 6; g.strokeStyle = s(GOLD, true); g.stroke(hub);
-  for (let i = 0; i < 8; i++) {
-    g.save(); g.rotate((i / 8) * Math.PI * 2 + Math.PI / 8);
-    const pt = P(); pt.moveTo(0, -21); pt.bezierCurveTo(13, -30, 13, -45, 0, -55); pt.bezierCurveTo(-13, -45, -13, -30, 0, -21); pt.closePath();
-    fs(g, s, pt, GOLD, true, 3);
-    g.restore();
-  }
-  const gem = P(); gem.arc(0, 0, 19, 0, Math.PI * 2);
-  fs(g, s, gem, { rad: [-5, -6, 2, 0, 0, 19], stops: [[0, '#fff2c0'], [0.5, '#ffb040'], [1, '#c8501a']] }, false, 4, '#ffb040');
-});
 
-if (!AGUNG) layer((g, s) => {
+// 1f. gapura: (rupa Agung) atap tumpang, lis, dinding merah berpintu hijau, undakan, lantai ubin, dan palemahan
+const WALL_TOP = 1428;
+const gate = (g, s) => {
+  const F = (p, col, metal, lw = 6, glow) => fs(g, s, p, col, metal, lw, glow);
+  const quad = (x0, x1, y0, x2, x3, y1) => { const p = P(); p.moveTo(x0, y0); p.lineTo(x1, y0); p.lineTo(x3, y1); p.lineTo(x2, y1); p.closePath(); return p; };
+  // lantai ubin berperspektif di kiri-kanan undakan
+  {
+    g.save(); g.beginPath(); g.rect(0, FLOOR_TOP, W, PALE_TOP - FLOOR_TOP); g.clip();
+    g.fillStyle = s({ lin: [0, FLOOR_TOP, 0, PALE_TOP], stops: [[0, '#a8a290'], [1, '#e4decc']] }, false); g.fillRect(0, FLOOR_TOP, W, PALE_TOP - FLOOR_TOP);
+    const ys = [0, 0.2, 0.46, 0.76, 1].map((t) => FLOOR_TOP + (PALE_TOP - FLOOR_TOP) * t), xAt = (k, y) => CX + k * (36 + 30 * (y - FLOOR_TOP) / (PALE_TOP - FLOOR_TOP));
+    for (let r = 0; r < 4; r++) for (let k = -18; k < 18; k++) {
+      if ((k + r) & 1) continue;
+      const p = P(); p.moveTo(xAt(k, ys[r]), ys[r]); p.lineTo(xAt(k + 1, ys[r]), ys[r]); p.lineTo(xAt(k + 1, ys[r + 1]), ys[r + 1]); p.lineTo(xAt(k, ys[r + 1]), ys[r + 1]); p.closePath();
+      g.fillStyle = s('#6f685a', false); g.fill(p);
+    }
+    g.strokeStyle = s(INK, false); g.lineWidth = 2;
+    for (let k = -18; k <= 18; k++) { g.beginPath(); g.moveTo(xAt(k, FLOOR_TOP), FLOOR_TOP); g.lineTo(xAt(k, PALE_TOP), PALE_TOP); g.stroke(); }
+    for (const y of ys) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    g.restore();
+    g.strokeStyle = s(INK, false); g.lineWidth = 13; g.beginPath(); g.moveTo(0, FLOOR_TOP); g.lineTo(W, FLOOR_TOP); g.stroke();
+    g.strokeStyle = s(GOLD, true); g.lineWidth = 7; g.stroke();
+  }
+  // palemahan: pita dasar merah, sudutnya menjungkit
+  {
+    g.save();
+    const pale = P(); pale.rect(0, PALE_TOP, W, BASE - PALE_TOP);
+    pale.moveTo(150, 1660); pale.lineTo(240, PALE_TOP + 2); pale.lineTo(150, PALE_TOP + 2); pale.closePath();
+    pale.moveTo(W - 150, 1660); pale.lineTo(W - 240, PALE_TOP + 2); pale.lineTo(W - 150, PALE_TOP + 2); pale.closePath();
+    g.clip(pale);
+    g.fillStyle = s({ lin: [0, 1660, 0, BASE], stops: [[0, '#d23a22'], [1, '#6a120b']] }, false); g.fillRect(0, 1650, W, BASE - 1650);
+    g.fillStyle = s(INK, false, true); for (let x = 262; x < 1150; x += 31) { if (Math.abs(x - CX) < 86) continue; g.beginPath(); g.arc(x, 1753, 6, 0, Math.PI * 2); g.fill(); }
+    const wave = P(); for (let x = 200; x <= 1200; x += 6) { const y = 1784 + Math.sin((x - CX) * Math.PI / 31) * 6; x === 200 ? wave.moveTo(x, y) : wave.lineTo(x, y); }
+    g.lineJoin = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 8; g.stroke(wave); g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.stroke(wave);
+    g.lineJoin = 'round'; g.strokeStyle = s(GOLD, true); g.lineWidth = 16; g.stroke(SIL);
+    g.restore();
+    g.strokeStyle = s(INK, false); g.lineWidth = 13; g.beginPath(); g.moveTo(232, PALE_TOP); g.lineTo(W - 232, PALE_TOP); g.stroke();
+    g.strokeStyle = s(GOLD, true); g.lineWidth = 7; g.stroke();
+    ukel(g, s, 196, 1728, 15, 1, 4); ukel(g, s, W - 196, 1728, 15, -1, 4);
+  }
+  // gegel: pangkal tangkai tanduk di bawah garis dasar
+  {
+    const stub = P(); stub.moveTo(630, BASE); stub.lineTo(770, BASE); stub.lineTo(748, 1990); stub.lineTo(652, 1990); stub.closePath();
+    g.fillStyle = s({ lin: [630, 0, 770, 0], stops: [[0, '#1c0e07'], [0.42, '#6e4828'], [0.58, '#6e4828'], [1, '#1c0e07']] }, false); g.fill(stub);
+    g.save(); g.clip(stub); g.fillStyle = s(GOLD, true); for (const y of [1822, 1846, 1870]) g.fillRect(600, y, 200, 9); g.restore();
+  }
+  // undakan
+  for (let i = 0; i < 5; i++) {
+    const y0 = FLOOR_TOP + i * 19, hw = 158 + i * 22, p = P(); p.rect(CX - hw, y0, hw * 2, 19);
+    F(p, { lin: [0, y0, 0, y0 + 19], stops: [[0, '#f6f1e2'], [0.42, '#e6dfcc'], [0.5, '#9a927f'], [1, '#c9c2ae']] }, false, 3);
+  }
+  // dinding, tiang, daun pintu
+  const wall = P(); wall.rect(CX - 196, WALL_TOP, 392, FLOOR_TOP - WALL_TOP); F(wall, { lin: [0, WALL_TOP, 0, FLOOR_TOP], stops: [[0, '#b02a1a'], [1, '#5e120b']] }, false, 6);
+  for (const sd of [-1, 1]) {
+    const px = sd < 0 ? CX - 196 : CX + 152, pil = P(); pil.rect(px, WALL_TOP, 44, FLOOR_TOP - WALL_TOP);
+    F(pil, { lin: [px, 0, px + 44, 0], stops: [[0, '#7a160d'], [0.5, '#d23a22'], [1, '#7a160d']] }, false, 5);
+    g.fillStyle = s(GOLD, true); g.fillRect(px + 2, WALL_TOP + 16, 40, 9); g.fillRect(px + 2, FLOOR_TOP - 28, 40, 12);
+    const dm = P(); dm.moveTo(px + 22, 1494); dm.lineTo(px + 35, 1524); dm.lineTo(px + 22, 1554); dm.lineTo(px + 9, 1524); dm.closePath(); F(dm, GOLD, true, 3);
+    const dx = sd < 0 ? CX - 148 : CX + 6, door = P(); door.rect(dx, WALL_TOP + 22, 142, FLOOR_TOP - WALL_TOP - 22);
+    F(door, { lin: [dx, WALL_TOP, dx + 142, FLOOR_TOP], stops: [[0, '#46b866'], [1, '#15582b']] }, false, 5);
+    g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.strokeRect(dx + 11, WALL_TOP + 33, 120, FLOOR_TOP - WALL_TOP - 44);
+    const mx = dx + 71, my = (WALL_TOP + 22 + FLOOR_TOP) / 2;
+    const lz = (hw, hh) => { const p = P(); p.moveTo(mx, my - hh); p.lineTo(mx + hw, my); p.lineTo(mx, my + hh); p.lineTo(mx - hw, my); p.closePath(); return p; };
+    F(lz(38, 68), GOLD, true, 4); F(lz(24, 45), { lin: [0, my - 45, 0, my + 45], stops: [[0, '#d23a22'], [1, '#7a160d']] }, false, 3);
+    for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4, pt = P(); pt.ellipse(mx + Math.cos(a) * 9, my + Math.sin(a) * 9, 10, 5, a, 0, Math.PI * 2); F(pt, GOLD, true, 2); }
+    g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(mx, my, 8, 0, Math.PI * 2); g.fill();
+    g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(mx, my, 4.5, 0, Math.PI * 2); g.fill();
+    for (const oy of [-58, 58]) { g.fillStyle = s(WHITE, false); g.beginPath(); g.arc(mx, my + oy * 0.6, 3.2, 0, Math.PI * 2); g.fill(); }
+    // gelang pintu
+    g.strokeStyle = s(INK, false); g.lineWidth = 7; g.beginPath(); g.arc(CX + sd * 20, my + 6, 9, 0, Math.PI * 2); g.stroke(); g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.stroke();
+  }
+  g.strokeStyle = s(INK, false); g.lineWidth = 12; g.beginPath(); g.moveTo(CX, WALL_TOP + 22); g.lineTo(CX, FLOOR_TOP); g.stroke();
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.stroke();
+  // ambang atas dan lis (tritisan) bergerigi
+  const lintel = P(); lintel.rect(CX - 152, WALL_TOP, 304, 22); F(lintel, { lin: [0, WALL_TOP, 0, WALL_TOP + 22], stops: [[0, GOLD_L], [1, GOLD_D]] }, true, 4);
+  for (let x = CX - 286; x <= CX + 286; x += 22) { const t = P(); t.moveTo(x - 9, WALL_TOP - 2); t.lineTo(x + 9, WALL_TOP - 2); t.lineTo(x, WALL_TOP + 15); t.closePath(); F(t, GOLD, true, 2.5); }
+  F(quad(CX - 292, CX + 292, WALL_TOP - 24, CX - 306, CX + 306, WALL_TOP), { lin: [0, WALL_TOP - 24, 0, WALL_TOP], stops: [[0, '#d23a22'], [1, '#7a160d']] }, false, 6);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 3.5; g.beginPath(); g.moveTo(CX - 290, WALL_TOP - 12); g.lineTo(CX + 290, WALL_TOP - 12); g.stroke();
+  if (!AGUNG) return;
+  // atap bawah: emas, belah ketupat bertatah
+  const ROOF = WALL_TOP - 24, roof = P(); roof.moveTo(CX - 152, 1200); roof.lineTo(CX + 152, 1200); roof.quadraticCurveTo(CX + 186, 1330, CX + 292, ROOF); roof.lineTo(CX - 292, ROOF); roof.quadraticCurveTo(CX - 186, 1330, CX - 152, 1200); roof.closePath();
+  F(roof, { lin: [0, 1200, 0, ROOF], stops: [[0, '#ecd085'], [1, '#a47c38']] }, true, 7);
+  g.save(); g.clip(roof);
+  g.strokeStyle = s(GOLD_D, true); g.lineWidth = 2.5;
+  for (let k = -640; k < 640; k += 30) { g.beginPath(); g.moveTo(CX + k, 1200); g.lineTo(CX + k + 230, 1430); g.stroke(); g.beginPath(); g.moveTo(CX + k, 1200); g.lineTo(CX + k - 230, 1430); g.stroke(); }
+  g.fillStyle = s(INK, false, true);
+  for (let r = 0; r < 14; r++) for (let k = -22; k <= 22; k++) { const x = CX + k * 30 + (r % 2) * 15, y = 1215 + r * 15; if (y > ROOF - 10) continue; g.beginPath(); g.arc(x, y, 3.2, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = s({ lin: [0, 1286, 0, 1304], stops: [[0, '#b02a1a'], [1, '#6a120b']] }, false); g.fillRect(0, 1286, W, 18);
+  g.fillStyle = s(GOLD, true); g.fillRect(0, 1283, W, 4); g.fillRect(0, 1303, W, 4);
+  g.restore();
+  g.lineWidth = 3.5; g.strokeStyle = s(GOLD_L, true); g.stroke(roof);
+  // bubungan dan atap atas: biru, sisik ombak putih
+  F(quad(CX - 164, CX + 164, 1184, CX - 164, CX + 164, 1200), { lin: [0, 1184, 0, 1200], stops: [[0, '#d23a22'], [1, '#7a160d']] }, false, 5);
+  const top = P(); top.moveTo(CX - 92, 1100); top.lineTo(CX + 92, 1100); top.quadraticCurveTo(CX + 112, 1150, CX + 148, 1184); top.lineTo(CX - 148, 1184); top.quadraticCurveTo(CX - 112, 1150, CX - 92, 1100); top.closePath();
+  F(top, { lin: [0, 1100, 0, 1184], stops: [[0, BLUE_L], [1, BLUE]] }, false, 7);
+  g.save(); g.clip(top); g.strokeStyle = s(WHITE, false); g.lineWidth = 3; g.lineCap = 'round';
+  for (let r = 0; r < 6; r++) for (let k = -8; k <= 8; k++) { g.beginPath(); g.arc(CX + k * 26 + (r % 2) * 13, 1120 + r * 15, 12, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); }
+  g.restore();
+  g.lineWidth = 3.5; g.strokeStyle = s(GOLD, true); g.stroke(top);
+  F(quad(CX - 100, CX + 100, 1088, CX - 100, CX + 100, 1101), GOLD, true, 4);
+};
+
+// 1g. sepasang "merak" pengapit atap (rupa Agung; pada kayon acuan: kepala makara bersayap). Arahan host 13 Nov:
+//     "seolah olah menelan pendapa" dan "lebih serem ... lebih kaya monster" (versi pertama ditolak: "kaya badut").
+//     Rahangnya menganga lebar mengapit sisi atap dan atap terlihat di dalam mulutnya (rongga mulut bagian depan
+//     sengaja tidak diisi; atap sudah tergambar di bawahnya). Mata melotot berurat dengan iris menyala, alis api,
+//     tanduk, surai api, taring tak rata dan siung panjang, lidah bercabang, janggut api.
+//     Digambar menghadap +x dengan engsel rahang di (0, 0).
+const PALATE = [[0, -6], [40, -40], [90, -78], [128, -108]], GUM = [[0, 8], [40, 44], [78, 78], [112, 92]];
+const makara = (g, s) => {
+  const F = (p, col, metal, lw = 6, glow) => fs(g, s, p, col, metal, lw, glow);
+  const hide = { lin: [-160, -130, 130, 130], stops: [[0, '#07163c'], [0.5, '#1a418f'], [1, '#5f9fce']] };
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  // surai api di tengkuk: dari ubun-ubun lewat belakang sampai bawah rahang, ujungnya menjilat ke atas
+  const SC = [-74, -34];
+  const mane = (scaleL, stops, lw) => {
+    for (let i = 0; i < 10; i++) {
+      const u = i / 9, a = Math.PI * (1.52 - 0.86 * u), sw = Math.sin(u * Math.PI);
+      const R0 = 82, L = scaleL * (44 + 46 * sw), bw = 0.19, up = -Math.PI / 2, tipA = a + Math.atan2(Math.sin(up - a), Math.cos(up - a)) * 0.34;
+      const pt = (ang, r) => [SC[0] + Math.cos(ang) * r, SC[1] + Math.sin(ang) * r];
+      const [b1x, b1y] = pt(a - bw, R0), [b2x, b2y] = pt(a + bw, R0), [tx, ty] = pt(tipA, R0 + L);
+      const [c1x, c1y] = pt(a - bw * 0.2, R0 + L * 0.62), [c2x, c2y] = pt(a + bw * 1.5, R0 + L * 0.42);
+      const p = P(); p.moveTo(b1x, b1y); p.quadraticCurveTo(c1x, c1y, tx, ty); p.quadraticCurveTo(c2x, c2y, b2x, b2y); p.closePath();
+      if (lw) { g.lineWidth = lw; g.strokeStyle = s(INK, false); g.stroke(p); }
+      g.fillStyle = s({ rad: [SC[0], SC[1], R0 * 0.8, SC[0], SC[1], R0 + 100], stops }, false); g.fill(p);
+    }
+  };
+  mane(1.0, [[0, '#2a62b8'], [0.5, '#102f6c'], [1, '#040b22']], 7);
+  mane(0.6, [[0, '#f0b04a'], [0.6, '#c8321e'], [1, '#5a0f0a']], 4);
+  // tanduk melengkung ke belakang
+  {
+    const o = [[-36, -112], [-66, -178], [-124, -208], [-184, -200]], n = [[-82, -104], [-102, -150], [-138, -180], [-184, -200]];
+    const h = P(); h.moveTo(...o[0]); h.bezierCurveTo(...o[1], ...o[2], ...o[3]); h.bezierCurveTo(...n[2], ...n[1], ...n[0]); h.closePath();
+    F(h, { lin: [-50, -110, -184, -200], stops: [[0, '#3a2410'], [0.45, '#b49a6a'], [1, '#fff4d8']] }, false, 7);
+    g.strokeStyle = s(INK, false); g.lineWidth = 3;
+    for (let k = 2; k < 9; k++) { const q = k / 10, c = bez(...o, q), d = bez(...n, q); g.beginPath(); g.moveTo(...c); g.lineTo(...d); g.stroke(); }
+  }
+  // moncong menekuk ke atas di ujung rahang atas
+  const tr = P(); tr.moveTo(96, -128); tr.bezierCurveTo(120, -144, 140, -154, 142, -178);
+  for (let k = 1; k <= 30; k++) { const q = k / 30, a = -q * Math.PI * 2.2, r = 19 * (1 - q * 0.8); tr.lineTo(123 + Math.cos(a) * r, -180 + Math.sin(a) * r); }
+  g.strokeStyle = s(INK, false); g.lineWidth = 28; g.stroke(tr); g.strokeStyle = s('#1a418f', false); g.lineWidth = 18; g.stroke(tr); g.strokeStyle = s('#5f9fce', false); g.lineWidth = 4; g.stroke(tr);
+  // kerongkongan gelap di pangkal rahang; ke depan terbuka
+  const throat = P(); throat.moveTo(-30, -20); throat.lineTo(80, -68); throat.quadraticCurveTo(48, 0, 72, 64); throat.lineTo(-30, 24); throat.closePath();
+  g.lineWidth = 5; g.strokeStyle = s(INK, false); g.stroke(throat);
+  g.fillStyle = s({ lin: [-20, 0, 80, 0], stops: [[0, '#0e0201'], [0.6, '#5a0f0a'], [1, '#9a1c12']] }, false); g.fill(throat);
+  // lidah bercabang menjulur ke atap
+  const tg = P(); tg.moveTo(8, -4); tg.bezierCurveTo(50, 8, 86, 28, 114, 18); tg.lineTo(156, -4); tg.lineTo(130, 28); tg.lineTo(160, 46);
+  tg.bezierCurveTo(120, 56, 76, 52, 8, 14); tg.closePath();
+  F(tg, { lin: [0, 0, 150, 30], stops: [[0, '#4a0c08'], [0.5, '#c8321e'], [1, '#f0704a']] }, false, 5, '#2a0402');
+  g.strokeStyle = s(INK, false); g.lineWidth = 3; g.beginPath(); g.moveTo(30, 12); g.bezierCurveTo(70, 30, 100, 36, 126, 28); g.stroke();
+  // gigi: taring tak rata, menunjuk ke dalam mulut; siung panjang melengkung di ujung kedua rahang
+  const tooth = (line, nx, ny, q, L, w, bend) => {
+    const [x, y] = bez(...line, q), [x0, y0] = bez(...line, q - 0.02), [x1, y1] = bez(...line, Math.min(1, q + 0.02)), l = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / l, uy = (y1 - y0) / l;
+    const ax = x + nx * L + ux * bend, ay = y + ny * L + uy * bend, f = P();
+    f.moveTo(x - ux * w - nx * 5, y - uy * w - ny * 5); f.quadraticCurveTo(x - ux * w * 0.3 + nx * L * 0.6, y - uy * w * 0.3 + ny * L * 0.6, ax, ay);
+    f.quadraticCurveTo(x + ux * w + nx * L * 0.45, y + uy * w + ny * L * 0.45, x + ux * w - nx * 5, y + uy * w - ny * 5); f.closePath();
+    F(f, BONE(x, y, ax, ay), false, 3);
+  };
+  [[0.24, 16], [0.34, 26], [0.44, 18], [0.54, 30], [0.64, 20], [0.74, 28]].forEach(([q, L]) => tooth(PALATE, 0.62, 0.78, q, L, 7, 0));
+  [[0.28, 15], [0.38, 24], [0.48, 16], [0.58, 26], [0.68, 18], [0.78, 24]].forEach(([q, L]) => tooth(GUM, 0.63, -0.77, q, L, 7, 0));
+  tooth(PALATE, 0.62, 0.78, 0.9, 70, 11, -16); tooth(GUM, 0.63, -0.77, 0.93, 62, 11, -14);
+  // janggut api di bawah rahang
+  for (let k = 0; k < 6; k++) { const x = -44 + k * 28, y = 74 + k * 10, f = P(); f.moveTo(x - 9, y); f.quadraticCurveTo(x - 12, y + 24, x - 28, y + 42 - k * 2); f.quadraticCurveTo(x, y + 22, x + 9, y + 2); f.closePath(); F(f, k % 2 ? GOLD : '#c8321e', k % 2 === 1, 3); }
+  // rahang bawah
+  const jaw = P(); jaw.moveTo(-40, 6); jaw.lineTo(...GUM[0]); jaw.bezierCurveTo(...GUM[1], ...GUM[2], ...GUM[3]); jaw.bezierCurveTo(130, 96, 136, 120, 118, 130);
+  jaw.bezierCurveTo(70, 142, 0, 112, -62, 58); jaw.closePath();
+  F(jaw, hide, false, 7);
+  g.strokeStyle = s(INK, false); g.lineWidth = 3;
+  for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(-10 + k * 26, 62 + k * 13, 12, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); }
+  // rahang atas: hidung berkerut, lubang hidung mengembang, duri tulang di punggung moncong
+  for (let k = 0; k < 4; k++) { const [x, y] = bez([-30, -96], [10, -106], [60, -114], [100, -142], 0.2 + k * 0.22), f = P(); f.moveTo(x - 9, y + 6); f.lineTo(x - 6, y - 22 - k * 2); f.lineTo(x + 9, y + 2); f.closePath(); F(f, BONE(x, y, x, y - 24), false, 3); }
+  const up = P(); up.moveTo(-40, -90); up.bezierCurveTo(10, -104, 60, -112, 100, -140); up.lineTo(...PALATE[3]); up.bezierCurveTo(...PALATE[2], ...PALATE[1], ...PALATE[0]); up.lineTo(-40, 0); up.closePath();
+  F(up, hide, false, 7);
+  g.strokeStyle = s(INK, false); g.lineWidth = 4;
+  for (const [x0, y0, x1, y1, x2, y2] of [[34, -100, 52, -84, 46, -60], [58, -110, 76, -96, 72, -76], [80, -122, 96, -110, 94, -94]]) { g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(x1, y1, x2, y2); g.stroke(); }
+  g.fillStyle = s(INK, false); g.beginPath(); g.ellipse(106, -116, 9, 5.5, -0.7, 0, Math.PI * 2); g.fill();
+  // tengkorak
+  const head = P(); head.moveTo(-20, 32); head.bezierCurveTo(-60, 72, -150, 52, -158, -20); head.bezierCurveTo(-164, -84, -110, -128, -50, -124);
+  head.bezierCurveTo(-10, -122, 12, -106, 26, -86); head.lineTo(0, -6); head.lineTo(0, 8); head.closePath();
+  F(head, hide, false, 7);
+  // gusi gelap di kedua rahang
+  for (const line of [PALATE, GUM]) { const lip = P(); lip.moveTo(...line[0]); lip.bezierCurveTo(...line[1], ...line[2], ...line[3]); g.strokeStyle = s(INK, false); g.lineWidth = 12; g.stroke(lip); g.strokeStyle = s('#7a140c', false); g.lineWidth = 5; g.stroke(lip); }
+  // sirip bergerigi di belakang mata
+  const fin = P(); fin.moveTo(-100, -44); fin.lineTo(-156, -72); fin.lineTo(-132, -40); fin.lineTo(-166, -30); fin.lineTo(-130, -14); fin.lineTo(-154, 10); fin.lineTo(-104, -6); fin.closePath();
+  F(fin, { lin: [-100, 0, -166, 0], stops: [[0, '#7a140c'], [1, '#e0462a']] }, false, 5);
+  // mata melotot berurat; iris menyala, pupil celah; kelopak miring ke moncong
+  const EX = -54, EY = -62, disc = (r, col, metal, hole, glow) => { g.fillStyle = s(col, metal, hole, glow); g.beginPath(); g.arc(EX, EY, r, 0, Math.PI * 2); g.fill(); };
+  disc(64, { rad: [EX, EY, 28, EX, EY, 64], stops: [[0, 'rgba(3,6,20,0.92)'], [1, 'rgba(3,6,20,0)']] }, false);
+  disc(35, INK, false); disc(31, GOLD, true); disc(26, { rad: [EX, EY, 10, EX, EY, 26], stops: [[0, '#f4ead0'], [1, '#c2a77c']] }, false);
+  g.strokeStyle = s('#a01e12', false); g.lineWidth = 2;
+  for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2 + 0.3; g.beginPath(); g.moveTo(EX + Math.cos(a) * 25, EY + Math.sin(a) * 25); g.quadraticCurveTo(EX + Math.cos(a + 0.25) * 21, EY + Math.sin(a + 0.25) * 21, EX + Math.cos(a - 0.08) * 17, EY + Math.sin(a - 0.08) * 17); g.stroke(); }
+  g.fillStyle = s({ rad: [EX + 3, EY, 3, EX + 3, EY, 16], stops: [[0, '#ffb040'], [0.5, '#ff5a18'], [1, '#5a0a05']] }, false, false, EYE_GLOW); g.beginPath(); g.arc(EX + 3, EY, 16, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = s(INK, false); g.lineWidth = 3; g.stroke();
+  g.fillStyle = s(INK, false); g.beginPath(); g.ellipse(EX + 4, EY, 3.6, 13, 0.12, 0, Math.PI * 2); g.fill();
+  g.save(); g.beginPath(); g.arc(EX, EY, 32, 0, Math.PI * 2); g.clip();
+  const lid = P(); lid.moveTo(EX - 40, EY - 26); lid.lineTo(EX + 40, EY - 4); lid.lineTo(EX + 40, EY - 44); lid.lineTo(EX - 40, EY - 44); lid.closePath();
+  g.fillStyle = s({ lin: [0, EY - 40, 0, EY], stops: [[0, '#040b22'], [1, '#143a7c']] }, false); g.fill(lid);
+  g.strokeStyle = s(GOLD, true); g.lineWidth = 5; g.beginPath(); g.moveTo(EX - 40, EY - 26); g.lineTo(EX + 40, EY - 4); g.stroke();
+  g.restore();
+  // alis api: pangkal tebal di atas hidung, lidah-lidahnya menyala ke belakang
+  const BROW = [[20, -62], [-10, -92], [-58, -112], [-112, -100]];
+  const brow = P(); brow.moveTo(...BROW[0]); brow.bezierCurveTo(...BROW[1], ...BROW[2], ...BROW[3]); brow.lineTo(-104, -86); brow.bezierCurveTo(-60, -94, -20, -78, 8, -50); brow.closePath();
+  F(brow, { lin: [0, -110, 0, -50], stops: [[0, '#f0d080'], [1, '#8a6224']] }, true, 6);
+  for (let k = 0; k < 6; k++) { const [x, y] = bez(...BROW, 0.12 + k * 0.15), f = P(); f.moveTo(x + 9, y + 4); f.quadraticCurveTo(x - 2, y - 20, x - 20, y - 28 - k * 2); f.quadraticCurveTo(x - 6, y - 8, x - 9, y + 5); f.closePath(); F(f, GOLD, true, 3); }
+  // pilin prada di pipi, sisik tinta, permata dahi
+  ukel(g, s, -112, 4, 20, -1, 4); ukel(g, s, -50, 34, 13, 1, 3);
+  g.strokeStyle = s(INK, false); g.lineWidth = 3;
+  for (const [x, y] of [[-134, -40], [-84, -4], [-22, -22], [-78, 36], [-128, 34]]) { g.beginPath(); g.arc(x, y, 12, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); }
+};
+
+// 1h. kala kecil (banaspati) di puncak gapura rupa Agung, dengan mega rambut gelap tempat banteng dan macan berpijak.
+//     Pusat muka di (0, 0).
+const kalaAlit = (g, s) => {
+  const F = (p, col, metal, lw = 5, glow) => fs(g, s, p, col, metal, lw, glow);
+  // mega: gumpalan-gumpalan menyatu (garis luar bergelombang), pilin prada di dalamnya
+  const puffs = []; for (const sd of [-1, 1]) for (let k = 0; k < 9; k++) puffs.push([sd * (56 + 37 * k), -30 + (k % 2) * 12 + (k > 6 ? 6 : 0), 36 - (k % 3) * 4 - (k > 6 ? 6 : 0), sd, k]);
+  g.lineJoin = 'round'; g.strokeStyle = s(INK, false); g.lineWidth = 11;
+  for (const [x, y, r] of puffs) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke(); }
+  for (const [x, y, r] of puffs) { g.fillStyle = s({ rad: [x, y - r * 0.4, 3, x, y, r], stops: [[0, '#5a4842'], [1, SOOT]] }, false); g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+  for (const [x, y, r, sd, k] of puffs) if (k % 2 === 0) ukel(g, s, x, y, r * 0.5, sd, 3);
+  const crown = P(); crown.moveTo(-52, -64); crown.lineTo(-42, -98); crown.lineTo(-24, -80); crown.lineTo(0, -122); crown.lineTo(24, -80); crown.lineTo(42, -98); crown.lineTo(52, -64); crown.closePath(); F(crown, GOLD, true, 5);
+  const face = P(); face.moveTo(-64, -18); face.bezierCurveTo(-68, -66, -34, -84, 0, -84); face.bezierCurveTo(34, -84, 68, -66, 64, -18);
+  face.bezierCurveTo(62, 30, 38, 64, 0, 70); face.bezierCurveTo(-38, 64, -62, 30, -64, -18); face.closePath();
+  F(face, { rad: [0, -20, 8, 0, 0, 84], stops: [[0, '#d8442c'], [0.7, '#8a1f14'], [1, '#4a0f0a']] }, false, 7);
+  g.lineWidth = 3.5; g.strokeStyle = s(GOLD, true); g.stroke(face);
+  g.fillStyle = s('#b0180c', false, false, '#5a0a02'); g.beginPath(); g.arc(0, -92, 6, 0, Math.PI * 2); g.fill();
+  for (const sd of [-1, 1]) {
+    const ex = sd * 27, ey = -28, disc = (r, col, metal, hole, glow) => { g.fillStyle = s(col, metal, hole, glow); g.beginPath(); g.arc(ex, ey, r, 0, Math.PI * 2); g.fill(); };
+    disc(20, INK, false); disc(17.5, GOLD, true); disc(13.5, IVORY, false); disc(8, '#c01e0e', false, false, EYE_GLOW); disc(3.4, INK, false, true);
+    g.save(); g.beginPath(); g.arc(ex, ey, 18, 0, Math.PI * 2); g.clip();
+    const lid = P(); lid.moveTo(ex + sd * 24, ey - 16); lid.lineTo(ex - sd * 24, ey - 5); lid.lineTo(ex - sd * 24, ey - 30); lid.lineTo(ex + sd * 24, ey - 30); lid.closePath();
+    g.fillStyle = s('#6a150d', false); g.fill(lid); g.strokeStyle = s(GOLD, true); g.lineWidth = 3; g.beginPath(); g.moveTo(ex + sd * 24, ey - 16); g.lineTo(ex - sd * 24, ey - 5); g.stroke();
+    g.restore();
+    const brow = P(); brow.moveTo(sd * 4, -50); brow.quadraticCurveTo(sd * 30, -72, sd * 60, -54); brow.lineTo(sd * 56, -43); brow.quadraticCurveTo(sd * 30, -58, sd * 8, -40); brow.closePath(); F(brow, GOLD, true, 3.5);
+  }
+  const nose = P(); nose.moveTo(0, -14); nose.bezierCurveTo(12, -10, 22, 6, 17, 14); nose.bezierCurveTo(11, 21, 4, 18, 0, 15); nose.bezierCurveTo(-4, 18, -11, 21, -17, 14); nose.bezierCurveTo(-22, 6, -12, -10, 0, -14); nose.closePath();
+  F(nose, { rad: [0, 0, 3, 0, 4, 24], stops: [[0, '#e0563a'], [1, '#6a150d']] }, false, 4);
+  // mulut menganga (tembus cahaya), gigi dan taring
+  const mouth = P(); mouth.moveTo(-46, 22); mouth.quadraticCurveTo(0, 12, 46, 22); mouth.bezierCurveTo(42, 46, 24, 60, 0, 62); mouth.bezierCurveTo(-24, 60, -42, 46, -46, 22); mouth.closePath();
+  g.lineWidth = 10; g.strokeStyle = s(INK, false); g.stroke(mouth); g.lineWidth = 5; g.strokeStyle = s(GOLD, true); g.stroke(mouth);
+  g.fillStyle = s(INK, false, true); g.fill(mouth);
+  for (let i = -2; i <= 2; i++) { const x = i * 13, y = 17 + 0.0028 * x * x, t = P(); t.moveTo(x - 6, y); t.lineTo(x + 6, y); t.lineTo(x + 4.5, y + 11); t.lineTo(x, y + 15); t.lineTo(x - 4.5, y + 11); t.closePath(); F(t, IVORY, false, 2.5); }
+  for (const sd of [-1, 1]) { const f = P(); f.moveTo(sd * 40, 20); f.bezierCurveTo(sd * 42, 36, sd * 36, 48, sd * 30, 56); f.bezierCurveTo(sd * 30, 42, sd * 28, 30, sd * 27, 19); f.closePath(); F(f, BONE(0, 20, 0, 56), false, 3); }
+};
+
+// mata kala pada rupa Murka (pupil baranya digambar shader): letaknya harus sama dengan KAYON.eyes
+const KY = 1178, KALA_EYES = [[CX - 88, KY - 36], [CX + 88, KY - 36]];
+// 1i. wajah kala / banaspati murka (rupa Murka): duduk di atas pintu gapura, lidahnya menjilat ambang
+const drawKala = (g, s) => {
   g.clip(SIL); g.translate(CX, KY);
   // rambut api tiga lapis, lidahnya condong ke atas
   const mane = (scaleL, stops, lw, glow) => {
@@ -506,7 +740,7 @@ if (!AGUNG) layer((g, s) => {
   fs(g, s, tg, { lin: [0, 150, 0, 276], stops: [[0, '#5a0f0a'], [0.4, '#c8402a'], [1, '#e8684a']] }, false, 6, '#2a0402');
   g.strokeStyle = s(GOLD, true); g.lineWidth = 4; g.stroke(tg);
   g.strokeStyle = s(INK, false); g.lineWidth = 4; g.beginPath(); g.moveTo(0, 176); g.quadraticCurveTo(-4, 220, 0, 256); g.stroke();
-});
+};
 
 // 1g. dua raksasa penjaga gapura (Cingkarabala & Balaupata): gada berduri terangkat, rambut gimbal, siung
 const drawGuard = (g, s) => {
@@ -575,8 +809,34 @@ const drawGuard = (g, s) => {
   const fang = P(); fang.moveTo(395, 1574); fang.lineTo(402, 1574); fang.lineTo(400, 1599); fang.closePath(); F(fang, IVORY, false, 2.5);
   const tusk = P(); tusk.moveTo(386, 1594); tusk.bezierCurveTo(398, 1590, 410, 1580, 417, 1560); tusk.bezierCurveTo(408, 1576, 398, 1584, 384, 1587); tusk.closePath(); F(tusk, BONE(386, 1594, 417, 1560), false, 2.5);
   g.fillStyle = s(INK, false, true); [[354, 1442], [354, 1468], [344, 1488], [364, 1488], [336, 1514], [354, 1512], [372, 1514]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 3.4, 0, Math.PI * 2); g.fill(); });
+  // tameng bundar di depan badan (acuan: penjaga bertameng)
+  const sh = P(); sh.arc(398, 1668, 47, 0, Math.PI * 2); F(sh, { rad: [386, 1654, 6, 398, 1668, 47], stops: [[0, GOLD_L], [1, GOLD_D]] }, true, 7);
+  const shIn = P(); shIn.arc(398, 1668, 35, 0, Math.PI * 2); F(shIn, { rad: [398, 1668, 4, 398, 1668, 35], stops: [[0, '#d23a22'], [1, '#6a120b']] }, false, 4);
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, pt = P(); pt.ellipse(398 + Math.cos(a) * 19, 1668 + Math.sin(a) * 19, 11, 5.5, a, 0, Math.PI * 2); F(pt, GOLD, true, 2.5); }
+  g.fillStyle = s(GOLD, true); g.beginPath(); g.arc(398, 1668, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = s(INK, false, true); g.beginPath(); g.arc(398, 1668, 3.6, 0, Math.PI * 2); g.fill();
 };
-layer((g, s) => { g.clip(SIL); drawGuard(g, s); g.translate(2 * CX, 0); g.scale(-1, 1); drawGuard(g, s); });
+
+// Susunan gambar, dari belakang ke depan: lar → gapura → (Agung: makara, kala kecil, satwa | Murka: satwa, kala besar) → penjaga
+layer((g, s) => { FIELD(g); wing(g, s); g.translate(2 * CX, 0); g.scale(-1, 1); wing(g, s); });
+layer((g, s) => { g.clip(SIL); gate(g, s); });
+if (AGUNG) {
+  layer((g, s) => { FIELD(g); for (const sd of [-1, 1]) { g.save(); g.translate(CX + sd * MAKARA[0], MAKARA[1]); g.scale(-sd * MAKARA[2], MAKARA[2]); makara(g, s); g.restore(); } });
+  layer((g, s) => { g.clip(SIL); g.translate(CX, 1040); kalaAlit(g, s); });
+}
+// banteng (kiri) dan macan (kanan) berhadapan mengapit batang: di atas mega kala (Agung) atau di atas surai api (Murka)
+const ANIMAL_Y = AGUNG ? 905 : 822;
+layer((g, s) => {
+  FIELD(g);
+  g.save(); g.translate(CX - 262, ANIMAL_Y); g.scale(0.92, 0.92); banteng(g, s); g.restore();
+  g.save(); g.translate(CX + 262, ANIMAL_Y); g.scale(-0.92, 0.92); macan(g, s); g.restore();
+});
+if (!AGUNG) layer((g, s) => drawKala(g, s));
+// penjaga berdiri di lantai, di kiri-kanan undakan
+layer((g, s) => {
+  g.clip(SIL);
+  for (const sd of [-1, 1]) { g.save(); g.translate(CX + sd * 350, 1712); g.scale(-sd * 0.74, 0.74); g.translate(-362, -1801); drawGuard(g, s); g.restore(); }
+});
 
 // 1h. sisi belakang: kobaran api (geni) dengan wajah iblis yang muncul dari dalamnya
 const cB = mk();
@@ -594,7 +854,7 @@ if (!AGUNG) {
   const PAL = [['#2a0503', '#7a160a'], ['#6a1208', '#c8381a'], ['#a8280e', '#f07a2a'], ['#e05a1c', '#ffc560'], ['#ffa63a', '#fff2c0']];
   const blaze = (count, keep) => PAL.forEach(([c0, c1], L) => {
     for (let i = 0; i < count - L * 14; i++) {
-      const base = 1840 - rnd() * (1560 - L * 140) - L * 30, half = Math.max(70, (base - 40) * 0.42), x = CX + (rnd() - 0.5) * 2 * half;
+      const base = 1840 - rnd() * (1560 - L * 140) - L * 30, half = Math.max(70, halfAt(base) - 20), x = CX + (rnd() - 0.5) * 2 * half;
       const w = 16 + rnd() * 34 - L * 2.5, h = 190 + rnd() * 430 - L * 34, sway = (rnd() - 0.5) * w * 2.4;
       if (keep(x, base, h)) tongue(x, base, w, h, sway, c0, c1);
     }

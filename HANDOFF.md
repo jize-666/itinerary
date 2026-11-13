@@ -1,17 +1,49 @@
 # HANDOFF
 
-Diperbarui 13 Nov 2026 dini hari (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
+Diperbarui 13 Nov 2026 sore (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **Tugas 7 (gunungan) sedang dikerjakan atas arahan host, prioritas tertinggi.** Tugas 6 (gong): kode pukulan dan hentakan kamera sudah di branch, **tes unit, e2e, dan videonya ditunda host sampai gunungan selesai** (daftarnya di bagian 0, "Utang gong").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
-**Status singkat: kode sapuan gunungan 3D sudah tertulis dan lolos typecheck, lint, dan build, tetapi BELUM PERNAH DILIHAT di layar.** Belum ada tangkapan layar, video, tes unit, maupun e2e untuk gunungan. Gerbang pembuka belum dikerjakan. Jangan dianggap selesai.
+**Status singkat (13 Nov sore): sapuan gunungan 3D sudah jalan dan sudah dilihat di layar (desktop dan HP tegak, maju dan mundur), tes unitnya lulus. Yang BELUM: video sapuan, e2e, gerbang pembuka. Muka Murka sedang digambar ulang atas arahan host (lihat "Arahan host 13 Nov sore" di bawah).** Jangan dianggap selesai.
 
 **Arahan host yang berlaku** (kata demi kata ada di "Tugas 6: kemajuan" di bawah, no. 4, 7, 8): gunungan dikerjakan dulu dengan prioritas tertinggi; tes unit dan e2e gong ditunda sampai gunungan selesai; "redesign/remodel/upgrade ke duanya. jangan yang 'murka' aja". Tafsir Claude atas kalimat terakhir (belum ditegaskan host): sapuan antar bab dan gerbang pembuka dua-duanya dirancang ulang, dan gunungannya tidak hanya berwajah "Murka".
 
-**Rancangan yang dipilih.** Satu lembaran gunungan bermuka dua:
+**Arahan host 13 Nov (sesi baru sesudah `/clear`), kata demi kata, disertai satu foto kayon gapuran gaya Surakarta:**
+"cek handoff.md / revisi design gunungan yang baru menjadi seperti foto yang gw kirim. jangan tiru 100% / jangan mirip 100%, cukup jadi acuan. / untuk mode "murka" tetap harus ada muka barong/wayangan nya."
+
+Isi foto acuan: siluet berbahu yang menyempit ke pita dasar merah bersudut jungkit; seluruh bidang penuh sulur prada di atas dasar merah tua (bukan renda tembus); pohon hayat dililit seekor ular hijau, dengan burung dan kembang; macan dan banteng berhadapan; kala kecil di puncak gapura; gapura beratap tumpang (atas biru bermotif ombak, bawah emas berbelah ketupat), pintu hijau berbingkai merah, undakan dan lantai ubin; sepasang sayap dengan kepala makara biru; dua raksasa penjaga bertameng.
+
+Tafsir Claude (belum ditegaskan host): yang direvisi adalah gambar gunungan di `scripts/assets/gunungan-paint.js` untuk **kedua muka**; susunan dan warnanya mengikuti foto, tetapi digambar ulang dengan gaya sendiri (tidak menjiplak). Muka Murka tetap memakai wajah kala/barong besar yang disetujui 8 Nov, sekarang di atas pintu gapura menggantikan atap. Rancangan "Agung" lama (bingkai nila, medali surya-padma, sepasang merak, renda belah ketupat) **diganti**. Status pengerjaannya ada di "Revisi rupa (13 Nov)" di bawah.
+
+**Arahan susulan 13 Nov (dikirim saat pelukis baru sedang dipanggang), kata demi kata:** "meraknya bisa di samain kata prefrensi ga? seolah olah menelan pendapa". Tafsir Claude (belum ditegaskan host): "merak" = sepasang kepala bersayap biru di kiri-kanan atap gapura pada foto acuan (di pelukis bernama `makara` + `wing`); "kata prefrensi" = "kayak referensi". Yang diminta: kepala itu dibuat seperti di foto, rahangnya menganga lebar mengapit sisi atap sehingga pendapa tampak sedang ditelan dari kiri dan kanan, dengan bulu mengipas di belakangnya. Berlaku di muka Agung (di muka Murka atap diganti wajah kala besar, jadi di sana hanya sayapnya).
+
+**Arahan susulan kedua 13 Nov (sesudah melihat gambar pertama kepala "merak"), kata demi kata:** "buat lebih serem lah kaya foto refrensi meraknya, di preference lebih kaya monster. ini kaya badut". Artinya: kepala "merak" versi pertama (biru cerah, mata bulat putih, bibir merah melengkung) ditolak karena lucu seperti badut; harus seram seperti monster di foto acuan. Yang diubah: warna lebih gelap, mata melotot berurat dengan iris menyala dan kelopak miring, alis api, tanduk, surai api, deret taring tak rata dan dua siung panjang, lidah bercabang, janggut api.
+
+**Arahan host 13 Nov sore (sesi baru sesudah `/clear`), kata demi kata, disertai satu foto sisi api sebuah kayon (seluruh lembaran berupa sisik lidah api jingga-kuning, dengan satu wajah kala/barong besar berwarna pucat di tengah bawah: mata merah melotot, pilin-pilin putih dan merah muda, mulut merah menganga bertaring, lidah menjulur):**
+"cek sapuan gunungan di handoff.md, sudah selesai? yang ini; (Lint, typecheck, dan 281 tes unit lulus. Saya cek tampilan di layar HP tegak, lalu menulis tes unit gunungan dan merekam video sapuan.) / revisi gunungan mode "murka" harusnya full muka barong seperti ini"
+
+Jawaban atas "sudah selesai?", dari jejak di disk (sesi sebelumnya terputus ±05.01 UTC):
+- **Cek HP tegak: sudah.** Dua tangkapan iPhone tiruan (maju di tengah, mundur dengan geni) dibuat 05.00; sapuan tampil benar.
+- **Tes unit gunungan: sudah ditulis, belum sempat dijalankan.** `tests/unit/gunungan.test.ts` (10 tes) dibuat 05.01 dan belum di-commit. Dijalankan di sesi ini: `pnpm test` **291 lulus**, `pnpm typecheck` dan `pnpm lint` lulus.
+- **Video sapuan: belum direkam.** Tidak ada berkas video sesudah gambar baru dipanggang.
+- Semua pekerjaan revisi rupa 13 Nov (pelukis, tekstur, penyetelan cahaya shader, `sweepAt`) belum di-commit saat sesi terputus; di-commit di sesi ini sebagai titik aman sebelum muka Murka diubah.
+
+Tafsir Claude atas revisinya (belum ditegaskan host): **muka Murka diganti seluruhnya**. Gapura, pohon hayat, naga, banteng, macan, sayap, dan penjaga dihapus dari muka Murka; seluruh lembaran menjadi kobaran lidah api bersisik, dan satu wajah barong/kala besar mengisi bagian tengah-bawah, seperti foto. Wajahnya pucat (putih tulang, merah muda, abu) supaya terbaca di atas api, bukan merah seperti versi 8 Nov. Muka Agung tidak diubah. Sisi geni (api yang menjalar saat mundur) digambar ulang supaya cocok dengan wajah baru. Arahan lama "jangan mirip 100%, cukup jadi acuan" dianggap tetap berlaku: susunannya mengikuti foto, gambarnya dibuat sendiri.
+
+### Revisi rupa (13 Nov)
+
+| Langkah | Isi | Status |
+|---|---|---|
+| 1 | Kedua muka digambar ulang mengikuti foto kayon gapuran (siluet berbahu, bidang merah penuh lung prada, pohon hayat dililit naga, gapura, lar, penjaga) | **selesai**, sudah dilihat hasil panggang dan di panggung |
+| 2 | Kepala "merak" (makara) menelan atap pendapa, dibuat seram | **selesai** (belum ada tanggapan host atas versi seramnya) |
+| 3 | Cahaya shader diturunkan (lampu dalang, kilap prada, pendar blencong) karena gambar baru jauh lebih terang dari renda lama | **selesai** |
+| 4 | Muka Murka = wajah barong penuh di tengah kobaran api (arahan 13 Nov sore) | **sedang dikerjakan** |
+| 5 | Video sapuan kedua muka ke host | belum |
+
+**Rancangan yang dipilih (12 Nov; rupanya diganti arahan 13 Nov di atas, susunan dua mukanya tetap).** Satu lembaran gunungan bermuka dua:
 - muka **Agung** (baru): bingkai dan panel dasar nila, pohon hayat utuh, medali surya-padma berlubang (cahaya tembus di sela kelopak), sepasang merak, naga, banteng dan macan, gapura dan dua raksasa penjaga. Tanpa wajah kala besar dan tanpa gigi api.
 - muka **Murka**: gambar yang disetujui host 8 Nov (kala/banaspati), dengan pupil bara di lubang mata dan **sisi geni** (api + wajah iblis) yang menjalar dari bawah lewat shader.
 - Maju ke bab berikutnya memperlihatkan muka Agung; mundur memperlihatkan baliknya, muka Murka yang membara di kaki.
@@ -25,16 +57,17 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - `src/components/film/stage3d/runtime.ts`: gunungan dibuat dan diperbarui tiap frame; `window.__lakonStage.kayon` (tekstur siap) dan `.sweep` (sedang menyapu).
 
 **Hasil tes dan kendala.**
-- `pnpm typecheck`, `pnpm lint`, `pnpm build` lulus (13 Nov). `pnpm test` dan `pnpm test:e2e` **belum dijalankan** sejak gunungan ditulis.
-- Shader gunungan belum pernah dikompilasi di browser: galat GLSL, arah muka, letak, dan warna semuanya masih mungkin salah.
-- Belum ada tes unit untuk `src/engine/stage/gunungan.ts`, dan tes e2e sapuan kayon yang lama mungkin gagal bila mengandalkan `.fl-wipe` saat 3D hidup (belum dicek).
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (291 tes; 10 baru di `tests/unit/gunungan.test.ts`) lulus (13 Nov sore). `pnpm test:e2e` **belum dijalankan** sejak gunungan ditulis.
+- Shader gunungan sudah jalan di Chromium (tanpa GPU): arah muka, letak, lubang tembus, dan geni benar di tangkapan layar desktop dan iPhone tiruan.
+- Tes e2e sapuan kayon yang lama mungkin gagal bila mengandalkan `.fl-wipe` saat 3D hidup (belum dicek).
 - Beban belum diukur. Perkiraan memori tekstur: ±23 MB di Medium/Low, ±41 MB di High. Perlu dicek di HP host dengan `/film/?fps`.
 - `scripts/assets/gunungan-paint.js` dikecualikan dari lint (`eslint-disable`, kode gambar padat salinan prototipe).
 
 **Langkah berikutnya, urut.**
-1. Lihat sapuan di layar (tangkapan layar pada beberapa titik `p`, maju dan mundur, desktop dan HP tegak), perbaiki sampai benar.
-2. Tes unit `gunungan.ts`; sesuaikan e2e sapuan.
-3. Video pratinjau sapuan (kedua muka) ke host.
+1. ~~Lihat sapuan di layar~~ sudah (13 Nov): desktop dan HP tegak, maju dan mundur. Alat: `window.__lakonStage.sweepAt = [p, arah, geni]` menahan gunungan di satu titik sapuan.
+2. Muka Murka baru (wajah barong penuh): gambar, panggang, sesuaikan `KAYON.eyes` dan sisi geni, lihat di panggung.
+3. ~~Tes unit `gunungan.ts`~~ sudah (10 tes); e2e sapuan belum disesuaikan.
+3b. Video pratinjau sapuan (kedua muka) ke host.
 4. Gerbang pembuka: gunungan ditancapkan di depan blencong saat film dibuka, lalu disibak ke prolog; klik membaliknya ke muka Murka. Video ke host.
 5. Catat di `docs/design/decisions.md`, centang di `CLAUDE.md`.
 6. Sesudah gunungan: "Utang gong" di bawah (tes unit, e2e penuh sekali, cek bingkai, video gong ditabuh).
