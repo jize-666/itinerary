@@ -18,7 +18,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 13 Nov 2026.
+Diperbarui 14 Nov 2026.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -54,7 +54,9 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 - [x] **6. Gong ageng 3D** dengan pukulan (klik/tap/Enter) dan bunyi. ✅ 13 Nov 2026. Gong, gayor, dan naga 3D; dipukul sendiri saat tiba di slide gong dan lagi dengan klik/tap/Enter; kilatan, retakan bara, riak, bunga api, napas api naga, bunyi, hentakan kamera (habis tepat di 2,5 dtk); bingkai slide gong dilebarkan. Ditambah atas arahan host 13 Nov: zoom gong (cubit, Ctrl+roda, tombol +/−) dan dua tahap gulir. Rinciannya: `docs/design/decisions.md` bagian "Gong ageng 3D di panggung" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
   - Uji di perangkat nyata (`/film/?fps`), termasuk cubit dan giroskop.
   - Kepingan bara yang berkumpul jadi gong di prolog: ditunda, dikerjakan bila host masih mau. Batara Kala dan keris: dilewati atas arahan host.
-- [ ] **7. Gunungan** sebagai pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"; sapuan antar bab tetap bayangan kayon DOM). Rupa dua muka (Agung, dan Murka gaya wayang dengan garuda) sudah diterima host 13 Nov. Sisa: gerbang pembuka sebelum prolog dan penutup sesudah film.
+- [x] **7. Gunungan** sebagai pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"; sapuan antar bab tetap bayangan kayon DOM). ✅ 14 Nov 2026. Rupa dua muka (Agung, dan Murka gaya wayang dengan garuda) diterima host 13 Nov. Pembuka: film 3D dibuka dengan gunungan tertancap di gedebog di depan kelir berlampu (bayangan tatahan jatuh di kelir); gulir/geser/panah maju mencabutnya (di HP mengikuti jari) dan kamera maju ke prolog; mundur di slide pertama menancapkannya lagi. Penutup: di credits gulir maju (atau diam 12 dtk) menancapkannya lagi dengan gong. Klik/tap/Enter membaliknya ke muka Murka. Rinciannya: `docs/design/decisions.md` bagian "Gunungan pembuka dan penutup film" dan `HANDOFF.md` bagian 0. Sisa pekerjaan, menunggu tinjauan host atas video:
+  - Uji di perangkat nyata (`/film/?fps`): gerbang di HP, geser jari, bunyi balik dan gong tancep.
+  - Lama menunggu gunungan di 4G belum diukur (tekstur ±1,2–1,6 MB diunduh bersamaan dengan bundle 3D; sesudah 6 dtk film dibuka tanpa gerbang).
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**

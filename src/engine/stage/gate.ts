@@ -31,8 +31,8 @@ export const GATE = {
   coverAt: 0.45,
   /** Menunggu panggung 3D dan tekstur gunungan sebelum pembuka dilepas (ms); sesudahnya film dibuka tanpa gerbang. */
   waitMs: 6000,
-  /** Penutup: gunungan ditancapkan sendiri sekian ms sesudah tiba di credits. */
-  autoTailMs: 9000,
+  /** Penutup: gunungan ditancapkan sendiri sekian ms sesudah tiba di credits (cukup untuk membaca credits). */
+  autoTailMs: 12000,
   /** Geser jari yang dilepas sesudah mencabut sebanyak ini (atau dikibas maju) → dicabut sampai habis. */
   commit: 0.3,
   /** Tinggi gunungan tertancap sebagai bagian dari tinggi layar (layar lebar); di layar tegak dibatasi lebarnya. */

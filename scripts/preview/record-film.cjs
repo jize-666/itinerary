@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera|datar]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera|datar|gerbang]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D (prolog, kamera
@@ -9,7 +9,11 @@
 // kayon = sapuan gunungan 3D: maju ke Hari 1 (muka Agung), mundur ke prolog (muka Murka, api geni naik), maju lagi;
 // kamera = gerak pandang di slide gong (desktop): parallax kursor, dua tahap gulir (dekat), zoom − dan +, menjauh,
 // lalu pindah slide dengan kedalaman ikut gulir; datar = gerak pandang film 2,5D (pakai STAGE=static): parallax
-// kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman.
+// kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman; gerbang = gunungan
+// pembuka dan penutup (Tugas 7): tertancap di depan kelir, kursor menggeser lampu dan bayangan (desktop), dibalik ke
+// muka Murka dan kembali, dicabut dengan gulir (di iphone dengan jari, ditahan di tengah), lalu lompat ke credits dan
+// gunungan ditancapkan lagi. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, jadi di tur
+// lain langkah pertama mencabutnya.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -159,6 +163,45 @@ const fs = require('fs');
     await p.mouse.wheel(0, -100); await w(2600); // gulir mundur saat dekat: menjauh dulu
     await p.mouse.wheel(0, 100); await w(2200); // dekat lagi
     await p.mouse.wheel(0, 100); await w(3200); // gulir berikutnya: pindah slide, kamera maju mengikuti gulir
+    await finish();
+    return;
+  }
+
+  if (tour === 'gerbang') {
+    const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };
+    // video dimulai saat gunungan pembuka sudah tertancap (tekstur siap), termasuk saat ia memudar masuk
+    rolling = false;
+    await p.waitForSelector('.film[data-gate="head"]', { timeout: 600000 });
+    rolling = true;
+    await w(2600); // tertancap di gedebog, kelir disinari blencong
+    if (!phone) {
+      await glide(1200, 240, 2200); // kursor ke kanan atas: lampu ikut, bayangan bergeser ke kiri, lembaran berpaling
+      await glide(90, 560, 2400); // ke kiri bawah
+      await glide(640, 380, 1000);
+    }
+    await tap(p.locator('.fl-kayon'), 3600); // dibalik: muka Murka, api geni menyala lalu membara
+    if (!phone) {
+      await glide(980, 280, 1400); // pupil barong mengikuti kursor
+      await glide(300, 420, 1400);
+      await glide(640, 380, 600);
+    }
+    await tap(p.locator('.fl-kayon'), 2600); // kembali ke muka Agung
+    if (phone) {
+      // dicabut dengan jari: naik pelan, ditahan di tengah (gunungan ikut diam), lalu dilepas
+      const y0 = Math.round(height * 0.78);
+      const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: Math.round(width / 2), y }] });
+      await touch('touchStart', y0);
+      for (let i = 1; i <= 30; i++) { await touch('touchMove', y0 - i * 6); await w(30); }
+      await w(1200);
+      for (let i = 31; i <= 50; i++) { await touch('touchMove', y0 - i * 6); await w(24); }
+      await touch('touchEnd', 0);
+      await w(4200);
+    } else {
+      await p.mouse.wheel(0, 120); // dicabut: naik dari gedebog, disapukan ke kanan bersama kelir, kamera maju ke prolog
+      await w(4600);
+    }
+    await key('End', 4200); // lompat ke credits
+    await key('ArrowDown', 4400); // tancep kayon: gunungan masuk dari kiri, credits memudar, gong saat menancap
     await finish();
     return;
   }

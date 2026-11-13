@@ -13,7 +13,7 @@ Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapua
 
 **Rancangan (mengikuti pagelaran wayang: gunungan tertancap sebelum lakon, bedhol kayon membuka, tancep kayon menutup).**
 - **Pembuka:** film 3D yang dibuka di slide pertama mulai dengan gunungan muka Agung tertancap di gedebog, di depan kelir yang disinari blencong. Teks prolog menunggu. Gulir, geser, atau panah maju mencabutnya (naik dulu dari gedebog, lalu disapukan ke kanan bersama kelirnya); kamera maju dari shot kayon ke shot prolog, dan teks prolog muncul di tengah jalan. Di HP cabutan mengikuti jari. Mundur di slide pertama menancapkannya lagi dari kanan.
-- **Penutup:** di credits, gulir maju menancapkan gunungan dari kiri (credits memudar, gong berbunyi saat menancap); bila tamu diam 9 dtk, ditancapkan sendiri. Mundur mencabutnya.
+- **Penutup:** di credits, gulir maju menancapkan gunungan dari kiri (credits memudar, gong berbunyi saat menancap); bila tamu diam 12 dtk, ditancapkan sendiri. Mundur mencabutnya.
 - **Balik muka:** klik, tap, Enter, atau Spasi pada gunungan yang tertancap membaliknya dengan pegas (muka Murka: api geni menyala besar lalu membara; pupil barong mengikuti kursor), bunyi `gunungan-balik`.
 - **Kelir:** kain berlampu dengan kolam cahaya blencong yang mengikuti kursor, anyaman, plisir, palemahan (petunjuk gulir duduk di sini), gedebog, dan bayangan gunungan bertatahan tembus yang bergeser berlawanan arah lampu, dari muka mana pun (FR-28b).
 - **Gerak pandang (aturan tetap):** parallax (gunungan bergeser lebih jauh dari kelir), perspective shift (lembaran berpaling mengikuti kursor/kemiringan HP), kedalaman ikut gulir (kamera dan ukuran gunungan mengikuti kadar cabutan).

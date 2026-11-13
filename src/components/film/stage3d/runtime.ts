@@ -137,9 +137,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     onReady: (ok) => {
       stageBus.setKayon(ok);
       stageBus.gateReady(ok);
+      // tekstur gagal dimuat: gunungan tidak akan tampil, film dibuka tanpa gerbang
+      if (!ok) stageBus.gateDisarm();
     },
   });
-  const nodes = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh, ...gunungan.nodes];
+  /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
+  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
+  let worldHidden = false;
+  const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
   gl.info.autoReset = false;
@@ -332,6 +337,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     if (gunungan.ready()) kayonFade = Math.min(1, kayonFade + dt / 0.6);
     gunungan.update(pose, camera, lk, heartbeat(t), rage, pin ? 1 : kayonFade, buf.y);
+    // gunungan tertancap penuh: kelir pekat menutup seluruh layar, jadi pendapa, lanskap, dan langit di baliknya
+    // tidak digambar sama sekali (hemat lewat cara menggambar, bukan lewat resolusi)
+    const hide = !pin && pose !== null && "turn" in pose && planted >= 0.999 && kayonFade >= 1 && gunungan.ready();
+    if (hide !== worldHidden) {
+      worldHidden = hide;
+      for (const n of world) n.visible = !hide;
+    }
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
