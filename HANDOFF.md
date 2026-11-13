@@ -164,6 +164,16 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 3. **Parallax HP dari kemiringan (giroskop)**: kamera bergeser saat HP dimiringkan (semua slide 3D, seperti parallax kursor); di iPhone izin diminta sekali.
 4. **Parallax lebih terasa**: geseran kursor diperbesar dan kamera ikut sedikit memutar (semua slide 3D).
 
+**Arahan host berikutnya (menyusul "semua"), kata demi kata:** "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax. catat di handoff.md".
+
+**ATURAN TETAP (berlaku untuk semua objek 3D yang sudah ada dan yang akan dibuat di Tugas 7–12, dan untuk film 2,5D):** setiap objek atau slide harus punya
+- **kamera parallax**: kamera (3D) atau lapisan (2,5D) bergeser mengikuti kursor di desktop dan kemiringan HP (giroskop) di HP;
+- **perspective shift**: geseran itu mengubah perspektif sungguhan, bukan hanya menggeser gambar: kamera sedikit memutar mengitari objeknya (3D), lapisan dekat bergeser lebih jauh dari lapisan jauh dan bidang miring ringan (2,5D);
+- **scroll-driven depth**: kedalaman mengikuti gulir: saat menggulir, kamera (3D) atau lapisan (2,5D) bergerak maju-mundur dalam kedalaman mengikuti kemajuan gulir (di HP mengikuti jari).
+Plus untuk gong (pilihan 1 dan 2 di atas): zoom cubit/Ctrl+roda dan dua tahap gulir (dekat dulu, baru pindah slide).
+
+Tafsir Claude atas "scroll-driven depth" untuk slide selain gong (belum ditegaskan host): kedalaman mengikuti kemajuan gulir di dalam perpindahan slide, bukan menambah satu langkah gulir di setiap slide, karena itu menggandakan jumlah gulir sepanjang film dan melanggar FR-20a ("satu event roda = tepat satu slide", dijaga e2e). Dua tahap gulir hanya di slide gong, sesuai pilihan 2 yang diminta host.
+
 **Hentakan dan getar kamera (arahan host no. 5), yang ditulis.** `cameraKick`, `KICK`, `kickSize` di `src/engine/stage/gong.ts` (murni); dijumlahkan per hantaman di `createStrikes().at()` (`kick`); dipasang ke kamera di `src/components/film/stage3d/runtime.ts` sesudah napas dan parallax. Angkanya: mundur ±0,9% jarak dalam ±0,08 dtk lalu berayun balik sekali; getar 3,6–4,8 Hz, paling jauh ±0,6% tinggi layar, habis ±1,5 dtk; mulai dari nol tanpa sentakan. Sekalian: hantaman lama sekarang dilupakan sesudah 12 dtk (dulu hanya 3 hantaman terakhir yang dihitung, sehingga pukulan keempat beruntun menggeser gong ±1 cm). Rinciannya di `docs/design/decisions.md` bagian "Gong ageng 3D di panggung".
 
 **Yang selesai (langkah 1–2).**
