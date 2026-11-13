@@ -68,7 +68,7 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 | 5 | Api geni lebih hebat (shader) | **selesai**: kulit hangus dengan retakan bara, lidah api hidup di atas garis bakar sampai keluar pucuk, percikan bara, tokoh tidak terbakar (`KAYON.spare`), kadar puncak `GENI.peak` 0,56 |
 | 6 | Muka Murka bergaya wayang mengikuti foto gunungan (arahan "khas wayang nya bener bener hilang") | **selesai**, menunggu tanggapan host |
 | 7 | Garuda mengikuti foto topeng garuda Bali (arahan "kaya bangau", "kayak tokek", "lebih serem ... mahkota mewah") | **selesai**, menunggu tanggapan host |
-| 8 | Video sapuan kedua muka ke host | sedang direkam (tur `kayon`) |
+| 8 | Video sapuan kedua muka ke host | **selesai**: tur `kayon` (desktop 1920×1080, 60 fps, 13,7 dtk, tier High) dikirim 13 Nov malam; frame-frame sapuan mundur sudah dicek (muka Murka terbakar, tokoh utuh) |
 
 **Muka Murka sekarang (13 Nov malam), yang dibuat.** Di `scripts/assets/gunungan-paint.js`, bagian "RUPA MURKA", digambar dengan cara wayang kulit (tatahan tembus, sunggingan berjenjang lewat `band()`, cawi, drenjeman, prada):
 - Lidah api merah jambu bertatah (`lidah()`) menjulang ke pucuk dan condong ke sumbu, dengan inti api jingga di tengah; dasar merah anggur bertatah bubukan.
@@ -104,7 +104,7 @@ Tafsir Claude (belum ditegaskan host): muka Murka versi kelima dan keenam (gaya 
 1. ~~Lihat sapuan di layar~~ sudah (13 Nov): desktop dan HP tegak, maju dan mundur. Alat: `window.__lakonStage.sweepAt = [p, arah, geni]` menahan gunungan di satu titik sapuan.
 2. ~~Muka Murka baru~~ sudah: bergaya wayang dengan garuda mengikuti foto (`6f0e9db`); tunggu tanggapan host atas gambarnya.
 3. ~~Tes unit `gunungan.ts`~~ sudah (10 tes); e2e sapuan belum disesuaikan.
-3b. Video pratinjau sapuan (kedua muka) ke host.
+3b. ~~Video pratinjau sapuan (kedua muka) ke host~~ sudah (13 Nov malam). Perekamnya: `STAGE=high node scripts/preview/record-film.cjs <data.json> <keluaran.mp4> desktop 0.02 kayon` (±12 menit).
 4. Gerbang pembuka: gunungan ditancapkan di depan blencong saat film dibuka, lalu disibak ke prolog; klik membaliknya ke muka Murka. Video ke host.
 5. Catat di `docs/design/decisions.md`, centang di `CLAUDE.md`.
 6. Sesudah gunungan: "Utang gong" di bawah (tes unit, e2e penuh sekali, cek bingkai, video gong ditabuh).
