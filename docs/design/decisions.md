@@ -365,7 +365,7 @@ Tugas 6 di `CLAUDE.md`, dikerjakan bertahap. Bagian ini mencatat langkah 1–3 (
 
 **Muka Agung (13 Nov).** Acuan host: foto kayon gapuran gaya Surakarta ("jangan mirip 100%, cukup jadi acuan"). Siluet berbahu dengan palemahan merah bersudut jungkit; bidang merah tua penuh lung-lungan prada yang lekuknya ditatah tembus; pohon hayat dililit naga hijau dengan burung dan kembang; banteng dan macan berhadapan; gapura beratap tumpang dengan pintu hijau, undakan, dan lantai ubin; sepasang makara biru yang rahangnya mengapit atap seolah menelan pendapa (host: "seolah olah menelan pendapa"), dibuat seram karena versi pertama ditolak ("ini kaya badut"); kala kecil di puncak gapura; sepasang lar; dua raksasa penjaga bertameng.
 
-**Muka Murka (13 Nov sore–malam).** Lima putaran arahan host, urut:
+**Muka Murka (13 Nov sore–malam).** Arahan host, urut:
 1. Foto sisi api sebuah kayon: "harusnya full muka barong seperti ini". Versi 1–2 (wajah pucat bulat) ditolak: "kaya badut", lalu "terlalu bulat muka mukanya, kaya kentang".
 2. Versi 5 (wajah dirakit dari ukel, sisik api) ditolak: "mode murka, pas kebakar masih kurang. dan tanduk sama yang di pipinya itu kaya keong".
 3. Foto gunungan wayang kulit sungguhan: "khas wayang nya bener bener hilang, remodel. kaya refrensi". Muka Murka dirombak total mengikuti susunan foto ini.
