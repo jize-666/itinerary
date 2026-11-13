@@ -5,6 +5,12 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 7: pembuka dan penutup gunungan (sesi 14 Nov pagi WIB)
+
+**Arahan host, kata demi kata:** "kerjakan tugas 7, gunungan" (sesi baru sesudah `/clear`; PR #8 sudah di-merge host 13 Nov 17.26 UTC, jadi branch kerja dibuat ulang dari `main` `d785e65`).
+
+Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapuanya pakai yang lama"): gerbang pembuka sebelum prolog dan penutup sesudah film memakai gunungan 3D bermuka dua yang sudah diterima. Sapuan antar bab tetap bayangan kayon DOM. Dua tes e2e yang gagal di run terakhir sebelum PR #8 ikut dibereskan, karena sesi wajib ditutup dengan `pnpm test:e2e` hijau. Status dan hasilnya ditulis di bawah begitu tiap langkah selesai.
+
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
 **Status singkat (13 Nov malam): muka Murka sudah dirombak bergaya wayang kulit mengikuti foto gunungan dari host, dengan garuda mengikuti foto topeng garuda Bali. Api geni saat mundur sudah diperkuat. Semuanya di-commit (`6f0e9db`), dan gambar datar serta tangkapan layar panggung (desktop, saat terbakar, HP tegak) sudah dikirim ke host; menunggu tanggapan. Yang BELUM: video sapuan (sedang direkam), e2e, gerbang pembuka.** Jangan dianggap selesai.
