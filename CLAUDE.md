@@ -44,6 +44,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 - **"beban hemat tapi jangan turunkan kualitas"**: hemat lewat cara menggambar, bukan lewat menurunkan resolusi atau detail.
 - **"video=output"**: pratinjau tiap tugas berupa video yang mulus. Video Tugas 5 yang pertama patah-patah dan host minta direkam ulang; cara dan kendalanya ada di `HANDOFF.md` bagian 0.
 - **"tunggu arahan ku dulu"**: sesudah Tugas 5, jangan mulai rekam ulang atau Tugas 6 sebelum host memberi arahan.
+- **Gerak kamera di semua objek (13 Nov):** "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Setiap objek dan slide 3D yang sudah ada maupun yang akan dibuat, dan film 2,5D, wajib punya: kamera parallax (kursor di desktop, kemiringan HP di HP), perspective shift (perspektif sungguh berubah), dan kedalaman yang mengikuti gulir. Rinciannya di `HANDOFF.md` bagian 0.
 
 - [x] **5. Panggung 3D (React Three Fiber) + mesin film 3D.** ✅ 12 Nov 2026. Kanvas lazy hanya di `/film/`, shot kamera per slide yang mengikuti transisi, tier kualitas High/Medium/Low/Static, pemantau FPS, overlay FPS (`/film/?fps`), dan latar pertama (pendapa, blencong, lanskap sawah dan Lawu, langit yang mengikuti jam). Rinciannya: `docs/design/decisions.md` bagian "Panggung 3D, fondasi" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
   PR #7 di-merge host 12 Nov. Uji host di iPhone (produksi, `/film/?fps`): 59–60 fps di tier Medium; host: "oke sih, aku anggep udah selesai". Catatan:
