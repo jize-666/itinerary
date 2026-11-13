@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 13 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **PR untuk semua pekerjaan sesi ini dibuka atas permintaan host (lihat bagian 0, akhir "Gerak pandang").** Tugas 6 (gong) selesai dan dicentang; Tugas 7 (gunungan): rupa diterima, sapuan kembali ke kayon lama, sisa pembuka dan penutup; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) terpasang di 3D dan 2,5D sebagai aturan tetap.
+Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) selesai dan dites; video pratinjau dan PR menyusul (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -21,9 +21,11 @@ Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapua
 
 **Berkas.** `src/engine/stage/gate.ts` (mesin dan pose, murni), `stageBus.gate*` di `bus.ts`, `kayonShot` di `shots.ts`, `kayon-files.ts` (tekstur diunduh bersamaan dengan bundle 3D), shader kelir di `stage3d/gunungan.ts`, sambungan di `stage3d/runtime.ts`, `director.ts` (langkah dan scrub ke gerbang), `Film.tsx` (`data-gate`, `data-face`, tombol `.fl-kayon`, penutup otomatis, bunyi), `film.css`, `Chrome.tsx` (petunjuk balik), string `film.kayon` dan `film.kayonHint`. Pratinjau: `window.__lakonStage.gateAt = [tertancap, ujung, sudut balik, geni]`.
 
-**Hasil tes (14 Nov pagi).** `pnpm lint` dan `pnpm typecheck` bersih; `pnpm test` 329 lulus (25 baru di `tests/unit/gate.test.ts`); `pnpm content:check` OK (peringatan lama). `e2e/stage.spec.ts`: **69 lulus, 5 dilewati** (khusus desktop/iPhone), termasuk 7 tes gerbang baru, "dua tahap gulir" (sekarang `test.slow()`, pemeriksaannya tidak dilonggarkan), dan "?fps overlay" (lulus sendiri maupun bersama spec; gagal sebelumnya karena beban). Tangkapan layar desktop dan iPhone tiruan sudah dicek: tertancap, kursor, muka Murka terbakar, setengah tercabut, pendapa terbuka, tancep di credits.
+**Hasil tes (14 Nov pagi).** `pnpm lint` dan `pnpm typecheck` bersih; `pnpm test` 329 lulus (25 baru di `tests/unit/gate.test.ts`); `pnpm content:check` OK (peringatan lama); `pnpm build` lulus. **`pnpm test:e2e` penuh: 228 lulus, 18 dilewati, 0 gagal** (9,5 menit). Sesudah tiga perubahan kecil terakhir (panggung di balik kelir tidak digambar saat tertancap penuh, penutup otomatis 12 dtk, gerbang dilepas bila tekstur gagal) build ulang dan `e2e/stage.spec.ts` dijalankan lagi: 69 lulus, 5 dilewati. Dua tes yang gagal sebelum PR #8 beres: "dua tahap gulir" diberi `test.slow()` (pemeriksaannya tidak dilonggarkan), "?fps overlay" lulus (dulu gagal karena beban, tanpa perubahan kode). Tangkapan layar desktop dan iPhone tiruan sudah dicek: tertancap, kursor, muka Murka terbakar, setengah tercabut, pendapa terbuka, tancep di credits.
 
-**Langkah berikutnya.** e2e penuh sampai habis → video pratinjau (tur `gerbang`) ke host → `docs/design/decisions.md` → centang Tugas 7 di `CLAUDE.md` → PR.
+**Kendala.** Branch remote ternyata sudah dihapus sesudah PR #8 di-merge, sementara salinan lokal ref lamanya masih ada; push paksa ditolak pengaman, jadi riwayat lama digabung dengan `merge -s ours` (isi tidak berubah). Akibatnya daftar commit PR berikutnya ikut memuat commit lama; diff-nya tetap hanya Tugas 7, dan Squash and merge menjadikannya satu commit. Belum diuji di perangkat nyata.
+
+**Langkah berikutnya.** Video pratinjau (tur `gerbang`, sedang direkam) ke host → PR siap Squash and merge → tunggu tinjauan host. Sesudah itu Tugas 8 (benang emas), tetapi hanya bila host memberi arahan.
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
@@ -502,7 +504,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR #7 (Tugas 5, fondasi panggung 3D) di-merge host 12 Nov (squash "redesign 3D (#7)"). PR untuk Tugas 6 dibuat saat host memintanya.
+**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR untuk Tugas 7 (gunungan pembuka dan penutup) dibuka sesudah video pratinjau.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
