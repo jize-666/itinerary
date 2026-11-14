@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 14 Nov 16.44–16.45 WIB: gong ditabuh di slide judul hari, sebelum gallery (dicatat, belum dikerjakan)
+### Permintaan host 14 Nov 16.44–16.45 WIB: gong ditabuh di slide judul hari, sebelum gallery (dicatat, MENUNGGU PERINTAH HOST)
 
 **Kata host, kata demi kata:** "pas fase sebelum masuk galery, yang seperti di foto, harusnya ini fase yang pas untuk menabuh gong, ketika teks out (tambahin animasi), kamera masih berada di tempatnya, dan ketika di slide ke kiri/kanan kamera perbindah seperti fitur 3D (Scroll-driven depth, Depth of field, Perspective shift, Z-depth positioning, Camera parallax)", lalu "catat di handoff".
 
@@ -16,7 +16,12 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 **Tafsir Claude (dikonfirmasi host sebelum dikerjakan):**
 - [ ] Di slide judul hari (fase sebelum masuk gallery) gong ditabuh. Waktunya: saat penonton melangkah maju dari judul, teks judul keluar dengan animasi baru (bukan hanya memudar), gong dipukul, dan kamera tetap di tempatnya selama itu.
 - [ ] Sesudah itu, perpindahan ke kiri/kanan (gallery) menggerakkan kamera dengan gerak 3D: kedalaman ikut gulir, depth of field (baru: kabur menurut jarak fokus), perspective shift, letak di sumbu Z (lapisan kartu dan latar di kedalaman berbeda), dan kamera parallax.
-- Pertanyaan terbuka untuk host: (a) apakah slide `dayintro` (memandang Lawu) tetap ada di antara judul dan gallery, atau gallery langsung menyusul judul; (b) gong penutup hari tetap dipukul juga, atau pukulan pindah ke judul saja; (c) berlaku untuk semua hari, dan juga untuk hero prolog (foto kedua)?
+- Pertanyaan untuk host: (a) apakah slide `dayintro` (memandang Lawu) tetap ada di antara judul dan gallery, atau gallery langsung menyusul judul; (b) gong penutup hari tetap dipukul juga, atau pukulan pindah ke judul saja; (c) berlaku untuk semua hari, dan juga untuk hero prolog (foto kedua)?
+- **Jawaban host (14 Nov), kata demi kata:** "1. tetap ada 2. tetap di pukul 3. berlaku semua", lalu **"kerjakan ini ketika aku sudah beri perintah. catat di handoff.md"**. Artinya:
+  - (a) Slide `dayintro` (memandang Lawu) **tetap ada**: urutannya judul hari (gong ditabuh) → `dayintro` → gallery.
+  - (b) Gong penutup hari **tetap dipukul** seperti sekarang; pukulan di judul hari adalah tambahan.
+  - (c) **Berlaku untuk semua**: semua hari, dan juga slide hero prolog "A Three-Day Lakon" (foto kedua).
+  - **Jangan mulai mengerjakan** sebelum host memberi perintah. Sampai saat itu tugas ini hanya catatan.
 - Kaitan: depth of field dan post-FX masuk lingkup Tugas 8 di `CLAUDE.md`; tugas ini bisa dikerjakan sebelum atau bersama Tugas 8 sesuai arahan host.
 
 ### Permintaan host sesudah PR #10 di-merge (14 Nov, 16.36–16.40 WIB, iPhone produksi)
