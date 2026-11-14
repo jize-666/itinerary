@@ -1,7 +1,8 @@
 /**
- * Gunungan (kayon) di depan kamera: lembaran kulit bertatah bermuka dua dan tabir gelap yang mengikutinya.
+ * Gunungan (kayon) di depan kamera: lembaran kulit bertatah bermuka dua dan tabir/kelir di belakangnya.
  * Untuk pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama");
- * sapuan antar bab tetap bayangan kayon DOM. Gerak `sweepPose` sekarang hanya dipakai pratinjau (`sweepAt`).
+ * sapuan antar bab tetap bayangan kayon DOM. Gerak `sweepPose` sekarang hanya dipakai pratinjau (`sweepAt`);
+ * pembuka dan penutup memakai `gatePose` (engine/stage/gate.ts): gunungan tertancap di gedebog di depan kelir.
  *
  * Gambarnya dipanggang (`scripts/assets/bake-gunungan.cjs`), jadi di sini tidak ada kode melukis. Yang dibuat
  * 3D oleh shader, semuanya dalam satu draw call lembaran + satu draw call tabir, dan nol saat tidak dipakai:
@@ -13,18 +14,24 @@
  * - muka Murka: pupil bara di lubang mata barong, dan api geni (`rage`): kulit hangus berkobar di bawah garis bakar,
  *   lidah api hidup dan percikan bara di atasnya sampai keluar dari tepi lembaran; tokoh-tokohnya tidak terbakar.
  *
+ * - kelir (pembuka/penutup, `KayonPose.kelir`): kain berlampu blencong dengan kolam cahaya yang mengikuti kursor,
+ *   anyaman halus, palemahan dan plisir, gedebog tempat tangkai tertancap, dan **bayangan gunungan** yang jatuh di
+ *   kain dari muka mana pun (tatahan tembus cahaya, tepi lembut), bergeser berlawanan arah lampu. Satu draw call
+ *   yang sama dengan tabir.
+ *
  * Lembaran dan tabir diletakkan langsung di ruang kamera (letak di layar dalam NDC), jadi tidak bergantung
  * pada shot kamera dan tetap sama saat kamera dipotong di tengah sapuan.
  */
 import { CustomBlending, DoubleSide, type IUniform, LinearFilter, LinearMipmapLinearFilter, Mesh, NoColorSpace, OneFactor, OneMinusSrcAlphaFactor, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, SRGBColorSpace, Texture, Vector2, Vector3, Vector4, type WebGLRenderer } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { GATE, type KayonPose } from "@/engine/stage/gate";
 import { GENI, KAYON, type SweepPose, VEIL } from "@/engine/stage/gunungan";
+import { kayonFiles, takeKayon } from "@/engine/stage/kayon-files";
 import type { Shared } from "./shared";
 
 const f = (x: number) => x.toFixed(4);
 /** Jarak lembaran dari kamera (m). Hanya menentukan kuat perspektif saat lembaran berpaling. */
 const DIST = 2;
-const ASSETS = "/film/gunungan/";
 
 const SHEET_VERT = /* glsl */ `
 uniform vec4 uPose;   // x, y (NDC), tinggi ÷ tinggi layar, lentur
@@ -73,6 +80,7 @@ uniform float uTime;
 uniform vec3 uLamp;    // lampu dalang di ruang kamera
 uniform vec4 uLight;   // pendar dari balik, denyut jantung, kadar geni, kepekatan
 uniform vec2 uLook;    // arah lirikan pupil kala
+uniform vec2 uCut;     // garis atas gedebog (NDC y; −2 = tanpa gedebog), tinggi target gambar (px)
 varying vec2 vUv;
 varying vec3 vView;
 varying vec3 vT;
@@ -100,6 +108,8 @@ void main() {
 
   // tangkai tanduk di bawah lembaran: batang gelap berkilap dengan lilitan benang emas
   if (vUv.y < 0.0) {
+    // tertancap di gedebog: bagian tangkai di bawah garis atasnya tidak terlihat
+    if (gl_FragCoord.y / uCut.y * 2.0 - 1.0 < uCut.x) discard;
     float across = (vUv.x - 0.5) / 0.0143;
     float round = sqrt(max(1.0 - across * across, 0.0));
     float band = smoothstep(0.42, 0.5, abs(fract(vUv.y * 46.0) - 0.5)) * step(-0.09, vUv.y);
@@ -255,8 +265,80 @@ const VEIL_FRAG = /* glsl */ `
 uniform float uTime;
 uniform vec4 uVeil;   // pusat tabir (NDC x), kepekatan, pendar, aspek
 uniform vec3 uSpot;   // pusat pendar (NDC x, y), tinggi lembaran ÷ tinggi layar
+uniform vec4 uKelir;  // kadar kelir (0 = tabir gelap), geser kain x, y (ikut tabir + parallax), garis atas gedebog
+uniform vec4 uShade;  // pusat bayangan (NDC), setengah tinggi bayangan, lebar (cos putaran; < 0 = muka Murka)
+uniform vec2 uShadeRoll; // miring bayangan (rad), kepekatan
+uniform sampler2D tAgung;
+uniform sampler2D tMurka;
 varying vec2 vNdc;
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
+float hash21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+
+/* Bayangan gunungan di kain (0–1): siluet lembaran dari muka yang menghadap penonton, tatahannya tembus cahaya,
+   tepinya lembut (mip kasar). Tangkainya ikut berbayang sampai gedebog. */
+float shade(vec2 q) {
+  vec2 s = (q - uShade.xy) * vec2(uVeil.w, 1.0);
+  float cr = cos(uShadeRoll.x), sr = sin(uShadeRoll.x);
+  s = vec2(s.x * cr + s.y * sr, -s.x * sr + s.y * cr);
+  float w = max(abs(uShade.w), 0.03);
+  float h = max(uShade.z, 0.05);
+  vec2 uv = vec2(0.5 + s.x / (2.0 * h * ${f(KAYON.aspect)} * w), 0.5 + s.y / (2.0 * h));
+  float rod = (1.0 - smoothstep(0.006, 0.014, abs(s.x))) * step(-0.92, uv.y) * step(uv.y, 0.0);
+  if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) return rod;
+  vec2 st = vec2(uv.x, 1.0 - uv.y);
+  float a = uShade.w < 0.0 ? texture2D(tMurka, st, 2.5).a : texture2D(tAgung, st, 2.5).a;
+  return max(smoothstep(0.15, 0.85, a), rod);
+}
+
+/* Kelir: kain tipis yang disinari blencong dari depan. Kolam cahaya di sekitar lampu, anyaman halus, plisir di atas,
+   palemahan gelap di bawah, gedebog di kaki, dan bayangan gunungan. */
+vec3 kelir(vec2 q) {
+  vec2 k = q - uKelir.yz;
+  vec2 d = (q - uSpot.xy) * vec2(uVeil.w, 1.0);
+  float r2 = dot(d, d);
+  float flick = 0.93 + 0.045 * sin(uTime * 9.1) + 0.025 * sin(uTime * 23.7 + 1.3);
+  // malam: terang hangat di sekitar blencong, meredup ke cokelat gelap di tepi layar
+  float pool = (0.5 * exp(-r2 * 1.4) + 0.14 * exp(-r2 * 0.3) + 0.012) * flick;
+  // anyaman kain: benang mendatar dan tegak yang sangat halus, dan belang tenun yang lebar
+  vec2 wv = k * vec2(uVeil.w, 1.0) * 260.0;
+  float weave = 0.93 + 0.035 * sin(wv.x) * sin(wv.y * 1.07) + 0.05 * (vnoise(k * vec2(uVeil.w, 1.0) * vec2(3.0, 40.0)) - 0.5);
+  vec3 cloth = vec3(1.0, 0.66, 0.35) * pool * weave;
+  // bayangan: makin gelap di tengah kolam cahaya (kontras), tatahan tembus tetap bercahaya
+  float sh = shade(q) * uShadeRoll.y;
+  cloth *= 1.0 - sh * (0.9 - 0.15 * smoothstep(1.4, 0.2, r2));
+  // pendar lampu menembus kain di sekitar bayangan tepi: sedikit merah jingga
+  cloth += vec3(0.05, 0.018, 0.004) * pool * (1.0 - sh);
+  float cut = uKelir.w;
+  // plisir (tepi atas): pita merah tua dengan garis prada
+  float top = 0.93 + uKelir.z;
+  float band = smoothstep(top - 0.004, top + 0.004, q.y);
+  vec3 plisir = vec3(0.16, 0.025, 0.02) * (0.4 + pool) + vec3(0.6, 0.42, 0.16) * pool * (1.0 - smoothstep(0.0, 0.006, abs(q.y - top - 0.012)));
+  cloth = mix(cloth, plisir, band);
+  // palemahan: pita gelap di kaki kelir, di atas gedebog
+  float low = cut + ${f(GATE.ground)};
+  float pal = 1.0 - smoothstep(low - 0.006, low + 0.006, q.y);
+  vec3 palem = vec3(0.07, 0.014, 0.012) * (0.5 + pool) + vec3(0.55, 0.38, 0.14) * pool * (1.0 - smoothstep(0.0, 0.005, abs(q.y - low)));
+  cloth = mix(cloth, palem * (1.0 - 0.6 * sh), pal);
+  // gedebog: batang pisang rebah, tersinari dari atas, berserat memanjang dengan ruas-ruas
+  float t = (cut - q.y) / ${f(GATE.log)};
+  if (t > 0.0) {
+    float n = clamp(t * 2.0 - 1.0, -1.0, 1.0);
+    float round = sqrt(max(1.0 - n * n, 0.0));
+    float fiber = 0.86 + 0.14 * sin(q.y * 1400.0 + vnoise(vec2(k.x * 40.0, q.y * 90.0)) * 3.0);
+    float joint = 1.0 - 0.35 * smoothstep(0.9, 1.0, abs(sin(k.x * uVeil.w * 2.3 + 0.4)));
+    vec3 trunk = vec3(0.36, 0.34, 0.2) * (0.18 + 0.95 * round * smoothstep(1.0, -0.6, n)) * fiber * joint;
+    trunk *= 0.35 + 0.9 * pool;
+    vec3 ground = vec3(0.012, 0.009, 0.008);
+    cloth = t < 1.0 ? trunk : ground;
+  }
+  return cloth;
+}
+
 void main() {
   float band = (1.0 - smoothstep(${f(VEIL.core)}, ${f(VEIL.core + VEIL.soft)}, abs(vNdc.x - uVeil.x))) * uVeil.y;
   // blencong di balik gunungan: inti terang, pendar lebar, dan berkas cahaya yang memancar pelan
@@ -264,12 +346,17 @@ void main() {
   float r = length(d);
   float flick = 0.92 + 0.05 * sin(uTime * 9.1) + 0.03 * sin(uTime * 23.7 + 1.3);
   vec3 lamp = vec3(1.0, 0.55, 0.22);
-  vec3 glow = lamp * (1.15 * exp(-r * r * 7.0) + 0.34 * exp(-r * r * 1.1) + 0.05 * exp(-r * 0.9));
-  float ang = atan(d.y, d.x);
-  float rays = pow(0.5 + 0.5 * sin(ang * 11.0 + sin(ang * 5.0 + uTime * 0.23) * 1.6 + uTime * 0.11), 3.0);
-  rays *= 0.5 + 0.5 * sin(ang * 23.0 - uTime * 0.17);
-  glow += lamp * rays * 0.18 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);
-  vec3 col = vec3(0.010, 0.007, 0.006) + glow * flick * uVeil.z;
+  vec3 col;
+  if (uKelir.x > 0.001) {
+    col = kelir(vNdc);
+  } else {
+    vec3 glow = lamp * (1.15 * exp(-r * r * 7.0) + 0.34 * exp(-r * r * 1.1) + 0.05 * exp(-r * 0.9));
+    float ang = atan(d.y, d.x);
+    float rays = pow(0.5 + 0.5 * sin(ang * 11.0 + sin(ang * 5.0 + uTime * 0.23) * 1.6 + uTime * 0.11), 3.0);
+    rays *= 0.5 + 0.5 * sin(ang * 23.0 - uTime * 0.17);
+    glow += lamp * rays * 0.18 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);
+    col = vec3(0.010, 0.007, 0.006) + glow * flick * uVeil.z;
+  }
   // dither halus: gradasi pendar di kegelapan tidak bergaris
   col += (hash11(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) - 0.5) * 0.0035;
   gl_FragColor = vec4(col * band, band);
@@ -279,9 +366,7 @@ type Maps = { agung: Texture; agungAux: Texture; murka: Texture; murkaAux: Textu
 
 /** Satu gambar dari `public/film/gunungan/` → tekstur. Didekode di luar thread utama bila browser mampu. */
 async function loadTexture(name: string, srgb: boolean): Promise<Texture> {
-  const res = await fetch(ASSETS + name);
-  if (!res.ok) throw new Error(`${name}: ${res.status}`);
-  const blob = await res.blob();
+  const blob = await takeKayon(name);
   let image: ImageBitmap | HTMLImageElement;
   if (typeof createImageBitmap === "function") {
     image = await createImageBitmap(blob, { premultiplyAlpha: "none", colorSpaceConversion: "none" }).catch(() => createImageBitmap(blob));
@@ -332,15 +417,20 @@ export function createGunungan({ gl, shared, large, onReady }: GununganOptions) 
   const uLamp: IUniform<Vector3> = { value: new Vector3() };
   const uLight: IUniform<Vector4> = { value: new Vector4(0, 0, 0, 0) };
   const uLook: IUniform<Vector2> = { value: new Vector2() };
+  const uCut: IUniform<Vector2> = { value: new Vector2(-2, 1) };
   const tex = { tAgung: { value: blank }, tAgungAux: { value: blank }, tMurka: { value: blank }, tMurkaAux: { value: blank }, tGeni: { value: blank } };
   const blend = { transparent: true, depthTest: false, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneMinusSrcAlphaFactor, premultipliedAlpha: true } as const;
-  const sheetMat = new ShaderMaterial({ uniforms: { uTime: shared.uTime, uPose, uTurn, uLens, uLamp, uLight, uLook, ...tex }, vertexShader: SHEET_VERT, fragmentShader: SHEET_FRAG, side: DoubleSide, ...blend });
+  const sheetMat = new ShaderMaterial({ uniforms: { uTime: shared.uTime, uPose, uTurn, uLens, uLamp, uLight, uLook, uCut, ...tex }, vertexShader: SHEET_VERT, fragmentShader: SHEET_FRAG, side: DoubleSide, ...blend });
   const sheet = new Mesh(geo, sheetMat);
 
   const uVeil: IUniform<Vector4> = { value: new Vector4(0, 0, 0, 1.78) };
   const uSpot: IUniform<Vector3> = { value: new Vector3(0, 0, 0.9) };
+  const uKelir: IUniform<Vector4> = { value: new Vector4() };
+  const uShade: IUniform<Vector4> = { value: new Vector4(0, 0, 0.9, 1) };
+  const uShadeRoll: IUniform<Vector2> = { value: new Vector2() };
   const veilGeo = new PlaneGeometry(2, 2);
-  const veilMat = new ShaderMaterial({ uniforms: { uTime: shared.uTime, uVeil, uSpot }, vertexShader: VEIL_VERT, fragmentShader: VEIL_FRAG, ...blend });
+  // kelir memakai gambar lembaran yang sama untuk bayangannya (uniform tekstur dipakai bersama)
+  const veilMat = new ShaderMaterial({ uniforms: { uTime: shared.uTime, uVeil, uSpot, uKelir, uShade, uShadeRoll, tAgung: tex.tAgung, tMurka: tex.tMurka }, vertexShader: VEIL_VERT, fragmentShader: VEIL_FRAG, ...blend });
   const veil = new Mesh(veilGeo, veilMat);
 
   // sesudah semua isi panggung (langit digambar di urutan 1000): tabir dulu, lalu lembaran di depannya
@@ -354,8 +444,8 @@ export function createGunungan({ gl, shared, large, onReady }: GununganOptions) 
 
   let maps: Maps | null = null;
   let dead = false;
-  const size = large ? 2000 : 1500;
-  Promise.all([loadTexture(`agung-${size}.webp`, true), loadTexture(`agung-aux-${size / 2}.webp`, false), loadTexture(`murka-${size}.webp`, true), loadTexture(`murka-aux-${size / 2}.webp`, false), loadTexture("geni-1000.webp", true)]).then(
+  const [fAgung, fAgungAux, fMurka, fMurkaAux, fGeni] = kayonFiles(large) as [string, string, string, string, string];
+  Promise.all([loadTexture(fAgung, true), loadTexture(fAgungAux, false), loadTexture(fMurka, true), loadTexture(fMurkaAux, false), loadTexture(fGeni, true)]).then(
     ([agung, agungAux, murka, murkaAux, geni]) => {
       const loaded = { agung, agungAux, murka, murkaAux, geni };
       if (dead) {
@@ -384,27 +474,47 @@ export function createGunungan({ gl, shared, large, onReady }: GununganOptions) 
     ready: () => maps !== null,
     /**
      * Tiap frame. `pose` kosong = gunungan tidak di layar (tidak ada yang digambar). `look` = kursor (−1…1),
-     * `beat` = denyut jantung panggung (0–1), `rage` = kadar geni di muka Murka (0–1).
+     * `beat` = denyut jantung panggung (0–1), `rage` = kadar geni di muka Murka (0–1), `fade` = kadar tampak (0–1,
+     * gunungan pembuka memudar masuk saat teksturnya baru siap), `height` = tinggi target gambar (px).
      */
-    update(pose: SweepPose | null, camera: PerspectiveCamera, look: { x: number; y: number }, beat: number, rage: number) {
-      const on = pose !== null && maps !== null && pose.veil > 0.001;
+    update(pose: SweepPose | KayonPose | null, camera: PerspectiveCamera, look: { x: number; y: number }, beat: number, rage: number, fade = 1, height = 1) {
+      const on = pose !== null && maps !== null && pose.veil * fade > 0.001;
       veil.visible = on;
       sheet.visible = on;
       if (!on || !pose) return;
       const lens = Math.tan((camera.fov * Math.PI) / 360);
       const hh = DIST * lens;
       uLens.value.set(lens, camera.aspect);
-      // muka Murka = sisi belakang lembaran: lembaran diputar setengah lingkaran (lenturnya ikut dibalik)
-      const murka = pose.face === "murka";
-      uPose.value.set(pose.x, pose.y, pose.size, murka ? -pose.bend : pose.bend);
-      uTurn.value.set(pose.yaw + (murka ? Math.PI : 0), pose.roll);
-      // lampu dalang: di depan lembaran, kiri atas, bergeser mengikuti kursor (cahayanya menyisir relief)
       const H = pose.size * 2 * hh;
-      uLamp.value.set((pose.x + (-0.5 + 0.9 * look.x)) * hh * Math.min(camera.aspect, 1.4), (pose.y + 0.55 - 0.5 * look.y) * hh, -DIST + 0.5 * H);
-      uLight.value.set(pose.glow, beat, rage, pose.veil);
+      const gate = "turn" in pose ? pose : null;
+      if (gate) {
+        // putaran penuh (termasuk balik muka); lentur pucuk ikut berbalik arah di muka belakang
+        uPose.value.set(pose.x, pose.y, pose.size, pose.bend * Math.cos(gate.turn));
+        uTurn.value.set(gate.turn, pose.roll);
+        // blencong di atas, di depan lembaran: menyinari tatahan, kolam cahayanya di kelir, bayangan di baliknya
+        uLamp.value.set(gate.lampX * hh * camera.aspect, gate.lampY * hh, -DIST + 0.6 * H);
+        uCut.value.set(gate.cut, Math.max(1, height));
+        uKelir.value.set(gate.kelir, gate.kelirX, gate.kelirY, gate.cut);
+        uSpot.value.set(gate.lampX, gate.lampY - 0.25, pose.size);
+        // bayangan: lembaran diproyeksikan dari lampu ke kain di belakangnya, sedikit membesar dan menjauhi lampu
+        const grow = 1.08;
+        const away = 0.16;
+        uShade.value.set(pose.x + (pose.x - gate.lampX) * away, pose.y + (pose.y - gate.lampY) * away * 0.6, pose.size * grow, Math.cos(gate.turn));
+        uShadeRoll.value.set(pose.roll, 0.82);
+      } else {
+        // muka Murka = sisi belakang lembaran: lembaran diputar setengah lingkaran (lenturnya ikut dibalik)
+        const murka = pose.face === "murka";
+        uPose.value.set(pose.x, pose.y, pose.size, murka ? -pose.bend : pose.bend);
+        uTurn.value.set(pose.yaw + (murka ? Math.PI : 0), pose.roll);
+        // lampu dalang: di depan lembaran, kiri atas, bergeser mengikuti kursor (cahayanya menyisir relief)
+        uLamp.value.set((pose.x + (-0.5 + 0.9 * look.x)) * hh * Math.min(camera.aspect, 1.4), (pose.y + 0.55 - 0.5 * look.y) * hh, -DIST + 0.5 * H);
+        uCut.value.set(-2, Math.max(1, height));
+        uKelir.value.set(0, 0, 0, -2);
+        uSpot.value.set(pose.x, pose.y + 0.04, pose.size);
+      }
+      uLight.value.set(pose.glow, beat, rage, pose.veil * fade);
       uLook.value.set(look.x, -look.y);
-      uVeil.value.set(pose.veilX, pose.veil, pose.glow, camera.aspect);
-      uSpot.value.set(pose.x, pose.y + 0.04, pose.size);
+      uVeil.value.set(pose.veilX, pose.veil * fade, pose.glow, camera.aspect);
     },
     dispose() {
       dead = true;

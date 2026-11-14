@@ -1,0 +1,575 @@
+/* ================= TODAY 2,5D (permintaan host 14 Nov: "button ui, design nya sekalian. buat 2,5D sekalian,
+   sekaligus fitur yang gw mau seperti di handoff.md") =================
+   Lapisan di atas gaya dasar Today di globals.css. Arti 2,5D sama dengan home dan film: kedalaman berlapis, DOM
+   dengan transform dan opacity, tanpa WebGL. Aturan gerak pandang 13 Nov:
+   - kamera parallax: --lx / --ly (−1…1, ditulis Today.tsx dari kursor atau kemiringan HP) menggeser bidang latar
+     sejauh kedalamannya;
+   - perspective shift: kartu dan judul memutar sedikit mengikuti arah pandang (perspektif sungguhan, bukan geser);
+   - kedalaman ikut gulir: latar turun dan mendekat saat halaman digulir, kartu datang dari kedalaman saat masuk
+     layar dan mundur saat keluar (scroll-driven animation: dihitung browser, tanpa JavaScript per gulir).
+   Tanpa dukungan scroll-driven animation (browser lama): latar dan kartu diam di tempatnya, parallax tetap ada.
+   Tombol: kapsul berbahasa sama dengan home (foil gading-emas, kaca nila bergaris emas, pernis merah lampion),
+   tetap dengan tebal yang ditekan turun (tombol tekan 3D yang disukai host). */
+
+.td {
+  position: relative;
+  isolation: isolate;
+  --foil: linear-gradient(180deg, #fcf5e3 0%, #edd9a8 46%, #d2ab5f 100%);
+  --hair: rgb(200 162 90 / 0.46);
+  --glass: linear-gradient(160deg, rgb(28 35 74 / 0.86), rgb(13 17 38 / 0.9));
+  --tilt-x: calc(var(--ly, 0) * -2.2deg);
+  --tilt-y: calc(var(--lx, 0) * 3deg);
+}
+
+/* ---- Latar: langit, Lawu, perbukitan, debu emas (Scene.tsx) ---- */
+.tds {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  --glow: rgb(255 178 87 / 0.16);
+  --low: #1b2049;
+}
+
+.tds[data-sky="dawn"] {
+  --glow: rgb(234 163 142 / 0.34);
+  --low: #362b55;
+}
+
+.tds[data-sky="day"] {
+  --glow: rgb(255 214 150 / 0.24);
+  --low: #23305f;
+}
+
+.tds[data-sky="dusk"] {
+  --glow: rgb(255 140 70 / 0.34);
+  --low: #3d2447;
+}
+
+.tds-sky {
+  position: absolute;
+  inset: -24px;
+  background:
+    radial-gradient(64% 30% at 54% 74%, var(--glow), transparent 72%),
+    radial-gradient(46% 30% at 86% 6%, rgb(255 178 87 / 0.1), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='18' cy='26' r='.9' opacity='.8'/%3E%3Ccircle cx='96' cy='12' r='.6' opacity='.6'/%3E%3Ccircle cx='160' cy='54' r='1' opacity='.75'/%3E%3Ccircle cx='228' cy='22' r='.7' opacity='.55'/%3E%3Ccircle cx='54' cy='98' r='.6' opacity='.5'/%3E%3Ccircle cx='132' cy='120' r='.8' opacity='.7'/%3E%3Ccircle cx='206' cy='146' r='.6' opacity='.45'/%3E%3Ccircle cx='30' cy='182' r='.8' opacity='.6'/%3E%3Ccircle cx='110' cy='210' r='.6' opacity='.5'/%3E%3Ccircle cx='184' cy='236' r='.9' opacity='.65'/%3E%3Ccircle cx='246' cy='196' r='.6' opacity='.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 260px 260px,
+    linear-gradient(180deg, #05060f 0%, #090c1f 38%, #121838 72%, var(--low) 100%);
+  translate: calc(var(--lx, 0) * -6px) calc(var(--ly, 0) * -4px);
+}
+
+.tds-l {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 0;
+  transform-origin: 50% 100%;
+}
+
+.tds-ridge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tds-ridge[data-depth="far"] {
+  height: 36vh;
+  translate: calc(var(--lx, 0) * -12px) calc(var(--ly, 0) * -6px);
+}
+
+.tds-ridge[data-depth="far"] path {
+  fill: url(#tds-ridge-far);
+}
+
+.tds-ridge path.tds-crest {
+  fill: none;
+  stroke: rgb(255 214 150 / 0.32);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.tds-ridge[data-depth="near"] path.tds-crest {
+  stroke: rgb(200 162 90 / 0.22);
+}
+
+.tds-ridge[data-depth="near"] {
+  height: 22vh;
+  translate: calc(var(--lx, 0) * -22px) calc(var(--ly, 0) * -10px);
+}
+
+.tds-ridge[data-depth="near"] path {
+  fill: #0a0d22;
+}
+
+.tds-dust {
+  top: 0;
+  translate: calc(var(--lx, 0) * -34px) calc(var(--ly, 0) * -18px);
+}
+
+.tds-dust i {
+  position: absolute;
+  border-radius: 50%;
+  background: #f2d79c;
+  box-shadow: 0 0 6px rgb(255 200 120 / 0.8);
+  opacity: 0;
+  animation: tds-dust var(--dur) linear var(--delay) infinite;
+}
+
+@keyframes tds-dust {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  20%,
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(14px, -90px, 0);
+  }
+}
+
+/* tepi atas: isi yang digulir memudar di bawah sakelar bahasa, bukan bertumpuk dengannya */
+.td::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: calc(64px + env(safe-area-inset-top));
+  background: linear-gradient(to bottom, rgb(5 6 15 / 0.94) 40%, rgb(5 6 15 / 0));
+  pointer-events: none;
+}
+
+/* ---- Kartu dan judul: perspective shift (diam) ---- */
+.td :is(.td-d, .nn, .byg-list > li, .tl-stop, .ig, .team),
+.td-head > :is(.td-kicker, .td-title) {
+  transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+}
+
+/* ---- Kedalaman ikut gulir ---- */
+@supports (animation-timeline: view()) {
+  /* kartu: datang dari kedalaman saat masuk layar dari bawah, mundur dan merebah saat keluar di atas */
+  .td :is(.td-d, .nn, .byg-list > li, .tl-stop, .ig, .team) {
+    animation: td-depth linear both;
+    animation-timeline: view();
+    animation-range: cover;
+  }
+
+  .td .nn {
+    animation:
+      nn-in 0.8s var(--ease-expo-out) 0.15s both,
+      td-depth linear both;
+    animation-timeline: auto, view();
+    animation-range: normal, cover;
+  }
+
+  /* judul: menjauh pelan saat halaman mulai digulir */
+  .td-head > :is(.td-kicker, .td-title) {
+    animation: td-recede linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 60vh;
+  }
+
+  /* latar: kamera turun dan maju ke lanskap; yang dekat bergerak lebih jauh dari yang jauh */
+  .tds-sky,
+  .tds-ridge,
+  .tds-dust {
+    animation-timeline: scroll(root block);
+    animation-range: 0 120vh;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+  }
+
+  .tds-sky {
+    animation-name: tds-sky;
+  }
+
+  .tds-ridge[data-depth="far"] {
+    animation-name: tds-far;
+  }
+
+  .tds-ridge[data-depth="near"] {
+    animation-name: tds-near;
+  }
+
+  .tds-dust {
+    animation-name: tds-near-dust;
+  }
+}
+
+@keyframes td-depth {
+  entry 0% {
+    transform: perspective(900px) translate3d(0, 34px, -110px) rotateX(14deg);
+    opacity: 0.35;
+  }
+  entry 100% {
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    opacity: 1;
+  }
+  exit 0% {
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    opacity: 1;
+  }
+  exit 100% {
+    transform: perspective(900px) translate3d(0, -20px, -90px) rotateX(-12deg);
+    opacity: 0.4;
+  }
+}
+
+@keyframes td-recede {
+  from {
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  }
+  to {
+    transform: perspective(900px) translate3d(0, 7vh, -140px) rotateX(calc(var(--tilt-x) + 8deg)) rotateY(var(--tilt-y));
+    opacity: 0.3;
+  }
+}
+
+@keyframes tds-sky {
+  to {
+    transform: translate3d(0, 4vh, 0);
+  }
+}
+
+@keyframes tds-far {
+  to {
+    transform: translate3d(0, 6vh, 0) scale(1.08);
+  }
+}
+
+@keyframes tds-near {
+  to {
+    transform: translate3d(0, 12vh, 0) scale(1.18);
+  }
+}
+
+@keyframes tds-near-dust {
+  to {
+    transform: translate3d(0, -14vh, 0) scale(1.1);
+  }
+}
+
+/* ---- Kartu 2,5D ---- */
+.td .nn {
+  border-color: var(--hair);
+  border-radius: 22px;
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgb(255 178 87 / 0.12), transparent 60%),
+    var(--glass);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 24px 48px -24px rgb(0 0 0 / 0.9),
+    0 2px 0 rgb(200 162 90 / 0.14);
+}
+
+.td .nn-row + .nn-row::before,
+.td .nn-row + .nn-row::after {
+  border-color: var(--hair);
+}
+
+.td .ig,
+.td .team {
+  border: 1px solid var(--hair);
+  border-radius: 20px;
+  background: var(--glass);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 20px 40px -26px rgb(0 0 0 / 0.9);
+}
+
+.td .team {
+  padding: 18px;
+}
+
+/* hitung mundur: kapsul kaca bergaris emas */
+.td .today-count {
+  padding: 8px 16px;
+  border-color: var(--hair);
+  background: rgb(12 16 36 / 0.7);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    0 0 24px -6px rgb(255 178 87 / 0.35);
+}
+
+/* ---- Before you go: kartu kaca, kunci medali ---- */
+.td .byg-item {
+  align-items: center;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px 18px;
+  border-color: rgb(200 162 90 / 0.24);
+  border-radius: 20px;
+  background: var(--glass);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 16px 32px -22px rgb(0 0 0 / 0.9);
+  transition:
+    border-color 0.35s ease,
+    background-color 0.35s ease;
+}
+
+.td .byg-item:has(input:checked) {
+  border-color: rgb(200 162 90 / 0.6);
+  background:
+    linear-gradient(150deg, rgb(200 162 90 / 0.16), transparent 58%),
+    var(--glass);
+}
+
+.td .byg-item:has(input:checked) strong {
+  color: #f0d79f;
+}
+
+.td .byg-box {
+  width: 34px;
+  height: 37px;
+}
+
+.td .byg-box::before {
+  border-radius: 50%;
+  background: #04050c;
+}
+
+.td .byg-key {
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #262f5c, #121836 72%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 0 0 1px rgb(200 162 90 / 0.62);
+}
+
+.td .byg-key::before {
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, #fffaf0, #edd9a8 46%, #c99f52 100%);
+}
+
+/* dicentang: cincin emas memancar sekali */
+.td .byg-box::after {
+  content: "";
+  position: absolute;
+  inset: -5px -5px -2px;
+  border: 1px solid var(--prada);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.td .byg-item input:checked + .byg-box::after {
+  animation: td-ring 0.8s var(--ease-expo-out) both;
+}
+
+@keyframes td-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+.td .byg-bar {
+  height: 3px;
+  border-radius: 3px;
+}
+
+.td .byg-bar span {
+  background: linear-gradient(90deg, #edd9a8, var(--prada) 60%, var(--blencong));
+  box-shadow: 0 0 10px rgb(255 178 87 / 0.5);
+}
+
+/* ---- Tombol: kapsul berbahasa home, tetap ditekan turun ke tebalnya ---- */
+.td .pb {
+  --r: 999px;
+  --face: #111733;
+  --face-hi: #1f2754;
+  --edge: #03040a;
+  --ring: var(--hair);
+}
+
+.td .pb-face {
+  padding: 0 20px 0 14px;
+  background: linear-gradient(180deg, var(--face-hi), var(--face) 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 0 0 1px var(--ring);
+}
+
+.td .pb--icon .pb-face {
+  padding: 0;
+}
+
+.td .pb--xs .pb-face {
+  padding: 0 12px 0 9px;
+}
+
+/* utama: foil gading-emas di atas tebal perunggu, kilau menyapu saat disorot dan ditekan */
+.td .pb--gold,
+.td .dp-tab[aria-pressed="true"] {
+  --edge: #8a6a2e;
+  --ink: var(--nila);
+  --ring: rgb(255 248 230 / 0.5);
+  --shade: rgb(255 178 87 / 0.55);
+  --glow: rgb(255 252 240 / 0.8);
+}
+
+.td :is(.pb--gold, .dp-tab[aria-pressed="true"]) .pb-face {
+  background: var(--foil);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 0 -1px 0 rgb(122 74 38 / 0.4);
+}
+
+/* darurat: pernis merah lampion bergaris emas */
+.td .pb--sos {
+  --edge: #470a0e;
+  --ink: #fff6ee;
+  --ring: rgb(255 214 160 / 0.42);
+  --shade: rgb(184 53 43 / 0.6);
+}
+
+.td .pb--sos .pb-face {
+  background: linear-gradient(180deg, #e66c56 0%, #b8352b 50%, #8a1d21 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 225 205 / 0.55),
+    inset 0 0 0 1px var(--ring);
+}
+
+/* sekunder bernada emas (Maps) */
+.td .pb--tonal {
+  --face: #1f2142;
+  --face-hi: #3a3550;
+  --ink: #f6dfab;
+  --ring: rgb(227 191 120 / 0.55);
+}
+
+.td :is(.pb--gold, .pb--sos) .pb-face::after {
+  content: "";
+  position: absolute;
+  inset: 0 -45%;
+  background: linear-gradient(104deg, transparent 41%, rgb(255 255 255 / 0.55) 50%, transparent 59%);
+  transform: translate3d(-72%, 0, 0);
+  pointer-events: none;
+}
+
+.td :is(.pb--gold, .pb--sos)[data-pressed] .pb-face::after {
+  transform: translate3d(72%, 0, 0);
+  transition: transform 0.7s var(--ease-expo-out);
+}
+
+@media (hover: hover) {
+  .td :is(.pb--gold, .pb--sos):hover .pb-face::after {
+    transform: translate3d(72%, 0, 0);
+    transition: transform 0.95s var(--ease-expo-out);
+  }
+}
+
+/* pilihan hari: kartu kecil berlekuk, bukan kapsul (dua baris) */
+.td .dp-tab {
+  --r: 18px;
+}
+
+.td .dp-tab .pb-face {
+  padding: 8px 16px;
+}
+
+.td .rain .pb-face {
+  padding: 0 12px 0 14px;
+}
+
+/* nomor darurat di sheet SOS: ubin dua baris, bukan kapsul */
+.td .sheet-num {
+  --r: 18px;
+}
+
+.td .sheet-num .pb-face {
+  padding: 8px 6px;
+}
+
+/* Rain plan menyala: rona hujan */
+.td .rain[aria-pressed="true"] {
+  --face: #2a3470;
+  --face-hi: #3a478f;
+  --edge: #0b1030;
+  --ring: rgb(147 166 255 / 0.55);
+}
+
+/* ---- Dock bantuan: medali ikon di dalam kapsul ---- */
+.td .dock {
+  background: linear-gradient(to top, rgb(10 12 24 / 0.96) 52%, rgb(10 12 24 / 0));
+}
+
+.td .dock-main .pb-face {
+  padding: 0 22px 0 7px;
+}
+
+.td .dock-ico,
+.td .dock-orb {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--nila);
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.6),
+    0 1px 0 rgb(255 255 255 / 0.5);
+  color: var(--prada);
+}
+
+.td .dock-sos .pb-face {
+  gap: 10px;
+  padding: 0 22px 0 7px;
+}
+
+.td .dock-orb {
+  background: #5a0f13;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 214 160 / 0.55),
+    0 1px 0 rgb(255 225 205 / 0.4);
+  color: #ffe9d6;
+}
+
+/* cincin yang berdenyut pelan di medali SOS: terlihat, tidak mengganggu */
+.td .dock-orb::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgb(255 200 170 / 0.8);
+  border-radius: 50%;
+  animation: td-sos 2.6s var(--ease-sine) infinite;
+}
+
+@keyframes td-sos {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+/* ---- Gerak dikurangi: tanpa parallax, kedalaman gulir, dan kemiringan ---- */
+@media (prefers-reduced-motion: reduce) {
+  .td :is(.td-d, .nn, .byg-list > li, .tl-stop, .ig, .team),
+  .td-head > :is(.td-kicker, .td-title),
+  .tds-sky,
+  .tds-l {
+    animation: none !important;
+    transform: none;
+    translate: none;
+  }
+
+  .tds-dust {
+    display: none;
+  }
+}

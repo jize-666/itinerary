@@ -181,3 +181,72 @@ test.describe("Today di luar trip", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 });
+
+test.describe("Today 2,5D (permintaan host 14 Nov): latar berlapis, gerak pandang, tombol kapsul", () => {
+  type M = { is3d: boolean; a: number; m13: number; m31: number; m43: number; identity: boolean; opacity: number };
+  /** Matriks transform terhitung satu elemen (dibaca di browser). */
+  const matrixOf = (page: Page, selector: string) =>
+    page
+      .locator(selector)
+      .first()
+      .evaluate((el): M => {
+        const cs = getComputedStyle(el);
+        const m = new DOMMatrix(cs.transform === "none" ? undefined : cs.transform);
+        return { is3d: !m.is2D, a: m.a, m13: m.m13, m31: m.m31, m43: m.m43, identity: m.isIdentity, opacity: Number(cs.opacity) };
+      });
+  const translateOf = (page: Page, selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).translate);
+
+  test("latar berlapis di belakang isi: langit, dua punggung bukit, debu emas; tidak terbaca screen reader", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    const scene = page.locator(".tds");
+    await expect(scene).toHaveAttribute("aria-hidden", "true");
+    await expect(scene.locator(".tds-ridge")).toHaveCount(2);
+    expect(await scene.evaluate((el) => getComputedStyle(el).position)).toBe("fixed");
+    expect(await scene.evaluate((el) => Number(getComputedStyle(el).zIndex))).toBeLessThan(0);
+    // langit mengikuti jam: 10.45 = siang
+    await expect(scene).toHaveAttribute("data-sky", "day");
+  });
+
+  test("kamera parallax dan perspective shift: kursor di tepi menggeser latar dan memutar kartu", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await openToday(page, "2027-04-08T10:45:00");
+    await page.mouse.move(640, 400);
+    await page.waitForTimeout(1200);
+    const ridge0 = await translateOf(page, ".tds-ridge[data-depth='near']");
+    await page.mouse.move(1270, 400);
+    await expect.poll(() => page.locator(".td").evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeGreaterThan(0.6);
+    expect(await translateOf(page, ".tds-ridge[data-depth='near']")).not.toBe(ridge0);
+    // kartu Now/Next memutar mengitari sumbu tegak: matriks 3D dengan perspektif
+    const card = await matrixOf(page, ".nn");
+    expect(card.is3d).toBe(true);
+    expect(Math.abs(card.m13) + Math.abs(card.m31)).toBeGreaterThan(0.02);
+  });
+
+  test("kedalaman ikut gulir: bukit dekat membesar saat digulir, kartu di bawah lipatan datang dari kedalaman", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    await page.waitForTimeout(800);
+    const before = (await matrixOf(page, ".tds-ridge[data-depth='near']")).a;
+    // kartu di bawah layar (belum masuk): mundur ke belakang
+    const last = await matrixOf(page, ".tl-stop:last-child");
+    expect(last.m43 !== 0 || last.opacity < 1).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, innerHeight * 1.2));
+    await expect.poll(async () => (await matrixOf(page, ".tds-ridge[data-depth='near']")).a).toBeGreaterThan(before + 0.05);
+  });
+
+  test("tombol kapsul: SOS bermedali, sakelar bahasa bergaris seperti home", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    await expect(page.getByRole("button", { name: /SOS/ }).locator(".dock-orb")).toHaveCount(1);
+    await expect(page.locator(".lang-toggle")).toHaveClass(/segl/);
+    expect(await page.locator(".dock-sos").evaluate((el) => getComputedStyle(el).getPropertyValue("--r").trim())).toBe("999px");
+  });
+
+  test("gerak dikurangi: latar dan kartu diam, tanpa kemiringan", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openToday(page, "2027-04-08T10:45:00");
+    await page.waitForTimeout(800);
+    expect((await matrixOf(page, ".nn")).identity).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, innerHeight));
+    await page.waitForTimeout(300);
+    expect((await matrixOf(page, ".tds-ridge[data-depth='near']")).identity).toBe(true);
+  });
+});

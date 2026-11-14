@@ -1,9 +1,73 @@
 # HANDOFF
 
-Diperbarui 13 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #7) · **PR untuk semua pekerjaan sesi ini dibuka atas permintaan host (lihat bagian 0, akhir "Gerak pandang").** Tugas 6 (gong) selesai dan dicentang; Tugas 7 (gunungan): rupa diterima, sapuan kembali ke kayon lama, sisa pembuka dan penutup; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) terpasang di 3D dan 2,5D sebagai aturan tetap.
+Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D selesai, dites, dan videonya dikirim; satu PR untuk keduanya (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Arahan host 14 Nov: paksa tier High di iPhone
+
+**Kata host, kata demi kata** (disertai tangkapan layar overlay `?fps` di iPhone, slide tiket: `59 fps · avg 60 · 0.7 ms`, `medium ×0.82 · 17 draw · 26k tri`): "cek beban dan fps di iphone kan udah di ukur dan gw udah acc. cuma kemarin kan gw dah bilang, paksa tier high ke iphone, soalnya cuma dapet medium doang".
+
+Artinya: cek beban tidak perlu lagi (sudah diterima host). Yang dikerjakan sekarang keputusan 12 Nov "point 3; paksa ke high" yang belum dikerjakan: iPhone harus mendapat tier High, bukan Medium.
+
+**Penyebab (terbukti dari kode dan tes unit lama).** Safari di iPhone melaporkan GPU sebagai "Apple GPU" (sudah tergolong High), tetapi `guessTier` menurunkan High ke Medium bila browser melaporkan ≤ 4 inti, dan Safari memang melaporkan sedikit (tes lama `Apple GPU, cores: 4 → medium`). Sesudah itu pengatur FPS sempat mengecilkan resolusi (`×0.82`) saat ada frame berat.
+
+**Yang selesai.** `pinnedHigh(caps)` di `src/engine/stage/tier.ts`: iPhone/iPad (renderer persis "Apple GPU" di layar sentuh) selalu mulai di High, dan `createGovernor(..., pinned)` menahannya di High ×1 (tanpa mengecilkan resolusi) selama rata-rata fps ≥ 35 (`GOVERNOR.rescueBelow`; di layar 30 Hz ambangnya dibagi dua). Di bawah itu paksaan dilepas supaya film di iPhone lama tidak tersendat. `?stage=` tetap mengunci tier apa pun. Overlay `?fps` menulis `high ×1 (paksa)`. Mac, Android, dan desktop tidak berubah.
+
+**Hasil tes.** `pnpm test` 333 lulus (6 tes baru: tebakan tier iPhone, paksaan bertahan di 40 fps, dilepas di 25 fps, layar 30 Hz, hanya bila mulai di High). e2e baru meniru Safari iPhone ("Apple GPU", 4 inti): kanvas `data-tier="high"`, `data-scale="1"`, overlay `(paksa)`; `e2e/stage.spec.ts` penuh 71 lulus, 5 dilewati. Belum diuji di iPhone asli: host cek `/film/?fps` sesudah merge (harus tertulis `high ×1 (paksa)`).
+
+**CI merah di PR #9 (ditanyakan host: "penting ga? perlu di perbaiki dulu?").** Gagalnya tes 3D desktop yang sama di tiga run berturut-turut (`kamera berpindah`, `?fps overlay`, `zoom gong`, `meninggalkan slide gong`, kadang `lompat bab`), plus satu tes geser jari di iPhone yang kadang gagal; commit yang sama bisa lulus di run lain. Penyebabnya bukan kode aplikasi: runner GitHub tidak punya GPU, jadi kanvas 3D digambar CPU (diukur di sini dengan 2 inti: ±2,5 frame/detik di tier Low, ±4 saat gunungan menutup layar), dua kanvas 3D berjalan bersamaan, dan sejak ada gerbang tiap tes 3D di slide pertama mencabut gunungan dulu, sehingga beberapa tes melewati batas 30 dtk. Direproduksi di sini dengan `taskset -c 0,1` + `CI=1` (3 dari 5 gagal). Perbaikan (pemeriksaan tidak dilonggarkan): di CI saja tes 3D diberi waktu tiga kali lipat (`test.slow`, `WAIT`), tes di `e2e/stage.spec.ts` dijalankan berurutan (satu kanvas 3D sekaligus), dan tes geser jari diberi jeda 900 ms (aplikasi sengaja menelan klik ±350 ms sesudah geser). Dengan kondisi CI yang sama, 10/10 tes tadi lulus tanpa ulang. Hasil akhir: e2e penuh di sini dengan `CI=1` + 2 inti **239 lulus, 19 dilewati, 0 gagal, 0 flaky** (12,1 menit); **CI GitHub untuk `42b7cfe` hijau di kedua run** (push dan pull_request). PR #9 siap Squash and merge.
+
+### Permintaan host 14 Nov (sesudah PR #9 dibuka): pratinjau pakai data trip klien, kirim ulang, dan Today versi desktop
+
+**Arahan host, kata demi kata:** "kalo record preview pake akun client aja yang april., kirim ulang dan perbarui info ini di claude.md" lalu "versi dekstop nya juga di perbarui? mana preview nya".
+
+Tafsir Claude: pratinjau tidak lagi memakai data tiruan e2e ("Test City", AAA → BBB → CCC), tetapi **trip klien yang sebenarnya, Solo 7–11 April 2027**, dari `content/trips/solo` (isi yang sama dengan yang diterbitkan ke Supabase). Kode booking klien tidak tersimpan di repo maupun sesi (hanya hash-nya di Supabase Vault), jadi data privat (nama asli, WhatsApp, jam jemput) tidak bisa diambil; di pratinjau diisi pengganti netral ("Your Name", nomor contoh). Yang dikerjakan: alat pembuat data pratinjau dari konten klien, rekam ulang video gunungan (desktop), Today iPhone, dan **Today desktop** (sebelumnya belum ada), kirim ke host, dan catat aturan ini di `CLAUDE.md`.
+
+**Status (14 Nov).** `scripts/preview/client-data.ts` membuat data pratinjau dari `content/trips/solo` lewat `buildTripPayload` yang sama dengan Edge Function (5 hari, 35 stop, Before you go 5 item, rute TJQ → CGK → SOC); data privat diganti "Your Name" dan nomor contoh. Aturannya dicatat di `CLAUDE.md` (bagian penutup sesi, "Data pratinjau = trip klien April"). **Today desktop (1920×1080, 40 dtk) dan Today iPhone (1080 px, 38 dtk) dengan data klien sudah dikirim ke host.** Video gunungan desktop dengan data klien (tur `gerbang`, 1920×1080, 60 fps, tier High, 33,7 dtk) juga sudah dikirim. Ketiga video ulang selesai.
+
+**Pertanyaan host sesudahnya:** "apa planningmu kedepan? pekerjaan apa yang ingin kamu kerjakan". Jawaban yang diberikan (menunggu keputusan host): (1) tutup PR #9; (2) usul cek beban dulu: lama tunggu gunungan di 4G dan fps di HP, kelancaran Today di iPhone; host cek `/film/?fps` dan Today di iPhone sesudah merge; (3) Tugas 8 bertahap dengan video per tahap: benang emas 3D yang tergambar mengikuti gulir (rute Belitung → Jakarta → Solo, menghubungkan jadwal di gallery), siklus waktu 3D, efek cahaya (pendar selektif, fokus di tier High), partikel; (4) lalu Tugas 9–12 urut. Dua hal yang ditanyakan ke host: kepingan bara yang jadi gong di prolog (lanjut atau dicoret), dan kapan kode booking asli klien dipasang (wajib sebelum serah terima; juga syarat nama asli tampil di pratinjau). **Tugas 8 belum dimulai: menunggu arahan host.** Kendala: nama asli dan kontak tidak bisa tampil karena kode booking klien tidak ada di sesi ini.
+
+### Permintaan host 14 Nov pagi: Today 2,5D dengan desain dan tombol baru
+
+**Arahan host, kata demi kata** (dikirim saat video Tugas 7 selesai direkam), disertai tangkapan layar Today di iPhone sebelum trip (kartu "The first scene" Belitung → Jakarta → Solo 13:00, daftar "Before you go" 0 of 5 ready dengan kotak centang, tombol SOS merah di bawah, sakelar EN/ID): "ini sekalian, button ui, design nya sekalian. buat 2,5D sekalian, sekaligus fitur yang gw mau seperti di handoff.md".
+
+Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ulang, termasuk tombolnya (SOS, kotak centang, sakelar bahasa, tombol aksi), dan dibuat 2,5D dengan arti yang sama seperti home dan film (kedalaman berlapis, DOM dengan `transform`/`opacity`, bukan WebGL; Today tetap ringan dan bisa offline). "Fitur yang gw mau seperti di handoff.md" = aturan tetap gerak pandang 13 Nov: **kamera parallax** (kursor di desktop, kemiringan HP di HP), **perspective shift**, dan **scroll-driven depth** (di Today: kedalaman mengikuti gulir halaman). "Sekalian" = dikerjakan di sesi ini dan masuk PR yang sama dengan Tugas 7.
+
+**Yang selesai (14 Nov).** Latar berlapis (`today/Scene.tsx`: langit berbintang dengan pendar cakrawala mengikuti jam WIB, punggung Lawu bersinar tipis, perbukitan, debu emas); gerak pandang di `today/today.css` (parallax kursor/kemiringan HP lewat `look.ts`, perspective shift pada kartu dan judul, kedalaman ikut gulir lewat scroll-driven animation: bukit turun dan membesar, kartu datang dari kedalaman dan mundur saat keluar); tombol kapsul berbahasa home (foil + medali, SOS pernis merah lampion dengan medali berdenyut, kaca nila bergaris emas; tetap ditekan turun); medali centang Before you go; sakelar bahasa dan suara bergaya kapsul (`.hb`/`.segl` pindah ke `globals.css`); tepi atas memudar di bawah sakelar bahasa. Rincian: `docs/design/decisions.md` bagian "Today 2,5D". Perekam: `scripts/preview/record-today.cjs`.
+
+**Hasil tes.** `pnpm lint`, `pnpm typecheck` bersih; `pnpm test` 329 lulus; `e2e/today.spec.ts` + `e2e/home.spec.ts` 46 lulus sebelum tes baru; 5 tes e2e baru Today 2,5D (latar, parallax + perspective shift, kedalaman ikut gulir, tombol kapsul, gerak dikurangi) lulus di desktop dan iPhone. Catatan: minifier CSS menggabung `transform: none; translate: none` (gerak dikurangi) menjadi `transform: translate(0,0)`; hasilnya tetap diam (matriks identitas), tesnya memeriksa identitas. Kontainer sempat dimulai ulang di tengah tes; tidak ada yang hilang (semua sudah di-commit). **`pnpm test:e2e` penuh (Tugas 7 + Today): 237 lulus, 19 dilewati, 0 gagal** (9,9 menit).
+
+**Pratinjau.** Video Today iPhone (`record-today.cjs`, 1080 px, 60 fps, 38 dtk: sebelum trip dengan kemiringan HP tiruan dan dua kotak dicentang, lalu hari pertama dengan Rain plan dan sheet SOS) dikirim ke host 14 Nov.
+
+**PR #9 dibuka:** https://github.com/jize-666/itinerary/pull/9 (Tugas 7 + Today 2,5D, siap Squash and merge; host yang menekan merge).
+
+**Langkah berikutnya.** Tunggu tinjauan host atas kedua video dan PR #9. Sesudah merge, branch kerja dibuat ulang dari `main` terbaru. Tugas 8 (benang emas) hanya bila host memberi arahan.
+
+### Tugas 7: pembuka dan penutup gunungan (sesi 14 Nov pagi WIB)
+
+**Arahan host, kata demi kata:** "kerjakan tugas 7, gunungan" (sesi baru sesudah `/clear`; PR #8 sudah di-merge host 13 Nov 17.26 UTC, jadi branch kerja dibuat ulang dari `main` `d785e65`).
+
+Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapuanya pakai yang lama"): gerbang pembuka sebelum prolog dan penutup sesudah film memakai gunungan 3D bermuka dua yang sudah diterima. Sapuan antar bab tetap bayangan kayon DOM. Dua tes e2e yang gagal di run terakhir sebelum PR #8 ikut dibereskan, karena sesi wajib ditutup dengan `pnpm test:e2e` hijau.
+
+**Rancangan (mengikuti pagelaran wayang: gunungan tertancap sebelum lakon, bedhol kayon membuka, tancep kayon menutup).**
+- **Pembuka:** film 3D yang dibuka di slide pertama mulai dengan gunungan muka Agung tertancap di gedebog, di depan kelir yang disinari blencong. Teks prolog menunggu. Gulir, geser, atau panah maju mencabutnya (naik dulu dari gedebog, lalu disapukan ke kanan bersama kelirnya); kamera maju dari shot kayon ke shot prolog, dan teks prolog muncul di tengah jalan. Di HP cabutan mengikuti jari. Mundur di slide pertama menancapkannya lagi dari kanan.
+- **Penutup:** di credits, gulir maju menancapkan gunungan dari kiri (credits memudar, gong berbunyi saat menancap); bila tamu diam 12 dtk, ditancapkan sendiri. Mundur mencabutnya.
+- **Balik muka:** klik, tap, Enter, atau Spasi pada gunungan yang tertancap membaliknya dengan pegas (muka Murka: api geni menyala besar lalu membara; pupil barong mengikuti kursor), bunyi `gunungan-balik`.
+- **Kelir:** kain berlampu dengan kolam cahaya blencong yang mengikuti kursor, anyaman, plisir, palemahan (petunjuk gulir duduk di sini), gedebog, dan bayangan gunungan bertatahan tembus yang bergeser berlawanan arah lampu, dari muka mana pun (FR-28b).
+- **Gerak pandang (aturan tetap):** parallax (gunungan bergeser lebih jauh dari kelir), perspective shift (lembaran berpaling mengikuti kursor/kemiringan HP), kedalaman ikut gulir (kamera dan ukuran gunungan mengikuti kadar cabutan).
+- Film 2,5D (Calm, tanpa GPU, reduced motion) tanpa gerbang, seperti sebelumnya. Panggung yang belum siap dalam 6 dtk: film dibuka tanpa gerbang.
+
+**Berkas.** `src/engine/stage/gate.ts` (mesin dan pose, murni), `stageBus.gate*` di `bus.ts`, `kayonShot` di `shots.ts`, `kayon-files.ts` (tekstur diunduh bersamaan dengan bundle 3D), shader kelir di `stage3d/gunungan.ts`, sambungan di `stage3d/runtime.ts`, `director.ts` (langkah dan scrub ke gerbang), `Film.tsx` (`data-gate`, `data-face`, tombol `.fl-kayon`, penutup otomatis, bunyi), `film.css`, `Chrome.tsx` (petunjuk balik), string `film.kayon` dan `film.kayonHint`. Pratinjau: `window.__lakonStage.gateAt = [tertancap, ujung, sudut balik, geni]`.
+
+**Hasil tes (14 Nov pagi).** `pnpm lint` dan `pnpm typecheck` bersih; `pnpm test` 329 lulus (25 baru di `tests/unit/gate.test.ts`); `pnpm content:check` OK (peringatan lama); `pnpm build` lulus. **`pnpm test:e2e` penuh: 228 lulus, 18 dilewati, 0 gagal** (9,5 menit). Sesudah tiga perubahan kecil terakhir (panggung di balik kelir tidak digambar saat tertancap penuh, penutup otomatis 12 dtk, gerbang dilepas bila tekstur gagal) build ulang dan `e2e/stage.spec.ts` dijalankan lagi: 69 lulus, 5 dilewati. Dua tes yang gagal sebelum PR #8 beres: "dua tahap gulir" diberi `test.slow()` (pemeriksaannya tidak dilonggarkan), "?fps overlay" lulus (dulu gagal karena beban, tanpa perubahan kode). Tangkapan layar desktop dan iPhone tiruan sudah dicek: tertancap, kursor, muka Murka terbakar, setengah tercabut, pendapa terbuka, tancep di credits.
+
+**Kendala.** Branch remote ternyata sudah dihapus sesudah PR #8 di-merge, sementara salinan lokal ref lamanya masih ada; push paksa ditolak pengaman, jadi riwayat lama digabung dengan `merge -s ours` (isi tidak berubah). Akibatnya daftar commit PR berikutnya ikut memuat commit lama; diff-nya tetap hanya Tugas 7, dan Squash and merge menjadikannya satu commit. Belum diuji di perangkat nyata.
+
+**Pratinjau.** Video tur `gerbang` (desktop 1920×1080, 60 fps, tier High, 33,7 dtk, 78% frame unik; sisanya saat layar memang diam) dikirim ke host 14 Nov.
+
+**Langkah berikutnya.** PR bersama Today 2,5D (lihat bagian di atas) → tunggu tinjauan host.
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
@@ -482,7 +546,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 12 Nov.** PR #1 sampai #6 sudah di-merge ke `main` (#6: home 2,5D + sesi per tab, squash "redesign (#6)"). PR #7 (Tugas 5, fondasi panggung 3D) di-merge host 12 Nov (squash "redesign 3D (#7)"). PR untuk Tugas 6 dibuat saat host memintanya.
+**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D) dibuka 14 Nov, menunggu merge host.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.

@@ -74,6 +74,8 @@ export const STRINGS = {
   "film.phase.night": { en: "Night", id: "Malam" },
   "film.endOfDay": { en: "End of Day {n}", id: "Akhir Hari {n}" },
   "film.gong": { en: "Strike the gong", id: "Pukul gongnya" },
+  "film.kayon": { en: "Turn the gunungan", id: "Balik gunungannya" },
+  "film.kayonHint": { en: "Click or tap the gunungan to turn it", id: "Klik atau ketuk gunungan untuk membaliknya" },
   "film.tomorrow": { en: "Tomorrow", id: "Besok" },
   "film.lastGong": { en: "The last gong of the lakon", id: "Gong terakhir lakon ini" },
   "film.messageHost": { en: "Message your host", id: "Kabari host" },

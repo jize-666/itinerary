@@ -33,6 +33,8 @@ export class Director {
   private plan: Plan | null = null;
   private pendingLive: (() => void) | null = null;
   private unbind: (() => void) | null = null;
+  /** Jari sedang mencabut gunungan pembuka (scrub milik gerbang, bukan milik slide). */
+  private gateScrub = false;
 
   constructor(
     film: Film,
@@ -56,15 +58,25 @@ export class Director {
     this.unbind = bindInput(root, {
       axisFor: (dir) => this.axisFor(dir),
       spanFor: (dir) => scrubSpan(root, this.film, this.index, this.index + dir),
+      // gunungan pembuka/penutup: langkah di ujung film mencabut atau menancapkannya (semua sumber, juga keyboard).
       // slide gong 3D: gulir maju pertama mendekat ke gong, gulir mundur saat dekat menjauh dulu (keyboard tetap per slide)
       step: (dir, source) => {
+        if (this.gateStep(dir)) return;
         if (source !== "key" && stageBus.gongStep(dir)) return;
         this.store.dispatch({ type: "step", dir, source });
       },
       edge: (to) => this.jump(to === "first" ? 0 : this.film.slides.length - 1),
-      scrubStart: () => this.store.dispatch({ type: "scrubStart" }),
-      scrub: (signed) => this.store.dispatch({ type: "scrub", signed }),
-      scrubEnd: (flick) => this.store.dispatch({ type: "scrubEnd", flick }),
+      // jari di slide pertama saat gunungan pembuka tertancap: yang digeser gunungannya (mengikuti jari)
+      scrubStart: (dir) => {
+        this.gateScrub = dir === 1 && !this.calm && stageBus.gateScrubStart(this.index);
+        if (!this.gateScrub) this.store.dispatch({ type: "scrubStart" });
+      },
+      scrub: (signed) => (this.gateScrub ? stageBus.gateScrub(signed) : this.store.dispatch({ type: "scrub", signed })),
+      scrubEnd: (flick) => {
+        if (!this.gateScrub) return this.store.dispatch({ type: "scrubEnd", flick });
+        this.gateScrub = false;
+        stageBus.gateScrubEnd(flick);
+      },
       // di slide gong 3D jari tidak men-scrub: tiap geser dinilai saat dilepas, jadi dua tahap gulir berlaku juga di HP
       canScrub: () => !this.calm && !stageBus.gongHere(),
       paused: () => this.paused,
@@ -94,7 +106,15 @@ export class Director {
   }
 
   step(dir: Dir) {
+    if (this.gateStep(dir)) return;
     this.store.dispatch({ type: "step", dir, source: "ui" });
+  }
+
+  /** Langkah untuk gunungan pembuka/penutup (hanya saat diam di slide pertama atau terakhir). */
+  private gateStep(dir: Dir): boolean {
+    const s = this.store.get();
+    if (s.to !== null) return false;
+    return stageBus.gateStep(dir, s.index, this.film.slides.length - 1);
   }
 
   jump(to: number) {

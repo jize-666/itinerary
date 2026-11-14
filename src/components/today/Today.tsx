@@ -1,4 +1,5 @@
 "use client";
+import "./today.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { fmtAgo, fmtClock, fmtDay } from "@/engine/today/format";
@@ -8,6 +9,7 @@ import { loadTrip, peekTrip, type TripLoad, type TripView } from "@/lib/trip";
 import { IconPlay, IconRefresh } from "../Icons";
 import { InstallGuide } from "../InstallGuide";
 import { Benang, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
+import { lookMoving, startLook, stepLook } from "../film/look";
 import { CurtainLink, useCurtainOpen } from "../motion/Curtain";
 import { Ticket } from "../Ticket";
 import { useRequireSession } from "../useRequireSession";
@@ -16,6 +18,7 @@ import { DayPlan } from "./DayPlan";
 import { HelpBar } from "./HelpBar";
 import { isPreview, useNow, useOnline } from "./hooks";
 import { NowNext } from "./NowNext";
+import { skyPhase, TodayScene } from "./Scene";
 
 type State = { kind: "loading" } | TripLoad;
 const STALE_MS = 5 * 60_000;
@@ -113,6 +116,39 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
   );
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
+  // Gerak pandang 2,5D (aturan host 13 Nov, untuk Today diminta 14 Nov): --lx dan --ly (−1…1) dari kursor atau
+  // kemiringan HP. Latar bergeser menurut kedalamannya dan kartu sedikit memutar (today.css). Saat pandang diam,
+  // pemeriksaan melambat ke 5× per detik supaya HP tidak terus terbangun di jalan.
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const stop = startLook();
+    let raf = 0;
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    let lx = 0;
+    let ly = 0;
+    const tick = () => {
+      const l = stepLook();
+      if (Math.abs(l.x - lx) >= 0.005 || Math.abs(l.y - ly) >= 0.005) {
+        lx = l.x;
+        ly = l.y;
+        el.style.setProperty("--lx", lx.toFixed(3));
+        el.style.setProperty("--ly", ly.toFixed(3));
+      }
+      if (lookMoving(performance.now())) raf = requestAnimationFrame(tick);
+      else idle = setTimeout(tick, 200);
+    };
+    tick();
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(idle);
+      stop();
+      el.style.removeProperty("--lx");
+      el.style.removeProperty("--ly");
+    };
+  }, []);
+
   const offline = stale || !online;
   const during = s.phase === "during";
   const meta = (
@@ -138,7 +174,8 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
     </div>
   );
   return (
-    <main className="td" data-phase={s.phase}>
+    <main ref={root} className="td" data-phase={s.phase}>
+      <TodayScene sky={skyPhase(fmtClock(at))} />
       {isPreview() && (
         <p className="td-preview">
           Preview · {fmtDay(s.date, lang)} {fmtClock(at)} WIB · <a href="/today/">{t("today.now")}</a>
@@ -162,7 +199,9 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
             <Gunungan as="h1" className="td-title" text={tx(trip.title)} delay={250} />
             {greeting && <Gamelan as="p" className="td-greeting" text={greeting} delay={900} />}
             <Countdown days={s.daysToStart} />
-            <Ticket data={data} delay={1300} />
+            <div className="td-d">
+              <Ticket data={data} delay={1300} />
+            </div>
           </>
         ) : (
           <>
@@ -170,7 +209,9 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
             <Gunungan as="h1" className="td-title" text={tx(trip.epilogue?.title) || tx(trip.title)} delay={250} />
             {trip.epilogue && <p className="td-sub">{tx(trip.epilogue.body)}</p>}
             {greeting && <Gamelan as="p" className="td-greeting" text={greeting} delay={900} />}
-            <Ticket data={data} delay={1200} />
+            <div className="td-d">
+              <Ticket data={data} delay={1200} />
+            </div>
           </>
         )}
         {!during && meta}

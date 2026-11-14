@@ -3,15 +3,16 @@ import { usePathname } from "next/navigation";
 import { audioStatus } from "@/engine/audio/status";
 import { CHROME } from "@/engine/i18n/chrome";
 import { useLang } from "@/engine/i18n/useLang";
+import { isCapsulePage } from "./LangToggle";
 import { useAudioState } from "./useAudio";
 
 /**
- * Tombol speaker di kelompok kanan atas. Di home: cincin tipis, menyala = emas (gaya `.hb`, home.css).
+ * Tombol speaker di kelompok kanan atas. Di home dan Today: cincin tipis, menyala = emas (gaya `.hb`).
  * Di halaman lain: tombol bulat 3D, menyala = emas & tertekan.
  */
 export function SoundButton({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   const lang = useLang();
-  const home = usePathname() === "/";
+  const home = isCapsulePage(usePathname());
   return (
     <button
       type="button"

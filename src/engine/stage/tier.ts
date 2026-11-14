@@ -62,18 +62,31 @@ export type Caps = Readonly<{
 }>;
 
 const SOFTWARE = /swiftshader|llvmpipe|software|basic render|microsoft basic/i;
+/** iPhone dan iPad: Safari menamai GPU-nya "Apple GPU" saja, dan menyamarkan jumlah inti (melapor ≤ 4). */
+const APPLE_MOBILE = /^apple gpu$/i;
 const HIGH_MOBILE = /apple gpu|apple a1[5-9]|apple a[2-9]\d|adreno \(tm\) (7[3-9]\d|8\d\d)|adreno (7[3-9]\d|8\d\d)|immortalis|mali-g(71[05]|72\d|9\d\d)|xclipse (9[2-9]\d|[1-9]\d{3})/i;
 const LOW_MOBILE = /adreno \(tm\) [1-5]\d\d|adreno [1-5]\d\d|mali-(4\d\d|t\d+|g3\d|g5[12])|powervr|videocore|vivante/i;
 const HIGH_DESKTOP = /apple m\d|nvidia|geforce|rtx|gtx|radeon rx|radeon pro|arc\(tm\)|intel\(r\) arc/i;
 const LOW_DESKTOP = /intel\(r\) hd graphics|intel hd graphics|gma|mesa dri intel\(r\) (hd|ivybridge|sandybridge|haswell)/i;
 
 /**
+ * Tier High dipaksa di iPhone/iPad (keputusan host 12 Nov "paksa ke high", ditegaskan 14 Nov: "paksa tier high ke
+ * iphone, soalnya cuma dapet medium doang"). Dulu iPhone mulai di Medium karena Safari melaporkan ≤ 4 inti, lalu
+ * pengatur FPS sempat mengecilkan resolusinya. Sekarang mulai di High dan pengatur menahannya di sana
+ * (`createGovernor`, `pinned`), kecuali film benar-benar tersendat (`GOVERNOR.rescueBelow`).
+ */
+export function pinnedHigh(caps: Caps): boolean {
+  return caps.webgl2 && caps.mobile && APPLE_MOBILE.test(caps.renderer.trim());
+}
+
+/**
  * Tier awal. Tanpa WebGL2 atau dengan renderer perangkat lunak → Static (film 2,5D): menggambar 3D di CPU
  * selalu patah-patah. HP flagship sengaja dimulai di High (PRD: "mobile flagship tidak dibuat ringan");
- * pengatur FPS yang menurunkannya bila ternyata berat.
+ * pengatur FPS yang menurunkannya bila ternyata berat. iPhone/iPad selalu High (`pinnedHigh`).
  */
 export function guessTier(caps: Caps): Tier {
   if (!caps.webgl2 || SOFTWARE.test(caps.renderer)) return "static";
+  if (pinnedHigh(caps)) return "high";
   const r = caps.renderer;
   let tier: Tier;
   if (caps.mobile) tier = HIGH_MOBILE.test(r) ? "high" : LOW_MOBILE.test(r) ? "low" : "medium";
@@ -101,6 +114,11 @@ export const GOVERNOR = {
   retreat: 12000,
   /** Di Low pun di bawah ini → Static. */
   staticBelow: 20,
+  /**
+   * Tier High yang dipaksa (iPhone/iPad) hanya dilepas bila rata-rata jendela di bawah ini: film benar-benar
+   * tersendat, misalnya di iPhone lama. Di atasnya pengatur hanya mengukur, tidak menurunkan resolusi atau tier.
+   */
+  rescueBelow: 35,
   /** Jeda antar frame di atas ini bukan data kehalusan (tab baru kembali, GC besar): jendela dimulai ulang. */
   hitch: 250,
 } as const;
@@ -116,12 +134,17 @@ export type Governor = {
   capped(): boolean;
   /** Mulai ulang jendela (tab kembali terlihat, adegan berat baru dimuat). */
   rest(now: number): void;
+  /** Tier High sedang dipaksa (iPhone/iPad): tidak diturunkan. */
+  pinned(): boolean;
 };
 
 /**
  * `start` = tier awal; `locked` = tier dipaksa (uji, `?stage=`): pengatur hanya mengukur, tidak pernah pindah.
+ * `pinned` = tier High dipaksa untuk perangkat ini (iPhone/iPad): tidak diturunkan selama rata-rata fps masih di
+ * atas `GOVERNOR.rescueBelow`; di bawahnya paksaan dilepas dan pengatur bekerja seperti biasa.
  */
-export function createGovernor(start: Tier, now: number, locked = false): Governor {
+export function createGovernor(start: Tier, now: number, locked = false, pinned = false): Governor {
+  let hold = pinned && start === "high";
   let at = Math.max(0, rungOf(start));
   /** Anak tangga terberat yang masih boleh dicoba. */
   let ceiling = 0;
@@ -154,6 +177,7 @@ export function createGovernor(start: Tier, now: number, locked = false): Govern
     fps: () => fps,
     capped: () => capped,
     rest: reset,
+    pinned: () => hold,
     sample(dt, t) {
       if (LADDER[at]!.tier === "static") return null;
       if (!(dt > 0) || dt > GOVERNOR.hitch) {
@@ -176,6 +200,10 @@ export function createGovernor(start: Tier, now: number, locked = false): Govern
       capped = near30 >= dts.length * 0.9;
       const k = capped ? 0.5 : 1;
       if (locked) return null;
+      if (hold) {
+        if (fps >= GOVERNOR.rescueBelow * k) return null;
+        hold = false; // benar-benar tersendat: paksaan dilepas, turun seperti biasa
+      }
 
       const tier = LADDER[at]!.tier;
       if (fps < GOVERNOR.downBelow * k) {

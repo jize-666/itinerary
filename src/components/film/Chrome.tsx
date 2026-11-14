@@ -67,15 +67,17 @@ export const Rail = memo(function Rail({ film, index, onJump }: { film: Film; in
 });
 
 /** Petunjuk navigasi di slide pertama; hilang setelah dipakai sekali (PRD §7.7). */
-export function Hint({ shown }: { shown: boolean }) {
+/** Petunjuk gulir di slide pertama; saat gunungan pembuka tertancap (`kayon`) ditambah ajakan membaliknya. */
+export function Hint({ shown, kayon = false }: { shown: boolean; kayon?: boolean }) {
   const { t } = useI18n();
   return (
-    <p className="fl-hint" data-shown={shown ? "" : undefined} aria-hidden={!shown}>
+    <p className="fl-hint" data-shown={shown ? "" : undefined} data-kayon={kayon ? "" : undefined} aria-hidden={!shown}>
       <span className="fl-hint-ico" aria-hidden="true">
         <IconDown size={16} />
       </span>
       <span>{t("film.hint")}</span>
       <span className="fl-hint-keys">{t("film.hintKeys")}</span>
+      {kayon && <span className="fl-hint-kayon">{t("film.kayonHint")}</span>}
     </p>
   );
 }

@@ -269,7 +269,8 @@ export type InputHandlers = {
   spanFor(dir: Dir): number;
   step(dir: Dir, source: "wheel" | "key" | "touch"): void;
   edge(to: "first" | "last"): void;
-  scrubStart(): void;
+  /** Jari mulai men-scrub ke arah `dir`. */
+  scrubStart(dir: Dir): void;
   scrub(signed: number): void;
   scrubEnd(flick: Dir | 0): void;
   /** false = Calm mode: tanpa scrub, sentuhan hanya menghasilkan langkah. */
@@ -382,7 +383,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
       const dir: Dir = px >= 0 ? 1 : -1;
       if (h.canScrub() && h.axisFor(dir) === touch.tracker.axis) {
         touch.scrubbing = true;
-        h.scrubStart();
+        h.scrubStart(dir);
       }
     }
     if (touch.scrubbing) h.scrub(signedProgress(px));

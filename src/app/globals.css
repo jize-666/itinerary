@@ -1206,7 +1206,7 @@ a {
 }
 
 /* kepala: hari ini datang cepat (informasi dulu); sebelum trip boleh sedikit lebih seremonial */
-.td-head > :not(.td-kicker, .td-title, .ticket, .k-gamelan) {
+.td-head > :not(.td-kicker, .td-title, .ticket, .td-d, .k-gamelan) {
   animation: k-fadein 0.6s var(--ease-power3-out) 0.45s both;
 }
 
@@ -1232,7 +1232,8 @@ a {
 @keyframes nn-in {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.98);
+    translate: 0 18px;
+    scale: 0.98;
   }
 }
 
@@ -1399,6 +1400,143 @@ a {
 
 .nn-next > .pb--icon {
   grid-row: 3 / span 2;
+}
+
+/* ---- Tombol kapsul (.hb) dan sakelar bahasa bergaris (.segl): dipakai home dan Today ----
+   Kapsul tanpa tebal 3D; ikon = cincin tipis, menyala = emas. Gaya utama foil (.hb--primary) ada di home.css. */
+.hb {
+  --h: 46px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: var(--h);
+  margin: 0;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--mori);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.26s var(--ease-expo-out);
+}
+
+.hb[data-pressed] {
+  transform: scale(0.962);
+  transition-duration: 0.08s;
+}
+
+/* ikon: cincin tipis; menyala = emas */
+.hb--icon {
+  --h: 40px;
+  width: var(--h);
+  padding: 0;
+  background: rgb(10 12 24 / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(200 162 90 / 0.62);
+  color: var(--prada);
+}
+
+.hb--icon[aria-pressed="false"] {
+  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
+  color: color-mix(in srgb, var(--mori) 66%, transparent);
+}
+
+.hb--icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 18px rgb(255 178 87 / 0.42);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-power3-out);
+}
+
+.hb-face {
+  display: grid;
+  place-items: center;
+}
+
+@media (hover: hover) {
+  .hb--icon:hover::after {
+    opacity: 1;
+  }
+}
+
+/* sakelar bahasa home: kapsul bergaris tipis, kunci gading bergeser */
+.segl {
+  --pad: 3px;
+  --w: 38px;
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(var(--n), var(--w));
+  height: 40px;
+  padding: var(--pad);
+  border-radius: 999px;
+  background: rgb(10 12 24 / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
+}
+
+.segl-thumb {
+  position: absolute;
+  z-index: -1;
+  top: var(--pad);
+  left: var(--pad);
+  width: var(--w);
+  height: calc(100% - var(--pad) * 2);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fcf5e3, #dfc083);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.4);
+  transform: translate3d(calc(var(--i) * 100%), 0, 0);
+  transition: transform 0.5s var(--ease-expo-out);
+}
+
+.segl-opt {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: color-mix(in srgb, var(--mori) 74%, transparent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.22s var(--ease-expo-out);
+}
+
+.segl-opt[aria-pressed="true"] {
+  color: var(--nila);
+}
+
+.segl-opt[data-pressed] {
+  transform: scale(0.9);
+}
+
+.lang-toggle.segl {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(16px + env(safe-area-inset-right));
+  z-index: 50;
+}
+
+.sound-toggle.hb {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(16px + 82px + 10px + env(safe-area-inset-right));
+  z-index: 50;
 }
 
 /* ---- Tombol tekan 3D: depth · tactile press · soft shadow ----
@@ -1855,6 +1993,9 @@ a {
   display: grid;
   grid-template-columns: 6.4em minmax(0, 1fr);
   gap: 12px;
+}
+
+.tl-stop > * {
   animation: thread-in 0.6s var(--ease-expo-out) both;
   animation-delay: calc(120ms + var(--i) * 70ms);
 }
@@ -2155,7 +2296,7 @@ a {
   list-style: none;
 }
 
-.byg-list li {
+.byg-list > li > .byg-item {
   animation: k-fadein 0.5s var(--ease-power3-out) both;
   animation-delay: calc(100ms + var(--i) * 60ms);
 }
