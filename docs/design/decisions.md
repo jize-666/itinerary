@@ -413,6 +413,15 @@ Uji host di iPhone menunjukkan 59–60 fps tetapi `medium ×0.82`. Penyebabnya: 
 
 Pratinjau: video `scripts/preview/record-today.cjs` (sebelum trip dan hari pertama; kemiringan HP tiruan).
 
+**Revisi audit host 14 Nov ("button ui, masih versi lama", "design + ui masih versi lama", "design masih versi lama").** Yang dinilai host masih lama: tebal 3D di bawah tombol, ubin, tiket lama, dan garis punggung bukit yang bersinar. Keputusan yang menggantikan beberapa butir di atas:
+- **Tombol tanpa tebal.** Semua tombol `.pb` di Today tidak lagi bertebal: ditekan = wajah mengecil dan menyala, bayangan merapat (sama dengan `.hb` home). "Watch the film" dan Rain plan memakai kapsul kaca `.hb--glass` / `.rain.hb` bermedali ikon. Film tetap `.pb` bertebal.
+- **Kepala** rata tengah seperti home; **hitung mundur** angka besar gading-emas dengan kalimat kecil di bawahnya.
+- **Boarding pass home di mana-mana.** Kartu home (alas kawung bertepi emas, mata tali, isi melayang, kilau) dipindah ke `src/components/pass/` dan dipakai home, Today, dan slide tiket film; tiket lama dihapus. Di Today dan film kartu tergantung di benang emas pendek dan berayun masuk sekali.
+- **Garis punggung bukit dicabut.** Garisnya menembus kartu yang tembus pandang dan memotong teks; siluet kini terbaca dari puncak yang sedikit lebih terang.
+- **The programme.** Hari = medali bernomor (dipilih = medali gading seperti kunci sakelar home); stop = kartu kaca di benang emas; jam miring gading; NEXT/NOW kapsul foil, OPTIONAL kapsul bergaris; chip makanan kapsul kaca bermedali kecil.
+- **Sheet SOS.** Panel kaca nila bergaris emas, ubin 112/119/110 tanpa tebal dengan medali telepon, kartu kontak dan penginapan, fokus pindah ke judul saat dibuka.
+- **Tepi atas** lebih tinggi dan pekat, jadi isi yang digulir tertutup di bawah sakelar bahasa.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

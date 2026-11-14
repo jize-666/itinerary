@@ -1,9 +1,75 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D selesai, dites, dan videonya dikirim; satu PR untuk keduanya (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
+Diperbarui 14 Nov 2026 siang (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #9) · **Audit host 1–5 selesai: 12 butir dicentang dengan bukti tes, satu commit per audit, video dikirim; satu PR (lihat bagian 0, paling atas).** Sebelumnya: Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D di PR #9.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Audit host 1–5 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
+
+**Arahan host, kata demi kata, urut:** "perbaiki hasil audit ini" (`audit_1.zip`), "ini juga" (`audit_2.zip`), "ini juga" (`audit_3.zip`), "ini" (`audit_4.zip`), "ini terakhir" (`audit_5.zip`), lalu **"perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md"**. Artinya: dikerjakan audit demi audit (1 → 5); sesudah tiap audit selesai, butir-butirnya di daftar ini dicentang dengan bukti tes, lalu commit. Berkas audit disimpan di scratchpad, tidak masuk repo (tangkapan layar memuat nama asli tamu).
+
+**Ringkasan sesi (14 Nov):**
+- **Selesai:** Audit 1 (sheet SOS desain baru, tombol Today tanpa tebal, NaN shader + saringan post), Audit 2 (Today atas dan The programme desain baru, boarding pass home bersama, bingkai headline di HP tegak), Audit 3 (`atan(0, 0)` di blencong balik kelir, bidang gelap teks film tidak tembus), Audit 4 (hemat bandwidth GPU tier High), Audit 5 (butir 11 dan 12 ditelusuri ke sumber yang sudah diperbaiki).
+- **Tes akhir (sesudah Audit 4):** lint dan typecheck bersih, 341/341 tes unit, content:check OK, build OK, e2e penuh 249 lulus / 0 gagal / 21 dilewati (khusus perangkat). Video: Today HP dan desktop (data trip April), prolog film 3D di HP (`record-film.cjs … prolog`, tur baru: hero, headline, intro, fakta pertama). Kendala: kenaikan fps hanya bisa diukur di iPhone host; renderer di sesi adalah SwiftShader, dan segi delapan NaN tidak muncul di sana (jadi buktinya tes suntik NaN dan tes pola shader).
+- **Langkah berikutnya:** host mengecek `/film/?fps` di iPhone sesudah merge (segi delapan, fps High) dan meninjau video Today/film. Tugas 8 tetap menunggu arahan host.
+
+**Satu penyebab untuk semua segi delapan hitam** (butir 2, 6, 7, 9, 11, 12): beberapa shader menghitung `pow(1.0 - dot(n, v), k)`. Bila arah pandang tepat segaris dengan permukaan (mangkuk blencong, tiang), pembulatan membuat `dot` sedikit di atas 1, dasarnya negatif, dan `pow` menghasilkan NaN di GPU iPhone. NaN itu menembus apa pun yang digambar di depannya (pencampuran warna NaN × 0 = NaN) dan disebar bloom menjadi segi delapan. Karena itu ia juga muncul di gunungan dan kelir saat panggung di belakangnya masih digambar.
+
+**Audit 1**
+- [x] 1. "button ui, masih versi lama": sheet SOS Today ("If you need help"); ubin nomor darurat 112/119/110 dan tombol tutup × masih versi lama (ubin bertebal, cincin ganda di ×). Didesain ulang dalam bahasa kapsul baru, termasuk baris kontak dan alamat penginapan.
+  - **Dikerjakan:** semua tombol `.pb` di Today kehilangan "tebal" 3D di bawah wajah tombol (ciri versi lama): ditekan = wajah mengecil (`scale(0.955)`) dan menyala, bayangan merapat; sakelar menyala tidak lagi "tertekan". Sheet: panel kaca nila dengan garis emas tipis dan pendar hangat di atas, grip emas, judul 30 px, tombol tutup kapsul bergaris tipis; fokus saat dibuka pindah ke judul (dibacakan screen reader), jadi × tidak lagi tampak bercincin. Ubin 112/119/110 merah lampion tanpa tebal, angka 36 px berpendar, medali telepon kecil di pojok. Baris kontak dan kotak penginapan jadi kartu bersudut 22 px, nama dengan huruf display. `today.css` bagian "Bahasa tombol Today" dan "Sheet SOS".
+  - **Bukti:** e2e `today.spec.ts` 41/41 lulus (desktop dan iPhone); tes tekan diganti: `::before` (tebal) tidak digambar dan wajah mengecil < 0,97 saat ditekan lalu kembali; tes sheet menambah: judul terfokus, tombol tutup tidak. Tangkapan layar iPhone dan desktop dengan data trip April dicek (ubin, kontak, penginapan; ikon telepon tidak menimpa angka). Data pratinjau `client-data.ts` kini memuat penginapan pengganti ("Your stay"), supaya bagian itu ikut terekam.
+- [x] 2. "bukti video, cacat visual": segi delapan hitam di gunungan pembuka saat HP dimiringkan (video detik 8–12,5, tier High dipaksa).
+  - **Dikerjakan (berlaku juga untuk butir 6, 7, 9, 11, 12):** (a) sumbernya ditutup: 7 `pow(1.0 - max(dot(n, v), 0.0), k)` jadi `pow(clamp(1.0 - dot(n, v), 0.0, 1.0), k)`; kuadrat lewat `sq()` bukan `pow(x, 2.0)`; `safeNormalize` untuk vektor yang bisa nol (setengah sudut lampu, normal relief gunungan); 27 `smoothstep` bertepi terbalik (angka maupun `L + w, L`) ditulis ulang sebagai `1.0 - smoothstep(naik)`; satu lebar anti-alias `fwidth` yang bisa nol diberi batas bawah. (b) jaring pengaman: rantai post menyaring piksel NaN/tak hingga (`finite()`) di kelima sampel downsample bloom dan di gambar adegan sebelum gabung, jadi satu piksel rusak dari mana pun tidak bisa lagi disebar bloom jadi segi delapan.
+  - **Bukti:** tes unit `shader-safety.test.ts` 5/5 (pola `pow`, kuadrat, tepi `smoothstep` terbalik angka dan bervariabel, saringan post); dicek gagal pada kode lama. Tes e2e baru "satu piksel NaN di adegan tidak disebar bloom": NaN disuntik sengaja ke shader mangkuk blencong; dengan saringan piksel hitam bertambah ±0,4 % layar (mangkuknya saja, nyala tetap hidup), tanpa saringan 2,5 % (bidang hitam kotak-kotak menelan nyala, persis seperti video host); tes dicek gagal bila saringan dimatikan. Tidak ada galat shader (tes CSP/shader). Sisa: konfirmasi di iPhone host (`/film/?fps`), karena Chromium di sesi memakai renderer perangkat lunak.
+
+**Audit 2**
+- [x] 3. "design + ui masih versi lama" (Today atas): kepala, tiket boarding pass versi lama, tombol "Watch the film", baris status; garis punggung bukit yang bersinar terlihat menembus di belakang tiket dan tombol.
+  - **Dikerjakan:** kepala rata tengah seperti home (kicker emas berbingkai benang pendek, judul miring 40–64 px, sapaan di tengah). Hitung mundur jadi angka besar gading-emas (68–104 px) dengan kalimat kecil di bawahnya ("DAYS UNTIL SOLO"). Tiket lama (`Ticket.tsx`, `.ticket*`) dihapus; Today dan slide tiket film kini memakai kartu boarding pass home yang sama, dipindah ke modul bersama `src/components/pass/` (`Card`, `PassFace`, `HangingPass`, `pass.css`): alas kawung bertepi emas, mata tali, isi melayang, kilau; tergantung di benang emas pendek, berayun masuk sekali, miring mengikuti arah pandang Today (`--lx/--ly`); mendatar dengan sobekan di kanan bila kartunya ≥ 560 px (container query). "Watch the film" jadi kapsul kaca `.hb--glass` bermedali ikon. Garis punggung bukit yang bersinar dicabut dari latar (siluet terbaca lewat puncak yang sedikit lebih terang, tanpa garis).
+  - **Bukti:** e2e baru "atas: boarding pass home tergantung di benang, hitung mundur angka besar, tombol film kapsul, tanpa garis punggung bukit" (desktop + iPhone); gate/home e2e tetap lulus (pass home memakai modul yang sama). Tangkapan layar iPhone dan desktop dengan data trip April dicek (sebelum trip dan hari pertama), juga slide tiket film.
+- [x] 4. "design masih versi lama" (Today "The programme"): pilihan hari, garis waktu, chip makanan, label NEXT/OPTIONAL; garis punggung bukit memotong teks; tombol Rain plan tertutup sakelar bahasa.
+  - **Dikerjakan:** pilihan hari jadi medali bernomor (angka miring; dipilih = medali gading seperti kunci sakelar home; hari ini = titik blencong), tanggal kecil di bawahnya, nama tombol tetap "Day N + tanggal". Tiap stop jadi kartu kaca di benang emas dengan medali kecil berwarna fase dan jam miring gading di atasnya, jadi latar tidak pernah memotong teks; kartu "now" bersinar blencong, yang lewat diredupkan. NEXT = kapsul foil, NOW = kapsul blencong, OPTIONAL = kapsul bergaris tipis; chip makanan = kapsul kaca bermedali kecil. Rain plan jadi kapsul `.hb` bermedali payung dengan sakelar kecil. Tepi atas: lapisan gelap di bawah sakelar bahasa ditinggikan (92 px + safe area, pekat 97 % sampai 58 %), jadi isi yang digulir tertutup, tidak bertumpuk dengan sakelar. Kartu Home Screen di Today ikut memakai sakelar kapsul bergaris (iPhone/Android).
+  - **Bukti:** e2e baru "The programme: hari = medali bernomor, stop = kartu kaca, label kapsul, Rain plan kapsul" (sempat gagal dan menemukan sudut kartu "now" masih 14 px dari gaya lama; diperbaiki) dan "tepi atas: isi yang digulir tertutup di bawah sakelar bahasa". Today e2e 47/47 lulus.
+- [x] 5. "ke crop" (film, slide prolog headline di iPhone tegak): bingkai 3D memotong gayor, naga kanan keluar layar.
+  - **Penyebab:** shot headline memandang dari sudut 32° dan hanya meminta lebar 2,8 m muat; naga kanan lebih dekat ke kamera, jadi di iPhone tegak jatuh di x = 1,25–1,49 (di luar layar; batas 1).
+  - **Dikerjakan:** `shots.ts` headline: lebar yang harus muat 1,15 × gayor beserta naga, dan titik pandang digeser ke kanan sampai 0,4 m di layar tegak (`HEADLINE_SHIFT`), supaya kiri dan kanan seimbang. Layar lebar tidak berubah (jarak 5,6 m sudah lebih jauh dari yang dibutuhkan).
+  - **Bukti:** tes unit baru di `gong.test.ts`: untuk 393×852, 390×664, dan 3:4, mulut naga, ekor terluar, dan kaki gayor semuanya |x|, |y| < 0,92 dan kiri-kanan seimbang (selisih < 0,15); sekarang ekstremnya −0,88/+0,76 di iPhone. Render 3D slide headline di iPhone (tier Low) dicek: kedua naga utuh di dalam bingkai.
+
+**Audit 3**
+- [x] 6. "cacat" (credits, gunungan penutup, `high ×1 (paksa)`): segi delapan hitam di gunungan, kiri-tengah, dan bawah.
+  - **Penyebab tambahan yang ditemukan saat memeriksa butir ini:** pendar blencong di balik kelir menghitung `atan(d.y, d.x)` dari pusat lampu; tepat di piksel pusat lampu d = (0, 0) dan hasilnya tidak terdefinisi (NaN di GPU iPhone). Itu persis "kiri-tengah", letak blencong di balik kelir, saat gunungan tertancap (juga butir 12). Dua sumber lain dari jenis yang sama: `sqrt(2.0 * slope)` di sawah (n.y bisa sedikit di atas 1, jadi negatif) dan satu `smoothstep(w, 0.0, …)` bertepi terbalik di terasering.
+  - **Dikerjakan:** fungsi `atan2s` (aman di titik nol) di `shared.ts`, dipakai pendar kelir dan ikatan tabuh gong; `sqrt(max(…, 0.0))`; `1.0 - smoothstep(0.0, w, …)`. Ditambah jaring pengaman post dari butir 2.
+  - **Bukti:** `shader-safety.test.ts` kini 7 tes: ditambah "atan dua argumen hanya lewat atan2s", "sqrt hanya dari nilai yang pasti tidak negatif", dan pola `smoothstep(w, 0.0, …)`; ketiganya dicek gagal pada kode sebelum perbaikan. Tes kompilasi shader (CSP/shader) dan e2e gerbang pembuka-penutup lulus. Sisa: konfirmasi di iPhone host.
+- [x] 7. "cacat visual" (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam dekat blencong; paksaan High sempat dilepas (rata-rata < 35 fps).
+  - **Segi delapan:** sumbernya sama dengan butir 2 (`pow` berdasar negatif di mangkuk blencong) dan tertutup di sana, ditambah saringan post.
+  - **"medium ×0.82":** ini pengaman yang disengaja (keputusan 14 Nov): paksaan High hanya dilepas bila rata-rata di bawah 35 fps, supaya HP tidak patah-patah. Artinya fps di HP host memang sempat jatuh di slide gong; penyebabnya (beban gambar) dikerjakan di butir 10, supaya paksaan High tidak perlu dilepas lagi. Pengamannya tidak dicabut.
+- [x] 8. "ke crop:tembus" (slide pembuka Hari 0 "Arrival"): pita di tepi kiri tempat bidang gelap teks bergeser dan lanskap terlihat; dugaan: parallax 2,5D menggeser `.fl-body` dan bidang gelapnya saat HP dimiringkan.
+  - **Penyebab (terkonfirmasi):** bidang gelap di belakang teks (`.fl-body--low::before`, `inset: 22% 0 0`) adalah bagian dari bidang teks, yang digeser gerak pandang sampai 14 px dan diputar 2,4°. Saat HP dimiringkan tepinya ikut bergeser masuk dan lanskap terang terlihat di pinggir.
+  - **Dikerjakan:** bidang gelap dilebarkan 48 px melewati tepi kiri, kanan, dan bawah (`--scrim-bleed`), lebih dari geser dan putaran terbesar. Gerak pandangnya tetap.
+  - **Bukti:** e2e baru "bidang gelap di belakang teks melewati tepi layar sejauh geser parallax terbesar": dengan kursor di tepi (teks bergeser > 8 px) tepi bidang gelap tetap di luar layar; tes dicek gagal tanpa perbaikan (tepi kiri di +1,9 px, celah terbuka).
+
+**Audit 4**
+- [x] 9. "cacat visual, lampunya" (slide fakta "A royal city"): segi delapan hitam tepat di blencong.
+  - Sumbernya `pow` berdasar negatif di mangkuk blencong, tertutup di butir 2 (ditambah saringan post). Tangkapan host "fps down, 60-30 di fase gong" juga memperlihatkan bidang hitam kotak besar di kiri-tengah slide intro: pola yang sama dengan yang direproduksi tes suntik NaN (bidang hitam kotak-kotak menelan nyala), dan tertutup oleh perbaikan yang sama.
+- [x] 10. "fps down" dan "fps down, 60-30 di fase gong" (slide prolog/intro, `high ×1 (paksa)`): 37–48 fps. Dihemat lewat cara menggambar, tanpa menurunkan kualitas.
+  - **Diagnosis:** overlay host menunjukkan CPU hanya 0,4–0,7 ms per frame, 22 draw, 52k segitiga: bebannya di GPU. Medium (DPR 1,5, MSAA 2×) di HP yang sama 59–60 fps, High (DPR 2, MSAA 4×) 37–48: selisihnya sebanding dengan jumlah piksel × sampel MSAA, yaitu lalu lintas memori, bukan rumus shader. Uji di sesi: mematikan tiap shader satu per satu, bahkan semuanya sekaligus, hampir tidak mengubah waktu frame (485 → 468 ms di SwiftShader), jadi bukan satu shader yang mahal. Penyebab yang ditemukan di kode three: perintah "isi ini tidak dibutuhkan lagi" (`invalidateFramebuffer`) hanya dikirim three di Oculus Browser. Di iPhone, tiap frame GPU berpetak menyimpan seluruh depth MSAA 4× ke memori dan me-resolve-nya ke tekstur yang tidak pernah dibaca.
+  - **Dikerjakan (`post.ts`):** depth MSAA tidak di-resolve lagi (`resolveDepthBuffer: false`); depth MSAA dibuang di akhir pass adegan oleh benda penjaga yang digambar paling akhir (`invalidateFramebuffer`), jadi tidak disimpan ke memori; rantai bloom memakai R11F_G11F_B10F (separuh byte) bila perangkat bisa menggambarnya (dicoba sekali saat mulai). Gambar adegan tetap RGBA half float (gradasi langit siang tidak bergaris). Resolusi, MSAA, jumlah tingkat bloom, partikel, dan detail tidak diubah. Perkiraan: lalu lintas memori per frame di High turun ±40 MB (dari ±130 MB).
+  - **Bukti:** render tier High sebelum dan sesudah dibandingkan piksel demi piksel (jam dibekukan): selisih maksimum 5/255, rata-rata 0,15, nol piksel berbeda lebih dari 8/255. E2E baru "hemat bandwidth tanpa beda gambar" (statistik `bloom` = `r11g11b10` bila didukung) dan semua tes gambar panggung lulus. **Belum terbukti di iPhone:** SwiftShader bukan GPU berpetak, jadi kenaikan fps hanya bisa dilihat host di `/film/?fps` (pembanding: 37–48 fps di slide prolog/intro, 30 di fase gong). Bila belum cukup, langkah berikutnya: menggambar efek tembus pandang (api, kerucut cahaya) ke target tanpa MSAA.
+
+**Audit 5**
+- [x] 11. "lampunya, cacat" (slide intro prolog): segi delapan hitam di blencong.
+  - Sumber yang sama dengan butir 2 dan 9 (`pow` berdasar negatif di mangkuk blencong), tertutup di Audit 1; saringan post menjamin satu piksel rusak tidak melebar. Bukti: tes suntik NaN di mangkuk blencong (Audit 1) dan `shader-safety.test.ts`.
+- [x] 12. "penutup dan pembuka, cacat visual" (gunungan pembuka tertancap): segi delapan hitam di kiri-tengah, tempat blencong di balik kelir.
+  - Tangkapan host mengunci penyebabnya: segi delapan tepat di pusat pendar lampu pada kelir (bayangan gunungan jatuh ke kanan, jadi lampunya di kiri), dan selama kelir menutup layar isi panggung di belakangnya tidak digambar. Jadi sumbernya pasti shader kelir: `atan(d.y, d.x)` di piksel pusat lampu (d = 0, 0), diperbaiki di Audit 3 dengan `atan2s`. Bukti: tes "atan dua argumen hanya lewat atan2s" (gagal pada kode lama), tes gerbang pembuka/penutup lulus. Sisa: konfirmasi di iPhone host.
+
+### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
+
+Isi: gunungan pembuka dan penutup (Tugas 7), Today 2,5D, tier High dipaksa di iPhone, perbaikan tes 3D di CI. Branch kerja dibuat ulang dari `main` `01ce0ec` (branch remote lama sudah dihapus host, jadi tidak perlu menggabung riwayat lama).
+
+**Pertanyaan host sesudah merge, kata demi kata:** "https://kulonuwun-solo/film/?fps.vercel.app gini?". Jawaban: alamatnya `https://kulonuwun-solo.vercel.app/film/?fps` (`?fps` di akhir, sesudah `/film/`). Karena sesi per tab, kode dimasukkan dulu di `https://kulonuwun-solo.vercel.app` lalu alamat diganti di tab yang sama; tab baru meminta kode lagi. Vercel membangun produksi dari `main` beberapa menit sesudah merge.
+
+**Langkah berikutnya.** Tunggu hasil cek host di iPhone (harus `high ×1 (paksa)`) dan arahan Tugas 8. Masih menunggu jawaban: kepingan bara jadi gong di prolog (lanjut atau dicoret), dan kapan kode booking asli klien dipasang.
 
 ### Arahan host 14 Nov: paksa tier High di iPhone
 
@@ -41,7 +107,7 @@ Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ul
 
 **Pratinjau.** Video Today iPhone (`record-today.cjs`, 1080 px, 60 fps, 38 dtk: sebelum trip dengan kemiringan HP tiruan dan dua kotak dicentang, lalu hari pertama dengan Rain plan dan sheet SOS) dikirim ke host 14 Nov.
 
-**PR #9 dibuka:** https://github.com/jize-666/itinerary/pull/9 (Tugas 7 + Today 2,5D, siap Squash and merge; host yang menekan merge).
+**PR #9 dibuka dan di-merge host 14 Nov** (squash `01ce0ec`): https://github.com/jize-666/itinerary/pull/9.
 
 **Langkah berikutnya.** Tunggu tinjauan host atas kedua video dan PR #9. Sesudah merge, branch kerja dibuat ulang dari `main` terbaru. Tugas 8 (benang emas) hanya bila host memberi arahan.
 
@@ -546,7 +612,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D) dibuka 14 Nov, menunggu merge host.
+**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D + tier High iPhone) di-merge host 14 Nov (squash "revisi terosss(#9)").
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.

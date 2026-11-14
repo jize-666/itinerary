@@ -27,7 +27,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { GATE, type KayonPose } from "@/engine/stage/gate";
 import { GENI, KAYON, type SweepPose, VEIL } from "@/engine/stage/gunungan";
 import { kayonFiles, takeKayon } from "@/engine/stage/kayon-files";
-import type { Shared } from "./shared";
+import { ATAN2S, type Shared } from "./shared";
 
 const f = (x: number) => x.toFixed(4);
 /** Jarak lembaran dari kamera (m). Hanya menentukan kuat perspektif saat lembaran berpaling. */
@@ -159,7 +159,9 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
     float hx = dFdx(aux.b), hy = dFdy(aux.b);
     vec3 r1 = cross(dpy, N), r2 = cross(N, dpx);
     float det = dot(dpx, r1);
-    vec3 n = normalize(abs(det) * N - 0.011 * sign(det) * (hx * r1 + hy * r2));
+    // relief: vektor nol (turunan merosot) tidak boleh menjadi NaN, yang di iPhone disebar bloom jadi segi delapan hitam
+    vec3 nr = abs(det) * N - 0.011 * sign(det) * (hx * r1 + hy * r2);
+    vec3 n = dot(nr, nr) > 1e-30 ? normalize(nr) : N;
 
     vec3 L = normalize(uLamp - vView);
     float ndl = dot(n, L);
@@ -168,7 +170,7 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
     // sungging: cahaya lampu membungkus sedikit, supaya sisi yang berpaling tidak hitam
     vec3 lit = base * (lamp * clamp(ndl * 0.72 + 0.28, 0.0, 1.0) * (1.0 - 0.7 * metal) + vec3(0.05, 0.045, 0.065));
     // prada: kilap sempit + kilap lebar + pantulan ruang yang hangat
-    vec3 Hh = normalize(L + V);
+    vec3 Hh = normalize(L + V + vec3(0.0, 0.0, 1e-6));
     float nh = max(dot(n, Hh), 0.0);
     float gate = smoothstep(-0.05, 0.15, ndl);
     vec3 gold = base * 1.7 + 0.06;
@@ -194,7 +196,7 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
       float front = rage * ${f(GENI.reach)} - uv.y + (n1 - 0.5) * 0.3;
       float burn = smoothstep(0.0, 0.16, front) * spare;
       float flick = 0.85 + 0.35 * n2 + 0.3 * beat;
-      float crack = pow(1.0 - abs(vnoise(st * vec2(26.0, 38.0) + vec2(0.0, uTime * 0.25)) * 2.0 - 1.0), 10.0);
+      float crack = pow(clamp(1.0 - abs(vnoise(st * vec2(26.0, 38.0) + vec2(0.0, uTime * 0.25)) * 2.0 - 1.0), 0.0, 1.0), 10.0);
       vec3 ablaze = lit * 0.08 + vec3(1.0, 0.3, 0.04) * crack * (0.9 + 0.6 * beat);
       ablaze += fire * fire * (0.95 + 0.25 * fire.g) * flick;
       // tepi bakar: garis bara terang di batas api
@@ -271,6 +273,7 @@ uniform vec2 uShadeRoll; // miring bayangan (rad), kepekatan
 uniform sampler2D tAgung;
 uniform sampler2D tMurka;
 varying vec2 vNdc;
+${ATAN2S}
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float hash21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 float vnoise(vec2 p) {
@@ -310,7 +313,7 @@ vec3 kelir(vec2 q) {
   vec3 cloth = vec3(1.0, 0.66, 0.35) * pool * weave;
   // bayangan: makin gelap di tengah kolam cahaya (kontras), tatahan tembus tetap bercahaya
   float sh = shade(q) * uShadeRoll.y;
-  cloth *= 1.0 - sh * (0.9 - 0.15 * smoothstep(1.4, 0.2, r2));
+  cloth *= 1.0 - sh * (0.9 - 0.15 * (1.0 - smoothstep(0.2, 1.4, r2)));
   // pendar lampu menembus kain di sekitar bayangan tepi: sedikit merah jingga
   cloth += vec3(0.05, 0.018, 0.004) * pool * (1.0 - sh);
   float cut = uKelir.w;
@@ -331,7 +334,7 @@ vec3 kelir(vec2 q) {
     float round = sqrt(max(1.0 - n * n, 0.0));
     float fiber = 0.86 + 0.14 * sin(q.y * 1400.0 + vnoise(vec2(k.x * 40.0, q.y * 90.0)) * 3.0);
     float joint = 1.0 - 0.35 * smoothstep(0.9, 1.0, abs(sin(k.x * uVeil.w * 2.3 + 0.4)));
-    vec3 trunk = vec3(0.36, 0.34, 0.2) * (0.18 + 0.95 * round * smoothstep(1.0, -0.6, n)) * fiber * joint;
+    vec3 trunk = vec3(0.36, 0.34, 0.2) * (0.18 + 0.95 * round * (1.0 - smoothstep(-0.6, 1.0, n))) * fiber * joint;
     trunk *= 0.35 + 0.9 * pool;
     vec3 ground = vec3(0.012, 0.009, 0.008);
     cloth = t < 1.0 ? trunk : ground;
@@ -351,7 +354,8 @@ void main() {
     col = kelir(vNdc);
   } else {
     vec3 glow = lamp * (1.15 * exp(-r * r * 7.0) + 0.34 * exp(-r * r * 1.1) + 0.05 * exp(-r * 0.9));
-    float ang = atan(d.y, d.x);
+    // tepat di pusat lampu d = (0, 0): atan biasa tidak terdefinisi di sana (segi delapan hitam di blencong balik kelir)
+    float ang = atan2s(d.y, d.x);
     float rays = pow(0.5 + 0.5 * sin(ang * 11.0 + sin(ang * 5.0 + uTime * 0.23) * 1.6 + uTime * 0.11), 3.0);
     rays *= 0.5 + 0.5 * sin(ang * 23.0 - uTime * 0.17);
     glow += lamp * rays * 0.18 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);

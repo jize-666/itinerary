@@ -20,7 +20,7 @@ test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
+type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -201,6 +201,68 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     await step(page);
     await nextFrames(page, 2);
     expect(bad).toEqual([]);
+  });
+
+  test("satu piksel NaN di adegan tidak disebar bloom menjadi segi delapan hitam (audit host 14 Nov)", async ({ browser }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; dua kali buka panggung 3D");
+    test.slow(); // panggung 3D dibuka dua kali berturut-turut
+    /**
+     * Di iPhone, `pow` dengan dasar negatif di mangkuk blencong memberi NaN; bloom menyebarnya jadi segi delapan hitam.
+     * Di sini NaN disuntik dengan sengaja ke shader mangkuk blencong (sqrt(-1)), lalu jumlah piksel hitam dibandingkan
+     * dengan adegan yang sama tanpa suntikan. Dengan saringan `finite()` di rantai post, yang hitam hanya mangkuknya
+     * (±0,4 % layar); tanpa saringan, bidang hitam melebar ke nyala dan sekitarnya (±2,6 % layar, diukur 14 Nov).
+     */
+    const blackShare = async (inject: boolean) => {
+      const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+      const page = await context.newPage();
+      if (inject) {
+        await page.addInitScript(() => {
+          const orig = WebGL2RenderingContext.prototype.shaderSource;
+          WebGL2RenderingContext.prototype.shaderSource = function (sh: WebGLShader, src: string) {
+            if (src.includes("vec3 brass = vec3(0.72, 0.5, 0.2);")) {
+              const k = src.lastIndexOf("}");
+              src = `${src.slice(0, k)} gl_FragColor = vec4(sqrt(gl_FragCoord.x * 0.0 - 1.0)); }`;
+            }
+            return orig.call(this, sh, src);
+          };
+        });
+      }
+      await open3d(page);
+      await nextFrames(page, 6);
+      await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+      await nextFrames(page, 3);
+      const png = await page.screenshot();
+      const share = await page.evaluate(async (b64) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const c = document.createElement("canvas");
+        [c.width, c.height] = [img.width, img.height];
+        const g = c.getContext("2d")!;
+        g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data;
+        let black = 0;
+        for (let i = 0; i < d.length; i += 4) if (d[i]! + d[i + 1]! + d[i + 2]! <= 3) black++;
+        return black / (c.width * c.height);
+      }, png.toString("base64"));
+      await context.close();
+      return share;
+    };
+    const clean = await blackShare(false);
+    const poisoned = await blackShare(true);
+    expect(poisoned - clean).toBeGreaterThan(0.001); // suntikan memang mengenai mangkuk blencong yang terlihat
+    expect(poisoned - clean).toBeLessThan(0.012);
+  });
+
+  test("hemat bandwidth tanpa beda gambar: rantai bloom R11F_G11F_B10F bila didukung (audit host 14 Nov \"fps down\")", async ({ page }) => {
+    await open3d(page);
+    await nextFrames(page, 3);
+    const s = (await stats(page))!;
+    const packed = await page.evaluate(() => {
+      const c = document.createElement("canvas").getContext("webgl2");
+      return !!c?.getExtension("EXT_color_buffer_float");
+    });
+    expect(s.bloom).toBe(packed ? "r11g11b10" : "rgba16f");
   });
 
   test("?fps menampilkan overlay ukur", async ({ page }) => {
@@ -619,6 +681,28 @@ test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspecti
     expect(await body.evaluate((el) => getComputedStyle(el).rotate)).toMatch(/^y [1-9]/);
     await page.mouse.move(10, 360);
     await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeLessThan(-0.6);
+  });
+
+  test("bidang gelap di belakang teks melewati tepi layar sejauh geser parallax terbesar, jadi tepinya tidak terbuka (audit host 14 Nov \"tembus\")", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open(page, "?stage=static");
+    await step(page); // prolog headline: teks di atas langit dengan bidang gelap
+    const body = page.locator(".fl-layer[data-pos='cur'] > .fl-body--low");
+    await expect(body).toHaveCount(1);
+    await page.mouse.move(1270, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeGreaterThan(0.6);
+    const g = await body.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el, "::before");
+      // geser teks saat ini (px) dari properti translate, dan letak bidang gelap terhadap teks
+      const shift = Math.abs(parseFloat(getComputedStyle(el).translate.split(" ")[0] || "0"));
+      return { shift, left: r.left + parseFloat(cs.left), right: r.right - parseFloat(cs.right), bottom: r.bottom - parseFloat(cs.bottom), w: innerWidth, h: innerHeight };
+    });
+    expect(g.shift).toBeGreaterThan(8); // gerak pandang memang menggeser bidang teks
+    // bidang gelap tetap menutup layar dari tepi ke tepi (dengan sisa untuk putaran 2,4°)
+    expect(g.left).toBeLessThan(-8);
+    expect(g.right).toBeGreaterThan(g.w + 8);
+    expect(g.bottom).toBeGreaterThan(g.h);
   });
 
   test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {

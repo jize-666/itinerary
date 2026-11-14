@@ -230,167 +230,6 @@ a {
   color: var(--prada);
 }
 
-/* ---- Tiket pribadi ---- */
-.ticket {
-  --cut: 16px;
-  position: relative;
-  width: min(340px, 100%);
-  padding: 34px 22px 0;
-  display: grid;
-  gap: 4px;
-  text-align: left;
-  color: var(--mori);
-  background: linear-gradient(180deg, var(--nila-2), #0c1126);
-  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%, 0 var(--cut));
-  border-radius: 0 0 12px 12px;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--prada) 75%, transparent),
-    inset 0 0 0 5px var(--nila-2),
-    inset 0 0 0 6px color-mix(in srgb, var(--prada) 45%, transparent);
-  transform-origin: 50% 0;
-  animation: ticket-in 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: var(--d, 0ms);
-}
-
-/* lubang tali bermata kuningan */
-.ticket::before {
-  content: "";
-  position: absolute;
-  top: 9px;
-  left: 50%;
-  translate: -50% 0;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--nila);
-  box-shadow: 0 0 0 2px var(--prada);
-}
-
-@keyframes ticket-in {
-  from {
-    opacity: 0;
-    transform: translateY(28px) rotate(-4deg);
-  }
-  55% {
-    opacity: 1;
-    transform: translateY(-2px) rotate(1.6deg);
-  }
-  78% {
-    transform: rotate(-0.6deg);
-  }
-}
-
-.ticket-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--prada);
-  padding-bottom: 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--prada) 50%, transparent);
-  margin-bottom: 8px;
-}
-
-.ticket-label,
-.ticket-grid dt {
-  margin: 0;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--prada);
-}
-
-.ticket-name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 30px;
-  line-height: 1.1;
-  overflow-wrap: anywhere;
-}
-
-.ticket-route {
-  list-style: none;
-  margin: 10px 0 8px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  font-weight: 800;
-  font-size: 24px;
-  letter-spacing: 0.04em;
-}
-
-.ticket-route li:not(:last-child)::after {
-  content: "";
-  display: inline-block;
-  width: 26px;
-  margin: 0 9px;
-  vertical-align: middle;
-  border-top: 2px dotted var(--prada);
-}
-
-.ticket-route li:last-child {
-  color: var(--prada);
-}
-
-.ticket-grid {
-  margin: 4px 0 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.ticket-grid dd {
-  margin: 2px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.ticket-foil {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 500 !important;
-  font-size: 15px !important;
-  color: var(--prada);
-}
-
-.ticket-stub {
-  margin-top: 14px;
-  padding: 12px 0 16px;
-  border-top: 2px dashed color-mix(in srgb, var(--mori) 22%, transparent);
-}
-
-.ticket-stub::after {
-  content: "";
-  display: block;
-  width: 58%;
-  height: 22px;
-  background: repeating-linear-gradient(90deg, var(--prada) 0 2px, transparent 2px 5px, var(--prada) 5px 6px, transparent 6px 10px, var(--prada) 10px 13px, transparent 13px 16px);
-  opacity: 0.85;
-}
-
-.ticket[data-compact] {
-  padding-top: 30px;
-}
-
-.ticket[data-compact] .ticket-name {
-  font-size: 26px;
-}
-
-.ticket[data-compact] .ticket-stub {
-  margin-top: 10px;
-  padding: 8px 0 12px;
-}
-
-.ticket[data-compact] .ticket-stub::after {
-  height: 16px;
-}
-
 /* ================= GERAK (token: src/engine/motion/tokens.ts, docs/design/motion-tokens.md) ================= */
 :root {
   --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -852,68 +691,6 @@ a {
   }
 }
 
-/* ---- Sambutan: sisa cahaya, tombol, stempel ---- */
-
-.ticket-shine {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-.ticket-shine::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 70%;
-  background: linear-gradient(110deg, transparent 20%, rgba(255, 230, 180, 0.16) 40%, rgba(255, 244, 222, 0.38) 50%, rgba(255, 230, 180, 0.16) 60%, transparent 80%);
-  transform: translateX(-110%);
-  animation: shine-sweep 6.5s var(--ease-power3-out) infinite;
-  animation-delay: calc(var(--d, 0ms) + 1150ms);
-}
-
-@keyframes shine-sweep {
-  0% {
-    transform: translateX(-110%);
-  }
-  24%,
-  100% {
-    transform: translateX(160%);
-  }
-}
-
-.ticket-stamp {
-  position: absolute;
-  right: 16px;
-  top: 52%;
-  padding: 6px 14px;
-  border: 2px solid var(--blencong);
-  border-radius: 8px;
-  color: var(--blencong);
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  rotate: -12deg;
-  opacity: 0;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blencong) 30%, transparent);
-}
-
-@keyframes stamp {
-  from {
-    opacity: 0;
-    scale: 2.2;
-  }
-  to {
-    opacity: 0.95;
-    scale: 1;
-  }
-}
-
 /* ---- Tirai letterbox antar-halaman ---- */
 .curtain {
   position: fixed;
@@ -1169,10 +946,6 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-.td-head .ticket {
-  margin: 10px 0 6px;
-}
-
 .td-meta {
   display: grid;
   gap: 8px;
@@ -1206,7 +979,7 @@ a {
 }
 
 /* kepala: hari ini datang cepat (informasi dulu); sebelum trip boleh sedikit lebih seremonial */
-.td-head > :not(.td-kicker, .td-title, .ticket, .td-d, .k-gamelan) {
+.td-head > :not(.td-kicker, .td-title, .td-d, .k-gamelan) {
   animation: k-fadein 0.6s var(--ease-power3-out) 0.45s both;
 }
 
@@ -1468,6 +1241,37 @@ a {
 @media (hover: hover) {
   .hb--icon:hover::after {
     opacity: 1;
+  }
+}
+
+/* kaca nila bergaris emas dengan medali ikon di kiri (Today: "Watch the film") */
+.hb--glass {
+  gap: 10px;
+  padding: 0 20px 0 6px;
+  background: linear-gradient(160deg, rgb(28 35 74 / 0.86), rgb(13 17 38 / 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.46),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 14px 28px -14px rgb(0 0 0 / 0.85);
+  font-size: 14.5px;
+}
+
+.hb-ring {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--nila);
+  box-shadow: inset 0 0 0 1px rgb(200 162 90 / 0.6);
+  color: var(--prada);
+  transition: transform 0.6s var(--ease-expo-out);
+}
+
+@media (hover: hover) {
+  .hb--glass:hover .hb-ring {
+    transform: rotate(-16deg) scale(1.06);
   }
 }
 
@@ -1745,7 +1549,6 @@ a {
 
 /* utama: emas prada */
 .pb--gold,
-.dp-tab[aria-pressed="true"],
 .sound-toggle[aria-pressed="true"] {
   --face: #c29a52;
   --face-hi: #efd6a0;
@@ -1803,9 +1606,20 @@ a {
   font-size: clamp(24px, 5.6vw, 32px);
 }
 
-.rain .pb-face {
-  gap: 8px;
-  padding: 0 10px 0 12px;
+/* Rain plan: kapsul kaca (.hb) dengan medali payung dan sakelar kecil di kanan */
+.rain.hb {
+  gap: 10px;
+  padding: 0 10px 0 6px;
+  background: linear-gradient(160deg, rgb(28 35 74 / 0.86), rgb(13 17 38 / 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.46),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 14px 28px -14px rgb(0 0 0 / 0.85);
+  font-size: 14px;
+  transition:
+    transform 0.26s var(--ease-expo-out),
+    box-shadow 0.35s ease,
+    background 0.35s ease;
 }
 
 .rain-knob {
@@ -1830,14 +1644,19 @@ a {
   transition: transform 0.35s var(--ease-expo-out);
 }
 
-/* menyala: rona hujan (nila muda), tetap tertekan */
+/* menyala: rona hujan (nila muda) */
 .rain[aria-pressed="true"] {
-  --face: #2a3470;
-  --face-hi: #3a478f;
-  --edge: #0b1030;
-  --ink: #e2e8ff;
-  --ring: rgb(147 166 255 / 0.45);
-  --glow: rgb(170 190 255 / 0.5);
+  background: linear-gradient(160deg, rgb(52 64 132 / 0.92), rgb(24 31 74 / 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgb(147 166 255 / 0.6),
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 0 26px -6px rgb(147 166 255 / 0.5);
+  color: #e2e8ff;
+}
+
+.rain[aria-pressed="true"] .hb-ring {
+  box-shadow: inset 0 0 0 1px rgb(147 166 255 / 0.7);
+  color: #c8d2ff;
 }
 
 .rain[aria-pressed="true"] .rain-knob {
@@ -1884,48 +1703,96 @@ a {
   display: none;
 }
 
+/* pilihan hari: medali bernomor (kunci gading saat dipilih, seperti sakelar home), tanggal kecil di bawahnya */
 .dp-tab {
-  --h: 54px;
+  position: relative;
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 7px;
+  min-width: 64px;
+  margin: 0;
+  padding: 2px 4px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
   scroll-snap-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.26s var(--ease-expo-out);
 }
 
-.dp-tab .pb-face {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  min-width: 92px;
-  padding: 8px 14px;
+.dp-tab[data-pressed] {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
 }
 
-.dp-tabn {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--prada);
+.dp-medal {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, #222b58, #10152f 72%);
+  box-shadow:
+    inset 0 0 0 1px rgb(200 162 90 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 10px 20px -12px rgb(0 0 0 / 0.9);
+  color: #f0d79f;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1;
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.4s var(--ease-expo-out);
 }
 
 .dp-tabd {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-.dp-tab[aria-pressed="true"] :is(.dp-tabn, .dp-tabd) {
+.dp-tab[aria-pressed="true"] .dp-medal {
+  background: radial-gradient(circle at 50% 30%, #fffaf0, #edd9a8 46%, #c99f52 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 0 -1px 0 rgb(122 74 38 / 0.4),
+    0 0 0 4px rgb(200 162 90 / 0.16),
+    0 12px 26px -10px rgb(255 178 87 / 0.6);
   color: var(--nila);
+  transform: translateY(-2px);
 }
 
-/* hari ini: titik blencong di pojok */
-.dp-tab[aria-current="date"] .pb-face::after {
+.dp-tab[aria-pressed="true"] .dp-tabd {
+  color: #f0d79f;
+}
+
+/* hari ini: titik blencong di pojok medali */
+.dp-tab[aria-current="date"]::after {
   content: "";
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 7px;
-  height: 7px;
+  top: 2px;
+  right: calc(50% - 27px);
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--blencong);
-  box-shadow: 0 0 8px var(--blencong);
+  box-shadow:
+    0 0 0 2px var(--nila),
+    0 0 10px var(--blencong);
+}
+
+@media (hover: hover) {
+  .dp-tab:hover .dp-medal {
+    box-shadow:
+      inset 0 0 0 1px var(--prada),
+      0 0 18px rgb(255 178 87 / 0.35);
+  }
 }
 
 .dp-rainnote {
@@ -2445,6 +2312,16 @@ a {
 .ig-tabs .seg-opt {
   letter-spacing: 0.02em;
   font-size: 13px;
+}
+
+.ig-tabs.segl {
+  --w: 92px;
+  height: 42px;
+}
+
+.ig-tabs .segl-opt {
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 
 .ig-steps {

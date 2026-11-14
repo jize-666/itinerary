@@ -13,12 +13,15 @@ import {
   HalfFloatType,
   LinearFilter,
   Mesh,
+  MeshBasicMaterial,
   NoBlending,
   OrthographicCamera,
   RGBAFormat,
+  RGBFormat,
   type Scene,
   ShaderMaterial,
   UnsignedByteType,
+  UnsignedInt101111Type,
   Vector2,
   type WebGLRenderer,
   WebGLRenderTarget,
@@ -32,16 +35,26 @@ void main() {
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
+/*
+ * Jaring pengaman (audit host 14 Nov: segi delapan hitam di iPhone): satu piksel NaN di target HDR disebar bloom
+ * menjadi segi delapan hitam. Piksel tak sah dijadikan 0 dan nilai tak hingga dibatasi sebelum dipakai; sumber
+ * NaN di shader adegan sudah diperbaiki, ini hanya supaya satu piksel salah tidak pernah melebar lagi.
+ */
+const FINITE = /* glsl */ `
+vec3 finite(vec3 c) { return any(isnan(c)) ? vec3(0.0) : min(c, vec3(256.0)); }
+`;
+
 const DOWN = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uTexel;
 uniform float uThreshold;
 varying vec2 vUv;
+${FINITE}
 void main() {
   vec2 h = uTexel * 0.5;
-  vec3 c = texture2D(tSrc, vUv).rgb * 4.0;
-  c += texture2D(tSrc, vUv - h).rgb + texture2D(tSrc, vUv + h).rgb;
-  c += texture2D(tSrc, vUv + vec2(h.x, -h.y)).rgb + texture2D(tSrc, vUv - vec2(h.x, -h.y)).rgb;
+  vec3 c = finite(texture2D(tSrc, vUv).rgb) * 4.0;
+  c += finite(texture2D(tSrc, vUv - h).rgb) + finite(texture2D(tSrc, vUv + h).rgb);
+  c += finite(texture2D(tSrc, vUv + vec2(h.x, -h.y)).rgb) + finite(texture2D(tSrc, vUv - vec2(h.x, -h.y)).rgb);
   c *= 0.125;
   if (uThreshold > 0.0) {
     // ambang lunak: hanya yang lebih terang dari putih; nilai ekstrem diredam supaya tidak berkedip
@@ -75,7 +88,7 @@ uniform float uExposure;
 uniform float uDim;
 uniform float uTime;
 varying vec2 vUv;
-
+${FINITE}
 vec3 aces(vec3 x) {
   // ACES (Narkowicz) dengan sedikit pra-eksposur, seperti ACESFilmic di three
   x *= 0.6;
@@ -84,21 +97,59 @@ vec3 aces(vec3 x) {
 float hash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 
 void main() {
-  vec3 c = texture2D(tScene, vUv).rgb;
-  c += texture2D(tBloom, vUv).rgb * uBloom;
+  vec3 c = finite(texture2D(tScene, vUv).rgb);
+  c += finite(texture2D(tBloom, vUv).rgb) * uBloom;
   // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim)
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
   float vig = 1.0 - 0.42 * smoothstep(0.28, 0.82, length(q));
   // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
-  vig *= 1.0 - 0.38 * smoothstep(0.3, 0.0, vUv.y);
+  vig *= 1.0 - 0.38 * (1.0 - smoothstep(0.0, 0.3, vUv.y));
   c *= uExposure * vig * (1.0 - uDim);
   c = aces(c);
-  c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+  c = mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
   c += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
   gl_FragColor = vec4(c, 1.0);
 }`;
 
 export type PostParams = { exposure: number; dim: number; time: number };
+
+/**
+ * Hemat bandwidth tanpa mengubah gambar (audit host 14 Nov: fps 37–48 di tier High iPhone). GPU HP (berpetak, TBDR)
+ * menyimpan isi petak ke memori di akhir tiap pass kecuali diberi tahu isinya tidak dibutuhkan lagi. three hanya
+ * memberi tahu itu di Oculus Browser, jadi di iPhone tiap frame:
+ * - depth MSAA 4× ikut di-resolve ke tekstur yang tidak pernah dibaca → `resolveDepthBuffer: false`;
+ * - depth MSAA 4× disimpan ke memori di akhir pass adegan → dibuang (`invalidateFramebuffer`) oleh benda penjaga
+ *   yang digambar paling akhir di pass itu, sebelum three me-resolve warnanya.
+ * Rantai bloom (cahaya yang sudah dikaburkan) memakai R11F_G11F_B10F bila bisa digambar dan disaring: separuh byte
+ * dari RGBA half float, tanpa beda yang terlihat. Gambar adegan sendiri tetap RGBA half float (gradasi langit).
+ */
+function passEnd(gl: WebGLRenderer): Mesh {
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(9), 3));
+  geo.setDrawRange(0, 0); // tidak menggambar apa pun; hanya kaitnya yang dipakai
+  const m = new Mesh(geo, new MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, colorWrite: false }));
+  m.name = "pass-end";
+  m.renderOrder = Number.MAX_SAFE_INTEGER;
+  m.frustumCulled = false;
+  m.onAfterRender = () => {
+    const ctx = gl.getContext();
+    if (gl.getRenderTarget() && "invalidateFramebuffer" in ctx) ctx.invalidateFramebuffer(ctx.DRAW_FRAMEBUFFER, [ctx.DEPTH_ATTACHMENT]);
+  };
+  return m;
+}
+
+/** R11F_G11F_B10F bisa jadi target gambar (WebGL2 + EXT_color_buffer_float), dicoba sekali pada target kecil. */
+function packedBloom(gl: WebGLRenderer): boolean {
+  if (!gl.extensions.has("EXT_color_buffer_float")) return false;
+  const probe = new WebGLRenderTarget(4, 4, { type: UnsignedInt101111Type, format: RGBFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter, generateMipmaps: false });
+  const before = gl.getRenderTarget();
+  gl.setRenderTarget(probe);
+  const ctx = gl.getContext();
+  const ok = ctx.checkFramebufferStatus(ctx.FRAMEBUFFER) === ctx.FRAMEBUFFER_COMPLETE && ctx.getError() === ctx.NO_ERROR;
+  gl.setRenderTarget(before);
+  probe.dispose();
+  return ok;
+}
 
 export class StagePost {
   private readonly tri: Mesh;
@@ -110,6 +161,8 @@ export class StagePost {
   private mips: WebGLRenderTarget[] = [];
   private readonly size = new Vector2(1, 1);
   private readonly hdr: boolean;
+  private readonly packed: boolean;
+  private readonly end: Mesh;
 
   constructor(
     private readonly gl: WebGLRenderer,
@@ -117,6 +170,8 @@ export class StagePost {
   ) {
     // target half float perlu ekstensi; tanpa itu jatuh ke 8-bit (bloom tetap jalan, rentangnya lebih sempit)
     this.hdr = gl.extensions.has("EXT_color_buffer_float") || gl.extensions.has("EXT_color_buffer_half_float");
+    this.packed = this.hdr && packedBloom(gl);
+    this.end = passEnd(gl);
     const geo = new BufferGeometry();
     geo.setAttribute("position", new BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
     const mat = (fragmentShader: string, uniforms: ShaderMaterial["uniforms"], additive = false) =>
@@ -130,16 +185,24 @@ export class StagePost {
   }
 
   private target(w: number, h: number, main = false): WebGLRenderTarget {
+    const packed = !main && this.packed;
     return new WebGLRenderTarget(w, h, {
-      type: this.hdr ? HalfFloatType : UnsignedByteType,
-      format: RGBAFormat,
+      type: packed ? UnsignedInt101111Type : this.hdr ? HalfFloatType : UnsignedByteType,
+      format: packed ? RGBFormat : RGBAFormat,
       minFilter: LinearFilter,
       magFilter: LinearFilter,
       depthBuffer: main,
       stencilBuffer: false,
       samples: main ? this.spec.msaa : 0,
+      resolveDepthBuffer: false,
+      resolveStencilBuffer: false,
       generateMipmaps: false,
     });
+  }
+
+  /** Format rantai bloom (dibaca statistik panggung dan e2e). */
+  get format(): string {
+    return this.packed ? "r11g11b10" : this.hdr ? "rgba16f" : "rgba8";
   }
 
   /** Ukuran kanvas dalam piksel perangkat. */
@@ -168,6 +231,7 @@ export class StagePost {
     const auto = gl.autoClear;
     gl.autoClear = true;
     gl.setRenderTarget(this.scene);
+    if (this.end.parent !== scene) scene.add(this.end);
     gl.render(scene, camera);
 
     gl.autoClear = false;
@@ -203,6 +267,9 @@ export class StagePost {
     this.scene.dispose();
     for (const m of this.mips) m.dispose();
     this.tri.geometry.dispose();
+    this.end.removeFromParent();
+    this.end.geometry.dispose();
+    (this.end.material as MeshBasicMaterial).dispose();
     this.down.dispose();
     this.up.dispose();
     this.final.dispose();

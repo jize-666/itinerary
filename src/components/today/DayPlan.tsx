@@ -64,6 +64,7 @@ export function CopyButton({ text, label, onCopied }: { text: string; label: str
 /**
  * Jadwal per hari (PRD §7.6): pilihan hari, toggle "Rain plan", dan timeline dengan chip dress code,
  * penanda makanan (halal / tingkat manis / tanpa pisang), tombol Maps & salin alamat.
+ * Desain baru (audit host 14 Nov): hari = medali bernomor seperti kunci sakelar home, stop = kartu kaca di benang emas.
  */
 export function DayPlan({ days, s, at, onCopied }: { days: DayView[]; s: TodayState<DayView>; at: number; onCopied: (ok: boolean) => void }) {
   const { lang, t, tx } = useI18n();
@@ -82,12 +83,12 @@ export function DayPlan({ days, s, at, onCopied }: { days: DayView[]; s: TodaySt
         <h2 id="dp-title" className="dp-title">
           {t("today.programme")}
         </h2>
-        <button type="button" className="pb pb--glass pb--sm rain" aria-pressed={rain} onClick={() => setRain((r) => !r)}>
-          <span className="pb-face">
-            <IconUmbrella />
-            <span>{t("today.rain")}</span>
-            <span className="rain-knob" aria-hidden="true" />
+        <button type="button" data-press="" className="hb rain" aria-pressed={rain} onClick={() => setRain((r) => !r)}>
+          <span className="hb-ring" aria-hidden="true">
+            <IconUmbrella size={16} />
           </span>
+          <span>{t("today.rain")}</span>
+          <span className="rain-knob" aria-hidden="true" />
         </button>
       </div>
 
@@ -96,15 +97,18 @@ export function DayPlan({ days, s, at, onCopied }: { days: DayView[]; s: TodaySt
           <button
             key={d.n}
             type="button"
-            className="pb pb--glass dp-tab"
+            data-press=""
+            className="dp-tab"
             aria-pressed={d.n === day.n}
             aria-current={d.n === s.day?.n ? "date" : undefined}
             onClick={() => setPicked(d.n)}
           >
-            <span className="pb-face">
-              <span className="dp-tabn">{t("today.day", { n: d.n })}</span>
-              <span className="dp-tabd">{fmtDay(d.date, lang)}</span>
+            {/* medali bernomor hari; namanya tetap "Day N" + tanggal untuk screen reader */}
+            <span className="dp-medal" aria-hidden="true">
+              {d.n}
             </span>
+            <span className="sr-only">{t("today.day", { n: d.n })}</span>
+            <span className="dp-tabd">{fmtDay(d.date, lang)}</span>
           </button>
         ))}
       </div>

@@ -19,7 +19,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 14 Nov 2026.
+Diperbarui 14 Nov 2026 (audit host 1–5 selesai).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -34,11 +34,15 @@ Diperbarui 14 Nov 2026.
   - Hubungan dengan F2 (panggung 3D) belum diputuskan host.
 - [x] **3. Home 2,5D dengan desain baru.** ✅ 11 Nov 2026. Permintaan host 11 Nov: "upgrade home ke 2,5d sama benerin ui home", diperjelas "ganti aja design nya, button juga". Home = halaman `/` (gerbang kode dan sambutan); 2,5D memakai arti dari Tugas 2. Yang dikerjakan: panggung berlapis yang mengikuti kursor, kartu undangan dan boarding pass tergantung di benang emas, tombol baru (`.hb`) khusus home. Rinciannya: `docs/design/decisions.md` bagian "Home 2,5D dengan desain baru" dan `HANDOFF.md` bagian 1. Sisa pekerjaan, menunggu tinjauan host:
   - Uji di Safari, iPhone, dan MacBook asli (di sesi hanya Chromium).
-  - Gaya tombol baru dipakai juga di Today sejak 14 Nov (lihat 4b); film tetap `.pb`.
+  - Gaya tombol baru dipakai juga di Today sejak 14 Nov (lihat 4b dan 4c, tanpa tebal 3D); film tetap `.pb`. Kartu boarding pass home kini modul bersama `src/components/pass/` (home, Today, slide tiket film).
 - [x] **4. Sesi per tab.** ✅ 11 Nov 2026. Keluhan host: browser sudah di-reset dan tab baru masih masuk tanpa kode. Keputusan host: kode diminta lagi di tiap tab atau browser baru; Today yang dipasang ke Home Screen tetap ingat supaya bisa offline. Rinciannya: `docs/design/decisions.md` bagian "Sesi per tab" dan `HANDOFF.md` bagian 1b.
 
 - [x] **4b. Today 2,5D dengan desain dan tombol baru.** ✅ 14 Nov 2026. Permintaan host 14 Nov (dengan tangkapan layar Today sebelum trip): "ini sekalian, button ui, design nya sekalian. buat 2,5D sekalian, sekaligus fitur yang gw mau seperti di handoff.md". Latar berlapis (langit mengikuti jam, Lawu, perbukitan, debu emas), kamera parallax (kursor/kemiringan HP), perspective shift pada kartu dan judul, kedalaman ikut gulir (scroll-driven animation), tombol kapsul berbahasa home, medali centang Before you go. Rinciannya: `docs/design/decisions.md` bagian "Today 2,5D" dan `HANDOFF.md` bagian 0. Sisa pekerjaan, menunggu tinjauan host atas video:
   - Uji di iPhone asli: izin sensor gerak diminta sekali dari sentuhan pertama; scroll-driven animation butuh Safari 26 ke atas (di bawahnya kartu diam, parallax tetap).
+
+- [x] **4c. Audit host 1–5.** ✅ 14 Nov 2026. Arahan host: "perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md". Dua belas butir di `HANDOFF.md` bagian 0 ("Audit host 1–5") dicentang satu per satu dengan bukti tes, satu commit per audit. Isinya: segi delapan hitam di blencong, gunungan, dan kelir (NaN di shader: `pow` berdasar negatif, `atan(0, 0)` di pusat lampu balik kelir, `sqrt` negatif, `smoothstep` terbalik; plus saringan NaN di rantai post), sheet SOS dan seluruh Today berdesain baru (tombol tanpa tebal, boarding pass home di Today dan film lewat `src/components/pass/`, hitung mundur angka besar, medali hari, kartu stop, tanpa garis punggung bukit), bingkai prolog headline di HP tegak, bidang gelap teks film yang tembus saat HP dimiringkan, dan hemat bandwidth GPU di tier High. Sisa pekerjaan, menunggu host:
+  - Konfirmasi di iPhone asli (`/film/?fps`): segi delapan hilang, dan fps tier High di slide prolog/intro dan fase gong (sebelumnya 37–48 dan 30). Kenaikan fps dari hemat bandwidth tidak bisa diukur di sesi (SwiftShader bukan GPU berpetak).
+  - Bila fps High belum cukup: efek tembus pandang (api, kerucut cahaya) digambar ke target tanpa MSAA.
 
 ### Panggung 3D (arahan host 12 Nov 2026, prioritas tinggi)
 

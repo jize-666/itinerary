@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|gong|kayon|kamera|datar|gerbang]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
-// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); gong = gong ageng 3D (prolog, kamera
+// panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); prolog = empat slide pertama sesudah gunungan
+// dicabut (hero, headline, intro, fakta pertama: tempat audit host 14 Nov); gong = gong ageng 3D (prolog, kamera
 // mengitari gong, lalu slide gong penutup Hari 1: dipukul sendiri saat tiba, lalu dipukul lagi dengan klik);
 // kayon = sapuan gunungan 3D: maju ke Hari 1 (muka Agung), mundur ke prolog (muka Murka, api geni naik), maju lagi;
 // kamera = gerak pandang di slide gong (desktop): parallax kursor, dua tahap gulir (dekat), zoom − dan +, menjauh,
@@ -113,6 +114,15 @@ const fs = require('fs');
     await key('ArrowDown', 2800); // panel pertama: naik ke atas lanskap
     for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2500); // subuh → siang → senja → malam
     await w(2600); // gong penutup hari
+    await finish();
+    return;
+  }
+
+  if (tour === 'prolog') {
+    await w(3000); // hero sesudah gunungan dicabut: pendapa, blencong, langit malam
+    await key('ArrowDown', 3600); // headline: gayor dan kedua naga utuh di HP tegak (audit host 14 Nov "ke crop")
+    await key('ArrowDown', 3200); // intro prolog
+    await key('ArrowDown', 3400); // fakta "A royal city": blencong dari dekat
     await finish();
     return;
   }
