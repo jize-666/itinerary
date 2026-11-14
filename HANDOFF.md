@@ -54,7 +54,12 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - **Tes:** `tests/unit/mascot.test.ts` 14 lulus (perilaku dari tes zip + sayang; perjalanan; wajah; kedip; pose berhingga). Uji keamanan shader lulus.
   - Tes perilaku menemukan satu bug: ucapan reaksi (marah, sayang) tertahan jeda 4 dtk sejak ucapan sebelumnya. Sudah diperbaiki: reaksi selalu diucapkan.
 - **Pratinjau:** lembar delapan ekspresi dari sudut tiga perempat, dengan cahaya panggung malam, dirender lewat halaman uji di scratchpad (esbuild + `StagePost`; tidak di repo).
-- **Langkah berikutnya:** M2 (chat piksel + perilaku tersambung ke klik), M3 (pemandu di film 3D), M4 (versi 2,5D), lalu tes penuh dan video. Rupa bisa disetel lagi bila host memberi masukan atas pratinjau.
+- **Langkah berikutnya (DITAHAN):** M2 (chat piksel + perilaku tersambung ke klik), M3 (pemandu di film 3D), M4 (versi 2,5D), lalu tes penuh dan video.
+
+**Masukan host atas pratinjau M1 (15 Nov), kata demi kata:** "kotak bgt jir, tunggu stop dulu bentukan maskotnya".
+- Artinya: rupa sekarang terlalu kotak, dan pekerjaan rupa maskot **dihentikan dulu sampai host memberi arahan**.
+- Seluruh pekerjaan maskot (rupa, M2–M4) tidak dilanjutkan sampai ada arahan. Kode M1 sudah di-commit tetapi belum disambungkan ke film, jadi tidak terlihat tamu.
+- Bila dilanjutkan, arah yang mungkin (menunggu pilihan host): badan lebih membulat seperti bantal/mochi, sudut jauh lebih bulat, atau sisi sedikit menggembung.
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
