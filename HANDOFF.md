@@ -32,9 +32,17 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
   - **Bukti:** tes unit baru di `gong.test.ts`: untuk 393×852, 390×664, dan 3:4, mulut naga, ekor terluar, dan kaki gayor semuanya |x|, |y| < 0,92 dan kiri-kanan seimbang (selisih < 0,15); sekarang ekstremnya −0,88/+0,76 di iPhone. Render 3D slide headline di iPhone (tier Low) dicek: kedua naga utuh di dalam bingkai.
 
 **Audit 3**
-- [ ] 6. "cacat" (credits, gunungan penutup, `high ×1 (paksa)`): segi delapan hitam di gunungan, kiri-tengah, dan bawah.
-- [ ] 7. "cacat visual" (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam dekat blencong; paksaan High sempat dilepas (rata-rata < 35 fps).
-- [ ] 8. "ke crop:tembus" (slide pembuka Hari 0 "Arrival"): pita di tepi kiri tempat bidang gelap teks bergeser dan lanskap terlihat; dugaan: parallax 2,5D menggeser `.fl-body` dan bidang gelapnya saat HP dimiringkan.
+- [x] 6. "cacat" (credits, gunungan penutup, `high ×1 (paksa)`): segi delapan hitam di gunungan, kiri-tengah, dan bawah.
+  - **Penyebab tambahan yang ditemukan saat memeriksa butir ini:** pendar blencong di balik kelir menghitung `atan(d.y, d.x)` dari pusat lampu; tepat di piksel pusat lampu d = (0, 0) dan hasilnya tidak terdefinisi (NaN di GPU iPhone). Itu persis "kiri-tengah", letak blencong di balik kelir, saat gunungan tertancap (juga butir 12). Dua sumber lain dari jenis yang sama: `sqrt(2.0 * slope)` di sawah (n.y bisa sedikit di atas 1, jadi negatif) dan satu `smoothstep(w, 0.0, …)` bertepi terbalik di terasering.
+  - **Dikerjakan:** fungsi `atan2s` (aman di titik nol) di `shared.ts`, dipakai pendar kelir dan ikatan tabuh gong; `sqrt(max(…, 0.0))`; `1.0 - smoothstep(0.0, w, …)`. Ditambah jaring pengaman post dari butir 2.
+  - **Bukti:** `shader-safety.test.ts` kini 7 tes: ditambah "atan dua argumen hanya lewat atan2s", "sqrt hanya dari nilai yang pasti tidak negatif", dan pola `smoothstep(w, 0.0, …)`; ketiganya dicek gagal pada kode sebelum perbaikan. Tes kompilasi shader (CSP/shader) dan e2e gerbang pembuka-penutup lulus. Sisa: konfirmasi di iPhone host.
+- [x] 7. "cacat visual" (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam dekat blencong; paksaan High sempat dilepas (rata-rata < 35 fps).
+  - **Segi delapan:** sumbernya sama dengan butir 2 (`pow` berdasar negatif di mangkuk blencong) dan tertutup di sana, ditambah saringan post.
+  - **"medium ×0.82":** ini pengaman yang disengaja (keputusan 14 Nov): paksaan High hanya dilepas bila rata-rata di bawah 35 fps, supaya HP tidak patah-patah. Artinya fps di HP host memang sempat jatuh di slide gong; penyebabnya (beban gambar) dikerjakan di butir 10, supaya paksaan High tidak perlu dilepas lagi. Pengamannya tidak dicabut.
+- [x] 8. "ke crop:tembus" (slide pembuka Hari 0 "Arrival"): pita di tepi kiri tempat bidang gelap teks bergeser dan lanskap terlihat; dugaan: parallax 2,5D menggeser `.fl-body` dan bidang gelapnya saat HP dimiringkan.
+  - **Penyebab (terkonfirmasi):** bidang gelap di belakang teks (`.fl-body--low::before`, `inset: 22% 0 0`) adalah bagian dari bidang teks, yang digeser gerak pandang sampai 14 px dan diputar 2,4°. Saat HP dimiringkan tepinya ikut bergeser masuk dan lanskap terang terlihat di pinggir.
+  - **Dikerjakan:** bidang gelap dilebarkan 48 px melewati tepi kiri, kanan, dan bawah (`--scrim-bleed`), lebih dari geser dan putaran terbesar. Gerak pandangnya tetap.
+  - **Bukti:** e2e baru "bidang gelap di belakang teks melewati tepi layar sejauh geser parallax terbesar": dengan kursor di tepi (teks bergeser > 8 px) tepi bidang gelap tetap di luar layar; tes dicek gagal tanpa perbaikan (tepi kiri di +1,9 px, celah terbuka).
 
 **Audit 4**
 - [ ] 9. "cacat visual, lampunya" (slide fakta "A royal city"): segi delapan hitam tepat di blencong.

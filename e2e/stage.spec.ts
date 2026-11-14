@@ -205,6 +205,7 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
 
   test("satu piksel NaN di adegan tidak disebar bloom menjadi segi delapan hitam (audit host 14 Nov)", async ({ browser }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; dua kali buka panggung 3D");
+    test.slow(); // panggung 3D dibuka dua kali berturut-turut
     /**
      * Di iPhone, `pow` dengan dasar negatif di mangkuk blencong memberi NaN; bloom menyebarnya jadi segi delapan hitam.
      * Di sini NaN disuntik dengan sengaja ke shader mangkuk blencong (sqrt(-1)), lalu jumlah piksel hitam dibandingkan
@@ -669,6 +670,28 @@ test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspecti
     expect(await body.evaluate((el) => getComputedStyle(el).rotate)).toMatch(/^y [1-9]/);
     await page.mouse.move(10, 360);
     await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeLessThan(-0.6);
+  });
+
+  test("bidang gelap di belakang teks melewati tepi layar sejauh geser parallax terbesar, jadi tepinya tidak terbuka (audit host 14 Nov \"tembus\")", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
+    await open(page, "?stage=static");
+    await step(page); // prolog headline: teks di atas langit dengan bidang gelap
+    const body = page.locator(".fl-layer[data-pos='cur'] > .fl-body--low");
+    await expect(body).toHaveCount(1);
+    await page.mouse.move(1270, 360);
+    await expect.poll(() => film(page).evaluate((el) => Number(el.style.getPropertyValue("--lx") || "0")), { timeout: 10_000 }).toBeGreaterThan(0.6);
+    const g = await body.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el, "::before");
+      // geser teks saat ini (px) dari properti translate, dan letak bidang gelap terhadap teks
+      const shift = Math.abs(parseFloat(getComputedStyle(el).translate.split(" ")[0] || "0"));
+      return { shift, left: r.left + parseFloat(cs.left), right: r.right - parseFloat(cs.right), bottom: r.bottom - parseFloat(cs.bottom), w: innerWidth, h: innerHeight };
+    });
+    expect(g.shift).toBeGreaterThan(8); // gerak pandang memang menggeser bidang teks
+    // bidang gelap tetap menutup layar dari tepi ke tepi (dengan sisa untuk putaran 2,4°)
+    expect(g.left).toBeLessThan(-8);
+    expect(g.right).toBeGreaterThan(g.w + 8);
+    expect(g.bottom).toBeGreaterThan(g.h);
   });
 
   test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {

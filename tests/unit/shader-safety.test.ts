@@ -55,7 +55,7 @@ describe("shader panggung aman dari NaN", () => {
     expect(bad).toEqual([]);
   });
 
-  it("smoothstep dengan tepi bervariabel juga tidak terbalik (`L + w, L` atau `X, X * 0.25`)", () => {
+  it("smoothstep dengan tepi bervariabel juga tidak terbalik (`L + w, L`, `X, X * 0.25`, atau `w, 0.0`)", () => {
     const bad: string[] = [];
     for (const { file, text } of sources) {
       for (const m of text.matchAll(/smoothstep\(/g)) {
@@ -63,8 +63,33 @@ describe("shader panggung aman dari NaN", () => {
         const plus = /^(-?[\d.]+)\s*\+\s*.+$/.exec(a);
         const times = /^(.+?)\s*\*\s*([\d.]+)$/.exec(b);
         const timesA = /^(.+?)\s*\*\s*([\d.]+)$/.exec(a);
-        const rev = (plus && plus[1] === b) || (times && times[1]!.trim() === a && Number(times[2]) < 1) || (timesA && times && timesA[1]!.trim() === times[1]!.trim() && Number(timesA[2]) > Number(times[2]));
+        const toZero = /^-?0(\.0+)?$/.test(b) && !/^-?[\d.]+$/.test(a); // smoothstep(w, 0.0, x) dengan w > 0
+        const rev = toZero || (plus && plus[1] === b) || (times && times[1]!.trim() === a && Number(times[2]) < 1) || (timesA && times && timesA[1]!.trim() === times[1]!.trim() && Number(timesA[2]) > Number(times[2]));
         if (rev) bad.push(`${file}: smoothstep(${a}, ${b}, …)`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("atan dua argumen hanya lewat atan2s (atan(0, 0) tidak terdefinisi: pusat lampu blencong di balik kelir)", () => {
+    const bad: string[] = [];
+    for (const { file, text } of sources) {
+      for (const m of text.matchAll(/(?<![.\w])atan\(/g)) {
+        const args = topArgs(text, m.index + m[0].length - 1);
+        const inHelper = text.slice(Math.max(0, m.index - 80), m.index).includes("float atan2s(");
+        if (args.length === 2 && !inHelper) bad.push(`${file}: atan(${args.join(", ")})`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("sqrt hanya dari nilai yang pasti tidak negatif", () => {
+    const safe = /^(max\(|clamp\(|dot\(|best\.z$|second$)/;
+    const bad: string[] = [];
+    for (const { file, text } of sources) {
+      for (const m of text.matchAll(/(?<![.\w])sqrt\(/g)) {
+        const [a = ""] = topArgs(text, m.index + m[0].length - 1);
+        if (!safe.test(a)) bad.push(`${file}: sqrt(${a})`);
       }
     }
     expect(bad).toEqual([]);

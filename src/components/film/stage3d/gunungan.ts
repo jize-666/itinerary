@@ -27,7 +27,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { GATE, type KayonPose } from "@/engine/stage/gate";
 import { GENI, KAYON, type SweepPose, VEIL } from "@/engine/stage/gunungan";
 import { kayonFiles, takeKayon } from "@/engine/stage/kayon-files";
-import type { Shared } from "./shared";
+import { ATAN2S, type Shared } from "./shared";
 
 const f = (x: number) => x.toFixed(4);
 /** Jarak lembaran dari kamera (m). Hanya menentukan kuat perspektif saat lembaran berpaling. */
@@ -273,6 +273,7 @@ uniform vec2 uShadeRoll; // miring bayangan (rad), kepekatan
 uniform sampler2D tAgung;
 uniform sampler2D tMurka;
 varying vec2 vNdc;
+${ATAN2S}
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float hash21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 float vnoise(vec2 p) {
@@ -353,7 +354,8 @@ void main() {
     col = kelir(vNdc);
   } else {
     vec3 glow = lamp * (1.15 * exp(-r * r * 7.0) + 0.34 * exp(-r * r * 1.1) + 0.05 * exp(-r * 0.9));
-    float ang = atan(d.y, d.x);
+    // tepat di pusat lampu d = (0, 0): atan biasa tidak terdefinisi di sana (segi delapan hitam di blencong balik kelir)
+    float ang = atan2s(d.y, d.x);
     float rays = pow(0.5 + 0.5 * sin(ang * 11.0 + sin(ang * 5.0 + uTime * 0.23) * 1.6 + uTime * 0.11), 3.0);
     rays *= 0.5 + 0.5 * sin(ang * 23.0 - uTime * 0.17);
     glow += lamp * rays * 0.18 * exp(-r * 0.75) * smoothstep(0.1, 0.5, r);

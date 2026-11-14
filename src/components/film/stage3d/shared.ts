@@ -58,6 +58,9 @@ export function createShared(): Shared {
 const [, S1, S2, S3] = SKY_STOPS;
 
 /** Deklarasi uniform bersama + fungsi langit, cahaya, dan kabut. Disisipkan di awal tiap shader. */
+/** Sudut arah (y, x) yang aman di titik nol: sudut dari vektor nol tidak terdefinisi di GLSL dan memberi NaN di GPU iPhone. */
+export const ATAN2S = /* glsl */ `float atan2s(float y, float x) { return abs(x) + abs(y) < 1e-12 ? 0.0 : atan(y, x); }`;
+
 export const COMMON = /* glsl */ `
 uniform float uTime;
 uniform vec3 uSky[5];
@@ -107,6 +110,7 @@ vec3 skyColor(vec3 dir) {
  * dan kuadrat ditulis sebagai perkalian (pow dengan dasar negatif tidak terdefinisi dan menjadi NaN di GPU Apple).
  */
 vec3 safeNormalize(vec3 x) { return x * inversesqrt(max(dot(x, x), 1e-12)); }
+${ATAN2S}
 float sq(float x) { return x * x; }
 
 /* Cahaya sekitar dari langit dan pantulan tanah. */

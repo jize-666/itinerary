@@ -96,9 +96,9 @@ void main() {
   // terasering: garis kontur, memudar di kejauhan supaya tidak berkedip
   float lines = fract(vWorld.y * 1.25 + plot * 2.0);
   // tebal garis ±0,2 m mendatar: dalam satuan tinggi ia menipis di lereng landai (kalau tidak, garisnya melebar jadi pita)
-  float half_ = 0.25 * sqrt(2.0 * slope);
+  float half_ = 0.25 * sqrt(max(2.0 * slope, 0.0)); // n.y bisa sedikit di atas 1 karena pembulatan
   float w = fwidth(vWorld.y * 1.25) * 1.5 + 0.004;
-  float ter = smoothstep(w, 0.0, abs(lines - 0.5) - half_) * smoothstep(0.004, 0.03, slope) * (1.0 - smoothstep(60.0, 260.0, dist)) * (1.0 - high);
+  float ter = (1.0 - smoothstep(0.0, w, abs(lines - 0.5) - half_)) * smoothstep(0.004, 0.03, slope) * (1.0 - smoothstep(60.0, 260.0, dist)) * (1.0 - high);
   albedo *= 1.0 - 0.45 * ter;
 
   vec3 col = albedo * diffuseLight(n, vWorld);

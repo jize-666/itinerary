@@ -399,7 +399,7 @@ void main() {
   } else {
     // kain pembungkus kepala tabuh: merah tua bertenun, diikat tali gelap di pangkal
     float weave = 0.5 + 0.25 * sin(vLocal.x * 900.0) * sin(vLocal.y * 900.0) + 0.25 * fbm(vLocal.xy * 120.0);
-    float tie = smoothstep(0.036, 0.046, vLocal.z) * (0.6 + 0.4 * sin(atan(vLocal.y, vLocal.x) * 24.0));
+    float tie = smoothstep(0.036, 0.046, vLocal.z) * (0.6 + 0.4 * sin(atan2s(vLocal.y, vLocal.x) * 24.0));
     vec3 cloth = mix(vec3(0.2, 0.022, 0.018), vec3(0.34, 0.05, 0.032), weave);
     cloth = mix(cloth, vec3(0.03, 0.012, 0.01), tie);
     // kain: tepi siluet sedikit terang (bulu halus), tanpa kilap

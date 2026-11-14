@@ -410,16 +410,20 @@ html.film-on body {
 }
 
 .fl-body--low {
+  --scrim-bleed: 48px;
   align-content: end;
   justify-items: start;
   padding-bottom: calc(var(--bottom) + clamp(18px, 6vh, 72px));
 }
 
-/* teks langsung di atas langit: bidang gelap lembut di belakangnya menjaga kontras ≥ 4,5:1 di langit terang */
+/* teks langsung di atas langit: bidang gelap lembut di belakangnya menjaga kontras ≥ 4,5:1 di langit terang.
+   Bidang ini ikut digeser dan diputar gerak pandang 2,5D bersama teksnya (sampai 14 px, 2,4°), jadi dilebarkan
+   melewati tepi layar; tanpa itu tepinya bergeser masuk dan lanskap terang terlihat di pinggir (audit host 14 Nov
+   "ke crop:tembus", slide pembuka hari). */
 .fl-body--low::before {
   content: "";
   position: absolute;
-  inset: 22% 0 0;
+  inset: 22% calc(-1 * var(--scrim-bleed)) calc(-1 * var(--scrim-bleed));
   z-index: -1;
   background: linear-gradient(180deg, transparent, rgb(7 9 18 / 0.6) 30%, rgb(7 9 18 / 0.84) 62%, rgb(7 9 18 / 0.9));
   pointer-events: none;
