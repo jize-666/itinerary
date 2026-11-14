@@ -5,6 +5,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host sesudah PR #10 di-merge (14 Nov, 16.36–16.40 WIB, iPhone produksi)
+
+**Kata host:** "masih medium, di gong juga yang pertama", dengan dua tangkapan `/film/?fps` di gunungan pembuka: `medium ×0.82 · 11 draw · 582 tri`, 58–60 fps, tanpa "(paksa)". Artinya tier High yang dipaksa di iPhone tidak bertahan: di gerbang, dan juga di slide gong.
+
+**Penyebab:** di `createGovernor` paksaan dilepas begitu rata-rata satu jendela 3 dtk di bawah 35 fps. Saat film baru dibuka, beberapa frame lambat (tekstur gunungan diunggah, shader dikompilasi) sudah cukup untuk itu. Sesudah dilepas, pengatur kembali ke aturan biasa (turun bila < 50 fps), jadi iPhone yang jalan 40–48 fps di High diturunkan tiap 3 dtk sampai `medium ×0.82`. Begitu naik lalu turun lagi dalam 12 dtk, anak tangga di atas dikunci, jadi ia tidak pernah kembali ke High walau gerbang jalan 60 fps.
+
+- [ ] Paksaan High di iPhone bertahan: tidak dilepas oleh frame lambat sesaat (saat memuat), turun hanya bila benar-benar tersendat lama, dan kembali ke High begitu lancar lagi. Overlay menjelaskan bila sedang di bawah High.
+
 ### Audit host 1–5 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
 
 **Arahan host, kata demi kata, urut:** "perbaiki hasil audit ini" (`audit_1.zip`), "ini juga" (`audit_2.zip`), "ini juga" (`audit_3.zip`), "ini" (`audit_4.zip`), "ini terakhir" (`audit_5.zip`), lalu **"perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md"**. Artinya: dikerjakan audit demi audit (1 → 5); sesudah tiap audit selesai, butir-butirnya di daftar ini dicentang dengan bukti tes, lalu commit. Berkas audit disimpan di scratchpad, tidak masuk repo (tangkapan layar memuat nama asli tamu).
