@@ -127,6 +127,10 @@ Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengita
 - Plus satu tes kitar gong penutup yang kehabisan waktu di bawah beban (gerak mouse lebih sedikit, `test.slow()`).
 - **Dicek dengan kondisi CI** (`CI=1`, 2 inti CPU, tanpa ulang): tes 3D DOF, kitar, dan gong judul 9 lulus; tes film geser jari dan tahap gong 16 lulus.
 - **Tes penuh sesudah perbaikan:** lint, typecheck bersih; `pnpm test` 359/359; `pnpm build` OK; `pnpm test:e2e` **272 lulus, 30 dilewati, 0 gagal** (12,2 menit).
+- **CI GitHub hijau** di semua run sesudah perbaikan (#192–#197, push dan pull_request), termasuk commit maskot M1.
+- **Pratinjau zoom dan kitar:**
+  - Desktop (tur `kitar`, data April, tier High, 48 dtk, 95% frame unik) dikirim ke host.
+  - iPhone sedang direkam.
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
