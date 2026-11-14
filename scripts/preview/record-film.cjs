@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); prolog = empat slide pertama sesudah gunungan
@@ -13,8 +13,10 @@
 // kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman; gerbang = gunungan
 // pembuka dan penutup (Tugas 7): tertancap di depan kelir, kursor menggeser lampu dan bayangan (desktop), dibalik ke
 // muka Murka dan kembali, dicabut dengan gulir (di iphone dengan jari, ditahan di tengah), lalu lompat ke credits dan
-// gunungan ditancapkan lagi. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, jadi di tur
-// lain langkah pertama mencabutnya.
+// gunungan ditancapkan lagi; judul = tahap gong di slide judul (Tugas 7b): judul Hari 1 tersedot ke gong dan gong
+// ditabuh tanpa hentakan kamera, mundur (huruf keluar lagi), ditabuh lagi, pindah ke intro hari, lalu lompat ke prolog
+// dan tahap gong hero. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
+// hero punya tahap gong: `advance` mencabut gunungan dan menjalankan tahap gong lebih dulu bila perlu.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -80,12 +82,23 @@ const fs = require('fs');
   };
   const slide = () => p.locator('.film').getAttribute('data-slide');
   const kind = () => p.locator('.film').getAttribute('data-kind');
+  /**
+   * Maju satu slide. Gunungan pembuka yang masih tertancap dicabut dulu, dan di judul hari / hero tahap gongnya
+   * dijalankan dulu (Tugas 7b), masing-masing dengan jeda supaya terlihat di video.
+   */
+  const advance = async (dwell) => {
+    const film = p.locator('.film');
+    if ((await film.getAttribute('data-gate')) === 'head') await key('ArrowDown', 4200);
+    const k = await kind();
+    if ((k === 'title' || k === 'hero') && (await film.getAttribute('data-beat')) !== 'out') await key('ArrowDown', 3600);
+    await key('ArrowDown', dwell);
+  };
 
   await p.goto('about:blank');
   rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
+  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' || tour === 'judul' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
   if (STAGE && STAGE !== 'static') {
@@ -104,15 +117,32 @@ const fs = require('fs');
     await b.close();
   };
 
+  if (tour === 'judul') {
+    const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };
+    await w(3400); // judul Hari 1 lahir sebagai bayangan, di depan gayor, gong, dan kedua naga
+    if (!phone) {
+      await glide(1100, 260, 1600); // parallax kamera dan perspective shift sebelum gong ditabuh
+      await glide(640, 360, 900);
+    }
+    await key('ArrowDown', 4600); // tahap gong: huruf tersedot ke pencu, gong ditabuh, kamera tetap di tempat
+    await key('ArrowUp', 3000); // mundur: huruf keluar lagi dari gong ke tempatnya, tanpa pukulan
+    await key('ArrowDown', 4400); // ditabuh lagi
+    await key('ArrowDown', 3600); // langkah berikutnya: pindah ke intro hari (memandang Lawu)
+    await tap(p.locator('.fl-rail-list li:nth-child(1) button'), 3600); // lompat ke prolog: hero
+    await key('ArrowDown', 4600); // tahap gong hero
+    await finish();
+    return;
+  }
+
   if (tour === 'stage') {
     await w(3200); // hero: pendapa, blencong, langit malam
-    await key('ArrowDown', 3000); // pembuka: kamera mengitari panggung
-    await key('ArrowDown', 2800); // intro
-    await key('ArrowDown', 2800); // fakta 1
+    await advance(3000); // pembuka: kamera mengitari panggung
+    await advance(2800); // intro
+    await advance(2800); // fakta 1
     await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 4200); // lompat ke Hari 1: sapuan kayon
-    await key('ArrowDown', 3400); // intro hari: kamera turun ke tepi pendapa, memandang Lawu
-    await key('ArrowDown', 2800); // panel pertama: naik ke atas lanskap
-    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2500); // subuh → siang → senja → malam
+    await advance(3400); // intro hari: kamera turun ke tepi pendapa, memandang Lawu
+    await advance(2800); // panel pertama: naik ke atas lanskap
+    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await advance(2500); // subuh → siang → senja → malam
     await w(2600); // gong penutup hari
     await finish();
     return;
@@ -120,17 +150,17 @@ const fs = require('fs');
 
   if (tour === 'prolog') {
     await w(3000); // hero sesudah gunungan dicabut: pendapa, blencong, langit malam
-    await key('ArrowDown', 3600); // headline: gayor dan kedua naga utuh di HP tegak (audit host 14 Nov "ke crop")
-    await key('ArrowDown', 3200); // intro prolog
-    await key('ArrowDown', 3400); // fakta "A royal city": blencong dari dekat
+    await advance(3600); // headline: gayor dan kedua naga utuh di HP tegak (audit host 14 Nov "ke crop")
+    await advance(3200); // intro prolog
+    await advance(3400); // fakta "A royal city": blencong dari dekat
     await finish();
     return;
   }
 
   if (tour === 'gong') {
     await w(2600); // prolog: gong ageng di tengah pendapa
-    await key('ArrowDown', 3200); // pembuka: kamera mengitari gong ke kanan
-    await key('ArrowDown', 2800); // intro: mundur, seluruh pendapa
+    await advance(3200); // pembuka: kamera mengitari gong ke kanan
+    await advance(2800); // intro: mundur, seluruh pendapa
     await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 4200); // lompat ke Hari 2: sapuan kayon
     await key('ArrowUp', 6800); // mundur ke gong penutup Hari 1: begitu tiba gong dipukul sendiri, kedua naga menyembur api
     await tap(p.locator(".fl-layer[data-pos='cur'] .fs-strike"), 5400); // dipukul lagi dengan klik (tabuh terangkat saat kursor di atas gong)
@@ -144,13 +174,13 @@ const fs = require('fs');
     await glide(1240, 300, 1800); // kursor ke kanan: langit bergeser berlawanan, judul searah dan memutar
     await glide(60, 620, 1800); // ke kiri bawah
     await glide(640, 360, 1000);
-    await key('ArrowDown', 2600); // perpindahan slide: yang lama membesar, yang baru tumbuh dari kedalaman
-    await key('ArrowDown', 2600);
+    await advance(2600); // perpindahan slide: yang lama membesar, yang baru tumbuh dari kedalaman
+    await advance(2600);
     await glide(1200, 360, 1500);
     await glide(100, 360, 1500);
     await glide(640, 360, 800);
     await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // lompat bab: bayangan kayon, kedalaman di baliknya
-    await key('ArrowDown', 2600); // ke gallery Hari 1
+    await advance(2600); // ke gallery Hari 1
     await glide(1200, 300, 1500);
     await glide(100, 520, 1500);
     await glide(640, 360, 800);
@@ -212,7 +242,7 @@ const fs = require('fs');
       await w(4600);
     }
     await key('End', 4200); // lompat ke credits
-    await key('ArrowDown', 4400); // tancep kayon: gunungan masuk dari kiri, credits memudar, gong saat menancap
+    await advance(4400); // tancep kayon: gunungan masuk dari kiri, credits memudar, gong saat menancap
     await finish();
     return;
   }
@@ -247,9 +277,9 @@ const fs = require('fs');
       for (let i = 1; i <= steps; i++) { await finger('touchMove', x0 + ((x1 - x0) * i) / steps, y); await w(ms / steps); }
     };
     await w(3000); // judul hari
-    await key('ArrowDown', 3400); // intro hari
-    await key('ArrowDown', 2600); // panel pertama (sarapan: matahari belum tampak)
-    await key('ArrowDown', 2600); // jadwal pertama setelah sarapan: matahari muncul perlahan
+    await advance(3400); // intro hari
+    await advance(2600); // panel pertama (sarapan: matahari belum tampak)
+    await advance(2600); // jadwal pertama setelah sarapan: matahari muncul perlahan
     if (phone) {
       // scrub: tarik, tahan (matahari ikut diam), lanjut, lepas
       const y = Math.round(height * 0.62);
@@ -262,7 +292,7 @@ const fs = require('fs');
       await finger('touchEnd', 0, 0);
       await w(2200);
     }
-    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 2400); // siang → senja → malam
+    for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await advance(2400); // siang → senja → malam
     await w(2400); // gong penutup hari
     await cdp.send('Page.stopScreencast');
     await new Promise((r) => setTimeout(r, 300));
@@ -275,23 +305,23 @@ const fs = require('fs');
   }
 
   await w(5200); // hero: judul lahir sebagai bayangan
-  await key('ArrowDown', 3000); // pembuka
-  await key('ArrowDown', 2800); // intro
-  await key('ArrowDown', 2800); // fakta 1
-  await key('ArrowDown', 2600); // fakta 2
+  await advance(3000); // pembuka
+  await advance(2800); // intro
+  await advance(2800); // fakta 1
+  await advance(2600); // fakta 2
   await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 4200); // lompat ke Hari 1: sapuan kayon
-  await key('ArrowDown', 3400); // intro hari
-  for (let i = 0; i < 3; i++) await key('ArrowDown', 2300); // tiga panel pertama
+  await advance(3400); // intro hari
+  for (let i = 0; i < 3; i++) await advance(2300); // tiga panel pertama
   await tap(p.locator('.gal-card[data-cur] .gal-acts button').first(), 3000); // cerita
   await tap(p.locator('.fl-sheet .sheet-x'), 1400);
   await tap(p.locator('.lang-toggle .seg-opt').nth(1), 2200); // ganti ke ID di tempat
-  for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await key('ArrowDown', 1900); // sisa hari: siang → senja → malam
+  for (let i = 0; i < 12 && (await kind()) === 'panel'; i++) await advance(1900); // sisa hari: siang → senja → malam
   await w(2200); // gong penutup hari
-  await key('ArrowDown', 4200); // sapuan kayon → judul hari berikutnya
+  await advance(4200); // sapuan kayon → judul hari berikutnya
   await tap(p.locator('.lang-toggle .seg-opt').nth(0), 1600); // kembali ke EN
   const chapters = await p.locator('.fl-rail-list li').count();
   await tap(p.locator(`.fl-rail-list li:nth-child(${chapters - 1}) button`), 5200); // epilog
-  for (let i = 0; i < 6 && (await slide()) !== 'credits'; i++) await key('ArrowDown', 3200);
+  for (let i = 0; i < 6 && (await slide()) !== 'credits'; i++) await advance(3200);
   await w(1800);
 
   await cdp.send('Page.stopScreencast');

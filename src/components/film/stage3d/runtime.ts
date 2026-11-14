@@ -11,7 +11,7 @@ import type { SkyState } from "@/engine/slides/sky";
 import { stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
-import { approach, GONG_ZOOM, scrollDepth, VIEW } from "@/engine/motion/view";
+import { approach, DOF, dofFocus, GONG_ZOOM, scrollDepth, VIEW } from "@/engine/motion/view";
 import { lookMoving, startLook, stepLook } from "../look";
 import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
 import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
@@ -61,6 +61,8 @@ export type StageStats = {
   gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" };
   /** Jam panggung pada frame terakhir (detik). */
   time: number;
+  /** Depth of field pada frame terakhir (tier High, gallery): kadar 0–1, jarak fokus (m), dan apakah digambar. */
+  dof: { amount: number; focus: number; drawn: boolean };
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
@@ -70,6 +72,8 @@ export type StageStats = {
    * sudut balik (rad), kadar geni 0–1]. Kamera ikut, seperti saat dicabut sungguhan.
    */
   gateAt?: readonly number[];
+  /** Hanya untuk pratinjau dan uji: depth of field ditahan di [kadar 0–1, jarak fokus m] (tier tanpa DOF tetap mati). */
+  dofAt?: readonly number[];
 };
 
 export type StageHooks = {
@@ -149,6 +153,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
+  // depth of field: kedalaman diambil dari tanah lanskap saja (satu draw call di target kecil)
+  post.setDepthSource(terrain.mesh);
   gl.info.autoReset = false;
 
   let frame: Frame = { aspect: 16 / 9 };
@@ -353,7 +359,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     village.setPixel(pixel);
     gong.setPixel(pixel);
     gl.info.reset();
-    post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t });
+    // depth of field (tier High, gallery): fokus dekat (bidang kartu) saat diam, ditarik jauh ke lanskap selama
+    // geseran di dalam gallery mengikuti kemajuan gulir, lalu kembali saat kartu tiba
+    const inner = cue.moving && film.slides[cursor.from]?.scene === film.slides[cursor.to]?.scene;
+    const dofHeld = stats.dofAt && stats.dofAt.length >= 2 ? stats.dofAt : null;
+    const dofAmount = spec.dof ? (dofHeld ? dofHeld[0]! : shot.dof) : 0;
+    const dofAt = dofHeld ? dofHeld[1]! : dofFocus(cursor.p, inner);
+    post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t, dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture } });
 
     stats.frames++;
     stats.bloom = post.format;
@@ -368,6 +380,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.kayon = gunungan.ready();
     stats.gate = { end: planted > 0 ? gateEnd : null, planted, face: pose && "turn" in pose ? pose.face : "agung" };
     stats.time = t;
+    stats.dof = { amount: dofAmount, focus: dofAt, drawn: post.dofDrawn };
   };
   layout();
   resize();

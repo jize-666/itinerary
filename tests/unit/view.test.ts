@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GONG_ZOOM, VIEW, approach, gongStep, pointerLook, recenterBase, scrollDepth, tiltLook, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
+import { DOF, GONG_ZOOM, VIEW, approach, dofBlur, dofFocus, gongStep, pointerLook, recenterBase, scrollDepth, tiltLook, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
 
 describe("kedalaman ikut gulir", () => {
   it("nol di kedua ujung perpindahan, terbesar di tengah, dan menerus", () => {
@@ -91,5 +91,34 @@ describe("zoom dan dua tahap gulir di slide gong", () => {
   it("dekat tetap di luar badan gong: kamera tidak menembus", () => {
     // bidikan gong: jarak ±9,4 m; dekat = (1 − close) × jarak harus lebih dari jari-jari gong × skala (±0,7 m) + ruang
     expect((1 - GONG_ZOOM.close) * 9.4).toBeGreaterThan(2.5);
+  });
+});
+
+describe("depth of field gallery (Tugas 7b)", () => {
+  it("diam: fokus dekat di bidang kartu; lanskap di belakangnya lembut, makin jauh makin kabur (dibatasi 1)", () => {
+    expect(dofFocus(0, false)).toBe(DOF.rest);
+    expect(dofFocus(0.5, false)).toBe(DOF.rest);
+    expect(dofBlur(DOF.rest, DOF.rest)).toBe(0);
+    const [near, mid, far] = [dofBlur(25, DOF.rest), dofBlur(120, DOF.rest), dofBlur(640, DOF.rest)];
+    expect(near).toBeGreaterThan(0.2);
+    expect(mid).toBeGreaterThan(near);
+    expect(far).toBeGreaterThanOrEqual(mid);
+    expect(far).toBeLessThanOrEqual(1);
+  });
+
+  it("selama geseran fokus ditarik jauh mengikuti gulir (nol di kedua ujung, tanpa lompatan), lalu kembali", () => {
+    expect(dofFocus(0, true)).toBeCloseTo(DOF.rest, 9);
+    expect(dofFocus(1, true)).toBeCloseTo(DOF.rest, 6);
+    expect(dofFocus(0.5, true)).toBeCloseTo(DOF.pull, 6);
+    let prev = dofFocus(0, true);
+    for (let p = 0.02; p <= 0.5; p += 0.02) {
+      const f = dofFocus(p, true);
+      expect(f).toBeGreaterThan(prev);
+      expect(f / prev).toBeLessThan(1.25); // tiap 2 % gulir fokus berpindah sedikit saja
+      prev = f;
+    }
+    // di tengah geseran dataran (±90 m) tajam, sedangkan saat diam ia kabur
+    expect(dofBlur(90, dofFocus(0.5, true))).toBeLessThan(0.05);
+    expect(dofBlur(90, dofFocus(0, false))).toBeGreaterThan(0.4);
   });
 });

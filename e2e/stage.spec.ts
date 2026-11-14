@@ -726,6 +726,100 @@ test.describe("tahap gong di slide judul, panggung 3D (Tugas 7b)", () => {
   });
 });
 
+test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
+  type Dof = { amount: number; focus: number; drawn: boolean };
+  const dofOf = async (page: Page) => (await page.evaluate(() => (window as unknown as { __lakonStage: { dof: Dof } }).__lakonStage.dof));
+  /** Bagian pita tanah lanskap yang berupa tepi tajam (kartu dan teks disembunyikan). */
+  async function detail(page: Page) {
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+    await nextFrames(page, 3);
+    const png = await page.screenshot();
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      // pita tanah di bawah cakrawala; dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
+      // paling peka terhadap kabur: garis pematang sawah
+      const y0 = Math.round(c.height * 0.4);
+      const d = g.getImageData(0, y0, c.width, c.height - y0).data;
+      const lum = (i: number) => d[i]! * 0.3 + d[i + 1]! * 0.59 + d[i + 2]! * 0.11;
+      let e = 0;
+      for (let y = 0; y < c.height - y0 - 1; y++)
+        for (let x = 0; x < c.width - 1; x++) {
+          const i = (y * c.width + x) * 4;
+          if (Math.max(Math.abs(lum(i) - lum(i + 4)), Math.abs(lum(i) - lum(i + c.width * 4))) > 6) e++;
+        }
+      return e / (c.width * (c.height - y0));
+    }, png.toString("base64"));
+  }
+  const hold = (page: Page, at: number[] | null) =>
+    page.evaluate((v) => {
+      const s = (window as unknown as { __lakonStage: { dofAt?: number[] } }).__lakonStage;
+      if (v) s.dofAt = v;
+      else delete s.dofAt;
+    }, at);
+
+  test("tier High di gallery: depth of field digambar (fokus dekat saat diam) dan mengaburkan lanskap; di luar gallery tidak", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
+    test.slow();
+    await open3d(page, "?stage=high", "#day-1");
+    await nextFrames(page);
+    expect((await dofOf(page)).drawn).toBe(false); // judul hari: tanpa depth of field
+    await step(page); // intro hari
+    await step(page); // panel pertama
+    await nextFrames(page, 3);
+    const rest = await dofOf(page);
+    expect(rest.drawn).toBe(true);
+    expect(rest.amount).toBe(1);
+    expect(rest.focus).toBe(12);
+    // gambar yang sama dengan depth of field dimatikan dan dinyalakan: rincian tanah lanskap berkurang nyata
+    await hold(page, [0, 12]);
+    const sharp = await detail(page);
+    await hold(page, [1, 12]);
+    const soft = await detail(page);
+    expect(sharp).toBeGreaterThan(0.005); // pita itu memang berisi garis pematang
+    expect(soft).toBeLessThan(sharp * 0.6);
+  });
+
+  test("selama geseran di gallery fokus ditarik jauh ke lanskap, lalu kembali dekat saat kartu tiba", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
+    test.slow();
+    await page.addInitScript(() => {
+      const w = window as unknown as { __focusMax: number; __lakonStage?: { dof: { focus: number; drawn: boolean }; moving: boolean } };
+      w.__focusMax = 0;
+      const loop = () => {
+        const s = w.__lakonStage;
+        if (s?.moving && s.dof.drawn) w.__focusMax = Math.max(w.__focusMax, s.dof.focus);
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=high", "#day-1");
+    await step(page);
+    await step(page);
+    await nextFrames(page);
+    await page.evaluate(() => ((window as unknown as { __focusMax: number }).__focusMax = 0));
+    await step(page, "ArrowRight"); // panel berikutnya
+    expect(await page.evaluate(() => (window as unknown as { __focusMax: number }).__focusMax)).toBeGreaterThan(20);
+    await nextFrames(page, 3);
+    expect((await dofOf(page)).focus).toBe(12);
+  });
+
+  test("tier Medium dan Low: tanpa depth of field (TIER.dof)", async ({ page }) => {
+    await open3d(page, "?stage=medium", "#day-1");
+    await step(page);
+    await step(page);
+    await nextFrames(page, 3);
+    const d = await dofOf(page);
+    expect(d.amount).toBe(0);
+    expect(d.drawn).toBe(false);
+  });
+});
+
 test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspective shift", () => {
   test("panggung 3D: kursor di tepi layar menggeser kamera", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");
