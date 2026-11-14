@@ -53,7 +53,10 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - **Zoom:** baru ada di slide gong penutup hari (cubit, Ctrl+roda, tombol +/−, dua tahap gulir); belum di judul hari dan hero.
 - **Kamera:** baru parallax kecil (±0,42 m, ±3–4°), belum bisa mengitari gong.
 
-Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengitari gong dengan seret mouse atau geser jari ke kiri/kanan (misalnya ±60° atau ±90°), kembali pelan ke depan saat dilepas. Seret mendatar di luar gallery sekarang tidak dipakai, jadi tidak bentrok. **Menunggu jawaban host (dua-duanya atau salah satu, dan batas putarannya); belum dikerjakan.**
+Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengitari gong dengan seret mouse atau geser jari ke kiri/kanan (misalnya ±60° atau ±90°), kembali pelan ke depan saat dilepas. Seret mendatar di luar gallery sekarang tidak dipakai, jadi tidak bentrok. **Jawaban host, kata demi kata: "dua dua nya, 90derajat".** Artinya:
+- [ ] **Zoom di slide judul hari dan hero prolog:** sama dengan gong penutup (cubit, Ctrl+roda, tombol +/−).
+- [ ] **Kamera mengitari gong ±90°** di slide judul hari, hero, dan gong penutup: seret mouse atau geser jari ke kiri/kanan. Kamera kembali pelan ke depan saat dilepas.
+- Sedang dikerjakan (14 Nov malam), menyusul di PR #12.
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
