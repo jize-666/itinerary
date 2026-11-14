@@ -81,17 +81,6 @@
   fill: url(#tds-ridge-far);
 }
 
-.tds-ridge path.tds-crest {
-  fill: none;
-  stroke: rgb(255 214 150 / 0.32);
-  stroke-width: 1.4;
-  vector-effect: non-scaling-stroke;
-}
-
-.tds-ridge[data-depth="near"] path.tds-crest {
-  stroke: rgb(200 162 90 / 0.22);
-}
-
 .tds-ridge[data-depth="near"] {
   height: 22vh;
   translate: calc(var(--lx, 0) * -22px) calc(var(--ly, 0) * -10px);
@@ -138,8 +127,8 @@
   left: 0;
   right: 0;
   z-index: 30;
-  height: calc(64px + env(safe-area-inset-top));
-  background: linear-gradient(to bottom, rgb(5 6 15 / 0.94) 40%, rgb(5 6 15 / 0));
+  height: calc(92px + env(safe-area-inset-top));
+  background: linear-gradient(to bottom, rgb(5 6 15 / 0.97) 58%, rgb(5 6 15 / 0));
   pointer-events: none;
 }
 
@@ -285,14 +274,310 @@
   padding: 18px;
 }
 
-/* hitung mundur: kapsul kaca bergaris emas */
+/* ---- Kepala Today, desain baru (audit host 14 Nov: "design + ui masih versi lama") ----
+   Bahasa home: rata tengah, kicker emas berbingkai benang pendek, judul miring besar, hitung mundur sebagai angka
+   besar bertuliskan kecil di bawahnya, boarding pass home yang tergantung di benang emas, tombol kapsul kaca. */
+.td-head {
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.td-head .td-kicker {
+  padding: 0 26px;
+  background:
+    linear-gradient(90deg, rgb(200 162 90 / 0), var(--prada)) left 52% / 18px 1px no-repeat,
+    linear-gradient(90deg, var(--prada), rgb(200 162 90 / 0)) right 52% / 18px 1px no-repeat;
+  font-size: 11.5px;
+  letter-spacing: 0.26em;
+}
+
+/* benang di bawah kicker hanya selebar teksnya */
+.td-head .td-kicker::after {
+  left: 26px;
+  right: 26px;
+}
+
+.td-head .td-title {
+  font-size: clamp(40px, 10.5vw, 64px);
+  text-wrap: balance;
+}
+
+.td-head :is(.td-greeting, .td-sub) {
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+.td-head .td-sun {
+  justify-content: center;
+}
+
+/* hitung mundur: angka besar gading-emas, kalimatnya kecil di bawah */
 .td .today-count {
-  padding: 8px 16px;
-  border-color: var(--hair);
-  background: rgb(12 16 36 / 0.7);
+  justify-self: center;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.td .today-count[data-big] {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: 14px 0 2px;
+  font-family: var(--font-ui);
+  font-style: normal;
+}
+
+.td .tc-n {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(68px, 19vw, 104px);
+  line-height: 0.86;
+  color: #f4e2b4;
+  text-shadow:
+    0 0 32px rgb(255 178 87 / 0.42),
+    0 2px 0 rgb(122 74 38 / 0.55);
+}
+
+.td .tc-n .k-num {
+  min-width: 0;
+  text-align: center;
+}
+
+.td .tc-l {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+/* boarding pass home: tergantung di benang emas di bawah hitung mundur; miring mengikuti arah pandang halaman
+   (kartu sendiri yang memutar, jadi pembungkusnya tidak ikut dimiringkan) */
+.td .td-d {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  margin: 26px 0 4px;
+}
+
+.td .pass-hold {
+  --mx: var(--lx, 0);
+  --my: var(--ly, 0);
+}
+
+.td .td-statusrow {
+  justify-content: center;
+  gap: 12px 22px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ---- The programme, desain baru (audit host 14 Nov: "design masih versi lama") ----
+   Hari = medali bernomor (globals.css .dp-tab); stop = kartu kaca di benang emas, jadi latar (punggung bukit) tidak
+   pernah memotong teks; jam = angka miring gading; label NEXT/NOW = kapsul foil, OPTIONAL = kapsul bergaris tipis;
+   chip makanan = kapsul kaca bermedali kecil. */
+.td .dp-tabs {
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 16px 16px;
+}
+
+@media (min-width: 560px) {
+  .td .dp-tabs {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+}
+
+.td .dp-daylabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.22em;
+}
+
+.td .dp-daylabel::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(200 162 90 / 0), var(--prada));
+}
+
+.td .dp-daytitle {
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(28px, 7vw, 36px);
+}
+
+.td :is(.td-dress, .dp-dress) {
+  padding: 10px 14px;
+  border: 1px solid rgb(200 162 90 / 0.3);
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgb(200 162 90 / 0.12), transparent 70%);
+}
+
+.td .tl {
+  gap: 16px;
+  padding-left: 30px;
+}
+
+.td .tl::before {
+  left: 9px;
+  top: 12px;
+  bottom: 12px;
+  background: linear-gradient(var(--prada), rgb(200 162 90 / 0.14));
+}
+
+.td .tl-stop {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+/* medali kecil di benang: inti berwarna fase (subuh, siang, senja, malam) */
+.td .tl-stop::before {
+  left: -27px;
+  top: 3px;
+  width: 13px;
+  height: 13px;
+  background: radial-gradient(circle, var(--phase) 0 3.5px, #10152f 4.5px);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.07),
-    0 0 24px -6px rgb(255 178 87 / 0.35);
+    inset 0 0 0 1px var(--phase),
+    0 0 0 3px #090c1f,
+    0 0 12px color-mix(in srgb, var(--phase) 60%, transparent);
+}
+
+.td .tl-time {
+  padding: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--phase) 50%, #f4e2b4);
+}
+
+.td .tl-body {
+  padding: 14px 16px 16px;
+  border: 1px solid rgb(200 162 90 / 0.22);
+  border-radius: 20px;
+  background: var(--glass);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 16px 32px -22px rgb(0 0 0 / 0.9);
+}
+
+.td .tl-title {
+  font: 500 19px/1.3 var(--font-display);
+}
+
+.td .tl-stop[data-state="now"] .tl-body {
+  margin: 0;
+  padding: 14px 16px 16px;
+  border-color: rgb(255 178 87 / 0.55);
+  border-radius: 20px;
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgb(255 178 87 / 0.15), transparent 60%),
+    var(--glass);
+  box-shadow:
+    0 0 0 4px rgb(255 178 87 / 0.08),
+    0 18px 36px -20px rgb(0 0 0 / 0.9);
+}
+
+.td .tl-stop[data-state="now"]::before {
+  left: -28px;
+  top: 2px;
+  width: 15px;
+  height: 15px;
+  background: radial-gradient(circle, var(--blencong) 0 4.5px, #10152f 5.5px);
+  box-shadow:
+    inset 0 0 0 1px var(--blencong),
+    0 0 0 3px #090c1f,
+    0 0 16px var(--blencong);
+}
+
+.td .tl-stop[data-state="past"] .tl-body {
+  border-color: rgb(242 235 221 / 0.1);
+  background: rgb(12 16 36 / 0.6);
+  box-shadow: none;
+}
+
+.td .tl-stop[data-state="past"]::before {
+  background: #10152f;
+  box-shadow:
+    inset 0 0 0 1px var(--phase),
+    0 0 0 3px #090c1f;
+}
+
+.td .tl-planb {
+  padding: 10px 12px;
+  border: 1px solid rgb(147 166 255 / 0.3);
+  border-radius: 14px;
+}
+
+.td .tag {
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 9px;
+  border: 1px solid rgb(242 235 221 / 0.26);
+  background: rgb(255 255 255 / 0.03);
+  font: 700 9.5px var(--font-ui);
+  letter-spacing: 0.18em;
+  color: color-mix(in srgb, var(--mori) 72%, transparent);
+}
+
+.td .tag--next {
+  border: 0;
+  background: var(--foil);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.8),
+    0 4px 12px -4px rgb(255 178 87 / 0.55);
+  color: var(--nila);
+}
+
+.td .tag--now {
+  border: 0;
+  background: linear-gradient(180deg, #ffc98a, var(--blencong));
+  box-shadow: 0 0 14px rgb(255 178 87 / 0.6);
+  color: var(--nila);
+}
+
+.td .chips {
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.td .chip {
+  height: 27px;
+  gap: 7px;
+  padding: 0 11px 0 8px;
+  background: rgb(255 255 255 / 0.035);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.td .chip::before {
+  width: 9px;
+  height: 9px;
+  background: radial-gradient(circle, currentColor 0 2px, transparent 2.5px);
+  box-shadow: inset 0 0 0 1.25px currentColor;
+}
+
+.td .chip--banana::before {
+  width: 10px;
+  height: 2px;
+  background: currentColor;
+  box-shadow: none;
 }
 
 /* ---- Before you go: kartu kaca, kunci medali ---- */
@@ -408,8 +693,7 @@
 }
 
 /* utama: foil gading-emas di atas tebal perunggu, kilau menyapu saat disorot dan ditekan */
-.td .pb--gold,
-.td .dp-tab[aria-pressed="true"] {
+.td .pb--gold {
   --edge: #8a6a2e;
   --ink: var(--nila);
   --ring: rgb(255 248 230 / 0.5);
@@ -417,7 +701,7 @@
   --glow: rgb(255 252 240 / 0.8);
 }
 
-.td :is(.pb--gold, .dp-tab[aria-pressed="true"]) .pb-face {
+.td .pb--gold .pb-face {
   background: var(--foil);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.85),
@@ -466,27 +750,6 @@
     transform: translate3d(72%, 0, 0);
     transition: transform 0.95s var(--ease-expo-out);
   }
-}
-
-/* pilihan hari: kartu kecil berlekuk, bukan kapsul (dua baris) */
-.td .dp-tab {
-  --r: 18px;
-}
-
-.td .dp-tab .pb-face {
-  padding: 8px 16px;
-}
-
-.td .rain .pb-face {
-  padding: 0 12px 0 14px;
-}
-
-/* Rain plan menyala: rona hujan */
-.td .rain[aria-pressed="true"] {
-  --face: #2a3470;
-  --face-hi: #3a478f;
-  --edge: #0b1030;
-  --ring: rgb(147 166 255 / 0.55);
 }
 
 /* ---- Dock bantuan: medali ikon di dalam kapsul ---- */

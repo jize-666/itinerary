@@ -3,6 +3,7 @@ import "./home.css";
 import { type CSSProperties, type ReactNode, useLayoutEffect, useRef } from "react";
 import { HOME } from "@/engine/motion/tokens";
 import { BRANCHES, branchPath, KAYON, KAYON_GATE } from "../motion/kayon";
+import { Card } from "../pass/Pass";
 import { useDepth } from "./useDepth";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -135,15 +136,7 @@ export function Hang({ kind, flip, className, children }: { kind: "invite" | "pa
       <div className="hm-swing">
         <span className="hm-thread" aria-hidden="true" />
         <div className="hm-flip" data-flip={flip}>
-          <div className="hm-card">
-            <span className="hm-card-shadow" aria-hidden="true" />
-            <span className="hm-card-back" aria-hidden="true" />
-            <span className="hm-card-base" aria-hidden="true">
-              <i className="hm-sheen" />
-            </span>
-            <span className="hm-eyelet" aria-hidden="true" />
-            <div className="hm-card-body">{children}</div>
-          </div>
+          <Card>{children}</Card>
         </div>
       </div>
     </div>

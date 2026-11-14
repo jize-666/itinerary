@@ -451,6 +451,30 @@ describe("letak gong di layar (gongSpot)", () => {
     }
   });
 
+  it("slide prolog headline di HP tegak: seluruh gayor dan kedua naga di dalam bingkai (audit host 14 Nov \"ke crop\")", () => {
+    const headline = { kind: "headline" } as Parameters<typeof shotFor>[0];
+    for (const aspect of [393 / 852, 390 / 664, 3 / 4]) {
+      const shot = shotFor(headline, { aspect });
+      const xs: number[] = [];
+      for (const side of [-1, 1]) {
+        // mulut naga di atas ujung palang, ekor melingkar paling luar, kaki gayor di lantai
+        for (const p of [
+          [side * 1.3, GONG.barY + 0.45, 0],
+          [side * 1.5, GONG.barY + 0.1, 0],
+          [side * 1.2, 0, 0],
+        ] as const) {
+          const q = projectPoint(shot, aspect, [p[0] * GONG_SCALE, p[1] * GONG_SCALE, p[2]]);
+          expect(q.depth).toBeGreaterThan(0);
+          expect(Math.abs(q.x)).toBeLessThan(0.92);
+          expect(Math.abs(q.y)).toBeLessThan(0.92);
+          xs.push(q.x);
+        }
+      }
+      // seimbang: tepi kiri dan kanan berjarak hampir sama dari tepi layar
+      expect(Math.abs(Math.max(...xs) + Math.min(...xs))).toBeLessThan(0.15);
+    }
+  });
+
   it("bingkai slide gong memuat kedua naga dan ruang untuk semburan apinya, juga saat kamera terhentak dan bergetar", () => {
     // ayunan balik hentakan: kamera maju paling banyak ±0,4 × hentakan, jadi gambar membesar sebanyak itu
     const zoom = 1 + KICK.back * 0.4;

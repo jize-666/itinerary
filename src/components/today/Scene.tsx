@@ -18,8 +18,6 @@ type Var = CSSProperties & Record<`--${string}`, string | number>;
 /** Punggung Lawu (puncak sedikit ke kanan) dan perbukitan di depannya; viewBox 0 0 1600 300, alas di bawah. */
 const RIDGE_FAR = "M0 300V214C140 206 262 186 392 160C512 136 610 98 706 62C770 38 828 24 888 22C946 26 1002 44 1060 70C1160 112 1258 150 1370 172C1462 190 1540 200 1600 206V300Z";
 const RIDGE_NEAR = "M0 300V238C130 212 268 250 430 230C600 210 712 178 880 202C1060 228 1190 186 1370 200C1470 208 1540 226 1600 220V300Z";
-/** Garis punggung saja (tanpa alas): disinari tipis dari belakang supaya siluetnya terbaca di langit malam. */
-const crest = (d: string) => d.replace(/^M0 300V/, "M0 ").replace(/V300Z$/, "");
 
 /** Debu emas: [kiri %, atas %, ukuran px, lama dtk, tunda dtk]. Tetap, supaya server dan klien sama. */
 const DUST: readonly [number, number, number, number, number][] = [
@@ -54,19 +52,20 @@ export function TodayScene({ sky }: { sky: SkyPhase }) {
         <svg viewBox="0 0 1600 300" preserveAspectRatio="none" focusable="false">
           <defs>
             <linearGradient id="tds-ridge-far" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#0a0d28" />
+              {/* puncak sedikit lebih terang dari langit di belakangnya: siluet terbaca tanpa garis bersinar
+                  (audit host 14 Nov: garis punggung menembus tiket, tombol, dan teks) */}
+              <stop offset="0" stopColor="#151a3f" />
+              <stop offset="0.08" stopColor="#0a0d28" />
               <stop offset="0.55" stopColor="#0f1436" />
               <stop offset="1" stopColor="#1c2150" />
             </linearGradient>
           </defs>
           <path d={RIDGE_FAR} />
-          <path className="tds-crest" d={crest(RIDGE_FAR)} />
         </svg>
       </div>
       <div className="tds-l tds-ridge" data-depth="near">
         <svg viewBox="0 0 1600 300" preserveAspectRatio="none" focusable="false">
           <path d={RIDGE_NEAR} />
-          <path className="tds-crest" d={crest(RIDGE_NEAR)} />
         </svg>
       </div>
       <div className="tds-l tds-dust">

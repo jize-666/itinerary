@@ -1,0 +1,326 @@
+/* ================= Kartu tiket (boarding pass) bersama: home, Today, film =================
+   Dipindah dari home.css (audit host 14 Nov: "tiket boarding pass versi lama" di Today). Satu desain kartu untuk
+   semua halaman: alas bertepi emas dengan kertas nila bermotif kawung, sudut berlekuk, bingkai dalam, mata tali
+   kuningan, isi yang melayang di atas alas, kilau yang menyapu saat kartu miring.
+   Variabel --hm-* dipasang home (Scene.tsx, dari src/engine/motion/tokens.ts HOME); di halaman lain dipakai nilai
+   cadangan yang sama. --mx / --my (−1…1) = arah pandang: kursor di home, --lx / --ly di Today. */
+
+.hm-card {
+  --r: 15px;
+  --notch:
+    radial-gradient(circle at 0 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 100% / 51% 51% no-repeat;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--mx, 0) * var(--hm-tilt-y, 7deg))) rotateX(calc(var(--my, 0) * var(--hm-tilt-x, 4.5deg) * -1));
+}
+
+/* bayangan kartu jauh di belakangnya: bergeser lebih banyak daripada kartu saat miring. Lembutnya dari box-shadow
+   (digambar sekali); filter: blur dihitung ulang compositor di tiap frame dan terukur menghabiskan separuh frame. */
+.hm-card-shadow {
+  position: absolute;
+  inset: 16% 12% 2%;
+  border-radius: 60px;
+  background: rgb(0 0 0 / 0.5);
+  box-shadow: 0 0 60px 34px rgb(0 0 0 / 0.5);
+  transform: translateZ(-80px);
+}
+
+/* tebal kartu: satu lapis lagi tepat di belakang alas */
+.hm-card-back {
+  position: absolute;
+  inset: 0;
+  background: #4a3414;
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+  transform: translateZ(-6px);
+}
+
+/* alas kartu: tepi emas 1 px, lalu kertas nila bermotif kawung samar; sudutnya berlekuk seperti tiket */
+.hm-card-base {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ecd39a 0%, #a8823f 34%, #e6ca8c 62%, #8f6c30 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+}
+
+.hm-card-base::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 55%, rgb(200 162 90 / 0.055) 56% 59%, transparent 60%) 0 0 / 44px 44px,
+    radial-gradient(circle at 50% 50%, transparent 0 55%, rgb(200 162 90 / 0.055) 56% 59%, transparent 60%) 22px 22px / 44px 44px,
+    radial-gradient(120% 84% at 50% 0%, #1c2452 0%, #11152f 54%, #0b0e22 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+}
+
+/* bingkai dalam */
+.hm-card-base::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgb(200 162 90 / 0.26);
+  border-radius: 3px;
+}
+
+/* kilau yang menyapu kertas saat kartu miring */
+.hm-sheen {
+  position: absolute;
+  inset: -20% -70%;
+  z-index: 1;
+  background: linear-gradient(112deg, transparent 43%, rgb(255 241 210 / 0.1) 50%, transparent 57%);
+  transform: translate3d(calc(var(--mx, 0) * 20%), 0, 0);
+}
+
+.hm-eyelet {
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
+  border-radius: 50%;
+  background: #05060d;
+  box-shadow:
+    0 0 0 1.5px var(--prada),
+    0 0 0 3px rgb(200 162 90 / 0.2);
+  transform: translateZ(2px);
+}
+
+/* isi kartu melayang di atas alas; skalanya dikoreksi supaya huruf tetap tajam saat kartu menghadap lurus */
+.hm-card-body {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: translateZ(var(--hm-lift, 22px)) scale(var(--hm-lift-scale, 0.98));
+}
+
+.hm-pass {
+  position: relative;
+  display: grid;
+  text-align: left;
+  color: var(--mori);
+}
+
+.hm-pass-main {
+  padding: 34px 24px 18px;
+}
+
+.hm-pass-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(200 162 90 / 0.3);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.hm-pass-label,
+.hm-pass-grid dt {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--prada);
+}
+
+.hm-pass-label {
+  margin-top: 16px;
+}
+
+.hm-pass-name {
+  margin: 3px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(26px, 6.6vw, 36px);
+  line-height: 1.1;
+}
+
+.hm-pass-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(22px, 5.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.hm-pass-route li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hm-pass-route li + li::before {
+  content: "";
+  width: clamp(16px, 5vw, 34px);
+  border-top: 2px dotted rgb(200 162 90 / 0.75);
+}
+
+.hm-pass-route li:last-child {
+  color: var(--prada);
+}
+
+.hm-pass-stub {
+  display: grid;
+  gap: 14px;
+  padding: 16px 24px 22px;
+  border-top: 1px dashed rgb(200 162 90 / 0.42);
+}
+
+.hm-pass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  justify-content: space-between;
+  gap: 12px 14px;
+  margin: 0;
+}
+
+.hm-pass-grid dd {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hm-pass-grid .hm-pass-foil {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--prada);
+}
+
+.hm-pass-bars {
+  height: 24px;
+  width: min(210px, 100%);
+  opacity: 0.86;
+  background: repeating-linear-gradient(90deg, var(--prada) 0 2px, transparent 2px 5px, var(--prada) 5px 6px, transparent 6px 9px, var(--prada) 9px 12px, transparent 12px 14px, var(--prada) 14px 15px, transparent 15px 19px);
+}
+
+/* cap "Admitted": jatuh dari depan ke kartu saat lakon dimulai, di sisi kanan nama */
+.hm-pass-stamp {
+  position: absolute;
+  right: 6%;
+  top: 27%;
+  opacity: 0;
+  transform: translateZ(var(--hm-lift-foil, 40px)) scale(var(--hm-foil-scale, 0.9636)) rotate(-11deg);
+}
+
+.hm-pass-stamp span {
+  display: block;
+  padding: 7px 14px;
+  border: 2px solid currentColor;
+  border-radius: 9px;
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+  color: var(--blencong);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+
+/* ---- Kartu lebar: pass mendatar dengan sobekan di kanan (lebar kartu, bukan lebar layar) ---- */
+.hm-hang[data-kind="pass"],
+.pass-hold {
+  container-type: inline-size;
+}
+
+@container (min-width: 560px) {
+  .hm-pass {
+    grid-template-columns: minmax(0, 1fr) 204px;
+  }
+
+  .hm-pass-main {
+    padding: 36px 30px 28px;
+  }
+
+  .hm-pass-stub {
+    align-content: space-between;
+    padding: 36px 26px 28px;
+    border-top: 0;
+    border-left: 1px dashed rgb(200 162 90 / 0.42);
+  }
+
+  .hm-pass-grid {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
+  .hm-pass-stamp {
+    right: 37%;
+    top: 31%;
+  }
+}
+
+/* ---- Kartu tanpa benang panjang (Today, film): tergantung di benang pendek, berayun masuk sekali ---- */
+.pass-hold {
+  position: relative;
+  width: min(var(--card-w, 612px), 100%);
+  perspective: var(--hm-perspective, 1100px);
+}
+
+.pass-swing {
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: 50% -40vh;
+  animation: pass-swing 2.2s var(--ease-expo-out) var(--d, 0ms) both;
+}
+
+.pass-thread {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 17px);
+  width: 1px;
+  height: var(--thread, 44px);
+  margin-left: -0.5px;
+  background: linear-gradient(to top, var(--prada), rgb(200 162 90 / 0));
+}
+
+@keyframes pass-swing {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -26px, 0) rotate(3.2deg);
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    transform: rotate(-1.4deg);
+  }
+  78% {
+    transform: rotate(0.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pass-swing {
+    animation: none;
+  }
+
+  .pass-hold .hm-card {
+    transform: none;
+  }
+
+  .pass-hold .hm-sheen {
+    transform: none;
+  }
+}

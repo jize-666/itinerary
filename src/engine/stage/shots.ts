@@ -117,6 +117,8 @@ export const galleryShot = (drift: number, frame: Frame): Shot =>
 
 /** Lebar gayor gong beserta naga di kedua ujungnya: yang harus muat di layar pada shot gong. */
 const GONG_WIDTH = 3.5;
+/** Shot headline di layar tegak: titik pandang digeser ke kanan paling jauh sekian m, ke arah naga yang lebih dekat. */
+const HEADLINE_SHIFT = 0.4;
 
 /**
  * Bentuk layar. `horizon` = letak cakrawala di gallery, −1 = tepi atas … 0 = tengah … 1 = tepi bawah layar:
@@ -148,7 +150,13 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
     case "hero":
       return orbitShot({ az: 0, el: -2, r: 7.4, look: [0, 1.62, 0], fov: 34, lamp: 1.25, width: GONG_WIDTH }, aspect);
     case "headline":
-      return orbitShot({ az: 32, el: 2, r: 5.6, fov: 36, lamp: 1.1, dim: 0.08, width: GONG_WIDTH * 0.8 }, aspect);
+      // layar tegak (audit host 14 Nov "ke crop"): dari sudut 32° naga kanan lebih dekat ke kamera dan keluar layar.
+      // Kamera mundur sampai seluruh gayor dan kedua naga muat, dan titik pandang digeser ke kanan supaya seimbang.
+      // Layar lebar tidak berubah (jarak 5,6 m sudah lebih jauh dari yang dibutuhkan lebar itu).
+      return orbitShot(
+        { az: 32, el: 2, r: 5.6, look: [HEADLINE_SHIFT * clamp((1.2 - aspect) / 0.75, 0, 1), STAGE_CENTER[1], 0], fov: 36, lamp: 1.1, dim: 0.08, width: GONG_WIDTH * 1.15 },
+        aspect,
+      );
     case "intro":
       return orbitShot({ az: -22, el: 8, r: 9.5, look: [0, 1.4, 0], fov: 38, lamp: 0.9, dim: 0.1, width: 6 }, aspect);
     case "fact": {

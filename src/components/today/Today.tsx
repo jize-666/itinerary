@@ -11,7 +11,7 @@ import { InstallGuide } from "../InstallGuide";
 import { Benang, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
 import { lookMoving, startLook, stepLook } from "../film/look";
 import { CurtainLink, useCurtainOpen } from "../motion/Curtain";
-import { Ticket } from "../Ticket";
+import { HangingPass } from "../pass/Pass";
 import { useRequireSession } from "../useRequireSession";
 import { BeforeYouGo } from "./BeforeYouGo";
 import { DayPlan } from "./DayPlan";
@@ -165,11 +165,11 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
           </button>
         )}
       </p>
-      <CurtainLink className="pb pb--glass pb--sm today-film" href="/film/">
-        <span className="pb-face">
-          <IconPlay />
-          <span>{t("today.toFilm")}</span>
+      <CurtainLink className="hb hb--glass today-film" data-press="" href="/film/">
+        <span className="hb-ring" aria-hidden="true">
+          <IconPlay size={14} />
         </span>
+        <span>{t("today.toFilm")}</span>
       </CurtainLink>
     </div>
   );
@@ -200,7 +200,7 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
             {greeting && <Gamelan as="p" className="td-greeting" text={greeting} delay={900} />}
             <Countdown days={s.daysToStart} />
             <div className="td-d">
-              <Ticket data={data} delay={1300} />
+              <HangingPass data={data} delay={1300} />
             </div>
           </>
         ) : (
@@ -210,7 +210,7 @@ function TodayView({ data, savedAt, stale, onRefresh }: { data: TripView; savedA
             {trip.epilogue && <p className="td-sub">{tx(trip.epilogue.body)}</p>}
             {greeting && <Gamelan as="p" className="td-greeting" text={greeting} delay={900} />}
             <div className="td-d">
-              <Ticket data={data} delay={1200} />
+              <HangingPass data={data} delay={1200} />
             </div>
           </>
         )}
@@ -245,12 +245,15 @@ function Countdown({ days }: { days: number }) {
   const { t } = useI18n();
   if (days < 0) return null;
   if (days <= 1) return <p className="today-count">{t(days === 1 ? "today.tomorrow" : "today.today")}</p>;
+  // angka besar di atas, sisa kalimatnya di bawah (teks utuhnya tetap satu kalimat untuk screen reader dan salin)
   const [before, after] = t("today.countdown", { n: "\u0000" }).split("\u0000");
   return (
-    <p className="today-count">
-      {before}
-      <CountUp value={days} delay={700} />
-      {after}
+    <p className="today-count" data-big="">
+      {before && <span className="tc-l">{before}</span>}
+      <span className="tc-n">
+        <CountUp value={days} delay={700} />
+      </span>
+      <span className="tc-l">{after}</span>
     </p>
   );
 }

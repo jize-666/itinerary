@@ -13,7 +13,7 @@ import { IconChat, IconClose, IconGong, IconHomeAdd, IconToday } from "../Icons"
 import { InstallGuide } from "../InstallGuide";
 import { CurtainLink } from "../motion/Curtain";
 import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
-import { Ticket } from "../Ticket";
+import { HangingPass } from "../pass/Pass";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
 const d = (ms: number): Var => ({ "--d": `${ms}ms` });
@@ -411,7 +411,7 @@ function Pass({ data }: Ctx) {
   const message = data.role === "team" ? t("today.waTeam") : short ? t("today.waGuest", { name: short }) : t("today.waGuestNoName");
   return (
     <div className="fl-body fl-body--center fs-pass">
-      <Ticket data={data} compact delay={200} />
+      <HangingPass data={data} delay={200} width={560} thread={30} className="fs-ticket" />
       <div className="fs-actions f-rise" style={d(700)}>
         <CurtainLink className="pb pb--gold pb--kawung pb--lg" data-haptic="" href="/today/">
           <span className="pb-face">

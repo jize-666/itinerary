@@ -1,7 +1,9 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { installPrompt, isStandalone } from "@/lib/pwa";
+import { isCapsulePage } from "./LangToggle";
 import { Seg } from "./Seg";
 
 type Os = "ios" | "android";
@@ -29,6 +31,8 @@ export function InstallGuide({ onDismiss }: { onDismiss?: () => void } = {}) {
   const prompt = useSyncExternalStore(installPrompt.subscribe, installPrompt.get, installPrompt.getServer);
   const [hidden, setHidden] = useState(() => isStandalone() || dismissed());
   const [os, setOs] = useState<Os>(detectOs);
+  // Today memakai kapsul bergaris seperti home (desain baru); film tetap sakelar pahat
+  const capsule = isCapsulePage(usePathname());
   if (hidden) return null;
   const later = () => {
     setHidden(true);
@@ -59,6 +63,7 @@ export function InstallGuide({ onDismiss }: { onDismiss?: () => void } = {}) {
           <>
             <Seg
               className="ig-tabs"
+              variant={capsule ? "line" : "carved"}
               label={t("install.add")}
               value={os}
               onChange={setOs}

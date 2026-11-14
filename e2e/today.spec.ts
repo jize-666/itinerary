@@ -255,3 +255,58 @@ test.describe("Today 2,5D (permintaan host 14 Nov): latar berlapis, gerak pandan
     expect((await matrixOf(page, ".tds-ridge[data-depth='near']")).identity).toBe(true);
   });
 });
+
+test.describe("Today desain baru (audit host 14 Nov: \"design + ui masih versi lama\")", () => {
+  test("atas: boarding pass home tergantung di benang, hitung mundur angka besar, tombol film kapsul, tanpa garis punggung bukit", async ({ page }) => {
+    await openToday(page, "2027-03-28T09:00:00");
+    // tiket lama diganti kartu home (alas kawung bertepi emas, mata tali, isi melayang)
+    const pass = page.getByRole("article", { name: /Boarding pass: Mira Santoso/ });
+    await expect(pass).toBeVisible();
+    await expect(page.locator(".pass-hold .hm-card .hm-card-base")).toHaveCount(1);
+    await expect(page.locator(".pass-hold .pass-thread")).toHaveCount(1);
+    await expect(page.locator(".ticket")).toHaveCount(0);
+    // hitung mundur: angka besar dan kalimat kecil, tetap satu kalimat utuh
+    await expect(page.locator(".today-count .tc-n")).toHaveText("10");
+    expect(await page.locator(".today-count .tc-n").evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThan(60);
+    // tombol film: kapsul .hb tanpa tebal, medali ikon
+    const film = page.getByRole("link", { name: "Watch the film" });
+    await expect(film).toHaveClass(/\bhb\b/);
+    await expect(film.locator(".hb-ring")).toHaveCount(1);
+    // garis punggung bukit yang bersinar dicabut (menembus tiket, tombol, dan teks)
+    await expect(page.locator(".tds-crest")).toHaveCount(0);
+  });
+
+  test("The programme: hari = medali bernomor, stop = kartu kaca, label kapsul, Rain plan kapsul", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    const day1 = page.getByRole("button", { name: /Day 1/ });
+    await expect(day1.locator(".dp-medal")).toHaveText("1");
+    await expect(day1).toHaveAttribute("aria-pressed", "true");
+    // dipilih: medali gading (latar terang), tanggal tetap terbaca (bukan warna nila di atas langit malam)
+    const medalBg = await day1.locator(".dp-medal").evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(medalBg).toContain("radial-gradient");
+    const dateColor = await day1.locator(".dp-tabd").evaluate((el) => getComputedStyle(el).color);
+    expect(dateColor).not.toBe("rgb(10, 12, 24)");
+    // isi stop di kartu: latar tidak transparan, jadi latar belakang tidak memotong teks
+    const body = page.locator(".tl-stop", { hasText: "Cloth market" }).locator(".tl-body");
+    expect(await body.evaluate((el) => getComputedStyle(el).backgroundImage)).toContain("gradient");
+    expect(await body.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBeGreaterThanOrEqual(16);
+    // label NOW/NEXT kapsul foil
+    expect(await page.locator(".tag--now").first().evaluate((el) => getComputedStyle(el).backgroundImage)).toContain("gradient");
+    // Rain plan: kapsul .hb (tanpa tebal) dan tetap sakelar
+    const rain = page.getByRole("button", { name: "Rain plan" });
+    await expect(rain).toHaveClass(/\bhb\b/);
+    await rain.click();
+    await expect(rain).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("tepi atas: isi yang digulir tertutup di bawah sakelar bahasa, tidak bertumpuk", async ({ page }) => {
+    await openToday(page, "2027-04-08T10:45:00");
+    const toggle = (await page.locator(".lang-toggle").boundingBox())!;
+    const scrim = await page.locator("main.td").evaluate((el) => {
+      const cs = getComputedStyle(el, "::before");
+      return { h: parseFloat(cs.height), pos: cs.position };
+    });
+    expect(scrim.pos).toBe("fixed");
+    expect(scrim.h).toBeGreaterThan(toggle.y + toggle.height + 16);
+  });
+});
