@@ -1,9 +1,209 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 siang (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #9) · **Audit host 1–5 selesai: 12 butir dicentang dengan bukti tes, satu commit per audit, video dikirim; satu PR (lihat bagian 0, paling atas).** Sebelumnya: Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D di PR #9.
+Diperbarui 14 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #11) · **Tugas 7b selesai (perintah host "kerjakan tugas 7B"): gong ditabuh di slide judul hari dan hero prolog, gallery 3D dengan letak Z dan depth of field. Ada di PR #12 bersama catatan uji iPhone; menunggu tinjauan host atas video (lihat bagian 0, paling atas).** Sebelumnya: uji host di iPhone produksi diterima ("fps aman, ga berat. done"), Audit host 1–5 (PR #10), tier High iPhone bertahan (PR #11).
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Permintaan host 15 Nov ±00.30 WIB: maskot 3D pemandu (coral assistant) — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata** (dengan `coral-assistant.zip`: GLB 1.492 segitiga dengan 20 klip, `.blend`, runtime R3F, `behavior.ts`, pratinjau ekspresi; disimpan di scratchpad, tidak di repo):
+"ini wujud baru mu di website itinerary, peranmu sebagai pemandu, memberi tahu fitur fitur 3D sambil mengampiri objek 3D nya, menyapa client, menjelaskan alur, etc. / assistant responsive ketika di click, bisa menyapa atau marah ketika di spam click, mengantuk ketika diam terlalu lama, happy ketika di click beberapa kali. / chat ui 💬 ala ala pixel, maincraft. / tugasmu; 1. upgrade design 3D ini (tidak perlu sesuai konsep itinerary) buat menjadi lebih berekspresi, interactive, lebih lucu, design ulang sesuai keinginanmu. 2. sambungkan ke website itinerary".
+
+**Tafsir Claude (belum ditegaskan host):**
+- [ ] **Rupa baru** (bebas dari konsep itinerary): tetap makhluk balok koral, tetapi dibangun ulang di three.js, bukan GLB kaku. Blender tidak ada di sesi, dan rupa dari kode memberi ekspresi yang lebih hidup:
+  - wajah digambar shader (mata berkilau yang berkedip, mengikuti kursor, dan berubah bentuk dengan mulus; alis; pipi merah; mulut kecil);
+  - badan memantul (squash & stretch); lengan dan kaki berayun;
+  - partikel emosi: zzz, hati/kilau, uap marah, keringat, tanda seru.
+  - Hemat: sedikit draw call, sedikit segitiga.
+- [ ] **Perilaku:**
+  - Klik sekali: menyapa/penasaran.
+  - Klik beberapa kali pelan: senang.
+  - Spam klik: marah, lalu dingin kembali.
+  - Diam lama: mengantuk, lalu tidur; aktivitas membangunkan.
+  - Logika diambil dari `behavior.ts` di zip, disesuaikan dan dites unit.
+- [ ] **Chat 💬 gaya piksel** (Minecraft-ish): gelembung bertepi piksel bertangga, huruf piksel, teks muncul huruf demi huruf, EN/ID. Diumumkan sekali lewat `aria-live`.
+- [ ] **Pemandu di film 3D:**
+  - Menyapa tamu dengan nama saat film dibuka.
+  - Menjelaskan alur (prolog → hari → gallery → gong → epilog).
+  - Terbang menghampiri objek 3D dan menjelaskan fiturnya: gunungan (cabut, balik muka), gong (tabuh, zoom, kitar ±90°), gallery (geser, letak Z, depth of field).
+  - Bisa diklik lewat tombol DOM yang mengikuti letaknya di layar (aksesibel).
+- [ ] **Film 2,5D** (tanpa WebGL): versi piksel 2D dengan chat dan perilaku yang sama.
+- Home dan Today belum: home sengaja tidak memuat three (dijaga e2e). Ditanyakan ke host sesudah film selesai.
+- PR: di branch yang sama (`claude/gallant-hopper-1jlpo0`). Bila PR #12 sudah di-merge, maskot jadi PR berikutnya; tidak ada PR baru yang dibuat tanpa arahan host ("jangan dibuat dulu").
+- Tahapan dengan output tiap tahap: (M1) rupa + ekspresi, pratinjau gambar/video; (M2) perilaku + chat piksel; (M3) pemandu di film 3D; (M4) versi 2,5D; lalu tes penuh, video HP + desktop, `HANDOFF.md`, `CLAUDE.md`.
+
+**Arahan host selama M1 (15 Nov), kata demi kata, urut:**
+1. "three js cukup? ga pake framer? webgl?". Dijawab: three.js sudah WebGL dan sudah dipakai panggung film; maskot digambar di kanvas yang sama. Framer Motion hanya untuk animasi HTML dan tidak perlu.
+2. "ada preview foto maskot nya?"
+3. "kaki nya kok dua doang, ga kaya maskot claude"
+4. "bentukan nya, samain kaya maskot claude"
+5. "kurang, tiru preferensi yang di zip aja, samain persis bentukan nya"
+6. Foto boneka maskot Claude (dua foto: netral dan senang): "ini lebih lucu, bisa jadi acuan preferensi". **Ini acuan rupa yang berlaku.**
+7. "update handoff dan preview kalo dah jadi".
+
+**M1 (rupa + ekspresi) — rupa sesuai foto acuan, pratinjau dikirim:**
+- [x] **Badan:** kubus montok (1 × 1,08 × 0,94), sudut membulat besar, terakota doff.
+- [x] **Wajah tanpa mulut:** mata hitam kecil mengilap agak di bawah tengah, alis pendek tebal melengkung, pipi bulat merah muda (tampak juga saat netral).
+- [x] **Lengan dan kaki:** lengan pendek di bagian bawah samping; empat kaki kotak pendek berjajar di bawah bagian depan. Semuanya tampak dari depan, tidak seperti versi zip yang dua kakinya tersembunyi di belakang.
+- [x] **Delapan ekspresi** (skala mata dan alis dari `face_pose` paket zip, ditambah "sayang"): netral, penasaran, senang (^ ^), sayang (mata hati), marah (badan memerah), mengantuk, tidur, terkejut. Peralihannya halus; ada kedip acak dan lirikan.
+- [x] **Gerak prosedural** (`engine/mascot/pose.ts`): melayang, menyapa, terbang, menunjuk, loncat girang, menghentak marah, tidur bernapas, menggeliat, terlonjak; plus squash & stretch berpegas.
+- [x] **Partikel emosi:** zzz, hati, kilau, tanda marah 💢, uap, keringat, "!" dan "?".
+- **Beban:** 3 draw call (badan + wajah shader, lengan/kaki instancing, partikel).
+- **Berkas:** `src/engine/mascot/{face,pose,behavior,journey}.ts`, `src/components/film/stage3d/mascot.ts`. Belum disambungkan ke film; tidak ada perubahan yang terlihat tamu.
+- **Tes:** `tests/unit/mascot.test.ts` 14 lulus (perilaku dari tes zip + sayang; perjalanan; wajah; kedip; pose berhingga). Uji keamanan shader lulus.
+  - Tes perilaku menemukan satu bug: ucapan reaksi (marah, sayang) tertahan jeda 4 dtk sejak ucapan sebelumnya. Sudah diperbaiki: reaksi selalu diucapkan.
+- **Pratinjau:** lembar delapan ekspresi dari sudut tiga perempat, dengan cahaya panggung malam, dirender lewat halaman uji di scratchpad (esbuild + `StagePost`; tidak di repo).
+- **Langkah berikutnya (DITAHAN):** M2 (chat piksel + perilaku tersambung ke klik), M3 (pemandu di film 3D), M4 (versi 2,5D), lalu tes penuh dan video.
+
+**Masukan host atas pratinjau M1 (15 Nov), kata demi kata:** "kotak bgt jir, tunggu stop dulu bentukan maskotnya".
+- Artinya: rupa sekarang terlalu kotak, dan pekerjaan rupa maskot **dihentikan dulu sampai host memberi arahan**.
+- Seluruh pekerjaan maskot (rupa, M2–M4) tidak dilanjutkan sampai ada arahan. Kode M1 sudah di-commit tetapi belum disambungkan ke film, jadi tidak terlihat tamu.
+- Bila dilanjutkan, arah yang mungkin (menunggu pilihan host): badan lebih membulat seperti bantal/mochi, sudut jauh lebih bulat, atau sisi sedikit menggembung.
+
+### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
+
+**Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
+- [x] **7b.1 Dua tahap di slide judul hari dan hero prolog** (`engine/slides/beat.ts`, `director.ts`):
+  - Langkah maju pertama: teks keluar dan gong ditabuh, slide tidak pindah. Langkah berikutnya baru pindah ke `dayintro` (atau headline di prolog).
+  - Mundur saat teks sudah keluar: teks kembali tanpa pukulan.
+  - Tiba dari arah mana pun selalu mulai dengan teks tampil.
+  - Di hero, gunungan pembuka didahulukan; mundur mengembalikan teks dulu, baru langkah mundur berikutnya menancapkan gunungan.
+  - Geser jari yang dipakai tahap tidak menyeret slide.
+  - Calm mode tetap punya tahapnya.
+- [x] **7b.2 Animasi teks keluar** (`TitleStrike.tsx`, `film.css`):
+  - Huruf judul menyala emas, terangkat sedikit, lalu tersedot berputar ke pencu gong bersama debu emas (paling banyak 48 butir) dan pendar di pencu.
+  - Kicker dan nama tamu ikut tersedot.
+  - Mundur: huruf keluar lagi dari gong ke tempatnya.
+  - Hanya `transform`/`opacity`; film 2,5D memakai cakram gong CSS, yang kini juga ada di judul hari.
+- [x] **7b.3 Pukulan di judul** (`createStrikes(t, kick)`, `stageBus.strikeGong({ kick: false })`):
+  - Efek sama dengan gong penutup hari (bunyi, kilatan, bara, riak, bunga api, napas api naga), tanpa hentakan kamera.
+  - Hantaman jatuh tepat saat huruf terakhir masuk (0,92 dtk).
+  - Gong penutup hari tidak berubah.
+- [x] **7b.4 Gallery 3D**:
+  - **Letak Z:** kamera bergeser ±1 m per panel (`VISTA.travel` 7,2 m) sambil memandang ulang ke tengah. Tanah dekat bergeser searah rel kartu, dataran hampir diam, Lawu sedikit berlawanan.
+  - **Depth of field** (tier High saja, `TIER.dof`): saat diam fokus dekat (12 m, bidang kartu), jadi lanskap di belakang kartu lembut. Selama geseran fokus ditarik ke dataran (90 m) mengikuti gulir atau jari, lalu kembali.
+  - Jarak diambil dari pass kedalaman 1/16 piksel yang hanya menggambar tanah, jadi depth MSAA tetap tidak di-resolve. Di luar gallery semua pass DOF dilewati.
+  - Kedalaman ikut gulir, perspective shift, dan kamera parallax sudah ada sejak 13 Nov.
+
+**Hasil tes:**
+- Lint dan typecheck bersih; `pnpm test` 354/354 (11 tes unit baru: `beat.test.ts`, pukulan tanpa hentakan, bus, letak Z, fokus DOF); `pnpm content:check` OK; `pnpm build` OK.
+- e2e penuh (`pnpm test:e2e`): **266 lulus, 24 dilewati (khusus perangkat), 0 gagal** (11,6 menit).
+- Tes e2e baru:
+  - film 2,5D: judul hari, mundur, hero, Calm, geser jari;
+  - bunyi gong di hero;
+  - 3D: gong judul tanpa hentakan, kamera diam;
+  - DOF: digambar di gallery High, tepi tajam tanah turun 72%, fokus ditarik selama geseran, mati di Medium/Low.
+- Tes lama yang mengandaikan "langkah pertama di hero = pindah slide" disesuaikan lewat helper `release`.
+
+**Kendala:**
+- Beban DOF diukur di renderer perangkat lunak: +16% waktu frame (313 → 364 ms), hanya di gallery dengan tier High. fps di iPhone belum terukur. Bila tersendat lama, pengatur menurunkan satu anak tangga dan DOF otomatis mati.
+- Api naga saat gong judul ditabuh sebagian keluar bingkai atas (shot judul lebih dekat dari shot gong penutup); kamera sengaja tidak diubah sesuai arahan "kamera masih berada di tempatnya".
+
+**Pratinjau (dikirim ke host 14 Nov malam):** video tur `judul` (`record-film.cjs`, data April, tier High). Isinya: judul Hari 1 ditabuh, mundur, ditabuh lagi, intro hari, gallery dengan letak Z dan DOF (di HP satu geser jari ditahan di tengah), lalu tahap gong hero.
+- Desktop: 1920×1080, 47 dtk.
+- iPhone: 1080 px, 44 dtk.
+- Di kedua video api naga masih tampak di dalam bingkai saat gong judul ditabuh.
+
+**Pertanyaan host sesudah video desktop, kata demi kata:** "itu previews pas gong, bisa di zoom in/out? kemera bisa pindah haluan ke kanan dan kiri?". Jawaban Claude:
+- **Zoom:** baru ada di slide gong penutup hari (cubit, Ctrl+roda, tombol +/−, dua tahap gulir); belum di judul hari dan hero.
+- **Kamera:** baru parallax kecil (±0,42 m, ±3–4°), belum bisa mengitari gong.
+
+Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengitari gong dengan seret mouse atau geser jari ke kiri/kanan (misalnya ±60° atau ±90°), kembali pelan ke depan saat dilepas. Seret mendatar di luar gallery sekarang tidak dipakai, jadi tidak bentrok. **Jawaban host, kata demi kata: "dua dua nya, 90derajat".** Artinya:
+- [x] **Zoom di slide judul hari dan hero prolog:** sama dengan gong penutup (cubit, Ctrl+roda, tombol +/−). Dua tahap gulir tetap hanya di gong penutup, karena langkah maju pertama di judul menabuh gong. Teks judul memudar saat gong didekati.
+- [x] **Kamera mengitari gong ±90°** di slide judul hari, hero, dan gong penutup:
+  - Seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan. Seperti meja putar: seret ke kanan = kamera ke kiri. ±90° tercapai dengan seret 60% layar.
+  - Kamera kembali pelan ke depan saat dilepas.
+  - Teks memudar saat gong dikitari, dan huruf yang tersedot mengikuti letak gong yang sedang tampil.
+  - Klik tanpa seret tetap klik; seret yang dilepas di atas tombol pukul bukan pukulan.
+  - Rincian: `docs/design/decisions.md` bagian "Zoom dan kamera mengitari gong ±90°".
+- **Tes:** 5 tes unit baru (`orbitFromDrag`, bus zoom/kitar), 5 e2e baru (seret mouse ±90° di judul, zoom judul, trackpad di hero, gong penutup, geser jari di HP). Tangkapan layar tier High dicek: −45°, −75°, +63°, kembali 0°, zoom.
+
+**Permintaan host 14 Nov ±00.25 WIB (dengan tangkapan CI merah PR #12, run #188, langkah e2e), kata demi kata:** "ini pr yang sebelumnya, belum gw merge kayaknya", lalu "gabung pr sebelumnya dan sekarang. jangan dibuat dulu tapi". Tafsir Claude: pekerjaan zoom dan kitar tidak dibuatkan PR baru; ia masuk ke PR #12 yang sama (satu branch), dan tidak ada PR baru yang dibuat.
+
+**CI merah PR #12: dua tes yang lulus di sesi tetapi gagal di runner CI (tanpa GPU, lebih lambat):**
+- *"selama geseran di gallery fokus ditarik"*: di CI satu frame tier High lebih lama dari seluruh geseran (±0,6 dtk), jadi tidak ada frame di tengah geseran. Perbaikan tes: geseran diperlambat 20× lewat laju Web Animations (CDP), cara yang sama dengan perekam pratinjau. Pemeriksaannya tidak diubah.
+- *"judul hari: sentakan ke atas menabuh gong"* (iPhone, film 2,5D): di CI event jari datang lambat, jadi geser 160 ms terbaca > 320 ms dan bukan sentakan. Ini juga celah UX nyata: di slide yang tidak men-scrub (judul hari, gong penutup, Calm), tarikan pelan tapi panjang tidak melakukan apa-apa. **Perbaikan produk:** tarikan sepanjang ≥ 18% layar (paling sedikit 80 px) di slide tanpa scrub = satu langkah, berapa pun lamanya (`TouchTracker.reach`, `longDragPx`). Ditambah tes unit dan e2e "tarikan pelan tapi panjang juga menabuh gong".
+- Plus satu tes kitar gong penutup yang kehabisan waktu di bawah beban (gerak mouse lebih sedikit, `test.slow()`).
+- **Dicek dengan kondisi CI** (`CI=1`, 2 inti CPU, tanpa ulang): tes 3D DOF, kitar, dan gong judul 9 lulus; tes film geser jari dan tahap gong 16 lulus.
+- **Tes penuh sesudah perbaikan:** lint, typecheck bersih; `pnpm test` 359/359; `pnpm build` OK; `pnpm test:e2e` **272 lulus, 30 dilewati, 0 gagal** (12,2 menit).
+- **CI GitHub hijau** di semua run sesudah perbaikan (#192–#197, push dan pull_request), termasuk commit maskot M1.
+- **Pratinjau zoom dan kitar** (tur `kitar`, data April, tier High), dikirim ke host:
+  - Desktop: 48 dtk, 95% frame unik.
+  - iPhone: 45 dtk, 97% frame unik; geser jari dan cubit zoom. Saat gong penutup dikitari, tiang pendapa sesaat lewat di depan kamera (kamera berada di dalam pendapa).
+- **Langkah berikutnya:**
+  - Host meninjau video dan PR #12 (siap Squash and merge, CI hijau).
+  - Cek di iPhone produksi: kitar, zoom, dan fps gallery dengan DOF.
+  - Tugas 8 dan maskot menunggu arahan host.
+
+**Langkah berikutnya:**
+- Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
+  - tahap gong di judul hari dan hero;
+  - fps di gallery dengan DOF (tertulis `high ×1 (paksa)`).
+- Tugas 8 (benang emas, siklus waktu 3D, post-FX, partikel) hanya dengan arahan host. Rupa benang emas dikirim dulu sebagai gambar diam.
+
+### Rencana sesudah PR #11 (14 Nov malam, atas pertanyaan host "apa planningmu habis ini, catat di handoff.md")
+
+PR #11 (tier High iPhone bertahan + catatan gong judul hari) di-merge host 14 Nov 10.51 UTC (squash `c5e8eeb`). Branch kerja dibuat ulang dari `main`. Urutan mengikuti daftar tugas di `CLAUDE.md`; tidak ada yang dimulai tanpa arahan host.
+
+**Langkah 0: uji host di iPhone produksi. ✅ Selesai 14 Nov 19.11 WIB, diterima host.** Kata host, kata demi kata: **"fps aman, ga berat. done"**, dengan dua tangkapan `/film/?fps` (iPhone, 4G; tidak disimpan di repo):
+- Slide intro prolog ("For three days the city is yours…"): `53 fps · avg 42 · 0.5 ms`, `high ×1 (paksa) · 23 draw · 52k tri`.
+- Slide gong penutup Hari 1 ("End of Day 1 / Tomorrow / Mist of Lawu"), gong menyala sesudah dipukul: `40 fps · avg 40 · 0.5 ms`, `high ×1 (paksa) · 24 draw · 52k tri`.
+
+Hasil yang terbaca:
+- Tier High bertahan di kedua slide (`(paksa)`, bukan `(paksa, turun: …)`). Perbaikan PR #11 terkonfirmasi.
+- Segi delapan hitam tidak terlihat di blencong, baik di intro prolog maupun di slide gong. Gerbang gunungan dan credits tidak ada di tangkapan, tetapi host menyatakan "done".
+- fps: fase gong 40 (sebelum Audit 4: 30); intro prolog rata-rata 42 (sebelumnya 37–48). CPU 0,5 ms per frame, jadi bebannya tetap di GPU.
+- **Keputusan host: fps cukup.** "Cadangan fps" di bawah tidak dikerjakan dan tetap tersimpan sebagai pilihan bila suatu saat diperlukan.
+
+**Pertanyaan host 14 Nov 19.12 WIB (tangkapan Today di iPhone produksi, sebelum trip), kata demi kata:** "ini font doang yang berubah? ui? button?". Dijawab dengan perbandingan berdampingan di iPhone 14 Pro (data April; kiri `d785e65`, versi sebelum PR #9; kanan `main`), dikirim ke host, tidak disimpan di repo:
+- **Font tidak diganti:** jenis hurufnya sama. Yang berubah, beberapa teks pindah ke huruf judul serif: judul stop, jam, angka hari, "Host", "Guide", "Your stay".
+- **UI yang berubah:**
+  - hitung mundur dari kapsul kecil jadi angka besar;
+  - boarding pass jadi kartu home (sudut bertakik, kawung, tergantung di benang);
+  - pilihan hari jadi medali bernomor;
+  - stop jadi kartu kaca;
+  - kotak centang jadi medali bulat;
+  - ubin darurat bermedali telepon.
+- **Tombol yang berubah:** kapsul bermedali tanpa tebal 3D.
+- **Yang sama:** tata letak, urutan bagian, warna, dan bentuk dasarnya, jadi kesannya halaman lama yang dipoles, bukan desain baru. Ditawarkan desain ulang yang sungguh baru, dengan 2–3 rancangan gambar diam lebih dulu; menunggu jawaban host.
+- **Temuan dari tangkapan host:** bar bawah hanya berisi SOS. Menurut `HelpBar.tsx`, tombol WhatsApp dan Telepon hanya tampil bila `private.contacts` punya nomor, dan data privat trip di Supabase memang belum memuat nomor kontak host (`guest` hanya berisi `party`).
+  - **Beres 14 Nov 21.24 WIB:** host mengirim nomor WhatsApp-nya ("gausa kasih guide, karena gw juga guidenya"). Claude mengisinya lewat SQL di `trip_private.guest.contacts` baris `solo-2027`: satu kontak berlabel "Host", tanpa guide, dan `updated_at = now()` supaya ETag berganti.
+  - Dicek: `guest` kini berisi `party` dan `contacts`, dan `waNumber` membaca nomornya dengan benar.
+  - Nomornya hanya ada di Supabase, tidak di repo.
+  - Langkah host: buka ulang Today di HP; WhatsApp Host dan Telepon harus muncul di samping SOS.
+
+**Langkah 1: Tugas 7b, gong ditabuh di slide judul hari. DIMULAI 14 Nov malam: perintah host, kata demi kata, "kerjakan tugas 7B"** (sesudah ditanya "planning?"; pertanyaan desain baru Today belum dijawab, jadi Today tidak disentuh). Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
+- **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
+- **7b.2 Animasi teks keluar (baru):** misalnya huruf judul terurai jadi debu emas yang tersedot ke arah gong tepat saat dipukul. Hanya `transform`/`opacity`, tanpa reflow. Film 2,5D (tanpa 3D) mendapat versi yang sama dengan gong CSS.
+- **7b.3 Pukulan di judul:** memakai pukulan gong yang sudah ada (bunyi, kilatan, riak, bara, bunga api, napas api naga), tetapi tanpa hentakan kamera, karena host minta kamera tetap di tempatnya. Gong penutup hari tidak berubah.
+- **7b.4 Gallery dengan gerak 3D penuh:** kedalaman ikut gulir, perspective shift, dan kamera parallax (sudah ada), ditambah:
+  - **letak Z:** kartu dan lapisan lanskap di kedalaman berbeda, dan kamera 3D menyelaraskannya;
+  - **depth of field (baru):** kabur menurut jarak dari bidang fokus.
+
+  Catatan teknis: DOF butuh kedalaman adegan, padahal sejak Audit 4 depth MSAA tidak di-resolve demi bandwidth. Jadi DOF memakai pass kedalaman sendiri yang murah, atau depth di-resolve hanya saat DOF tampil; dampaknya diukur.
+- **7b.5 Penutup:** e2e, video HP dan desktop (data April), `HANDOFF.md`, `CLAUDE.md`, PR.
+
+**Langkah 2: Tugas 8, benang emas (desain ulang), siklus waktu 3D, post-FX, partikel.** Sesudah 7b dan dengan arahan host. Rupa benang emas belum diputuskan, jadi usulannya dikirim dulu sebagai gambar diam untuk disetujui. Pecahan:
+- **8.1 Benang emas 3D:** kurva ber-shader yang tergambar mengikuti kemajuan film.
+- **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery.
+- **8.3 Post-FX:** DOF dari 7b dipakai ulang, plus grading warna.
+- **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam.
+
+Tiap langkah: video sebagai output.
+
+**Langkah 3–6: Tugas 9–12,** urut, masing-masing dengan arahan host sebelum mulai:
+- **9, diorama Solo:** data OSM butuh akses jaringan; cadangannya bentuk prosedural.
+- **10, lereng Lawu:** data DEM, dengan cadangan yang sama.
+- **11, canting dan kain mori.**
+- **12, boarding pass 3D dengan fisika:** fisika tali dan kartu ditulis sendiri, karena CSP tanpa WASM kecuali host mengizinkan Rapier.
+
+**Cadangan fps (tidak diperlukan menurut uji host 14 Nov 19.11; disimpan sebagai pilihan):** efek tembus pandang digambar ke target tanpa MSAA lalu digabung ke adegan, tanpa beda gambar. Yang termasuk: api naga, bunga api, nyala dan kerucut cahaya blencong.
+
+**Menunggu host, bukan kode:**
+- Uji di MacBook, Android, dan iPhone lama.
+- Kepingan bara yang berkumpul jadi gong di prolog: masih mau atau dilewati.
+- Kode booking klien asli: pratinjau dengan data privat tidak bisa dibuat di sesi.
 
 ### Permintaan host 14 Nov 16.44–16.45 WIB: gong ditabuh di slide judul hari, sebelum gallery (dicatat, MENUNGGU PERINTAH HOST)
 

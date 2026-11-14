@@ -52,8 +52,20 @@ async function openGate(page: Page) {
 }
 
 /**
+ * Slide judul hari dan hero prolog punya tahap gong (Tugas 7b, beat.ts): langkah maju pertama mengeluarkan teks dan
+ * menabuh gong tanpa pindah slide. Lewati tahap itu (bila belum) supaya langkah maju berikutnya memindah slide.
+ */
+async function release(page: Page) {
+  const kind = await film(page).getAttribute("data-kind");
+  if ((kind !== "title" && kind !== "hero") || (await film(page).getAttribute("data-beat")) === "out") return;
+  await page.keyboard.press("ArrowDown");
+  await expect(film(page)).toHaveAttribute("data-beat", "out");
+}
+
+/**
  * Buka film dengan panggung 3D dipaksa hidup, dan tunggu sampai kanvas tampil penuh. Di slide pertama gunungan
- * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang).
+ * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang). Tahap gong hero tidak dilewati di sini:
+ * `step` maju melewatinya bila perlu.
  */
 async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" | "keep" = "open") {
   await open(page, query, hash);
@@ -61,7 +73,9 @@ async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" 
   if (gate === "open" && !hash) await openGate(page);
 }
 
+/** Satu langkah yang memindah slide (langkah maju di judul/hero melewati tahap gongnya dulu). */
 async function step(page: Page, key = "ArrowDown") {
+  if (key === "ArrowDown" || key === "ArrowRight" || key === "PageDown") await release(page);
   const before = Number(await film(page).getAttribute("data-index"));
   await page.keyboard.press(key);
   await expect.poll(async () => Number(await film(page).getAttribute("data-index"))).not.toBe(before);
@@ -647,13 +661,280 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     expect(await film(page).getAttribute("data-index")).toBe("0");
   });
 
-  test("film 2,5D: tanpa gerbang, teks prolog langsung tampil dan langkah pertama memindah slide", async ({ page }) => {
+  test("film 2,5D: tanpa gerbang, teks prolog langsung tampil; langkah pertama menabuh gong hero, kedua memindah slide", async ({ page }) => {
     await open(page);
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
     await expect.poll(() => opacity(page, HERO)).toBe(1);
     await expect(page.locator(".fl-kayon")).toHaveCount(0);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await film(page).getAttribute("data-index")).toBe("0");
     await step(page);
     expect(await film(page).getAttribute("data-index")).toBe("1");
+  });
+});
+
+test.describe("tahap gong di slide judul, panggung 3D (Tugas 7b)", () => {
+  type Live = { kick: number; strikes: number; camera: [number, number, number] };
+  const live = () => (window as unknown as { __lakonStage: Live }).__lakonStage;
+
+  test("judul hari: gong 3D ditabuh tanpa hentakan kamera, kamera tetap di shot judul; langkah berikutnya baru pindah", async ({ page }) => {
+    // pantau tiap frame: hentakan terbesar dan simpangan kamera terjauh selama tahap gong
+    await page.addInitScript(() => {
+      const w = window as unknown as { __kickMax: number; __camFar: number; __cam0: number[] | null; __lakonStage?: { kick: number; camera: number[] } };
+      w.__kickMax = 0;
+      w.__camFar = 0;
+      w.__cam0 = null;
+      const loop = () => {
+        const s = w.__lakonStage;
+        if (s && w.__cam0) {
+          w.__kickMax = Math.max(w.__kickMax, s.kick);
+          w.__camFar = Math.max(w.__camFar, Math.hypot(s.camera[0]! - w.__cam0[0]!, s.camera[1]! - w.__cam0[1]!, s.camera[2]! - w.__cam0[2]!));
+        }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { __cam0: number[]; __lakonStage: { camera: number[] } };
+      w.__cam0 = [...w.__lakonStage.camera];
+    });
+    const struck = (await page.evaluate(live)).strikes;
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await expect.poll(async () => (await page.evaluate(live)).strikes, { timeout: WAIT }).toBe(struck + 1);
+    await nextFrames(page, 4);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    const watch = await page.evaluate(() => {
+      const w = window as unknown as { __kickMax: number; __camFar: number };
+      return { kick: w.__kickMax, far: w.__camFar };
+    });
+    expect(watch.kick).toBe(0);
+    // kamera hanya bergoyang pelan (napas kamera, < 4 cm), tidak berpindah shot
+    expect(watch.far).toBeLessThan(0.1);
+    // huruf judul tersedot habis
+    await expect
+      .poll(() => page.locator(".fl-layer[data-pos='cur'] .fs-beat").evaluate((el) => Math.max(...[...el.querySelectorAll(".fs-display .k-char")].map((c) => Number(getComputedStyle(c).opacity)))), { timeout: WAIT })
+      .toBe(0);
+    const cam = (await page.evaluate(live)).camera;
+    await step(page);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/intro");
+    await nextFrames(page);
+    expect(far((await page.evaluate(live)).camera, cam)).toBeGreaterThan(1);
+  });
+});
+
+test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"dua dua nya, 90derajat\")", () => {
+  const orbitOf = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage: { orbit: number } }).__lakonStage.orbit);
+  const zoomOf = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
+
+  test("judul hari: seret mouse ke kanan = kamera ke kiri sampai −90°, ke kiri sampai +90°; dilepas kembali ke depan; slide tidak pindah", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
+    test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    const view = page.viewportSize()!;
+    const y = view.height * 0.55;
+    await page.mouse.move(view.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(view.width * 0.8, y, { steps: 4 });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-40);
+    await page.mouse.move(view.width * 0.1, y, { steps: 4 }); // seret balik melewati tengah: sisi kanan gong
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeGreaterThan(40);
+    await page.mouse.move(-view.width, y, { steps: 2 }); // jauh melewati tepi: tetap dibatasi
+    await nextFrames(page, 4);
+    expect(await orbitOf(page)).toBeLessThanOrEqual(90);
+    await page.mouse.up();
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/); // seret bukan langkah: gong tidak ditabuh
+  });
+
+  test("judul hari: zoom dengan + / − dan Ctrl+roda, teks memudar saat gong didekati", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    await page.keyboard.press("+");
+    await page.keyboard.press("+");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeGreaterThan(0.4);
+    await expect.poll(() => page.locator(".fl-layer[data-pos='cur'] .fs-beat").evaluate((el) => Number(getComputedStyle(el).opacity)), { timeout: WAIT }).toBeLessThan(0.7);
+    await page.keyboard.press("-");
+    await page.keyboard.press("-");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeLessThan(0.05);
+    await film(page).hover();
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -200);
+    await page.keyboard.up("Control");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeGreaterThan(0.5);
+    // langkah maju tetap menabuh gong (tahap judul), bukan dua tahap gulir seperti di gong penutup
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+  });
+
+  test("trackpad: geser dua jari mendatar di hero mengitari gong, lalu kembali", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "trackpad hanya di desktop");
+    test.slow();
+    await open3d(page);
+    await nextFrames(page);
+    // jari ke kanan (deltaX negatif) = seret ke kanan = kamera ke kiri (sudut negatif). Event dikirim dalam satu
+    // giliran, seperti trackpad sungguhan (±16 ms per event); di sini tiap frame 3D digambar CPU dan lebih lama dari
+    // jeda pelepasan, jadi event satu per satu akan terbaca sebagai beberapa geseran pendek.
+    await page.evaluate(() => {
+      const el = document.querySelector("main.film")!;
+      for (let i = 0; i < 8; i++) el.dispatchEvent(new WheelEvent("wheel", { deltaX: -40, deltaY: 0, deltaMode: 0, bubbles: true, cancelable: true }));
+    });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-20);
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("hero");
+  });
+
+  test("gong penutup: seret mouse mengitari gong; seret yang dilepas di atas tombol pukul bukan pukulan", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
+    test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
+    await open3d(page, "?stage=low", "#day-2");
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    const strike = page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+    await expect(strike).toHaveAttribute("data-struck", "1"); // dipukul sendiri saat tiba
+    const box = (await strike.boundingBox())!;
+    const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx - 300, cy, { steps: 3 });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeGreaterThan(20);
+    await page.mouse.move(cx, cy, { steps: 3 }); // kembali ke atas tombol, lalu dilepas
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+  });
+
+  test("HP: geser jari mendatar di judul mengitari gong (slide tidak pindah), langkah maju sesudahnya tetap menabuh gong", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "iphone", "sentuhan hanya di HP");
+    test.slow();
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    const view = page.viewportSize()!;
+    const cdp = await page.context().newCDPSession(page);
+    const pt = (x: number, y: number) => [{ x: Math.round(x), y: Math.round(y) }];
+    const y = view.height * 0.6;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(view.width * 0.2, y) });
+    for (let i = 1; i <= 12; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(view.width * (0.2 + 0.05 * i), y) });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-40);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+    // sentakan tegak di judul sudah diuji di film.spec (film 2,5D); di sini tiap event jari menunggu frame 3D yang
+    // digambar CPU (±150 ms), jadi tidak pernah secepat sentakan. Langkah maju lewat keyboard.
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await cdp.detach();
+  });
+});
+
+test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
+  type Dof = { amount: number; focus: number; drawn: boolean };
+  const dofOf = async (page: Page) => (await page.evaluate(() => (window as unknown as { __lakonStage: { dof: Dof } }).__lakonStage.dof));
+  /** Bagian pita tanah lanskap yang berupa tepi tajam (kartu dan teks disembunyikan). */
+  async function detail(page: Page) {
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+    await nextFrames(page, 3);
+    const png = await page.screenshot();
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      // pita tanah di bawah cakrawala; dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
+      // paling peka terhadap kabur: garis pematang sawah
+      const y0 = Math.round(c.height * 0.4);
+      const d = g.getImageData(0, y0, c.width, c.height - y0).data;
+      const lum = (i: number) => d[i]! * 0.3 + d[i + 1]! * 0.59 + d[i + 2]! * 0.11;
+      let e = 0;
+      for (let y = 0; y < c.height - y0 - 1; y++)
+        for (let x = 0; x < c.width - 1; x++) {
+          const i = (y * c.width + x) * 4;
+          if (Math.max(Math.abs(lum(i) - lum(i + 4)), Math.abs(lum(i) - lum(i + c.width * 4))) > 6) e++;
+        }
+      return e / (c.width * (c.height - y0));
+    }, png.toString("base64"));
+  }
+  const hold = (page: Page, at: number[] | null) =>
+    page.evaluate((v) => {
+      const s = (window as unknown as { __lakonStage: { dofAt?: number[] } }).__lakonStage;
+      if (v) s.dofAt = v;
+      else delete s.dofAt;
+    }, at);
+
+  test("tier High di gallery: depth of field digambar (fokus dekat saat diam) dan mengaburkan lanskap; di luar gallery tidak", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
+    test.slow();
+    await open3d(page, "?stage=high", "#day-1");
+    await nextFrames(page);
+    expect((await dofOf(page)).drawn).toBe(false); // judul hari: tanpa depth of field
+    await step(page); // intro hari
+    await step(page); // panel pertama
+    await nextFrames(page, 3);
+    const rest = await dofOf(page);
+    expect(rest.drawn).toBe(true);
+    expect(rest.amount).toBe(1);
+    expect(rest.focus).toBe(12);
+    // gambar yang sama dengan depth of field dimatikan dan dinyalakan: rincian tanah lanskap berkurang nyata
+    await hold(page, [0, 12]);
+    const sharp = await detail(page);
+    await hold(page, [1, 12]);
+    const soft = await detail(page);
+    expect(sharp).toBeGreaterThan(0.005); // pita itu memang berisi garis pematang
+    expect(soft).toBeLessThan(sharp * 0.6);
+  });
+
+  test("selama geseran di gallery fokus ditarik jauh ke lanskap, lalu kembali dekat saat kartu tiba", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
+    test.slow();
+    await page.addInitScript(() => {
+      const w = window as unknown as { __focusMax: number; __lakonStage?: { dof: { focus: number; drawn: boolean }; moving: boolean } };
+      w.__focusMax = 0;
+      const loop = () => {
+        const s = w.__lakonStage;
+        if (s?.moving && s.dof.drawn) w.__focusMax = Math.max(w.__focusMax, s.dof.focus);
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=high", "#day-1");
+    await step(page);
+    await step(page);
+    await nextFrames(page);
+    await page.evaluate(() => ((window as unknown as { __focusMax: number }).__focusMax = 0));
+    // Tanpa GPU satu frame tier High bisa lebih lama dari seluruh geseran (±0,6 dtk), jadi geseran diperlambat 20×
+    // lewat laju animasi (transisi film memakai Web Animations; cara yang sama dengan perekam pratinjau): frame di
+    // tengah geseran pasti tergambar. Yang diperiksa tetap sama.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Animation.enable");
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 0.05 });
+    await page.keyboard.press("ArrowRight"); // panel berikutnya
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __focusMax: number }).__focusMax), { timeout: WAIT_LONG }).toBeGreaterThan(20);
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 1 });
+    await cdp.detach();
+    await settled(page);
+    await nextFrames(page, 3);
+    expect((await dofOf(page)).focus).toBe(12);
+  });
+
+  test("tier Medium dan Low: tanpa depth of field (TIER.dof)", async ({ page }) => {
+    await open3d(page, "?stage=medium", "#day-1");
+    await step(page);
+    await step(page);
+    await nextFrames(page, 3);
+    const d = await dofOf(page);
+    expect(d.amount).toBe(0);
+    expect(d.drawn).toBe(false);
   });
 });
 
@@ -707,6 +988,7 @@ test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspecti
 
   test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {
     await open(page, "?stage=static");
+    await release(page);
     await page.keyboard.press("ArrowDown");
     const scales = await page.evaluate(async () => {
       await new Promise((r) => setTimeout(r, 120));

@@ -5,7 +5,7 @@ import { buildFilm, type Slide, transitionKind } from "@/engine/slides/build-sli
 import { skyState, STILL } from "@/engine/slides/sky";
 import { createCues, SKY_WINDOW, skyAlong } from "@/engine/stage/cue";
 import { hex, lightElevation, mixMood, moodOf } from "@/engine/stage/mood";
-import { blendShot, fitFov, galleryShot, hfovOf, rayThrough, type Shot, shotFor, skyStretch, STAGE_CENTER, SUN_TRACK, sunDirection, type Vec3 } from "@/engine/stage/shots";
+import { blendShot, fitFov, galleryShot, hfovOf, projectPoint, rayThrough, type Shot, shotFor, skyStretch, STAGE_CENTER, SUN_TRACK, sunDirection, type Vec3 } from "@/engine/stage/shots";
 import { fbm, TERRAIN, TERRAIN_DEFAULT, terrainHeight, villageLights } from "@/engine/stage/terrain";
 import { type Caps, createGovernor, GOVERNOR, guessTier, LADDER, pinnedHigh, rungOf, TIER } from "@/engine/stage/tier";
 import type { TripView } from "@/lib/trip";
@@ -271,6 +271,33 @@ describe("shot kamera (shots.ts)", () => {
     expect(a.pos[1]).toBe(b.pos[1]);
     expect(a.look[2]).toBeLessThan(a.pos[2] - 10);
     expect(a.rig).toBe("vista");
+  });
+
+  it("gallery, letak Z (Tugas 7b): ±1 m per panel; tanah dekat, dataran, dan Lawu bergeser berbeda di layar", () => {
+    const day1 = film.slides.filter((s) => s.kind === "panel" && s.chapter === film.slides[firstOf("panel")]!.chapter);
+    const [p0, p1] = [shotFor(day1[0]!, WIDE), shotFor(day1[1]!, WIDE)];
+    const per = Math.abs(p1.pos[0] - p0.pos[0]);
+    expect(per).toBeGreaterThan(0.6);
+    expect(per).toBeLessThan(1.6);
+    // titik di tanah dekat (±15 m) dan di kaki Lawu (±600 m) yang sama-sama di tengah layar pada panel pertama
+    const near: Vec3 = [p0.pos[0], -9, p0.pos[2] - 15];
+    const lawu: Vec3 = [p0.pos[0], 40, p0.pos[2] - 600];
+    const shift = (q: Vec3) => projectPoint(p1, WIDE.aspect, q).x - projectPoint(p0, WIDE.aspect, q).x;
+    // kamera bergeser ke kanan sambil sedikit memandang ulang ke tengah (perspective shift): tanah dekat bergeser ke
+    // kiri searah rel kartu, Lawu sedikit ke kanan; seperti mengorbit titik di dataran ±90 m
+    expect(shift(near)).toBeLessThan(-0.05);
+    expect(shift(lawu)).toBeGreaterThan(0);
+    expect(Math.abs(shift(near))).toBeGreaterThan(Math.abs(shift(lawu)) * 4);
+    const plain: Vec3 = [p0.pos[0], -9, p0.pos[2] - 90];
+    expect(Math.abs(shift(plain))).toBeLessThan(Math.abs(shift(near)) * 0.25);
+  });
+
+  it("depth of field hanya di gallery: kadar 1 di panel, 0 di shot lain, dan berpindah bersama kamera", () => {
+    for (const kind of ["hero", "headline", "title", "dayintro", "gong", "credits"] as const) expect(shotFor(film.slides[firstOf(kind)]!, WIDE).dof, kind).toBe(0);
+    const [intro, panel] = [shotFor(film.slides[firstOf("dayintro")]!, WIDE), shotFor(film.slides[firstOf("panel")]!, WIDE)];
+    expect(panel.dof).toBe(1);
+    expect(blendShot(intro, panel, 0.5, "slide").dof).toBeGreaterThan(0.3);
+    expect(blendShot(intro, panel, 0.5, "slide").dof).toBeLessThan(0.7);
   });
 
   it("gradien langit: tepi atas layar jatuh di ketinggian yang sama pada shot apa pun", () => {

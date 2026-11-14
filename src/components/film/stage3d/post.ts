@@ -2,6 +2,9 @@
  * Rantai post-FX panggung: adegan digambar ke target HDR (half float, MSAA menurut tier), lalu
  *   bloom  : bagian yang lebih terang dari putih (nyala, matahari, lampu) dikecilkan bertingkat lalu
  *            dibesarkan kembali ("dual filter"); karena ambangnya di atas 1, hanya sumber cahaya yang berpijar
+ *   dof    : (tier High, gallery) depth of field: gambar adegan dikaburkan di setengah/seperempat resolusi, lalu
+ *            dicampur per piksel menurut jarak dari bidang fokus. Jaraknya dari pass kedalaman kecil (seperempat
+ *            lebar dan tinggi) yang hanya menggambar tanah lanskap, jadi depth MSAA tetap tidak di-resolve.
  *   gabung : + bloom, eksposur, vinyet, tone mapping ACES, sRGB, dither (langit malam tidak bergaris)
  * Tanpa pustaka post: beberapa shader pendek, satu segitiga selayar.
  */
@@ -10,11 +13,13 @@ import {
   BufferAttribute,
   BufferGeometry,
   type Camera,
+  Color,
   HalfFloatType,
   LinearFilter,
   Mesh,
   MeshBasicMaterial,
   NoBlending,
+  type Object3D,
   OrthographicCamera,
   RGBAFormat,
   RGBFormat,
@@ -80,9 +85,29 @@ void main() {
   gl_FragColor = vec4(c / 12.0, 1.0);
 }`;
 
+/** Pass kedalaman: jarak dari kamera (m) ke permukaan, di kanal merah. */
+const DEPTH_VERT = /* glsl */ `
+varying float vDist;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vDist = length(mv.xyz);
+  gl_Position = projectionMatrix * mv;
+}`;
+const DEPTH_FRAG = /* glsl */ `
+varying float vDist;
+void main() { gl_FragColor = vec4(vDist, 0.0, 0.0, 1.0); }`;
+
+/** Jarak yang dipakai untuk piksel tanpa tanah (langit): sejauh tepi lanskap. */
+const FAR = 2000;
+
 const FINAL = /* glsl */ `
 uniform sampler2D tScene;
 uniform sampler2D tBloom;
+uniform sampler2D tDof;
+uniform sampler2D tDepth;
+uniform float uDof;
+uniform float uFocus;
+uniform float uAperture;
 uniform float uBloom;
 uniform float uExposure;
 uniform float uDim;
@@ -98,6 +123,12 @@ float hash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 3
 
 void main() {
   vec3 c = finite(texture2D(tScene, vUv).rgb);
+  if (uDof > 0.0) {
+    // depth of field: kabur = aperture × |1 − fokus / jarak| (sama dengan dofBlur di view.ts), dikali kadar shot
+    float d = max(texture2D(tDepth, vUv).r, 0.01);
+    float coc = clamp(uAperture * abs(1.0 - uFocus / d), 0.0, 1.0) * uDof;
+    c = mix(c, finite(texture2D(tDof, vUv).rgb), coc);
+  }
   c += finite(texture2D(tBloom, vUv).rgb) * uBloom;
   // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim)
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
@@ -111,7 +142,8 @@ void main() {
   gl_FragColor = vec4(c, 1.0);
 }`;
 
-export type PostParams = { exposure: number; dim: number; time: number };
+/** `dof`: kadar depth of field (0 = mati), jarak fokus (m), dan aperture (lihat `DOF` di view.ts). */
+export type PostParams = { exposure: number; dim: number; time: number; dof?: { amount: number; focus: number; aperture: number } };
 
 /**
  * Hemat bandwidth tanpa mengubah gambar (audit host 14 Nov: fps 37–48 di tier High iPhone). GPU HP (berpetak, TBDR)
@@ -163,6 +195,14 @@ export class StagePost {
   private readonly hdr: boolean;
   private readonly packed: boolean;
   private readonly end: Mesh;
+  /** Depth of field (tier High): target kedalaman kecil, rantai kabur, dan benda yang digambar ke pass kedalaman. */
+  private readonly copy: ShaderMaterial;
+  private readonly depthMat: ShaderMaterial;
+  private depth: WebGLRenderTarget | null = null;
+  private dofChain: WebGLRenderTarget[] = [];
+  private depthOf: Object3D | null = null;
+  private readonly far = new Color(FAR, 0, 0);
+  private readonly keep = new Color();
 
   constructor(
     private readonly gl: WebGLRenderer,
@@ -178,7 +218,21 @@ export class StagePost {
       new ShaderMaterial({ vertexShader: VERT, fragmentShader, uniforms, depthTest: false, depthWrite: false, blending: additive ? AdditiveBlending : NoBlending, transparent: additive });
     this.down = mat(DOWN, { tSrc: { value: null }, uTexel: { value: new Vector2() }, uThreshold: { value: 0 } });
     this.up = mat(UP, { tSrc: { value: null }, uTexel: { value: new Vector2() } }, true);
-    this.final = mat(FINAL, { tScene: { value: null }, tBloom: { value: null }, uBloom: { value: 0 }, uExposure: { value: 1 }, uDim: { value: 0 }, uTime: { value: 0 } });
+    this.copy = mat(UP, { tSrc: { value: null }, uTexel: { value: new Vector2() } });
+    this.depthMat = new ShaderMaterial({ vertexShader: DEPTH_VERT, fragmentShader: DEPTH_FRAG });
+    this.final = mat(FINAL, {
+      tScene: { value: null },
+      tBloom: { value: null },
+      tDof: { value: null },
+      tDepth: { value: null },
+      uDof: { value: 0 },
+      uFocus: { value: 1 },
+      uAperture: { value: 0 },
+      uBloom: { value: 0 },
+      uExposure: { value: 1 },
+      uDim: { value: 0 },
+      uTime: { value: 0 },
+    });
     this.tri = new Mesh(geo, this.down);
     this.tri.frustumCulled = false;
     this.scene = this.target(1, 1, true);
@@ -200,6 +254,14 @@ export class StagePost {
     });
   }
 
+  /** Benda yang menentukan kedalaman depth of field (tanah lanskap). Tanpa ini depth of field tidak digambar. */
+  setDepthSource(obj: Object3D | null) {
+    this.depthOf = obj;
+  }
+
+  /** Depth of field digambar pada frame terakhir (dibaca statistik panggung dan e2e). */
+  dofDrawn = false;
+
   /** Format rantai bloom (dibaca statistik panggung dan e2e). */
   get format(): string {
     return this.packed ? "r11g11b10" : this.hdr ? "rgba16f" : "rgba8";
@@ -218,6 +280,48 @@ export class StagePost {
       mh = Math.max(2, Math.round(mh / 2));
       this.mips.push(this.target(mw, mh));
     }
+    this.depth?.dispose();
+    for (const m of this.dofChain) m.dispose();
+    this.depth = null;
+    this.dofChain = [];
+    if (this.spec.dof) {
+      // kedalaman di seperempat lebar dan tinggi (1/16 piksel), half float tanpa MSAA; kabur di 1/2 → 1/4 → 1/2
+      const [qw, qh] = [Math.max(2, Math.round(w / 4)), Math.max(2, Math.round(h / 4))];
+      this.depth = new WebGLRenderTarget(qw, qh, { type: this.hdr ? HalfFloatType : UnsignedByteType, format: RGBAFormat, minFilter: LinearFilter, magFilter: LinearFilter, depthBuffer: true, stencilBuffer: false, generateMipmaps: false });
+      const [hw, hh] = [Math.max(2, Math.round(w / 2)), Math.max(2, Math.round(h / 2))];
+      this.dofChain = [this.target(hw, hh), this.target(qw, qh), this.target(hw, hh)];
+    }
+  }
+
+  /** Pass kedalaman: hanya `depthOf`, dengan bahan jarak; piksel tanpa tanah = FAR. */
+  private renderDepth(camera: Camera) {
+    const gl = this.gl;
+    const obj = this.depthOf as Mesh;
+    const before = obj.material;
+    gl.getClearColor(this.keep);
+    const alpha = gl.getClearAlpha();
+    gl.setClearColor(this.far, 1);
+    obj.material = this.depthMat;
+    gl.setRenderTarget(this.depth);
+    gl.clear(true, true, false);
+    gl.render(obj, camera);
+    obj.material = before;
+    gl.setClearColor(this.keep, alpha);
+  }
+
+  /** Gambar adegan dikaburkan: turun ke 1/2 dan 1/4 (dual filter), lalu naik lagi ke 1/2. */
+  private blurScene() {
+    const [half, quarter, back] = this.dofChain as [WebGLRenderTarget, WebGLRenderTarget, WebGLRenderTarget];
+    this.down.uniforms.uThreshold!.value = 0;
+    this.down.uniforms.tSrc!.value = this.scene.texture;
+    (this.down.uniforms.uTexel!.value as Vector2).set(1 / this.scene.width, 1 / this.scene.height);
+    this.pass(this.down, half);
+    this.down.uniforms.tSrc!.value = half.texture;
+    (this.down.uniforms.uTexel!.value as Vector2).set(1 / half.width, 1 / half.height);
+    this.pass(this.down, quarter);
+    this.copy.uniforms.tSrc!.value = quarter.texture;
+    (this.copy.uniforms.uTexel!.value as Vector2).set(1 / quarter.width, 1 / quarter.height);
+    this.pass(this.copy, back);
   }
 
   private pass(material: ShaderMaterial, to: WebGLRenderTarget | null) {
@@ -229,12 +333,18 @@ export class StagePost {
   render(scene: Scene, camera: Camera, p: PostParams) {
     const gl = this.gl;
     const auto = gl.autoClear;
+    const dof = p.dof && p.dof.amount > 0.002 && this.depth && this.depthOf ? p.dof : null;
     gl.autoClear = true;
     gl.setRenderTarget(this.scene);
     if (this.end.parent !== scene) scene.add(this.end);
     gl.render(scene, camera);
 
     gl.autoClear = false;
+    if (dof) {
+      this.renderDepth(camera);
+      this.blurScene();
+    }
+    this.dofDrawn = dof !== null;
     const mips = this.mips;
     if (mips.length) {
       let src = this.scene;
@@ -256,6 +366,11 @@ export class StagePost {
     f.tScene!.value = this.scene.texture;
     f.tBloom!.value = mips[0]?.texture ?? null;
     f.uBloom!.value = mips.length ? 0.9 : 0;
+    f.tDof!.value = dof ? this.dofChain[2]!.texture : null;
+    f.tDepth!.value = dof ? this.depth!.texture : null;
+    f.uDof!.value = dof ? Math.min(1, dof.amount) : 0;
+    f.uFocus!.value = dof?.focus ?? 1;
+    f.uAperture!.value = dof?.aperture ?? 0;
     f.uExposure!.value = p.exposure;
     f.uDim!.value = p.dim;
     f.uTime!.value = p.time;
@@ -266,6 +381,10 @@ export class StagePost {
   dispose() {
     this.scene.dispose();
     for (const m of this.mips) m.dispose();
+    this.depth?.dispose();
+    for (const m of this.dofChain) m.dispose();
+    this.copy.dispose();
+    this.depthMat.dispose();
     this.tri.geometry.dispose();
     this.end.removeFromParent();
     this.end.geometry.dispose();

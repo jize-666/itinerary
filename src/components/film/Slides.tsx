@@ -2,6 +2,7 @@
 import { createContext, type CSSProperties, type ReactNode, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
+import type { Beat } from "@/engine/slides/beat";
 import type { Slide } from "@/engine/slides/build-slides";
 import type { LiveStore } from "@/engine/slides/live";
 import { stageBus } from "@/engine/stage/bus";
@@ -14,6 +15,7 @@ import { InstallGuide } from "../InstallGuide";
 import { CurtainLink } from "../motion/Curtain";
 import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
 import { HangingPass } from "../pass/Pass";
+import { useTitleStrike } from "./TitleStrike";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
 const d = (ms: number): Var => ({ "--d": `${ms}ms` });
@@ -44,18 +46,27 @@ const Rise = ({ as: Tag = "p", className = "", delay = 0, children }: { as?: "p"
 
 /** Letak lapisan slide di panggung: sedang ditonton, sedang masuk, sedang keluar, atau di luar layar. */
 export type LayerPos = "cur" | "in" | "out" | "away";
-type Ctx = { data: TripView; slide: Slide; pos?: LayerPos };
+type Ctx = { data: TripView; slide: Slide; pos?: LayerPos; beat?: Beat };
 
-function Hero({ data }: Ctx) {
+/**
+ * Cakram gong CSS di balik judul (film 2,5D; di 3D tidak digambar, gong ageng di panggung yang dipukul). Dipasang
+ * ulang tiap pukulan supaya riaknya mulai dari hantaman (tahap gong di judul, Tugas 7b).
+ */
+const GongDisc = ({ strikes }: { strikes: number }) => (
+  <span key={strikes} className="fs-gong" data-struck={strikes || undefined} aria-hidden="true">
+    <i />
+    <i />
+    <i />
+  </span>
+);
+
+function Hero({ data, slide, pos, beat = 0 }: Ctx) {
   const { t, tx } = useI18n();
   const name = guestShortName(data);
+  const { body, strikes } = useTitleStrike(slide, pos, beat);
   return (
-    <div className="fl-body fl-body--center fs-hero">
-      <span className="fs-gong" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
+    <div ref={body} className="fl-body fl-body--center fs-hero fs-beat">
+      <GongDisc strikes={strikes} />
       {data.trip.city && (
         <p className="fs-kicker">
           <Benang text={data.trip.city} delay={200} />
@@ -247,14 +258,16 @@ function DayCard({ slide }: Ctx) {
   );
 }
 
-function Title({ slide }: Ctx) {
+function Title({ slide, pos, beat = 0 }: Ctx) {
   const { lang, t, tx } = useI18n();
+  const { body, strikes } = useTitleStrike(slide, pos, beat);
   if (slide.kind !== "title") return null;
   const { day } = slide;
   return (
-    <div className="fl-body fl-body--center fs-title">
+    <div ref={body} className="fl-body fl-body--center fs-title fs-beat">
       <span className="fs-bar fs-bar--top" aria-hidden="true" />
       <span className="fs-bar fs-bar--bottom" aria-hidden="true" />
+      <GongDisc strikes={strikes} />
       <p className="fs-kicker">
         <Benang text={`${t("today.day", { n: day.n })} · ${fmtDay(day.date, lang)}`} delay={500} />
       </p>
@@ -532,7 +545,7 @@ const VIEWS: Partial<Record<Slide["kind"], (p: Ctx) => ReactNode>> = {
 };
 
 /** Isi satu slide (selain panel gallery, yang punya lapisan sendiri). */
-export function SlideContent({ data, slide, pos }: Ctx) {
+export function SlideContent({ data, slide, pos, beat }: Ctx) {
   const View = VIEWS[slide.kind];
-  return View ? <View data={data} slide={slide} pos={pos} /> : null;
+  return View ? <View data={data} slide={slide} pos={pos} beat={beat} /> : null;
 }

@@ -337,6 +337,25 @@ html.film-on body {
   opacity: calc(1 - var(--gong-zoom, 0) * 0.92);
 }
 
+/* judul hari dan hero (14 Nov, "dua dua nya, 90derajat"): teks di depan gong memudar saat gong didekati atau
+   dikitari, supaya gong yang membesar atau berpaling tidak tertutup huruf */
+.film[data-gongzoom] .fs-beat {
+  opacity: max(0.06, 1 - var(--gong-zoom, 0) * 0.92 - var(--gong-orbit, 0) * 0.8);
+}
+
+/* gong bisa dikitari: seret mouse ke kiri/kanan (teks di slide ini tidak ikut terblok saat diseret) */
+.film[data-gongzoom] .fl-stage {
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.film[data-orbiting],
+.film[data-orbiting] .fl-stage,
+.film[data-orbiting] .fs-strike {
+  cursor: grabbing;
+}
+
 /* overlay FPS (?fps): hanya untuk uji */
 .fl-fps {
   position: absolute;
@@ -911,6 +930,203 @@ html.film-on body {
 @keyframes fs-bar {
   from {
     transform: scaleY(0);
+  }
+}
+
+/* ---- tahap gong di judul hari dan hero prolog (Tugas 7b; beat.ts, TitleStrike.tsx) ----
+   Langkah maju pertama: huruf judul terurai dan tersedot ke pencu gong bersama debu emas, lalu gong berbunyi saat
+   huruf terakhir masuk. Arah terbang tiap huruf (--tx/--ty, ancang-ancang --ax/--ay, putaran --tr) dan jedanya
+   (--sd, lama --sl) ditulis TitleStrike sekali saat tahap berganti. Hanya transform dan opacity. */
+.fs-beat[data-out="go"] .fs-display .k-char,
+.fs-beat[data-out="go"] .fs-kicker,
+.fs-beat[data-out="go"] .fs-for {
+  animation: fs-suck var(--sl, 0.9s) linear var(--sd, 0s) both;
+}
+
+/* huruf berubah jadi emas saat terangkat: salinan huruf (::after milik Bayang) dinyalakan lewat opacity */
+.fs-beat[data-out="go"] .fs-display .k-char::after {
+  color: #ffe2a6;
+  text-shadow:
+    0 0 0.18em rgb(255 196 96 / 0.9),
+    0 0 0.5em rgb(255 160 60 / 0.5);
+  animation: fs-gild var(--sl, 0.9s) linear var(--sd, 0s) both;
+}
+
+@keyframes fs-suck {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+
+  26% {
+    transform: translate(var(--ax, 0px), var(--ay, -6px)) scale(1.08);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.88, 0.3);
+  }
+
+  100% {
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) rotate(var(--tr, 0deg)) scale(0.06);
+    opacity: 0;
+  }
+}
+
+@keyframes fs-gild {
+  0% {
+    opacity: 0;
+  }
+
+  30%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* mundur: huruf keluar lagi dari gong ke tempatnya, tanpa pukulan */
+.fs-beat[data-out="back"] .fs-display .k-char,
+.fs-beat[data-out="back"] .fs-kicker,
+.fs-beat[data-out="back"] .fs-for {
+  animation: fs-unsuck 0.74s var(--ease-expo-out) var(--ud, 0s) both;
+}
+
+@keyframes fs-unsuck {
+  0% {
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) rotate(var(--tr, 0deg)) scale(0.06);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.fs-dust {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* butir debu emas: dari huruf, melengkung (pusaran), lalu masuk ke pencu */
+.fs-mote {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: var(--ms);
+  height: var(--ms);
+  margin: calc(var(--ms) / -2) 0 0 calc(var(--ms) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6dc 0 28%, #f0c06a 52%, transparent 72%);
+  box-shadow: 0 0 6px 1px rgb(255 196 96 / 0.55);
+  opacity: 0;
+  animation: fs-mote var(--ml, 0.9s) linear var(--md, 0s) both;
+}
+
+@keyframes fs-mote {
+  0% {
+    transform: translate(0, 0) scale(0.4);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+
+  20% {
+    transform: translate(calc(var(--mx) * 0.2), calc(var(--my) * 0.2)) scale(1);
+    opacity: 1;
+  }
+
+  56% {
+    transform: translate(var(--mx), var(--my)) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.3);
+  }
+
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* pendar di pencu: menguat selama huruf tersedot, menyala saat hantaman, lalu padam */
+.fs-pull {
+  position: absolute;
+  top: var(--gy);
+  left: var(--gx);
+  width: min(34vmin, 300px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 232 170 / 0.8), rgb(255 180 80 / 0.28) 34%, transparent 68%);
+  opacity: 0;
+  animation: fs-pull calc(var(--suck, 0.92s) + 0.8s) linear both;
+}
+
+@keyframes fs-pull {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+
+  53% {
+    transform: scale(0.7);
+    opacity: 0.85;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+
+  60% {
+    transform: scale(1.3);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+  }
+
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* film 2,5D: cakram gong CSS dipukul, riak mulai dari hantaman (STRIKE.impact = 0,52 dtk sesudah tabuh berayun) */
+.fs-gong[data-struck] {
+  animation: none;
+  opacity: 1;
+}
+
+.fs-gong[data-struck] i {
+  animation-delay: 0.52s;
+}
+
+.fs-gong[data-struck] i:nth-child(2) {
+  animation-delay: 0.8s;
+}
+
+.fs-gong[data-struck] i:nth-child(3) {
+  animation-delay: 1.08s;
+}
+
+.fs-gong[data-struck]::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 226 160 / 0.7), transparent 70%);
+  opacity: 0;
+  animation: fs-gong-flash 1.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.52s both;
+}
+
+@keyframes fs-gong-flash {
+  0% {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
   }
 }
 

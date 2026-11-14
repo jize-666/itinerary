@@ -11,17 +11,34 @@ const slide = (page: Page) => film(page).getAttribute("data-slide");
 /** Tunggu sampai tidak ada transisi yang berjalan. */
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
 
-async function open(page: Page, hash = "", role: "guest" | "team" = "guest", data: unknown = filmFixture(role)) {
+/**
+ * Slide judul hari dan hero prolog punya tahap gong (Tugas 7b, beat.ts): langkah maju pertama mengeluarkan teks dan
+ * menabuh gong tanpa pindah slide. Lewati tahap itu (bila belum) supaya langkah berikutnya memindah slide.
+ */
+async function release(page: Page) {
+  const kind = await film(page).getAttribute("data-kind");
+  if ((kind !== "title" && kind !== "hero") || (await film(page).getAttribute("data-beat")) === "out") return;
+  await page.keyboard.press("ArrowDown");
+  await expect(film(page)).toHaveAttribute("data-beat", "out");
+}
+
+/**
+ * Buka film. Tanpa hash film mulai di hero prolog, dan tahap gongnya langsung dilewati (`beat` = "release"), supaya
+ * tes navigasi mulai dari keadaan "langkah berikutnya = slide berikutnya" seperti sebelum ada tahap gong.
+ */
+async function open(page: Page, hash = "", role: "guest" | "team" = "guest", data: unknown = filmFixture(role), beat: "release" | "keep" = "release") {
   await seedSession(page, role);
   await page.route(TRIP, (r) => json(r, 200, data));
   await page.goto(`/film/${hash}`);
   await expect(film(page)).toBeVisible();
   await settled(page);
+  if (!hash && beat === "release") await release(page);
 }
 
-/** Maju ke slide ber-id tertentu dengan keyboard, satu per satu. */
+/** Maju ke slide ber-id tertentu dengan keyboard, satu per satu (tahap gong di judul dilewati). */
 async function goTo(page: Page, id: string) {
   for (let i = 0; i < 40 && (await slide(page)) !== id; i++) {
+    await release(page);
     const before = await index(page);
     await page.keyboard.press("ArrowDown");
     await expect.poll(() => index(page)).toBe(before + 1);
@@ -214,6 +231,26 @@ test.describe("geser dengan jari", () => {
     await settled(page);
     await page.waitForTimeout(400);
     expect(await index(page)).toBe(1);
+  });
+
+  test("judul hari: sentakan ke atas menabuh gong (slide tidak terseret jari), sentakan berikutnya pindah slide", async ({ page }) => {
+    await open(page, "#day-1");
+    const view = page.viewportSize()!;
+    await drag(page, [view.width / 2, view.height * 0.7], [view.width / 2, view.height * 0.3], 160);
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await slide(page)).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-moving", "");
+    await page.waitForTimeout(900); // klik yang menyusul geseran ditelan ±350 ms; beri jeda sebelum geser berikutnya
+    await drag(page, [view.width / 2, view.height * 0.7], [view.width / 2, view.height * 0.3], 160);
+    await expect.poll(() => slide(page)).toBe("day-1/intro");
+  });
+
+  test("judul hari: tarikan jari pelan tapi panjang juga menabuh gong (slide judul tidak men-scrub)", async ({ page }) => {
+    await open(page, "#day-1");
+    const view = page.viewportSize()!;
+    await drag(page, [view.width / 2, view.height * 0.75], [view.width / 2, view.height * 0.4], 900, 250);
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await slide(page)).toBe("day-1/title");
   });
 
   test("gallery: geser ke kiri = panel berikutnya, geser vertikal juga memajukan", async ({ page }) => {
@@ -568,6 +605,87 @@ test.describe("kedalaman gallery (2,5D)", () => {
   });
 });
 
+test.describe("tahap gong di slide judul (Tugas 7b)", () => {
+  const body = (page: Page) => page.locator(".fl-layer[data-pos='cur'] .fs-beat");
+  const disc = (page: Page) => body(page).locator(".fs-gong");
+  /** Opacity terlihat huruf judul (nilai terkecil dan terbesar). */
+  const letters = (page: Page) =>
+    body(page).evaluate((el) => {
+      const o = [...el.querySelectorAll<HTMLElement>(".fs-display .k-char")].map((c) => Number(getComputedStyle(c).opacity));
+      return { n: o.length, min: Math.min(...o), max: Math.max(...o) };
+    });
+
+  test("judul hari: maju = teks tersedot ke gong dan gong ditabuh tanpa pindah slide; maju lagi = intro hari", async ({ page }) => {
+    await open(page, "#day-1");
+    expect(await slide(page)).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+    await expect(body(page)).not.toHaveAttribute("data-out", /.+/);
+    expect((await letters(page)).min).toBe(1);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await expect(body(page)).toHaveAttribute("data-out", "go");
+    expect(await slide(page)).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-moving", "");
+    // debu emas dan pendar di pencu ikut terbang selama huruf tersedot
+    await expect.poll(() => body(page).locator(".fs-dust .fs-mote").count()).toBeGreaterThan(4);
+    // gong (cakram CSS di film 2,5D) dipukul satu kali, huruf sudah hilang semua
+    await expect(disc(page)).toHaveAttribute("data-struck", "1");
+    await expect.poll(async () => (await letters(page)).max, { timeout: 4000 }).toBe(0);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => slide(page)).toBe("day-1/intro");
+    await settled(page);
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+  });
+
+  test("mundur saat teks sudah keluar: teks kembali tanpa pukulan; mundur lagi pindah ke slide sebelumnya", async ({ page }) => {
+    await open(page, "#day-2");
+    await page.keyboard.press("ArrowDown");
+    await expect(disc(page)).toHaveAttribute("data-struck", "1");
+    await expect.poll(async () => (await letters(page)).max, { timeout: 4000 }).toBe(0);
+    await page.keyboard.press("ArrowUp");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+    await expect(body(page)).toHaveAttribute("data-out", "back");
+    expect(await slide(page)).toBe("day-2/title");
+    await expect.poll(async () => (await letters(page)).min, { timeout: 4000 }).toBe(1);
+    await expect(disc(page)).toHaveAttribute("data-struck", "1"); // tidak ada pukulan baru
+    await page.keyboard.press("ArrowUp");
+    await expect.poll(() => slide(page)).toBe("day-1/gong");
+  });
+
+  test("hero prolog: langkah pertama menabuh gong; tiba lagi dari slide berikutnya, teks tampil dan gong ditabuh lagi", async ({ page }) => {
+    await open(page, "", "guest", filmFixture("guest"), "keep");
+    expect(await slide(page)).toBe("hero");
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await expect(disc(page)).toHaveAttribute("data-struck", "1");
+    expect(await index(page)).toBe(0);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => index(page)).toBe(1);
+    await settled(page);
+    await page.keyboard.press("ArrowUp");
+    await expect.poll(() => index(page)).toBe(0);
+    await settled(page);
+    // tiba dari arah mana pun selalu mulai dari teks tampil
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+    await expect.poll(async () => (await letters(page)).min, { timeout: 4000 }).toBe(1);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await index(page)).toBe(0);
+  });
+
+  test("Calm mode: tahapnya tetap ada (teks hilang seketika, gong tetap ditabuh)", async ({ page }) => {
+    await open(page, "#day-1");
+    await page.getByRole("button", { name: "Calm mode" }).click();
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await slide(page)).toBe("day-1/title");
+    await expect.poll(async () => (await letters(page)).max, { timeout: 2000 }).toBe(0);
+    await expect(disc(page)).toHaveAttribute("data-struck", "1");
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => slide(page)).toBe("day-1/intro");
+  });
+});
+
 test.describe("bab, bahasa, Calm", () => {
   test("hash membuka bab yang benar dan ikut berganti saat pindah bab", async ({ page }) => {
     await open(page, "#day-2");
@@ -589,7 +707,11 @@ test.describe("bab, bahasa, Calm", () => {
     await settled(page);
     await expect(rail.getByRole("button", { name: "Day 2 · The mist day" })).toHaveAttribute("aria-current", "step");
     await expect(page.getByRole("heading", { level: 2 })).toHaveText("The mist day");
-    await page.keyboard.press("ArrowDown"); // fokus di tombol bab tidak menghalangi panah
+    // fokus di tombol bab tidak menghalangi panah: langkah pertama menabuh gong judul (Tugas 7b), kedua pindah slide
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await slide(page)).toBe("day-2/title");
+    await page.keyboard.press("ArrowDown");
     await expect.poll(() => slide(page)).toBe("day-2/intro");
   });
 
@@ -604,8 +726,12 @@ test.describe("bab, bahasa, Calm", () => {
   });
 
   test("petunjuk navigasi hilang setelah dipakai sekali dan tidak muncul lagi", async ({ page }) => {
-    await open(page);
+    await open(page, "", "guest", filmFixture("guest"), "keep");
     await expect(page.locator(".fl-hint")).toHaveAttribute("data-shown", "");
+    // langkah pertama di hero menabuh gong (teks keluar): petunjuk ikut hilang
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await expect(page.locator(".fl-hint")).not.toHaveAttribute("data-shown", "");
     await page.keyboard.press("ArrowDown");
     await expect.poll(() => index(page)).toBe(1);
     await page.keyboard.press("ArrowUp");

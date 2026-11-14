@@ -3,7 +3,7 @@
  * Murni: tanpa DOM, tanpa three. Panggung mendaftarkan gong-nya saat hidup dan melepasnya saat dibongkar.
  */
 
-import { clampZoom, GONG_ZOOM, gongStep, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
+import { clampZoom, GONG_ZOOM, gongStep, orbitFromDrag, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
 import { createGate, type GateSnapshot } from "./gate";
 
 /** Jam gerbang gunungan (detik): satu jam untuk lapisan DOM dan panggung 3D. */
@@ -26,17 +26,30 @@ function act<T>(fn: (t: number) => T): T {
   return r;
 }
 
-/** Memulai satu pukulan. Mengembalikan detik sampai tabuh mengenai gong, atau `null` bila pukulan sebelumnya belum selesai. */
-type Striker = () => number | null;
+/**
+ * Memulai satu pukulan. Mengembalikan detik sampai tabuh mengenai gong, atau `null` bila pukulan sebelumnya belum
+ * selesai. `kick` = kamera ikut terhentak (gong penutup hari); false di slide judul, tempat kamera harus diam.
+ */
+type Striker = (kick: boolean) => number | null;
 
 let striker: Striker | null = null;
 let ready = false;
 let kayon = false;
-/** Penonton sedang diam di slide gong dengan panggung 3D hidup: zoom dan dua tahap gulir berlaku. */
-let gongHere = false;
+/**
+ * Penonton sedang diam di slide yang gongnya bisa didekati dan dikitari, dengan panggung 3D hidup: "gong" = slide gong
+ * penutup hari (zoom, kitar, dan dua tahap gulir), "title" = judul hari dan hero prolog (zoom dan kitar; langkah
+ * pertama di sana sudah dipakai tahap gong, beat.ts), null = slide lain.
+ */
+export type GongPlace = "gong" | "title" | null;
+let place: GongPlace = null;
 /** Target zoom gong (0 = bidikan biasa, 1 = dekat); panggung menghaluskannya. */
 let zoom = 0;
 let pinchFrom = 0;
+/** Target sudut kitar kamera (derajat, ±ORBIT.max), sudut yang sedang tampil, dan apakah sedang diseret. */
+let orbit = 0;
+let orbitShown = 0;
+let orbitFrom = 0;
+let orbiting = false;
 
 export const stageBus = {
   /** Panggung 3D: daftarkan gong. Mengembalikan pembatal. */
@@ -50,9 +63,9 @@ export const stageBus = {
    * Minta gong dipukul. Angka = pukulan dimulai, hantamannya sekian detik lagi; "busy" = pukulan sebelumnya
    * belum selesai; "flat" = tidak ada gong 3D (film 2,5D), pemanggil mengurus sendiri bunyi dan riaknya.
    */
-  strikeGong(): number | "busy" | "flat" {
+  strikeGong(opts: { kick?: boolean } = {}): number | "busy" | "flat" {
     if (!striker) return "flat";
-    return striker() ?? "busy";
+    return striker(opts.kick ?? true) ?? "busy";
   },
   /** Kursor atau fokus ada di atas gong: tabuh terangkat sedikit, tanda siap dipukul. */
   setReady(on: boolean) {
@@ -65,17 +78,27 @@ export const stageBus = {
   },
   kayon: () => kayon,
 
-  // ---- zoom dan dua tahap gulir di slide gong (aturan host 13 Nov) ----
-  /** Panggung 3D, tiap frame: penonton diam di slide gong atau tidak. Meninggalkannya mengembalikan zoom ke 0. */
-  setGongHere(on: boolean) {
-    gongHere = on;
-    if (!on) zoom = 0;
+  // ---- zoom, kitar kamera, dan dua tahap gulir (aturan host 13 Nov; judul dan kitar ±90°: 14 Nov) ----
+  /**
+   * Panggung 3D, tiap frame: penonton diam di slide gong penutup, di judul hari / hero, atau di slide lain.
+   * Meninggalkannya mengembalikan zoom dan kitar ke 0.
+   */
+  setGongHere(next: GongPlace) {
+    place = next;
+    if (!next) {
+      zoom = 0;
+      orbit = 0;
+      orbiting = false;
+    }
   },
-  gongHere: () => gongHere,
+  /** Di slide gong penutup hari (dua tahap gulir; jari tidak men-scrub). */
+  gongHere: () => place === "gong",
+  /** Di slide yang gongnya bisa di-zoom dan dikitari (gong penutup, judul hari, hero). */
+  zoomHere: () => place !== null,
   gongZoom: () => zoom,
   /** Dua tahap gulir: true bila langkah ini dipakai untuk mendekat atau menjauh (slide tidak berpindah). */
   gongStep(dir: 1 | -1): boolean {
-    if (!gongHere) return false;
+    if (place !== "gong") return false;
     const next = gongStep(zoom, dir);
     if (next === null) return false;
     zoom = next;
@@ -83,19 +106,42 @@ export const stageBus = {
   },
   /** Ctrl+roda / cubit trackpad (`amount` = deltaY) atau tombol + / − (`amount` = ±1). true bila dipakai. */
   gongZoomBy(kind: "wheel" | "key", amount: number): boolean {
-    if (!gongHere) return false;
+    if (!place) return false;
     zoom = kind === "wheel" ? zoomByWheel(zoom, amount) : clampZoom(zoom + amount * GONG_ZOOM.key);
     return true;
   },
   /** Cubit dua jari mulai: true bila zoom gong berlaku (jari tidak lagi dibaca sebagai geser slide). */
   gongPinchStart(): boolean {
-    if (!gongHere) return false;
+    if (!place) return false;
     pinchFrom = zoom;
     return true;
   },
   /** Cubit berlangsung: jarak jari sekarang ÷ jarak awal. */
   gongPinch(ratio: number) {
-    if (gongHere) zoom = zoomByPinch(pinchFrom, ratio);
+    if (place) zoom = zoomByPinch(pinchFrom, ratio);
+  },
+  /** Seret mendatar mulai (mouse, jari, atau trackpad): true bila kamera bisa dikitari di slide ini. */
+  orbitStart(): boolean {
+    if (!place) return false;
+    orbiting = true;
+    orbitFrom = orbitShown; // mulai dari sudut yang sedang tampil, juga saat kamera masih kembali ke depan
+    orbit = orbitShown;
+    return true;
+  },
+  /** Seret berlangsung: `dx` px sejak mulai, pada layar selebar `width` px. */
+  orbitDrag(dx: number, width: number) {
+    if (orbiting && place) orbit = orbitFromDrag(orbitFrom, dx, width);
+  },
+  /** Seret dilepas: kamera kembali pelan ke depan. */
+  orbitEnd() {
+    orbiting = false;
+    orbit = 0;
+  },
+  orbitGoal: () => orbit,
+  orbiting: () => orbiting,
+  /** Panggung 3D, tiap frame: sudut kitar yang sedang tampil (seret berikutnya mulai dari sini). */
+  setOrbitShown(deg: number) {
+    orbitShown = deg;
   },
 
   // ---- gunungan pembuka dan penutup (gate.ts) ----

@@ -4,6 +4,7 @@
  * Satu instans per film; tidak menyimpan apa pun di React selain `view` (slide sekarang + transisi berjalan).
  */
 import { easeCss, type EaseName, SLIDE } from "@/engine/motion/tokens";
+import { type Beat, beatStep } from "@/engine/slides/beat";
 import { axisBetween, type Film } from "@/engine/slides/build-slides";
 import { createSlideStore, type Dir, type SlideEffect, type SlideStore } from "@/engine/slides/controller";
 import { type Axis, bindInput } from "@/engine/slides/input";
@@ -13,7 +14,8 @@ import type { Cursor } from "@/engine/stage/cue";
 import { stageBus } from "@/engine/stage/bus";
 import { type Plan, planTransition, scrubSpan } from "./transitions";
 
-export type FilmView = Readonly<{ index: number; moving: { from: number; to: number } | null }>;
+/** `beat` = tahap slide `index` (beat.ts): 1 = teks judul sudah keluar dan gong sudah ditabuh. */
+export type FilmView = Readonly<{ index: number; moving: { from: number; to: number } | null; beat: Beat }>;
 
 type Hooks = {
   /** Terapkan `view` ke React. `sync` = sekarang juga (flushSync): lintasan dibangun dari DOM tepat setelahnya. */
@@ -35,6 +37,8 @@ export class Director {
   private unbind: (() => void) | null = null;
   /** Jari sedang mencabut gunungan pembuka (scrub milik gerbang, bukan milik slide). */
   private gateScrub = false;
+  /** Tahap slide sekarang (judul hari, hero prolog): kembali ke 0 setiap tiba di slide lain. */
+  private beat: Beat = 0;
 
   constructor(
     film: Film,
@@ -61,6 +65,9 @@ export class Director {
       // gunungan pembuka/penutup: langkah di ujung film mencabut atau menancapkannya (semua sumber, juga keyboard).
       // slide gong 3D: gulir maju pertama mendekat ke gong, gulir mundur saat dekat menjauh dulu (keyboard tetap per slide)
       step: (dir, source) => {
+        // tahap judul lebih dulu: di hero yang teksnya sudah keluar, mundur mengembalikan teks dulu, baru
+        // langkah mundur berikutnya menancapkan gunungan pembuka (selama gunungan tertancap tahap tidak berlaku)
+        if (this.beatStep(dir)) return;
         if (this.gateStep(dir)) return;
         if (source !== "key" && stageBus.gongStep(dir)) return;
         this.store.dispatch({ type: "step", dir, source });
@@ -77,12 +84,17 @@ export class Director {
         this.gateScrub = false;
         stageBus.gateScrubEnd(flick);
       },
-      // di slide gong 3D jari tidak men-scrub: tiap geser dinilai saat dilepas, jadi dua tahap gulir berlaku juga di HP
-      canScrub: () => !this.calm && !stageBus.gongHere(),
+      // di slide gong 3D jari tidak men-scrub: tiap geser dinilai saat dilepas, jadi dua tahap gulir berlaku juga di HP.
+      // Begitu juga geser yang dipakai tahap judul (teks keluar / kembali): slide tidak ikut terseret jari.
+      canScrub: (dir) => !this.calm && !stageBus.gongHere() && !this.beatTakes(dir),
       paused: () => this.paused,
       zoom: (kind, amount) => stageBus.gongZoomBy(kind, amount),
       pinchStart: () => stageBus.gongPinchStart(),
       pinch: (ratio) => stageBus.gongPinch(ratio),
+      // kamera mengitari gong ±90° (judul hari, hero, gong penutup): seret mouse, jari, atau trackpad ke kiri/kanan
+      orbitStart: () => !this.calm && stageBus.orbitStart(),
+      orbit: (dx, width) => stageBus.orbitDrag(dx, width),
+      orbitEnd: () => stageBus.orbitEnd(),
     });
     return () => {
       this.unbind?.();
@@ -106,8 +118,25 @@ export class Director {
   }
 
   step(dir: Dir) {
+    if (this.beatStep(dir)) return;
     if (this.gateStep(dir)) return;
     this.store.dispatch({ type: "step", dir, source: "ui" });
+  }
+
+  /** Langkah `dir` dipakai tahap judul (saat diam, dan gunungan pembuka tidak sedang tertancap)? */
+  private beatTakes(dir: Dir): boolean {
+    const s = this.store.get();
+    if (s.to !== null) return false;
+    if (s.index === 0 && stageBus.gateSnapshot().phase !== "off") return false;
+    return beatStep(this.film.slides[s.index], this.beat, dir) !== null;
+  }
+
+  /** Tahap judul: teks keluar dan gong ditabuh (maju), atau teks kembali (mundur). true bila langkah dipakai. */
+  private beatStep(dir: Dir): boolean {
+    if (!this.beatTakes(dir)) return false;
+    this.beat = beatStep(this.film.slides[this.index], this.beat, dir)!;
+    this.hooks.render({ index: this.index, moving: null, beat: this.beat }, false);
+    return true;
   }
 
   /** Langkah untuk gunungan pembuka/penutup (hanya saat diam di slide pertama atau terakhir). */
@@ -126,8 +155,9 @@ export class Director {
     const current = this.film.slides[this.index]?.id;
     this.film = film;
     const index = Math.max(0, film.slides.findIndex((s) => s.id === current));
+    if (film.slides[index]?.id !== current) this.beat = 0;
     this.store.dispatch({ type: "resize", count: film.slides.length, index });
-    this.hooks.render({ index: this.index, moving: null }, false);
+    this.hooks.render({ index: this.index, moving: null, beat: this.beat }, false);
   }
 
   private axisFor(dir: Dir): Axis | null {
@@ -139,7 +169,7 @@ export class Director {
     const root = this.root;
     switch (fx.type) {
       case "prepare": {
-        this.hooks.render({ index: fx.from, moving: { from: fx.from, to: fx.to } }, true);
+        this.hooks.render({ index: fx.from, moving: { from: fx.from, to: fx.to }, beat: this.beat }, true);
         this.timeline?.cancel();
         this.plan = root ? planTransition(root, this.film, fx.from, fx.to, this.calm) : null;
         this.timeline = this.plan ? new Timeline(this.plan.tracks) : null;
@@ -147,7 +177,7 @@ export class Director {
       }
       case "discard": {
         this.drop();
-        this.hooks.render({ index: this.index, moving: null }, false);
+        this.hooks.render({ index: this.index, moving: null, beat: this.beat }, false);
         return;
       }
       case "seek":
@@ -181,7 +211,8 @@ export class Director {
         this.timeline?.hurry(SLIDE.hurryRate);
         return;
       case "commit": {
-        this.hooks.render({ index: fx.index, moving: null }, true);
+        if (fx.index !== fx.from) this.beat = 0;
+        this.hooks.render({ index: fx.index, moving: null, beat: this.beat }, true);
         this.drop();
         const slide = this.film.slides[fx.index];
         if (slide) this.live.add(slide.id);
@@ -191,7 +222,7 @@ export class Director {
       case "cancel": {
         this.pendingLive?.();
         this.pendingLive = null;
-        this.hooks.render({ index: fx.index, moving: null }, true);
+        this.hooks.render({ index: fx.index, moving: null, beat: this.beat }, true);
         this.drop();
         return;
       }
