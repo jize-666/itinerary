@@ -70,6 +70,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
   Rinciannya: `docs/design/decisions.md` bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field", dan `HANDOFF.md` bagian 0. Sisa pekerjaan, menunggu host:
   - Tinjau video dan PR #12; uji di iPhone produksi (`/film/?fps`): tahap gong di judul, dan fps gallery dengan DOF di `high ×1 (paksa)`. Beban DOF di renderer perangkat lunak +16% waktu frame, hanya di gallery High.
   - Api naga saat gong judul ditabuh sebagian keluar bingkai atas (kamera sengaja tidak diubah); bila host ingin terlihat utuh, shot judul perlu dilebarkan.
+  - Tambahan 14 Nov malam (host: "dua dua nya, 90derajat"): zoom di judul hari dan hero, dan kamera mengitari gong ±90° (seret mouse, jari, atau trackpad) di judul, hero, dan gong penutup. Digabung di PR #12 (host: "gabung pr sebelumnya dan sekarang"). CI merah PR #12 diperbaiki: tes DOF memperlambat geseran lewat laju animasi, dan tarikan jari pelan tapi panjang di slide tanpa scrub kini satu langkah.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**

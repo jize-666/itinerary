@@ -54,9 +54,22 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - **Kamera:** baru parallax kecil (±0,42 m, ±3–4°), belum bisa mengitari gong.
 
 Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengitari gong dengan seret mouse atau geser jari ke kiri/kanan (misalnya ±60° atau ±90°), kembali pelan ke depan saat dilepas. Seret mendatar di luar gallery sekarang tidak dipakai, jadi tidak bentrok. **Jawaban host, kata demi kata: "dua dua nya, 90derajat".** Artinya:
-- [ ] **Zoom di slide judul hari dan hero prolog:** sama dengan gong penutup (cubit, Ctrl+roda, tombol +/−).
-- [ ] **Kamera mengitari gong ±90°** di slide judul hari, hero, dan gong penutup: seret mouse atau geser jari ke kiri/kanan. Kamera kembali pelan ke depan saat dilepas.
-- Sedang dikerjakan (14 Nov malam), menyusul di PR #12.
+- [x] **Zoom di slide judul hari dan hero prolog:** sama dengan gong penutup (cubit, Ctrl+roda, tombol +/−). Dua tahap gulir tetap hanya di gong penutup, karena langkah maju pertama di judul menabuh gong. Teks judul memudar saat gong didekati.
+- [x] **Kamera mengitari gong ±90°** di slide judul hari, hero, dan gong penutup:
+  - Seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan. Seperti meja putar: seret ke kanan = kamera ke kiri. ±90° tercapai dengan seret 60% layar.
+  - Kamera kembali pelan ke depan saat dilepas.
+  - Teks memudar saat gong dikitari, dan huruf yang tersedot mengikuti letak gong yang sedang tampil.
+  - Klik tanpa seret tetap klik; seret yang dilepas di atas tombol pukul bukan pukulan.
+  - Rincian: `docs/design/decisions.md` bagian "Zoom dan kamera mengitari gong ±90°".
+- **Tes:** 5 tes unit baru (`orbitFromDrag`, bus zoom/kitar), 5 e2e baru (seret mouse ±90° di judul, zoom judul, trackpad di hero, gong penutup, geser jari di HP). Tangkapan layar tier High dicek: −45°, −75°, +63°, kembali 0°, zoom.
+
+**Permintaan host 14 Nov ±00.25 WIB (dengan tangkapan CI merah PR #12, run #188, langkah e2e), kata demi kata:** "ini pr yang sebelumnya, belum gw merge kayaknya", lalu "gabung pr sebelumnya dan sekarang. jangan dibuat dulu tapi". Tafsir Claude: pekerjaan zoom dan kitar tidak dibuatkan PR baru; ia masuk ke PR #12 yang sama (satu branch), dan tidak ada PR baru yang dibuat.
+
+**CI merah PR #12: dua tes yang lulus di sesi tetapi gagal di runner CI (tanpa GPU, lebih lambat):**
+- *"selama geseran di gallery fokus ditarik"*: di CI satu frame tier High lebih lama dari seluruh geseran (±0,6 dtk), jadi tidak ada frame di tengah geseran. Perbaikan tes: geseran diperlambat 20× lewat laju Web Animations (CDP), cara yang sama dengan perekam pratinjau. Pemeriksaannya tidak diubah.
+- *"judul hari: sentakan ke atas menabuh gong"* (iPhone, film 2,5D): di CI event jari datang lambat, jadi geser 160 ms terbaca > 320 ms dan bukan sentakan. Ini juga celah UX nyata: di slide yang tidak men-scrub (judul hari, gong penutup, Calm), tarikan pelan tapi panjang tidak melakukan apa-apa. **Perbaikan produk:** tarikan sepanjang ≥ 18% layar (paling sedikit 80 px) di slide tanpa scrub = satu langkah, berapa pun lamanya (`TouchTracker.reach`, `longDragPx`). Ditambah tes unit dan e2e "tarikan pelan tapi panjang juga menabuh gong".
+- Plus satu tes kitar gong penutup yang kehabisan waktu di bawah beban (gerak mouse lebih sedikit, `test.slow()`).
+- **Dicek dengan kondisi CI** (`CI=1`, 2 inti CPU, tanpa ulang): tes 3D DOF, kitar, dan gong judul 9 lulus; tes film geser jari dan tahap gong 16 lulus.
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
