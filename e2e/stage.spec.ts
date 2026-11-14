@@ -6,6 +6,17 @@ import { filmFixture, json, seedSession, todayFixture, TRIP } from "./helpers";
  * jadi tanpa paksaan film tetap 2,5D; di sini tier dipaksa lewat `?stage=` untuk menguji jalur 3D.
  * Data tiruan; backend di-mock.
  */
+/**
+ * Runner CI (GitHub, tanpa GPU) menggambar panggung 3D di CPU: ±2–4 frame per detik pada tier Low, lebih lambat lagi
+ * bila dua kanvas 3D berjalan bersamaan. Di sana tes 3D diberi waktu tiga kali lipat dan dijalankan satu per satu
+ * di berkas ini. Pemeriksaannya sama; yang ditambah hanya waktu menunggu frame.
+ */
+const CI = !!process.env.CI;
+const WAIT = CI ? 45_000 : 15_000;
+const WAIT_LONG = CI ? 90_000 : 30_000;
+test.describe.configure({ mode: "default" });
+test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
+
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
@@ -14,7 +25,7 @@ const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lako
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
   const from = (await stats(page))?.frames ?? 0;
-  await expect.poll(async () => (await stats(page))?.frames ?? 0, { timeout: 15_000 }).toBeGreaterThanOrEqual(from + more);
+  await expect.poll(async () => (await stats(page))?.frames ?? 0, { timeout: WAIT }).toBeGreaterThanOrEqual(from + more);
 }
 
 async function open(page: Page, query = "", hash = "") {
@@ -32,10 +43,10 @@ const gateOf = (page: Page) => film(page).getAttribute("data-gate");
  * langkah, supaya tes mulai dari prolog seperti sebelum ada gerbang.
  */
 async function openGate(page: Page) {
-  await expect.poll(() => gateOf(page), { timeout: 30_000 }).not.toBe("wait");
+  await expect.poll(() => gateOf(page), { timeout: WAIT_LONG }).not.toBe("wait");
   if ((await gateOf(page)) === "head") {
     await page.keyboard.press("ArrowDown");
-    await expect.poll(async () => (await stats(page))?.gate.planted ?? 0, { timeout: 15_000 }).toBe(0);
+    await expect.poll(async () => (await stats(page))?.gate.planted ?? 0, { timeout: WAIT }).toBe(0);
   }
   await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
 }
@@ -46,7 +57,7 @@ async function openGate(page: Page) {
  */
 async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" | "keep" = "open") {
   await open(page, query, hash);
-  await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+  await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
   if (gate === "open" && !hash) await openGate(page);
 }
 
@@ -92,7 +103,7 @@ test.describe("tanpa GPU, Calm, reduced motion: film tetap 2,5D (tier Static)", 
     await expect(film(page)).not.toHaveAttribute("data-stage", /.+/);
     await expect(page.locator(".fl-skies")).toBeVisible();
     await page.getByRole("button", { name: "Calm mode" }).click();
-    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
     await expect(canvas(page)).toBeVisible();
     await nextFrames(page);
   });
@@ -213,9 +224,9 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
       };
     });
     await open(page, "?fps");
-    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high", { timeout: 30_000 });
+    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high", { timeout: WAIT_LONG });
     await expect(page.locator(".fl-canvas")).toHaveAttribute("data-scale", "1");
-    await expect(page.locator(".fl-fps")).toContainText("high ×1 (paksa)", { timeout: 15_000 });
+    await expect(page.locator(".fl-fps")).toContainText("high ×1 (paksa)", { timeout: WAIT });
   });
 
   test("tanpa ?fps tidak ada overlay", async ({ page }) => {
@@ -246,7 +257,7 @@ test.describe("gong ageng 3D", () => {
     await nextFrames(page);
     const front = (await stats(page))!;
     await page.goto("/film/?stage=low#day-1");
-    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
     await settled(page);
     await step(page); // intro hari
     await step(page); // panel pertama: kamera di tepi belakang pendapa, memandang Lawu
@@ -287,7 +298,7 @@ test.describe("gong ageng 3D", () => {
     const strike = await toGong(page, "?stage=low");
     // otomatis: tabuh diayun ±0,26 dtk sesudah tiba dan kena ±0,5 dtk kemudian
     await expect(strike).toHaveAttribute("data-struck", "1");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(1);
     // Pukulan baru ditolak sampai tabuh kembali menggantung (1,5 dtk sejak diayun). Dua klik dalam satu giliran:
     // paling banyak satu yang diterima, berapa pun lambatnya halaman menggambar.
     const twice = () =>
@@ -298,7 +309,7 @@ test.describe("gong ageng 3D", () => {
         return b.dataset.struck ?? "";
       });
     await expect.poll(twice, { timeout: 20_000, intervals: [400] }).toBe("2");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(2);
     // keyboard: Enter di tombol yang terfokus
     await strike.focus();
     await expect
@@ -310,7 +321,7 @@ test.describe("gong ageng 3D", () => {
         { timeout: 20_000, intervals: [400] },
       )
       .toBe("3");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(3);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(3);
   });
 
   test("hentakan kamera: diam sebelum pukulan, terhentak saat gong kena, lalu tenang lagi", async ({ page }) => {
@@ -330,10 +341,10 @@ test.describe("gong ageng 3D", () => {
     expect(await page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax)).toBe(0);
     await step(page, "ArrowUp"); // ke slide gong penutup Hari 1: dipukul sendiri
     await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax), { timeout: 15_000 }).toBeGreaterThan(0);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(1);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax), { timeout: WAIT }).toBeGreaterThan(0);
     // getar habis dalam ±1,5 dtk: kamera kembali diam
-    await expect.poll(kick, { timeout: 15_000 }).toBe(0);
+    await expect.poll(kick, { timeout: WAIT }).toBe(0);
   });
 
   const gongZoom = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
@@ -345,20 +356,20 @@ test.describe("gong ageng 3D", () => {
     await toGong(page, "?stage=low");
     await film(page).hover();
     await page.mouse.wheel(0, 100);
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeGreaterThan(0.6);
     expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
     // mundur saat dekat: menjauh dulu, tetap di slide gong
     await page.waitForTimeout(700); // gerakan roda baru = sesudah jeda (di bawah beban suite penuh, jeda pendek terbaca satu gerakan)
     await page.mouse.wheel(0, -100);
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeLessThan(0.05);
     expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
     // maju dua kali: dekat, lalu pindah ke Hari 2
     await page.waitForTimeout(700);
     await page.mouse.wheel(0, 100);
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.6);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeGreaterThan(0.6);
     await page.waitForTimeout(700);
     await page.mouse.wheel(0, 100);
-    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong", { timeout: 15_000 });
+    await expect(film(page)).not.toHaveAttribute("data-slide", "day-1/gong", { timeout: WAIT });
     // panah keyboard tetap per slide (tanpa tahap dekat)
     await settled(page);
     await step(page, "ArrowUp");
@@ -373,28 +384,28 @@ test.describe("gong ageng 3D", () => {
     const w0 = (await strike.boundingBox())!.width;
     await page.keyboard.press("+");
     await page.keyboard.press("+");
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.4);
-    await expect.poll(async () => (await strike.boundingBox())!.width, { timeout: 15_000 }).toBeGreaterThan(w0 * 1.3);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeGreaterThan(0.4);
+    await expect.poll(async () => (await strike.boundingBox())!.width, { timeout: WAIT }).toBeGreaterThan(w0 * 1.3);
     await page.keyboard.press("-");
     await page.keyboard.press("-");
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeLessThan(0.05);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeLessThan(0.05);
     await film(page).hover();
     await page.keyboard.down("Control");
     await page.mouse.wheel(0, -200);
     await page.keyboard.up("Control");
-    await expect.poll(() => gongZoom(page), { timeout: 15_000 }).toBeGreaterThan(0.5);
+    await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeGreaterThan(0.5);
     expect(await film(page).getAttribute("data-slide")).toBe("day-1/gong");
   });
 
   test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
     const strike = await toGong(page, "?stage=low");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(1);
     await step(page, "ArrowDown"); // judul Hari 2
     await page.waitForTimeout(1700);
     expect(await strikes(page)).toBe(1);
     await step(page, "ArrowUp");
     await expect(strike).toHaveAttribute("data-struck", "2");
-    await expect.poll(() => strikes(page), { timeout: 15_000 }).toBe(2);
+    await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(2);
   });
 
   test("film 2,5D: cakram gong CSS dipukul sendiri saat tiba dan beriak lagi tiap diklik", async ({ page }) => {
@@ -437,7 +448,7 @@ async function jump(page: Page, n: number) {
 test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan host 13 Nov)", () => {
   test("panggung 3D hidup: lompat bab maju dan mundur disapu bayangan kayon DOM, gunungan 3D tidak menyapu", async ({ page }) => {
     await open3d(page);
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: WAIT_LONG }).toBe(true);
     for (const n of [1, 0]) {
       await watchSweep(page);
       await jump(page, n);
@@ -464,8 +475,8 @@ test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan
     await page.waitForTimeout(1500);
     expect(got).toEqual([]);
     await page.goto("/film/?stage=low");
-    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: 30_000 });
-    await expect.poll(() => got.length, { timeout: 30_000 }).toBe(5);
+    await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
+    await expect.poll(() => got.length, { timeout: WAIT_LONG }).toBe(5);
     expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
   });
 });
@@ -478,7 +489,7 @@ const planted = async (page: Page) => (await stats(page))?.gate.planted ?? -1;
 test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   test("film 3D dibuka dengan gunungan tertancap; gulir maju mencabutnya tanpa pindah slide, lalu teks prolog muncul", async ({ page }) => {
     await open3d(page, "?stage=low", "", "keep");
-    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     await expect.poll(() => opacity(page, HERO)).toBe(0);
     await nextFrames(page);
     expect((await stats(page))!.gate).toEqual({ end: "head", planted: 1, face: "agung" });
@@ -488,7 +499,7 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     await expect.poll(() => opacity(page, HERO)).toBe(1);
     await expect(page.locator(".fl-kayon")).toHaveCount(0);
     expect(await film(page).getAttribute("data-index")).toBe("0");
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBe(0);
     // sesudah tercabut, langkah berikutnya memindah slide seperti biasa
     await step(page);
     expect(await film(page).getAttribute("data-index")).toBe("1");
@@ -496,17 +507,17 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
 
   test("klik dan Enter membalik gunungan ke muka Murka dan kembali ke muka Agung", async ({ page }) => {
     await open3d(page, "?stage=low", "", "keep");
-    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     const flip = page.locator(".fl-kayon");
     await expect(flip).toHaveAttribute("aria-pressed", "false");
     await flip.click();
     await expect(film(page)).toHaveAttribute("data-face", "murka");
     await expect(flip).toHaveAttribute("aria-pressed", "true");
-    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: 15_000 }).toBe("murka");
+    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: WAIT }).toBe("murka");
     await flip.focus();
     await page.keyboard.press("Enter");
     await expect(film(page)).toHaveAttribute("data-face", "agung");
-    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: 15_000 }).toBe("agung");
+    await expect.poll(async () => (await stats(page))?.gate.face, { timeout: WAIT }).toBe("agung");
     // membalik tidak mencabut dan tidak memindah slide
     expect(await film(page).getAttribute("data-index")).toBe("0");
     await expect(film(page)).toHaveAttribute("data-gate", "head");
@@ -518,7 +529,7 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     await page.keyboard.press("ArrowUp");
     await expect(film(page)).toHaveAttribute("data-gate", "head");
     await expect.poll(() => opacity(page, HERO)).toBe(0);
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBe(1);
     expect((await stats(page))!.gate.face).toBe("agung");
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
@@ -529,17 +540,17 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     await open3d(page, "?stage=low", "#credits");
     const last = await film(page).getAttribute("data-index");
     await expect(film(page)).toHaveAttribute("data-kind", "credits");
-    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: 30_000 }).toBe(true);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: WAIT_LONG }).toBe(true);
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).toHaveAttribute("data-gate", "tail");
     await expect.poll(() => opacity(page, CREDITS)).toBe(0);
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(1);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBe(1);
     expect((await stats(page))!.gate.end).toBe("tail");
     expect(await film(page).getAttribute("data-index")).toBe(last);
     await page.keyboard.press("ArrowUp");
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
     await expect.poll(() => opacity(page, CREDITS)).toBe(1);
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBe(0);
     // tercabut: mundur berikutnya memindah slide
     await step(page, "ArrowUp");
     expect(await film(page).getAttribute("data-index")).not.toBe(last);
@@ -549,13 +560,13 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     test.slow();
     await open3d(page, "?stage=low", "#credits");
     await expect(film(page)).toHaveAttribute("data-kind", "credits");
-    await expect(film(page)).toHaveAttribute("data-gate", "tail", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-gate", "tail", { timeout: WAIT_LONG });
   });
 
   test("geser jari mencabut gunungan mengikuti jari; dilepas sesudah ambang, tercabut habis", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "iphone", "geser jari di layar sentuh");
     await open3d(page, "?stage=low", "", "keep");
-    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: 30_000 });
+    await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     const cdp = await page.context().newCDPSession(page);
     const touch = (type: "touchStart" | "touchMove" | "touchEnd", y = 0) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y }] });
     await touch("touchStart", 560);
@@ -564,12 +575,12 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
       await page.waitForTimeout(30);
     }
     // ditahan di tengah: gunungan setengah tercabut, slide tidak pindah
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBeLessThan(0.95);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBeLessThan(0.95);
     const held = await planted(page);
     expect(held).toBeGreaterThan(0.05);
     await touch("touchEnd");
     await cdp.detach();
-    await expect.poll(() => planted(page), { timeout: 15_000 }).toBe(0);
+    await expect.poll(() => planted(page), { timeout: WAIT }).toBe(0);
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
     expect(await film(page).getAttribute("data-index")).toBe("0");
   });

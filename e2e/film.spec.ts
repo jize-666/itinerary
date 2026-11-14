@@ -242,7 +242,8 @@ test.describe("geser dengan jari", () => {
   test("geser menyamping di luar gallery tidak memindah slide; ketukan tetap klik", async ({ page }) => {
     await open(page);
     await drag(page, [320, 420], [60, 425], 140);
-    await page.waitForTimeout(400);
+    // klik sesudah geser sengaja ditelan ±350 ms (lihat input.ts); di runner yang lambat beri jarak lebih lebar
+    await page.waitForTimeout(900);
     expect(await index(page)).toBe(0);
     await page.getByRole("button", { name: "Calm mode" }).tap();
     await expect(page.getByRole("button", { name: "Calm mode" })).toHaveAttribute("aria-pressed", "true");
