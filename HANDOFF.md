@@ -17,7 +17,9 @@ Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ul
 
 **Pratinjau.** Video Today iPhone (`record-today.cjs`, 1080 px, 60 fps, 38 dtk: sebelum trip dengan kemiringan HP tiruan dan dua kotak dicentang, lalu hari pertama dengan Rain plan dan sheet SOS) dikirim ke host 14 Nov.
 
-**Langkah berikutnya.** PR untuk Tugas 7 + Today (siap Squash and merge) → tunggu tinjauan host. Tugas 8 hanya bila host memberi arahan.
+**PR #9 dibuka:** https://github.com/jize-666/itinerary/pull/9 (Tugas 7 + Today 2,5D, siap Squash and merge; host yang menekan merge).
+
+**Langkah berikutnya.** Tunggu tinjauan host atas kedua video dan PR #9. Sesudah merge, branch kerja dibuat ulang dari `main` terbaru. Tugas 8 (benang emas) hanya bila host memberi arahan.
 
 ### Tugas 7: pembuka dan penutup gunungan (sesi 14 Nov pagi WIB)
 
@@ -520,7 +522,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR untuk Tugas 7 (gunungan pembuka dan penutup) dibuka sesudah video pratinjau.
+**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D) dibuka 14 Nov, menunggu merge host.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
