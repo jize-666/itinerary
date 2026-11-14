@@ -128,9 +128,13 @@ Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengita
 - **Dicek dengan kondisi CI** (`CI=1`, 2 inti CPU, tanpa ulang): tes 3D DOF, kitar, dan gong judul 9 lulus; tes film geser jari dan tahap gong 16 lulus.
 - **Tes penuh sesudah perbaikan:** lint, typecheck bersih; `pnpm test` 359/359; `pnpm build` OK; `pnpm test:e2e` **272 lulus, 30 dilewati, 0 gagal** (12,2 menit).
 - **CI GitHub hijau** di semua run sesudah perbaikan (#192–#197, push dan pull_request), termasuk commit maskot M1.
-- **Pratinjau zoom dan kitar:**
-  - Desktop (tur `kitar`, data April, tier High, 48 dtk, 95% frame unik) dikirim ke host.
-  - iPhone sedang direkam.
+- **Pratinjau zoom dan kitar** (tur `kitar`, data April, tier High), dikirim ke host:
+  - Desktop: 48 dtk, 95% frame unik.
+  - iPhone: 45 dtk, 97% frame unik; geser jari dan cubit zoom. Saat gong penutup dikitari, tiang pendapa sesaat lewat di depan kamera (kamera berada di dalam pendapa).
+- **Langkah berikutnya:**
+  - Host meninjau video dan PR #12 (siap Squash and merge, CI hijau).
+  - Cek di iPhone produksi: kitar, zoom, dan fps gallery dengan DOF.
+  - Tugas 8 dan maskot menunggu arahan host.
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
