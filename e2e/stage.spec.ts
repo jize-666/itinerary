@@ -726,6 +726,115 @@ test.describe("tahap gong di slide judul, panggung 3D (Tugas 7b)", () => {
   });
 });
 
+test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"dua dua nya, 90derajat\")", () => {
+  const orbitOf = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage: { orbit: number } }).__lakonStage.orbit);
+  const zoomOf = (page: Page) => page.evaluate(() => Number(getComputedStyle(document.querySelector("main.film")!).getPropertyValue("--gong-zoom") || "0"));
+
+  test("judul hari: seret mouse ke kanan = kamera ke kiri sampai −90°, ke kiri sampai +90°; dilepas kembali ke depan; slide tidak pindah", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
+    test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    const view = page.viewportSize()!;
+    const y = view.height * 0.55;
+    await page.mouse.move(view.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(view.width * 0.8, y, { steps: 4 });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-40);
+    await page.mouse.move(view.width * 0.1, y, { steps: 4 }); // seret balik melewati tengah: sisi kanan gong
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeGreaterThan(40);
+    await page.mouse.move(-view.width, y, { steps: 2 }); // jauh melewati tepi: tetap dibatasi
+    await nextFrames(page, 4);
+    expect(await orbitOf(page)).toBeLessThanOrEqual(90);
+    await page.mouse.up();
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/); // seret bukan langkah: gong tidak ditabuh
+  });
+
+  test("judul hari: zoom dengan + / − dan Ctrl+roda, teks memudar saat gong didekati", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    await page.keyboard.press("+");
+    await page.keyboard.press("+");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeGreaterThan(0.4);
+    await expect.poll(() => page.locator(".fl-layer[data-pos='cur'] .fs-beat").evaluate((el) => Number(getComputedStyle(el).opacity)), { timeout: WAIT }).toBeLessThan(0.7);
+    await page.keyboard.press("-");
+    await page.keyboard.press("-");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeLessThan(0.05);
+    await film(page).hover();
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -200);
+    await page.keyboard.up("Control");
+    await expect.poll(() => zoomOf(page), { timeout: WAIT }).toBeGreaterThan(0.5);
+    // langkah maju tetap menabuh gong (tahap judul), bukan dua tahap gulir seperti di gong penutup
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+  });
+
+  test("trackpad: geser dua jari mendatar di hero mengitari gong, lalu kembali", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "trackpad hanya di desktop");
+    test.slow();
+    await open3d(page);
+    await nextFrames(page);
+    // jari ke kanan (deltaX negatif) = seret ke kanan = kamera ke kiri (sudut negatif). Event dikirim dalam satu
+    // giliran, seperti trackpad sungguhan (±16 ms per event); di sini tiap frame 3D digambar CPU dan lebih lama dari
+    // jeda pelepasan, jadi event satu per satu akan terbaca sebagai beberapa geseran pendek.
+    await page.evaluate(() => {
+      const el = document.querySelector("main.film")!;
+      for (let i = 0; i < 8; i++) el.dispatchEvent(new WheelEvent("wheel", { deltaX: -40, deltaY: 0, deltaMode: 0, bubbles: true, cancelable: true }));
+    });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-20);
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("hero");
+  });
+
+  test("gong penutup: seret mouse mengitari gong; seret yang dilepas di atas tombol pukul bukan pukulan", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
+    test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
+    await open3d(page, "?stage=low", "#day-2");
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    const strike = page.locator(".fl-layer[data-pos='cur'] .fs-strike");
+    await expect(strike).toHaveAttribute("data-struck", "1"); // dipukul sendiri saat tiba
+    const box = (await strike.boundingBox())!;
+    const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx - 300, cy, { steps: 3 });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeGreaterThan(20);
+    await page.mouse.move(cx, cy, { steps: 3 }); // kembali ke atas tombol, lalu dilepas
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+    await expect(strike).toHaveAttribute("data-struck", "1");
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+  });
+
+  test("HP: geser jari mendatar di judul mengitari gong (slide tidak pindah), langkah maju sesudahnya tetap menabuh gong", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "iphone", "sentuhan hanya di HP");
+    test.slow();
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    const view = page.viewportSize()!;
+    const cdp = await page.context().newCDPSession(page);
+    const pt = (x: number, y: number) => [{ x: Math.round(x), y: Math.round(y) }];
+    const y = view.height * 0.6;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(view.width * 0.2, y) });
+    for (let i = 1; i <= 12; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(view.width * (0.2 + 0.05 * i), y) });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBeLessThan(-40);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(() => orbitOf(page), { timeout: WAIT }).toBe(0);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    await expect(film(page)).not.toHaveAttribute("data-beat", /.+/);
+    // sentakan tegak di judul sudah diuji di film.spec (film 2,5D); di sini tiap event jari menunggu frame 3D yang
+    // digambar CPU (±150 ms), jadi tidak pernah secepat sentakan. Langkah maju lewat keyboard.
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await cdp.detach();
+  });
+});
+
 test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
   type Dof = { amount: number; focus: number; drawn: boolean };
   const dofOf = async (page: Page) => (await page.evaluate(() => (window as unknown as { __lakonStage: { dof: Dof } }).__lakonStage.dof));
@@ -803,8 +912,17 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
     await step(page);
     await nextFrames(page);
     await page.evaluate(() => ((window as unknown as { __focusMax: number }).__focusMax = 0));
-    await step(page, "ArrowRight"); // panel berikutnya
-    expect(await page.evaluate(() => (window as unknown as { __focusMax: number }).__focusMax)).toBeGreaterThan(20);
+    // Tanpa GPU satu frame tier High bisa lebih lama dari seluruh geseran (±0,6 dtk), jadi geseran diperlambat 20×
+    // lewat laju animasi (transisi film memakai Web Animations; cara yang sama dengan perekam pratinjau): frame di
+    // tengah geseran pasti tergambar. Yang diperiksa tetap sama.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Animation.enable");
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 0.05 });
+    await page.keyboard.press("ArrowRight"); // panel berikutnya
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __focusMax: number }).__focusMax), { timeout: WAIT_LONG }).toBeGreaterThan(20);
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 1 });
+    await cdp.detach();
+    await settled(page);
     await nextFrames(page, 3);
     expect((await dofOf(page)).focus).toBe(12);
   });

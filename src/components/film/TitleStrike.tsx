@@ -40,10 +40,15 @@ const hash = (i: number, salt: number) => {
   return x - Math.floor(x);
 };
 
-/** Pusat gong di layar (px klien): dari shot kamera di 3D, dari cakram CSS di film 2,5D. */
+/**
+ * Pusat gong di layar (px klien). Di 3D: letak yang ditulis panggung tiap frame (`--gong-x/--gong-y`, sudah termasuk
+ * zoom, kitar, dan parallax), atau dari shot kamera bila belum ada. Di film 2,5D: dari cakram CSS.
+ */
 function gongCenter(film: HTMLElement, body: HTMLElement, slide: Slide): { x: number; y: number } | null {
   const fr = film.getBoundingClientRect();
   if (!fr.width || !fr.height) return null;
+  const [lx, ly] = [parseFloat(body.style.getPropertyValue("--gong-x")), parseFloat(body.style.getPropertyValue("--gong-y"))];
+  if (film.dataset.stage !== undefined && Number.isFinite(lx) && Number.isFinite(ly)) return { x: fr.left + (lx / 100) * fr.width, y: fr.top + (ly / 100) * fr.height };
   if (film.dataset.stage !== undefined) {
     const aspect = fr.width / fr.height;
     const g = gongSpot(shotFor(slide, { aspect }), aspect);

@@ -8,10 +8,10 @@
 import { type PerspectiveCamera, type Scene, Vector2, Vector3, type WebGLRenderer } from "three";
 import type { Film } from "@/engine/slides/build-slides";
 import type { SkyState } from "@/engine/slides/sky";
-import { stageBus } from "@/engine/stage/bus";
+import { type GongPlace, stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
-import { approach, DOF, dofFocus, GONG_ZOOM, scrollDepth, VIEW } from "@/engine/motion/view";
+import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, scrollDepth, VIEW } from "@/engine/motion/view";
 import { lookMoving, startLook, stepLook } from "../look";
 import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
 import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
@@ -53,6 +53,8 @@ export type StageStats = {
   strikes: number;
   /** Besar hentakan dan getar kamera pada frame terakhir (0 = kamera diam di shot-nya). */
   kick: number;
+  /** Sudut kitar kamera mengelilingi gong pada frame terakhir (derajat; 0 = dari depan). */
+  orbit: number;
   /** Gunungan 3D siap (teksturnya sudah di GPU). */
   kayon: boolean;
   /** Format rantai bloom ("r11g11b10" = hemat bandwidth aktif, "rgba16f", "rgba8"); depth MSAA tidak pernah di-resolve. */
@@ -174,6 +176,10 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const gongEdge = new Vector3();
   /** Zoom gong yang sedang digambar (dihaluskan menuju target di bus). */
   let zoomNow = 0;
+  /** Sudut kitar kamera mengelilingi gong yang sedang digambar (derajat). */
+  let orbitNow = 0;
+  /** Slide yang gongnya bisa di-zoom dan dikitari: gong penutup hari, judul hari, dan hero prolog. */
+  const placeOf = (kind: string | undefined): GongPlace => (kind === "gong" ? "gong" : kind === "title" || kind === "hero" ? "title" : null);
   /** Letak gong di layar yang terakhir ditulis ke lapisan DOM (bidang sentuh tombol pukul). */
   let spotEl: HTMLElement | null = null;
   let spotKey = "";
@@ -261,19 +267,37 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
 
     // Gerak pandang (aturan host 13 Nov, berlaku di semua slide): kamera parallax mengikuti kursor atau kemiringan
     // HP, perspective shift (kamera berpindah lalu memandang ulang objeknya), dan kedalaman yang mengikuti gulir
-    // (maju di tengah perpindahan slide, mengikuti kemajuan gulir). Di slide gong ditambah zoom.
+    // (maju di tengah perpindahan slide, mengikuti kemajuan gulir). Di slide gong penutup, judul hari, dan hero
+    // ditambah zoom dan kamera yang mengitari gong (seret ke kiri/kanan, ±90°). Gunungan pembuka yang tertancap
+    // menutup gong, jadi selama itu keduanya tidak berlaku.
     const lk = stepLook();
-    const here = !cue.moving && film.slides[cursor.from]?.kind === "gong";
+    const spot = placeOf(film.slides[cursor.from]?.kind);
+    const here = !cue.moving && planted === 0 ? spot : null;
     stageBus.setGongHere(here);
     zoomNow = approach(zoomNow, here ? stageBus.gongZoom() : 0, dt, GONG_ZOOM.ease);
-    const zoomed = film.slides[cursor.from]?.kind === "gong" ? zoomNow * (cue.moving ? 1 - cursor.p : 1) : 0;
+    orbitNow = approach(orbitNow, here ? stageBus.orbitGoal() : 0, dt, stageBus.orbiting() ? ORBIT.follow : ORBIT.back);
+    if (Math.abs(orbitNow) < 0.01 && !stageBus.orbiting()) orbitNow = 0;
+    stageBus.setOrbitShown(orbitNow);
+    // saat meninggalkan slide ini, zoom dan kitar surut bersama kemajuan perpindahan (tanpa lompatan)
+    const leaving = cue.moving ? 1 - cursor.p : 1;
+    const zoomed = spot ? zoomNow * leaving : 0;
+    const orbited = spot ? orbitNow * leaving : 0;
     if (camera.fov !== shot.fov) {
       camera.fov = shot.fov;
       camera.updateProjectionMatrix();
     }
-    camera.position.set(shot.pos[0], shot.pos[1], shot.pos[2]);
+    // kitar: letak kamera dan titik pandangnya diputar mengelilingi sumbu tegak yang melewati pusat gong
+    const th = (orbited * Math.PI) / 180;
+    const [cs, sn] = [Math.cos(th), Math.sin(th)];
+    const turn = (x: number, z: number): [number, number] => {
+      const [dx, dz] = [x - GONG_CENTER.x, z - GONG_CENTER.z];
+      return [GONG_CENTER.x + dx * cs + dz * sn, GONG_CENTER.z - dx * sn + dz * cs];
+    };
+    const [px, pz] = turn(shot.pos[0], shot.pos[2]);
+    const [lx, lz] = turn(shot.look[0], shot.look[2]);
+    camera.position.set(px, shot.pos[1], pz);
     // makin dekat ke gong, titik bidik berpindah dari bingkai slide (yang memberi ruang teks) ke pusat gong
-    camera.lookAt(look.set(shot.look[0], shot.look[1], shot.look[2]).lerp(GONG_CENTER, Math.min(1, zoomed * 1.4)));
+    camera.lookAt(look.set(lx, shot.look[1], lz).lerp(GONG_CENTER, Math.min(1, zoomed * 1.4)));
     const reach = shot.rig === "orbit" ? 1 : 0.6;
     // jarak ke objek: bidikan lanskap berfokus jauh (40 m), jadi dorongannya dibatasi seperti di bidikan pendapa
     const dist = Math.min(shot.focus, 12);
@@ -302,30 +326,33 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     camera.updateMatrixWorld();
 
-    // slide gong: bidang sentuh tombol pukul mengikuti gong di layar (parallax, zoom, hentakan), teks penutup hari
-    // memudar saat didekati, dan cubit di layar menjadi zoom gong (bukan zoom halaman)
+    // slide gong, judul hari, hero: letak gong di layar ditulis ke lapisan DOM tiap frame (bidang sentuh tombol pukul
+    // di slide gong, arah huruf yang tersedot di judul), teks memudar saat gong didekati atau dikitari, dan cubit di
+    // layar menjadi zoom gong (bukan zoom halaman)
     const host = root();
     if (host && here) {
-      if (!spotEl?.isConnected) spotEl = host.querySelector<HTMLElement>(".fl-layer[data-pos='cur'] .fs-gongclose");
+      if (!spotEl?.isConnected) spotEl = host.querySelector<HTMLElement>(`.fl-layer[data-pos='cur'] ${here === "gong" ? ".fs-gongclose" : ".fs-beat"}`);
       if (spotEl) {
         gongAt.copy(GONG_CENTER).project(camera);
         gongEdge.set(GONG.radius * GONG_SCALE, 0, 0).applyQuaternion(camera.quaternion).add(GONG_CENTER).project(camera);
         const x = (gongAt.x * 0.5 + 0.5) * 100;
         const y = (0.5 - gongAt.y * 0.5) * 100;
         const d = Math.abs(gongEdge.x - gongAt.x) * 100 * 1.06;
-        const key = `${x.toFixed(1)}|${y.toFixed(1)}|${d.toFixed(1)}|${zoomed.toFixed(2)}`;
+        const key = `${x.toFixed(1)}|${y.toFixed(1)}|${d.toFixed(1)}|${zoomed.toFixed(2)}|${orbited.toFixed(1)}`;
         if (key !== spotKey) {
           spotKey = key;
           spotEl.style.setProperty("--gong-x", `${x.toFixed(2)}%`);
           spotEl.style.setProperty("--gong-y", `${y.toFixed(2)}%`);
           spotEl.style.setProperty("--gong-d", `${d.toFixed(2)}%`);
           host.style.setProperty("--gong-zoom", zoomed.toFixed(3));
+          host.style.setProperty("--gong-orbit", (Math.abs(orbited) / ORBIT.max).toFixed(3));
         }
       }
       if (!("gongzoom" in host.dataset)) host.dataset.gongzoom = "";
     } else if (host && "gongzoom" in host.dataset) {
       delete host.dataset.gongzoom;
       host.style.removeProperty("--gong-zoom");
+      host.style.removeProperty("--gong-orbit");
       spotEl = null;
       spotKey = "";
     }
@@ -377,6 +404,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.moving = cue.moving;
     stats.strikes = hit.count;
     stats.kick = kicked;
+    stats.orbit = orbited;
     stats.kayon = gunungan.ready();
     stats.gate = { end: planted > 0 ? gateEnd : null, planted, face: pose && "turn" in pose ? pose.face : "agung" };
     stats.time = t;
@@ -423,8 +451,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     n++;
     const c = hooks().probe();
     const now = performance.now();
-    const zoomGoal = stageBus.gongHere() ? stageBus.gongZoom() : 0;
-    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1);
+    const zoomGoal = stageBus.zoomHere() ? stageBus.gongZoom() : 0;
+    const orbitGoal = stageBus.zoomHere() ? stageBus.orbitGoal() : 0;
+    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || Math.abs(orbitNow - orbitGoal) > 0.01 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1);
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -459,7 +488,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stageBus.setKayon(false);
     stageBus.gateReady(false);
     stopLook();
-    stageBus.setGongHere(false);
+    stageBus.setGongHere(null);
     host?.removeEventListener("gesturestart", noPageZoom);
     const el = root();
     if (el) {

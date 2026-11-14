@@ -111,6 +111,26 @@ export function recenterBase(base: Readonly<{ beta: number; gamma: number }>, be
 }
 
 /**
+ * Kamera mengitari gong (permintaan host 14 Nov, "dua dua nya, 90derajat"): di slide judul hari, hero prolog, dan
+ * gong penutup, seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan memutar kamera mengelilingi gong
+ * sampai ±90° (sampai ke samping gong). Seperti meja putar: seret ke kanan = gong berpaling ke kanan (kamera ke kiri).
+ * Saat dilepas kamera kembali pelan ke depan.
+ */
+export const ORBIT = {
+  /** Batas putaran (derajat) ke kiri dan ke kanan. */
+  max: 90,
+  /** Seret selebar layar = sekian derajat (jadi ±90° tercapai dengan seret 60% layar). */
+  perScreen: 150,
+  /** Penghalus selama diseret: tetapan waktu (detik). */
+  follow: 0.08,
+  /** Kembali ke depan sesudah dilepas: tetapan waktu (detik). */
+  back: 0.7,
+} as const;
+
+/** Sudut kitar (derajat) sesudah diseret `dx` px pada layar selebar `width` px, mulai dari sudut `from`. */
+export const orbitFromDrag = (from: number, dx: number, width: number): number => clamp(from - (dx / Math.max(1, width)) * ORBIT.perScreen, -ORBIT.max, ORBIT.max);
+
+/**
  * Zoom slide gong: 0 = bidikan biasa, 1 = dekat (kamera maju `close` bagian dari jaraknya ke gong). Zoom cubit,
  * Ctrl+roda, dan tombol +/− bebas di antaranya; dua tahap gulir hanya memakai kedua ujungnya.
  */

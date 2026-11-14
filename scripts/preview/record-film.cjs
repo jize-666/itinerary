@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar]
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); prolog = empat slide pertama sesudah gunungan
@@ -15,7 +15,9 @@
 // muka Murka dan kembali, dicabut dengan gulir (di iphone dengan jari, ditahan di tengah), lalu lompat ke credits dan
 // gunungan ditancapkan lagi; judul = Tugas 7b: judul Hari 1 tersedot ke gong dan gong ditabuh tanpa hentakan kamera,
 // mundur (huruf keluar lagi), ditabuh lagi, intro hari, gallery dengan letak Z dan depth of field (di iphone satu
-// geser jari ditahan di tengah), lalu lompat ke prolog dan tahap gong hero. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
+// geser jari ditahan di tengah), lalu lompat ke prolog dan tahap gong hero; kitar = zoom dan kamera mengitari gong ±90°
+// (permintaan host 14 Nov "dua dua nya, 90derajat") di judul Hari 1: seret ke kanan sampai samping gong, dilepas
+// (kembali ke depan), seret ke kiri, zoom masuk dan keluar, gong ditabuh saat sudah dikitari, lalu gong penutup hari. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
 // hero punya tahap gong: `advance` mencabut gunungan dan menjalankan tahap gong lebih dulu bila perlu.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
@@ -98,7 +100,7 @@ const fs = require('fs');
   rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' || tour === 'judul' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
+  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' || tour === 'judul' || tour === 'kitar' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
   if (STAGE && STAGE !== 'static') {
@@ -116,6 +118,57 @@ const fs = require('fs');
     console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
     await b.close();
   };
+
+  if (tour === 'kitar') {
+    // seret: mouse di desktop, satu jari di iphone; `to` = letak akhir sebagai bagian lebar layar
+    const drag = async (from, to, ms, hold) => {
+      const y = Math.round(height * 0.58);
+      const steps = Math.max(8, Math.round(ms / 40));
+      if (phone) {
+        const finger = (type, x) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: Math.round(x), y }] });
+        await finger('touchStart', width * from);
+        for (let i = 1; i <= steps; i++) { await finger('touchMove', width * (from + ((to - from) * i) / steps)); await w(ms / steps); }
+        await w(hold);
+        await finger('touchEnd', 0);
+      } else {
+        await p.mouse.move(width * from, y);
+        await p.mouse.down();
+        for (let i = 1; i <= steps; i++) { await p.mouse.move(width * (from + ((to - from) * i) / steps), y); await w(ms / steps); }
+        await w(hold);
+        await p.mouse.up();
+      }
+    };
+    /** Cubit dua jari (iphone) atau tombol +/− (desktop). */
+    const zoomTo = async (inward, ms) => {
+      if (!phone) {
+        await key(inward ? '+' : '-', 500);
+        await key(inward ? '+' : '-', ms);
+        return;
+      }
+      const [cx, cy] = [width / 2, height * 0.45];
+      const pts = (r) => [{ x: Math.round(cx - r), y: Math.round(cy), id: 0 }, { x: Math.round(cx + r), y: Math.round(cy), id: 1 }];
+      const [r0, r1] = inward ? [40, 150] : [150, 40];
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts(r0) });
+      for (let i = 1; i <= 20; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pts(r0 + ((r1 - r0) * i) / 20) }); await w(35); }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await w(ms);
+    };
+    await w(3000); // judul Hari 1 di depan gayor, gong, dan kedua naga
+    await drag(0.35, 0.97, 2200, 1600); // seret ke kanan: kamera ke kiri sampai samping gong (−90°), teks memudar
+    await w(2600); // dilepas: kamera kembali pelan ke depan
+    await drag(0.65, 0.03, 2000, 1400); // seret ke kiri: sisi kanan gong
+    await w(2400);
+    await zoomTo(true, 2200); // zoom masuk: gong mendekat, teks memudar
+    await zoomTo(false, 2000); // zoom keluar
+    await drag(0.5, 0.82, 1400, 400); // dikitari sedikit lalu dilepas...
+    await key('ArrowDown', 4600); // ...dan langsung ditabuh: huruf tersedot ke letak gong yang sedang tampil
+    await tap(p.locator('.fl-rail-list li:nth-child(3) button'), 3600); // lompat ke Hari 2
+    await key('ArrowUp', 4200); // gong penutup Hari 1: dipukul sendiri
+    await drag(0.4, 0.92, 1800, 1200); // gong penutup juga bisa dikitari
+    await w(2600);
+    await finish();
+    return;
+  }
 
   if (tour === 'judul') {
     const glide = async (x, y, ms) => { await p.mouse.move(x, y, { steps: 24 }); await w(ms); };

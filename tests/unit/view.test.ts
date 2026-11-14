@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DOF, GONG_ZOOM, VIEW, approach, dofBlur, dofFocus, gongStep, pointerLook, recenterBase, scrollDepth, tiltLook, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
+import { DOF, GONG_ZOOM, ORBIT, VIEW, approach, dofBlur, dofFocus, gongStep, orbitFromDrag, pointerLook, recenterBase, scrollDepth, tiltLook, zoomByPinch, zoomByWheel } from "@/engine/motion/view";
 
 describe("kedalaman ikut gulir", () => {
   it("nol di kedua ujung perpindahan, terbesar di tengah, dan menerus", () => {
@@ -120,5 +120,23 @@ describe("depth of field gallery (Tugas 7b)", () => {
     // di tengah geseran dataran (±90 m) tajam, sedangkan saat diam ia kabur
     expect(dofBlur(90, dofFocus(0.5, true))).toBeLessThan(0.05);
     expect(dofBlur(90, dofFocus(0, false))).toBeGreaterThan(0.4);
+  });
+});
+
+describe("kamera mengitari gong (permintaan host 14 Nov: \"dua dua nya, 90derajat\")", () => {
+  it("seret ke kanan = kamera ke kiri (meja putar); ±90° tercapai dengan seret 60% layar, lalu dibatasi", () => {
+    expect(orbitFromDrag(0, 0, 1000)).toBe(0);
+    expect(orbitFromDrag(0, 100, 1000)).toBeCloseTo(-15, 9);
+    expect(orbitFromDrag(0, -100, 1000)).toBeCloseTo(15, 9);
+    expect(orbitFromDrag(0, 600, 1000)).toBeCloseTo(-ORBIT.max, 9);
+    expect(orbitFromDrag(0, 2000, 1000)).toBe(-ORBIT.max);
+    expect(orbitFromDrag(0, -2000, 1000)).toBe(ORBIT.max);
+    expect(ORBIT.max).toBe(90);
+  });
+
+  it("seret baru mulai dari sudut yang sedang tampil (tanpa lompatan)", () => {
+    expect(orbitFromDrag(40, 0, 1000)).toBe(40);
+    expect(orbitFromDrag(40, 200, 1000)).toBeCloseTo(10, 9);
+    expect(orbitFromDrag(80, -200, 1000)).toBe(90);
   });
 });

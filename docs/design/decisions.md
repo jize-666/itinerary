@@ -437,6 +437,16 @@ Pratinjau: video `scripts/preview/record-today.cjs` (sebelum trip dan hari perta
 - **Pukulan.** Tabuh mulai berayun supaya hantamannya jatuh tepat saat huruf terakhir masuk (0,92 dtk sesudah langkah). Efeknya sama dengan gong penutup hari (bunyi, kilatan, retakan bara, riak, bunga api, napas api naga), tetapi **tanpa hentakan kamera**: kamera tetap di shot judul. Gong penutup hari tidak berubah. Film 2,5D: cakram gong CSS di balik judul (kini juga di judul hari) beriak dari hantaman, dengan bunyi gong.
 - **Calm mode:** tahapnya tetap ada; teks hilang seketika dan gong tetap ditabuh.
 
+## Zoom dan kamera mengitari gong ±90° (14 Nov 2026), permintaan host: "itu previews pas gong, bisa di zoom in/out? kemera bisa pindah haluan ke kanan dan kiri?", lalu "dua dua nya, 90derajat"
+
+**Status: selesai, menunggu tinjauan host atas video.** Berkas: `ORBIT`/`orbitFromDrag` (`engine/motion/view.ts`), `stageBus` (`setGongHere("gong" | "title" | null)`, `orbit*`), `bindInput` (`engine/slides/input.ts`), `stage3d/runtime.ts`, `film.css`.
+
+- **Di mana:** slide gong penutup hari, judul hari, dan hero prolog (panggung 3D; selama gunungan pembuka tertancap tidak berlaku). Film 2,5D tidak punya keduanya.
+- **Zoom:** cubit dua jari, Ctrl+roda / cubit trackpad, tombol + / − (sama dengan gong penutup sejak 13 Nov). Dua tahap gulir tetap hanya di gong penutup, karena di judul langkah maju pertama sudah dipakai tahap gong.
+- **Kamera mengitari gong:** seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan. Kamera dan titik pandangnya diputar mengelilingi sumbu tegak di pusat gong sampai ±90° (sampai ke samping gong), seperti meja putar: seret ke kanan = gong berpaling ke kanan (kamera ke kiri). ±90° tercapai dengan seret 60% layar. Saat dilepas kamera kembali pelan ke depan (tetapan waktu 0,7 dtk); seret baru mulai dari sudut yang sedang tampil. Tiang pendapa lewat di depan kamera saat berputar (kedalaman), tidak menutupi gong.
+- **Teks** di depan gong memudar saat gong didekati atau dikitari (sampai 20% di ±90°), supaya gong tidak tertutup huruf. Huruf yang tersedot saat gong ditabuh mengikuti letak gong yang sedang tampil, juga saat sudah dikitari atau di-zoom.
+- **Tidak bentrok:** seret mendatar di luar gallery sebelumnya tidak dipakai. Klik tanpa seret tetap klik (tombol pukul di gong penutup); seret yang dilepas di atas tombol bukan pukulan. Pindah slide tetap atas-bawah, dan langkah maju di judul tetap menabuh gong. Kursor `grab` di slide ini, dan teksnya tidak ikut terblok saat diseret.
+
 ## Gallery 3D: letak Z dan depth of field (14 Nov 2026, Tugas 7b), lanjutan permintaan yang sama: "ketika di slide ke kiri/kanan kamera berpindah seperti fitur 3D (Scroll-driven depth, Depth of field, Perspective shift, Z-depth positioning, Camera parallax)"
 
 **Status: selesai, menunggu tinjauan host atas video.** Kedalaman ikut gulir, perspective shift, dan kamera parallax sudah ada sejak 13 Nov; yang ditambah:

@@ -337,6 +337,25 @@ html.film-on body {
   opacity: calc(1 - var(--gong-zoom, 0) * 0.92);
 }
 
+/* judul hari dan hero (14 Nov, "dua dua nya, 90derajat"): teks di depan gong memudar saat gong didekati atau
+   dikitari, supaya gong yang membesar atau berpaling tidak tertutup huruf */
+.film[data-gongzoom] .fs-beat {
+  opacity: max(0.06, 1 - var(--gong-zoom, 0) * 0.92 - var(--gong-orbit, 0) * 0.8);
+}
+
+/* gong bisa dikitari: seret mouse ke kiri/kanan (teks di slide ini tidak ikut terblok saat diseret) */
+.film[data-gongzoom] .fl-stage {
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.film[data-orbiting],
+.film[data-orbiting] .fl-stage,
+.film[data-orbiting] .fs-strike {
+  cursor: grabbing;
+}
+
 /* overlay FPS (?fps): hanya untuk uji */
 .fl-fps {
   position: absolute;

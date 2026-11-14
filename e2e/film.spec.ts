@@ -245,6 +245,14 @@ test.describe("geser dengan jari", () => {
     await expect.poll(() => slide(page)).toBe("day-1/intro");
   });
 
+  test("judul hari: tarikan jari pelan tapi panjang juga menabuh gong (slide judul tidak men-scrub)", async ({ page }) => {
+    await open(page, "#day-1");
+    const view = page.viewportSize()!;
+    await drag(page, [view.width / 2, view.height * 0.75], [view.width / 2, view.height * 0.4], 900, 250);
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await slide(page)).toBe("day-1/title");
+  });
+
   test("gallery: geser ke kiri = panel berikutnya, geser vertikal juga memajukan", async ({ page }) => {
     await open(page, "#day-1");
     await goTo(page, "day-1/walk");

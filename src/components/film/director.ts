@@ -91,6 +91,10 @@ export class Director {
       zoom: (kind, amount) => stageBus.gongZoomBy(kind, amount),
       pinchStart: () => stageBus.gongPinchStart(),
       pinch: (ratio) => stageBus.gongPinch(ratio),
+      // kamera mengitari gong ±90° (judul hari, hero, gong penutup): seret mouse, jari, atau trackpad ke kiri/kanan
+      orbitStart: () => !this.calm && stageBus.orbitStart(),
+      orbit: (dx, width) => stageBus.orbitDrag(dx, width),
+      orbitEnd: () => stageBus.orbitEnd(),
     });
     return () => {
       this.unbind?.();
