@@ -5,6 +5,36 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 14 Nov 16.44–16.45 WIB: gong ditabuh di slide judul hari, sebelum gallery (dicatat, MENUNGGU PERINTAH HOST)
+
+**Kata host, kata demi kata:** "pas fase sebelum masuk galery, yang seperti di foto, harusnya ini fase yang pas untuk menabuh gong, ketika teks out (tambahin animasi), kamera masih berada di tempatnya, dan ketika di slide ke kiri/kanan kamera perbindah seperti fitur 3D (Scroll-driven depth, Depth of field, Perspective shift, Z-depth positioning, Camera parallax)", lalu "catat di handoff".
+
+**Foto acuan host (iPhone produksi, tidak disimpan di repo):** (1) slide judul Hari 1 "DAY 1 · THU 8 APR / The Royal City", judul di depan gayor, gong, dan kedua naga (shot `title` di `shots.ts`: frontal, `az 0`, `r 6.6`); (2) slide hero prolog "A Three-Day Lakon" dengan gong di belakangnya.
+
+**Keadaan sekarang:** urutan tiap hari = `title` (judul di depan gong) → `dayintro` (kamera pindah ke tepi pendapa memandang Lawu) → `panel` (gallery menyamping). Gong hanya dipukul sendiri di slide `gong` penutup hari. Depth of field belum ada di rantai post (`TIER.high.dof` hanya dipakai untuk ukuran tekstur gunungan).
+
+**Tafsir Claude (dikonfirmasi host sebelum dikerjakan):**
+- [ ] Di slide judul hari (fase sebelum masuk gallery) gong ditabuh. Waktunya: saat penonton melangkah maju dari judul, teks judul keluar dengan animasi baru (bukan hanya memudar), gong dipukul, dan kamera tetap di tempatnya selama itu.
+- [ ] Sesudah itu, perpindahan ke kiri/kanan (gallery) menggerakkan kamera dengan gerak 3D: kedalaman ikut gulir, depth of field (baru: kabur menurut jarak fokus), perspective shift, letak di sumbu Z (lapisan kartu dan latar di kedalaman berbeda), dan kamera parallax.
+- Pertanyaan untuk host: (a) apakah slide `dayintro` (memandang Lawu) tetap ada di antara judul dan gallery, atau gallery langsung menyusul judul; (b) gong penutup hari tetap dipukul juga, atau pukulan pindah ke judul saja; (c) berlaku untuk semua hari, dan juga untuk hero prolog (foto kedua)?
+- **Jawaban host (14 Nov), kata demi kata:** "1. tetap ada 2. tetap di pukul 3. berlaku semua", lalu **"kerjakan ini ketika aku sudah beri perintah. catat di handoff.md"**. Artinya:
+  - (a) Slide `dayintro` (memandang Lawu) **tetap ada**: urutannya judul hari (gong ditabuh) → `dayintro` → gallery.
+  - (b) Gong penutup hari **tetap dipukul** seperti sekarang; pukulan di judul hari adalah tambahan.
+  - (c) **Berlaku untuk semua**: semua hari, dan juga slide hero prolog "A Three-Day Lakon" (foto kedua).
+  - **Jangan mulai mengerjakan** sebelum host memberi perintah. Sampai saat itu tugas ini hanya catatan.
+- Kaitan: depth of field dan post-FX masuk lingkup Tugas 8 di `CLAUDE.md`; tugas ini bisa dikerjakan sebelum atau bersama Tugas 8 sesuai arahan host.
+
+### Permintaan host sesudah PR #10 di-merge (14 Nov, 16.36–16.40 WIB, iPhone produksi)
+
+**Kata host:** "masih medium, di gong juga yang pertama", dengan dua tangkapan `/film/?fps` di gunungan pembuka: `medium ×0.82 · 11 draw · 582 tri`, 58–60 fps, tanpa "(paksa)". Artinya tier High yang dipaksa di iPhone tidak bertahan: di gerbang, dan juga di slide gong.
+
+**Penyebab:** di `createGovernor` paksaan dilepas begitu rata-rata satu jendela 3 dtk di bawah 35 fps. Saat film baru dibuka, beberapa frame lambat (tekstur gunungan diunggah, shader dikompilasi) sudah cukup untuk itu. Sesudah dilepas, pengatur kembali ke aturan biasa (turun bila < 50 fps), jadi iPhone yang jalan 40–48 fps di High diturunkan tiap 3 dtk sampai `medium ×0.82`. Begitu naik lalu turun lagi dalam 12 dtk, anak tangga di atas dikunci, jadi ia tidak pernah kembali ke High walau gerbang jalan 60 fps.
+
+- [x] Paksaan High di iPhone bertahan: tidak dilepas oleh frame lambat sesaat (saat memuat), turun hanya bila benar-benar tersendat lama, dan kembali ke High begitu lancar lagi. Overlay menjelaskan bila sedang di bawah High.
+  - **Dikerjakan (`tier.ts`, `createGovernor`):** perangkat yang dipaksa High memakai aturannya sendiri: fps median (bukan rata-rata), turun satu anak tangga hanya bila median < 35 fps terus-menerus 10 dtk (`GOVERNOR.rescueHold`), aturan biasa "turun di bawah 50 fps" tidak berlaku, dan naik kembali sampai High ×1 begitu median ≥ 58 fps selama 8 dtk. Overlay `?fps`: `(paksa)` di High ×1, `(paksa, turun: N fps)` bila sedang di bawahnya.
+  - **Bukti:** tes unit baru di `stage.test.ts`: (1) frame 60–200 ms selama 4 dtk saat memuat lalu 42 fps selama 30 dtk → tetap `high ×1 (paksa)`; (2) 25 fps belum turun sebelum 10 dtk, lalu turun satu anak tangga; (3) sesudah turun, 60 fps → kembali ke High ×1. Pada kode lama ketiganya gagal; urutan yang dihasilkan kode lama persis seperti di HP host: `high×0.82 → medium×1 → medium×0.82`. Lint dan typecheck bersih, 343/343 tes unit, content:check dan build OK, e2e penuh 249 lulus / 0 gagal / 21 dilewati.
+  - **Langkah host:** sesudah merge, buka `/film/?fps` di iPhone: gerbang dan slide gong harus tertulis `high ×1 (paksa)`. Bila tertulis `(paksa, turun: N fps)`, angka N itu fps median HP saat tersendat; kirimkan tangkapannya.
+
 ### Audit host 1–5 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
 
 **Arahan host, kata demi kata, urut:** "perbaiki hasil audit ini" (`audit_1.zip`), "ini juga" (`audit_2.zip`), "ini juga" (`audit_3.zip`), "ini" (`audit_4.zip`), "ini terakhir" (`audit_5.zip`), lalu **"perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md"**. Artinya: dikerjakan audit demi audit (1 → 5); sesudah tiap audit selesai, butir-butirnya di daftar ini dicentang dengan bukti tes, lalu commit. Berkas audit disimpan di scratchpad, tidak masuk repo (tangkapan layar memuat nama asli tamu).
