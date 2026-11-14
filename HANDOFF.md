@@ -16,6 +16,11 @@ Isi audit dan tafsir Claude:
 4. **"design masih versi lama"** (Today "The programme"): pilihan hari, garis waktu, chip makanan, label NEXT/OPTIONAL masih versi lama; garis punggung bukit memotong teks; tombol Rain plan tertutup sakelar bahasa.
 5. **"ke crop"** (film, slide prolog headline di iPhone tegak): bingkai 3D memotong gayor, naga kanan keluar layar.
 
+**Audit 3 (`audit_3.zip`, "ini juga"):**
+6. **"cacat"** (credits, gunungan penutup tertancap, `high ×1 (paksa)`): segi delapan hitam besar di gunungan, kiri-tengah, dan bagian bawah (gedebog/lantai).
+7. **"cacat visual"** (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam di kiri atas, dekat blencong. Jadi sumbernya bukan gunungan saja: ada piksel tak sah di adegan (dugaan: blencong atau lantai) yang menembus apa pun di depannya lewat pencampuran warna dan disebar bloom. Overlay di sini juga menunjukkan paksaan High sempat dilepas (rata-rata < 35 fps), perlu dicek.
+8. **"ke crop:tembus"** (slide pembuka Hari 0 "Arrival", iPhone): di tepi kiri ada pita tempat bidang gelap teks bergeser dan lanskap di belakangnya terlihat; dugaan: parallax 2,5D menggeser `.fl-body` (dan bidang gelapnya) saat HP dimiringkan.
+
 Status tiap butir ditulis di bawah begitu selesai.
 
 ### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
