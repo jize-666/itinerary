@@ -13,9 +13,9 @@
 // kursor dan bidang teks yang memutar, lalu perpindahan slide yang bergerak dalam kedalaman; gerbang = gunungan
 // pembuka dan penutup (Tugas 7): tertancap di depan kelir, kursor menggeser lampu dan bayangan (desktop), dibalik ke
 // muka Murka dan kembali, dicabut dengan gulir (di iphone dengan jari, ditahan di tengah), lalu lompat ke credits dan
-// gunungan ditancapkan lagi; judul = tahap gong di slide judul (Tugas 7b): judul Hari 1 tersedot ke gong dan gong
-// ditabuh tanpa hentakan kamera, mundur (huruf keluar lagi), ditabuh lagi, pindah ke intro hari, lalu lompat ke prolog
-// dan tahap gong hero. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
+// gunungan ditancapkan lagi; judul = Tugas 7b: judul Hari 1 tersedot ke gong dan gong ditabuh tanpa hentakan kamera,
+// mundur (huruf keluar lagi), ditabuh lagi, intro hari, gallery dengan letak Z dan depth of field (di iphone satu
+// geser jari ditahan di tengah), lalu lompat ke prolog dan tahap gong hero. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
 // hero punya tahap gong: `advance` mencabut gunungan dan menjalankan tahap gong lebih dulu bila perlu.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
@@ -128,6 +128,26 @@ const fs = require('fs');
     await key('ArrowUp', 3000); // mundur: huruf keluar lagi dari gong ke tempatnya, tanpa pukulan
     await key('ArrowDown', 4400); // ditabuh lagi
     await key('ArrowDown', 3600); // langkah berikutnya: pindah ke intro hari (memandang Lawu)
+    await key('ArrowDown', 3600); // ke gallery: depth of field masuk, lanskap di belakang kartu lembut
+    if (phone) {
+      // geser jari pelan, ditahan di tengah: fokus tertarik ke lanskap mengikuti jari, lapisan tanah bergeser berbeda
+      const y = Math.round(height * 0.62);
+      const x0 = Math.round(width * 0.82);
+      const finger = (type, x) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+      await finger('touchStart', x0);
+      for (let i = 1; i <= 24; i++) { await finger('touchMove', x0 - i * 6); await w(40); }
+      await w(1400);
+      for (let i = 25; i <= 44; i++) { await finger('touchMove', x0 - i * 6); await w(30); }
+      await finger('touchEnd', 0);
+      await w(3000);
+      await key('ArrowRight', 3000);
+    } else {
+      await key('ArrowRight', 3000); // geser: kamera bergeser (letak Z), fokus ditarik ke lanskap lalu kembali
+      await key('ArrowRight', 3000);
+      await glide(1150, 300, 1600); // parallax kamera di gallery
+      await glide(640, 360, 900);
+    }
+    await key('ArrowRight', 3200);
     await tap(p.locator('.fl-rail-list li:nth-child(1) button'), 3600); // lompat ke prolog: hero
     await key('ArrowDown', 4600); // tahap gong hero
     await finish();
