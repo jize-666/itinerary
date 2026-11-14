@@ -5,6 +5,34 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 15 Nov ±00.30 WIB: maskot 3D pemandu (coral assistant) — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata** (dengan `coral-assistant.zip`: GLB 1.492 segitiga dengan 20 klip, `.blend`, runtime R3F, `behavior.ts`, pratinjau ekspresi; disimpan di scratchpad, tidak di repo):
+"ini wujud baru mu di website itinerary, peranmu sebagai pemandu, memberi tahu fitur fitur 3D sambil mengampiri objek 3D nya, menyapa client, menjelaskan alur, etc. / assistant responsive ketika di click, bisa menyapa atau marah ketika di spam click, mengantuk ketika diam terlalu lama, happy ketika di click beberapa kali. / chat ui 💬 ala ala pixel, maincraft. / tugasmu; 1. upgrade design 3D ini (tidak perlu sesuai konsep itinerary) buat menjadi lebih berekspresi, interactive, lebih lucu, design ulang sesuai keinginanmu. 2. sambungkan ke website itinerary".
+
+**Tafsir Claude (belum ditegaskan host):**
+- [ ] **Rupa baru** (bebas dari konsep itinerary): tetap makhluk balok koral, tetapi dibangun ulang di three.js, bukan GLB kaku. Blender tidak ada di sesi, dan rupa dari kode memberi ekspresi yang lebih hidup:
+  - wajah digambar shader (mata berkilau yang berkedip, mengikuti kursor, dan berubah bentuk dengan mulus; alis; pipi merah; mulut kecil);
+  - badan memantul (squash & stretch); lengan dan kaki berayun;
+  - partikel emosi: zzz, hati/kilau, uap marah, keringat, tanda seru.
+  - Hemat: sedikit draw call, sedikit segitiga.
+- [ ] **Perilaku:**
+  - Klik sekali: menyapa/penasaran.
+  - Klik beberapa kali pelan: senang.
+  - Spam klik: marah, lalu dingin kembali.
+  - Diam lama: mengantuk, lalu tidur; aktivitas membangunkan.
+  - Logika diambil dari `behavior.ts` di zip, disesuaikan dan dites unit.
+- [ ] **Chat 💬 gaya piksel** (Minecraft-ish): gelembung bertepi piksel bertangga, huruf piksel, teks muncul huruf demi huruf, EN/ID. Diumumkan sekali lewat `aria-live`.
+- [ ] **Pemandu di film 3D:**
+  - Menyapa tamu dengan nama saat film dibuka.
+  - Menjelaskan alur (prolog → hari → gallery → gong → epilog).
+  - Terbang menghampiri objek 3D dan menjelaskan fiturnya: gunungan (cabut, balik muka), gong (tabuh, zoom, kitar ±90°), gallery (geser, letak Z, depth of field).
+  - Bisa diklik lewat tombol DOM yang mengikuti letaknya di layar (aksesibel).
+- [ ] **Film 2,5D** (tanpa WebGL): versi piksel 2D dengan chat dan perilaku yang sama.
+- Home dan Today belum: home sengaja tidak memuat three (dijaga e2e). Ditanyakan ke host sesudah film selesai.
+- PR: di branch yang sama (`claude/gallant-hopper-1jlpo0`). Bila PR #12 sudah di-merge, maskot jadi PR berikutnya; tidak ada PR baru yang dibuat tanpa arahan host ("jangan dibuat dulu").
+- Tahapan dengan output tiap tahap: (M1) rupa + ekspresi, pratinjau gambar/video; (M2) perilaku + chat piksel; (M3) pemandu di film 3D; (M4) versi 2,5D; lalu tes penuh, video HP + desktop, `HANDOFF.md`, `CLAUDE.md`.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
@@ -70,6 +98,7 @@ Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengita
 - *"judul hari: sentakan ke atas menabuh gong"* (iPhone, film 2,5D): di CI event jari datang lambat, jadi geser 160 ms terbaca > 320 ms dan bukan sentakan. Ini juga celah UX nyata: di slide yang tidak men-scrub (judul hari, gong penutup, Calm), tarikan pelan tapi panjang tidak melakukan apa-apa. **Perbaikan produk:** tarikan sepanjang ≥ 18% layar (paling sedikit 80 px) di slide tanpa scrub = satu langkah, berapa pun lamanya (`TouchTracker.reach`, `longDragPx`). Ditambah tes unit dan e2e "tarikan pelan tapi panjang juga menabuh gong".
 - Plus satu tes kitar gong penutup yang kehabisan waktu di bawah beban (gerak mouse lebih sedikit, `test.slow()`).
 - **Dicek dengan kondisi CI** (`CI=1`, 2 inti CPU, tanpa ulang): tes 3D DOF, kitar, dan gong judul 9 lulus; tes film geser jari dan tahap gong 16 lulus.
+- **Tes penuh sesudah perbaikan:** lint, typecheck bersih; `pnpm test` 359/359; `pnpm build` OK; `pnpm test:e2e` **272 lulus, 30 dilewati, 0 gagal** (12,2 menit).
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
