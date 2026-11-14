@@ -382,6 +382,10 @@ Aturan menggambar muka Murka, dari penolakan-penolakan di atas:
 
 **Api geni saat mundur** (host: "pas kebakar masih kurang"): kadar api naik begitu lembaran masuk layar dan penuh di tengah (`murkaRage`, puncak `GENI.peak` 0,56). Di bawah garis bakar kulit hangus dengan retakan bara dan kobaran tekstur geni; di atasnya lidah api per kolom yang tingginya acak dan percikan bara, sampai menjilat melewati pucuk dan keluar dari tepi lembaran (memudar sebelum batas bidang, jadi tidak terpotong lurus). Api menutupi kulit, bukan ditambahkan, supaya tidak memutih; warnanya ditulis di ruang linear karena keluaran panggung dikodekan sRGB. Barong, kala, dan kedua garuda tidak terbakar (`KAYON.spare`), jadi mereka tampak muncul dari tengah kobaran. Biayanya hanya saat mundur: beberapa noise dan satu sampel tekstur per piksel lembaran.
 
+## Tier High dipaksa di iPhone/iPad (14 Nov 2026), keputusan host 12 Nov "paksa ke high", ditegaskan 14 Nov: "paksa tier high ke iphone, soalnya cuma dapet medium doang"
+
+Uji host di iPhone menunjukkan 59–60 fps tetapi `medium ×0.82`. Penyebabnya: Safari menamai GPU-nya "Apple GPU" (tergolong High) tetapi melaporkan ≤ 4 inti, dan aturan lama menurunkan High ke Medium bila inti ≤ 4; pengatur FPS lalu sempat mengecilkan resolusi. Sekarang iPhone/iPad selalu mulai di High (`pinnedHigh`) dan pengatur menahannya di High ×1, tanpa mengecilkan resolusi, selama rata-rata fps ≥ 35. Di bawah itu (film benar-benar tersendat, misalnya iPhone lama) paksaan dilepas dan pengatur bekerja seperti biasa. Overlay `?fps` menulis `(paksa)`.
+
 ## Gunungan pembuka dan penutup film (14 Nov 2026), keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"
 
 **Status: selesai, menunggu tinjauan host atas video pratinjau.** Berkas: `src/engine/stage/gate.ts` (mesin dan pose, murni, 25 tes unit), `stageBus.gate*` (`bus.ts`), shader kelir di `components/film/stage3d/gunungan.ts`, sambungan di `stage3d/runtime.ts`, `director.ts`, dan `Film.tsx`.

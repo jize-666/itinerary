@@ -200,6 +200,24 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     await expect(page.locator(".fl-fps")).toContainText("draw");
   });
 
+  test("iPhone/iPad (GPU \"Apple GPU\", Safari melapor 4 inti): tier High dipaksa, overlay menandainya", async ({ page }) => {
+    // Chromium di e2e memakai SwiftShader; di sini laporan GPU dan jumlah inti dibuat seperti iPhone di Safari
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 });
+      Object.defineProperty(window, "matchMedia", {
+        value: (q: string) => ({ matches: /pointer: coarse/.test(q), media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }),
+      });
+      const orig = WebGL2RenderingContext.prototype.getParameter;
+      WebGL2RenderingContext.prototype.getParameter = function (p: number) {
+        return p === 0x9246 || p === 0x1f01 ? "Apple GPU" : orig.call(this, p);
+      };
+    });
+    await open(page, "?fps");
+    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high", { timeout: 30_000 });
+    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-scale", "1");
+    await expect(page.locator(".fl-fps")).toContainText("high ×1 (paksa)", { timeout: 15_000 });
+  });
+
   test("tanpa ?fps tidak ada overlay", async ({ page }) => {
     await open3d(page);
     await expect(page.locator(".fl-fps")).toHaveCount(0);

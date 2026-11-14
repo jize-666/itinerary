@@ -7,7 +7,7 @@ import { createCues, SKY_WINDOW, skyAlong } from "@/engine/stage/cue";
 import { hex, lightElevation, mixMood, moodOf } from "@/engine/stage/mood";
 import { blendShot, fitFov, galleryShot, hfovOf, rayThrough, type Shot, shotFor, skyStretch, STAGE_CENTER, SUN_TRACK, sunDirection, type Vec3 } from "@/engine/stage/shots";
 import { fbm, TERRAIN, TERRAIN_DEFAULT, terrainHeight, villageLights } from "@/engine/stage/terrain";
-import { type Caps, createGovernor, GOVERNOR, guessTier, LADDER, rungOf, TIER } from "@/engine/stage/tier";
+import { type Caps, createGovernor, GOVERNOR, guessTier, LADDER, pinnedHigh, rungOf, TIER } from "@/engine/stage/tier";
 import type { TripView } from "@/lib/trip";
 
 const film = buildFilm({ role: "guest", trip: Trip.parse(soloInput) as unknown as TripView["trip"] });
@@ -44,7 +44,14 @@ describe("tier awal (guessTier)", () => {
     expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", memory: 2 }))).toBe("low");
     expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", cores: 2 }))).toBe("low");
     expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", memory: 4 }))).toBe("medium");
-    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", cores: 4, memory: 0 }))).toBe("medium");
+    // iPhone/iPad: Safari melaporkan ≤ 4 inti, tetapi High dipaksa (keputusan host 12 & 14 Nov)
+    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", cores: 4, memory: 0 }))).toBe("high");
+    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", cores: 2, memory: 0 }))).toBe("high");
+    expect(pinnedHigh(caps({ mobile: true, renderer: "Apple GPU", cores: 4, memory: 0 }))).toBe(true);
+    // bukan iPhone/iPad: tidak dipaksa (Mac, Android, renderer lain)
+    expect(pinnedHigh(caps({ renderer: "Apple GPU" }))).toBe(false);
+    expect(pinnedHigh(caps({ mobile: true, renderer: "Adreno (TM) 750" }))).toBe(false);
+    expect(pinnedHigh(caps({ mobile: true, webgl2: false, renderer: "Apple GPU" }))).toBe(false);
   });
 
   it("tangga: tiap tier WebGL punya spesifikasi, dan urutannya makin ringan", () => {
@@ -129,6 +136,34 @@ describe("pengatur FPS (createGovernor)", () => {
     expect(moves).toEqual([]);
     expect(g.capped()).toBe(true);
     expect(g.fps()).toBeGreaterThan(29);
+  });
+
+  it("High dipaksa (iPhone/iPad): fps yang turun ke 40 tidak menurunkan resolusi atau tier", () => {
+    const g = createGovernor("high", 0, false, true);
+    expect(g.pinned()).toBe(true);
+    const { moves } = run(g, 0, 30_000, 25); // 40 fps
+    expect(moves).toEqual([]);
+    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
+    expect(g.pinned()).toBe(true);
+  });
+
+  it("High dipaksa dilepas hanya bila benar-benar tersendat (di bawah GOVERNOR.rescueBelow)", () => {
+    const g = createGovernor("high", 0, false, true);
+    const { moves } = run(g, 0, 8000, 1000 / 25); // 25 fps
+    expect(g.pinned()).toBe(false);
+    expect(moves.length).toBeGreaterThan(0);
+    expect(moves[0]).toBe("high×0.82");
+  });
+
+  it("High dipaksa di layar 30 Hz (Low Power Mode): 30 fps stabil tetap High", () => {
+    const g = createGovernor("high", 0, false, true);
+    const { moves } = run(g, 0, 20_000, 33.4);
+    expect(moves).toEqual([]);
+    expect(g.pinned()).toBe(true);
+  });
+
+  it("paksaan hanya berlaku bila mulai di High", () => {
+    expect(createGovernor("medium", 0, false, true).pinned()).toBe(false);
   });
 
   it("tier dipaksa: hanya mengukur", () => {

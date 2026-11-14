@@ -5,6 +5,18 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Arahan host 14 Nov: paksa tier High di iPhone
+
+**Kata host, kata demi kata** (disertai tangkapan layar overlay `?fps` di iPhone, slide tiket: `59 fps · avg 60 · 0.7 ms`, `medium ×0.82 · 17 draw · 26k tri`): "cek beban dan fps di iphone kan udah di ukur dan gw udah acc. cuma kemarin kan gw dah bilang, paksa tier high ke iphone, soalnya cuma dapet medium doang".
+
+Artinya: cek beban tidak perlu lagi (sudah diterima host). Yang dikerjakan sekarang keputusan 12 Nov "point 3; paksa ke high" yang belum dikerjakan: iPhone harus mendapat tier High, bukan Medium.
+
+**Penyebab (terbukti dari kode dan tes unit lama).** Safari di iPhone melaporkan GPU sebagai "Apple GPU" (sudah tergolong High), tetapi `guessTier` menurunkan High ke Medium bila browser melaporkan ≤ 4 inti, dan Safari memang melaporkan sedikit (tes lama `Apple GPU, cores: 4 → medium`). Sesudah itu pengatur FPS sempat mengecilkan resolusi (`×0.82`) saat ada frame berat.
+
+**Yang selesai.** `pinnedHigh(caps)` di `src/engine/stage/tier.ts`: iPhone/iPad (renderer persis "Apple GPU" di layar sentuh) selalu mulai di High, dan `createGovernor(..., pinned)` menahannya di High ×1 (tanpa mengecilkan resolusi) selama rata-rata fps ≥ 35 (`GOVERNOR.rescueBelow`; di layar 30 Hz ambangnya dibagi dua). Di bawah itu paksaan dilepas supaya film di iPhone lama tidak tersendat. `?stage=` tetap mengunci tier apa pun. Overlay `?fps` menulis `high ×1 (paksa)`. Mac, Android, dan desktop tidak berubah.
+
+**Hasil tes.** `pnpm test` 333 lulus (6 tes baru: tebakan tier iPhone, paksaan bertahan di 40 fps, dilepas di 25 fps, layar 30 Hz, hanya bila mulai di High). e2e baru meniru Safari iPhone ("Apple GPU", 4 inti): kanvas `data-tier="high"`, `data-scale="1"`, overlay `(paksa)`; `e2e/stage.spec.ts` penuh 71 lulus, 5 dilewati. Belum diuji di iPhone asli: host cek `/film/?fps` sesudah merge (harus tertulis `high ×1 (paksa)`).
+
 ### Permintaan host 14 Nov (sesudah PR #9 dibuka): pratinjau pakai data trip klien, kirim ulang, dan Today versi desktop
 
 **Arahan host, kata demi kata:** "kalo record preview pake akun client aja yang april., kirim ulang dan perbarui info ini di claude.md" lalu "versi dekstop nya juga di perbarui? mana preview nya".

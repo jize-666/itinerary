@@ -25,6 +25,8 @@ export type Stage3DProps = {
   tier: Exclude<Tier, "static">;
   /** Tier dipaksa (`?stage=`): pengatur FPS hanya mengukur. */
   locked: boolean;
+  /** iPhone/iPad: tier High dipaksa, pengatur tidak menurunkannya kecuali benar-benar tersendat (`pinnedHigh`). */
+  pinned?: boolean;
   /** Tampilkan overlay FPS. */
   debug: boolean;
   /** Frame pertama sudah tergambar. */
@@ -83,9 +85,9 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
 
 const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, kayon: false, gate: { end: null, planted: 0, face: "agung" }, time: 0 });
 
-export default function Stage3D({ film, probe, root, tier, locked, debug, onLive, onFail }: Stage3DProps) {
+export default function Stage3D({ film, probe, root, tier, locked, pinned = false, debug, onLive, onFail }: Stage3DProps) {
   const [rung, setRung] = useState<Rung>(() => LADDER[rungOf(tier)]!);
-  const [governor] = useState(() => createGovernor(tier, performance.now(), locked));
+  const [governor] = useState(() => createGovernor(tier, performance.now(), locked, pinned));
   const stats = useRef<StageStats>(blankStats(tier));
   const wrap = useRef<HTMLDivElement>(null);
   const hud = useRef<HTMLPreElement>(null);
@@ -111,14 +113,14 @@ export default function Stage3D({ film, probe, root, tier, locked, debug, onLive
           const tri = s.triangles >= 1000 ? `${Math.round(s.triangles / 1000)}k` : String(s.triangles);
           // baris 1: laju layar sekarang, rata-rata 3 dtk dari pengatur tier (bila sudah ada), waktu CPU per frame
           const avg = s.fps ? ` · avg ${s.fps.toFixed(0)}` : "";
-          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale} · ${s.calls} draw · ${tri} tri`;
+          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale}${governor.pinned() ? " (paksa)" : ""} · ${s.calls} draw · ${tri} tri`;
         }
       },
     };
     return () => {
       delete window.__lakonStage;
     };
-  }, [rung, probe, onLive, onFail]);
+  }, [rung, probe, onLive, onFail, governor]);
 
   if (rung.tier === "static") return null;
   const spec = TIER[rung.tier];

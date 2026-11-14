@@ -14,7 +14,7 @@ import { prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
 import { prefetchKayon } from "@/engine/stage/kayon-files";
-import { type Caps, guessTier, type Tier } from "@/engine/stage/tier";
+import { type Caps, guessTier, pinnedHigh, type Tier } from "@/engine/stage/tier";
 import type { Stage3DProps } from "./stage3d/Stage3D";
 
 /** Keadaan panggung untuk Film: "off" = 2,5D, "live" = kanvas memudar masuk, "on" = kanvas penuh (langit 2,5D tak digambar). */
@@ -58,15 +58,16 @@ export function readCaps(): Caps {
   return { webgl2, renderer, mobile, cores, memory };
 }
 
-type Choice = { tier: Tier; locked: boolean; debug: boolean };
+type Choice = { tier: Tier; locked: boolean; debug: boolean; pinned: boolean };
 
 function choose(): Choice {
   const q = new URLSearchParams(window.location.search);
   const forced = q.get("stage") as Tier | null;
   const debug = q.has("fps");
   const caps = readCaps();
-  if (forced && TIERS.includes(forced)) return { tier: caps.webgl2 ? forced : "static", locked: true, debug };
-  return { tier: guessTier(caps), locked: false, debug };
+  if (forced && TIERS.includes(forced)) return { tier: caps.webgl2 ? forced : "static", locked: true, debug, pinned: false };
+  // iPhone/iPad: High dipaksa (keputusan host 12 & 14 Nov)
+  return { tier: guessTier(caps), locked: false, debug, pinned: pinnedHigh(caps) };
 }
 
 export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props) {
@@ -116,5 +117,5 @@ export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props
   }, [shown, live, onPhase]);
 
   if (!shown || choice.tier === "static") return null;
-  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} debug={choice.debug} onLive={onLive} onFail={onFail} />;
+  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} pinned={choice.pinned} debug={choice.debug} onLive={onLive} onFail={onFail} />;
 }
