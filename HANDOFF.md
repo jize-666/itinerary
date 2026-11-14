@@ -33,6 +33,29 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - PR: di branch yang sama (`claude/gallant-hopper-1jlpo0`). Bila PR #12 sudah di-merge, maskot jadi PR berikutnya; tidak ada PR baru yang dibuat tanpa arahan host ("jangan dibuat dulu").
 - Tahapan dengan output tiap tahap: (M1) rupa + ekspresi, pratinjau gambar/video; (M2) perilaku + chat piksel; (M3) pemandu di film 3D; (M4) versi 2,5D; lalu tes penuh, video HP + desktop, `HANDOFF.md`, `CLAUDE.md`.
 
+**Arahan host selama M1 (15 Nov), kata demi kata, urut:**
+1. "three js cukup? ga pake framer? webgl?". Dijawab: three.js sudah WebGL dan sudah dipakai panggung film; maskot digambar di kanvas yang sama. Framer Motion hanya untuk animasi HTML dan tidak perlu.
+2. "ada preview foto maskot nya?"
+3. "kaki nya kok dua doang, ga kaya maskot claude"
+4. "bentukan nya, samain kaya maskot claude"
+5. "kurang, tiru preferensi yang di zip aja, samain persis bentukan nya"
+6. Foto boneka maskot Claude (dua foto: netral dan senang): "ini lebih lucu, bisa jadi acuan preferensi". **Ini acuan rupa yang berlaku.**
+7. "update handoff dan preview kalo dah jadi".
+
+**M1 (rupa + ekspresi) — rupa sesuai foto acuan, pratinjau dikirim:**
+- [x] **Badan:** kubus montok (1 × 1,08 × 0,94), sudut membulat besar, terakota doff.
+- [x] **Wajah tanpa mulut:** mata hitam kecil mengilap agak di bawah tengah, alis pendek tebal melengkung, pipi bulat merah muda (tampak juga saat netral).
+- [x] **Lengan dan kaki:** lengan pendek di bagian bawah samping; empat kaki kotak pendek berjajar di bawah bagian depan. Semuanya tampak dari depan, tidak seperti versi zip yang dua kakinya tersembunyi di belakang.
+- [x] **Delapan ekspresi** (skala mata dan alis dari `face_pose` paket zip, ditambah "sayang"): netral, penasaran, senang (^ ^), sayang (mata hati), marah (badan memerah), mengantuk, tidur, terkejut. Peralihannya halus; ada kedip acak dan lirikan.
+- [x] **Gerak prosedural** (`engine/mascot/pose.ts`): melayang, menyapa, terbang, menunjuk, loncat girang, menghentak marah, tidur bernapas, menggeliat, terlonjak; plus squash & stretch berpegas.
+- [x] **Partikel emosi:** zzz, hati, kilau, tanda marah 💢, uap, keringat, "!" dan "?".
+- **Beban:** 3 draw call (badan + wajah shader, lengan/kaki instancing, partikel).
+- **Berkas:** `src/engine/mascot/{face,pose,behavior,journey}.ts`, `src/components/film/stage3d/mascot.ts`. Belum disambungkan ke film; tidak ada perubahan yang terlihat tamu.
+- **Tes:** `tests/unit/mascot.test.ts` 14 lulus (perilaku dari tes zip + sayang; perjalanan; wajah; kedip; pose berhingga). Uji keamanan shader lulus.
+  - Tes perilaku menemukan satu bug: ucapan reaksi (marah, sayang) tertahan jeda 4 dtk sejak ucapan sebelumnya. Sudah diperbaiki: reaksi selalu diucapkan.
+- **Pratinjau:** lembar delapan ekspresi dari sudut tiga perempat, dengan cahaya panggung malam, dirender lewat halaman uji di scratchpad (esbuild + `StagePost`; tidak di repo).
+- **Langkah berikutnya:** M2 (chat piksel + perilaku tersambung ke klik), M3 (pemandu di film 3D), M4 (versi 2,5D), lalu tes penuh dan video. Rupa bisa disetel lagi bila host memberi masukan atas pratinjau.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
