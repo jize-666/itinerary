@@ -273,8 +273,8 @@ export type InputHandlers = {
   scrubStart(dir: Dir): void;
   scrub(signed: number): void;
   scrubEnd(flick: Dir | 0): void;
-  /** false = Calm mode: tanpa scrub, sentuhan hanya menghasilkan langkah. */
-  canScrub(): boolean;
+  /** false = jari ke arah `dir` tidak men-scrub (Calm mode, slide gong 3D, tahap judul): geser dinilai saat dilepas. */
+  canScrub(dir: Dir): boolean;
   /** true = input film sedang dimatikan (sheet detail terbuka). */
   paused(): boolean;
   /**
@@ -381,7 +381,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
       }
       // scrub hanya bila jari searah sumbu transisi; selain itu gerakan dinilai saat dilepas
       const dir: Dir = px >= 0 ? 1 : -1;
-      if (h.canScrub() && h.axisFor(dir) === touch.tracker.axis) {
+      if (h.canScrub(dir) && h.axisFor(dir) === touch.tracker.axis) {
         touch.scrubbing = true;
         h.scrubStart(dir);
       }

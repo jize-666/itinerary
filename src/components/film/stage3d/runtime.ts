@@ -126,7 +126,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   /** Jam panggung pada frame terakhir (detik). Pukulan dicatat pada jam ini, bukan jam dinding: satu jam untuk semua gerak 3D. */
   let clock = 0;
   // tombol pukul di lapisan DOM memicu gong lewat bus
-  const unbindGong = stageBus.bindGong(() => gong.strike(clock));
+  const unbindGong = stageBus.bindGong((kick) => gong.strike(clock, kick));
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
   // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,

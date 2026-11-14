@@ -91,6 +91,21 @@ test("klik tombol berbunyi saat gamelan menyala (click/tok), hening setelah di-m
   expect((await audioDebug(page))?.lastSfx).toBe("ui-tok");
 });
 
+test("tahap gong di hero prolog (Tugas 7b): langkah pertama menabuh gong dengan bunyinya", async ({ page }) => {
+  await page.route(TRIP, (r) => json(r, 200, filmFixture("guest")));
+  await page.goto("/");
+  await page.getByRole("button", { name: "Begin the lakon" }).click();
+  await expect(page).toHaveURL(/\/film\/$/);
+  const film = page.locator("main.film");
+  await expect(film).toBeVisible();
+  await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("kebo-giro");
+  await expect(film).toHaveAttribute("data-slide", "hero");
+  await page.keyboard.press("ArrowDown");
+  await expect(film).toHaveAttribute("data-beat", "out");
+  await expect(film).toHaveAttribute("data-slide", "hero");
+  await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 10_000 }).toBe("gong");
+});
+
 test.describe("gong penutup hari berbunyi", () => {
   /** Dari gerbang ke slide gong penutup Hari 1: lompat ke Hari 2 lewat rel bab, lalu satu langkah mundur. */
   async function toGong(page: Page, sound: boolean) {

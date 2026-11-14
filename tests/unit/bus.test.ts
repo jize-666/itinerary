@@ -16,6 +16,19 @@ describe("bus panggung (DOM → panggung 3D)", () => {
     expect(stageBus.strikeGong()).toBe("flat");
   });
 
+  it("pilihan hentakan kamera diteruskan ke panggung: bawaan ikut terhentak, slide judul tidak (Tugas 7b)", () => {
+    const seen: boolean[] = [];
+    const off = stageBus.bindGong((kick) => {
+      seen.push(kick);
+      return 0.52;
+    });
+    stageBus.strikeGong();
+    stageBus.strikeGong({ kick: false });
+    stageBus.strikeGong({ kick: true });
+    expect(seen).toEqual([true, false, true]);
+    off();
+  });
+
   it("panggung dibangun ulang (ganti tier): pembatal yang lama tidak melepas gong yang baru", () => {
     const offOld = stageBus.bindGong(() => 1);
     const offNew = stageBus.bindGong(() => 2);

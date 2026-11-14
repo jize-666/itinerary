@@ -52,8 +52,20 @@ async function openGate(page: Page) {
 }
 
 /**
+ * Slide judul hari dan hero prolog punya tahap gong (Tugas 7b, beat.ts): langkah maju pertama mengeluarkan teks dan
+ * menabuh gong tanpa pindah slide. Lewati tahap itu (bila belum) supaya langkah maju berikutnya memindah slide.
+ */
+async function release(page: Page) {
+  const kind = await film(page).getAttribute("data-kind");
+  if ((kind !== "title" && kind !== "hero") || (await film(page).getAttribute("data-beat")) === "out") return;
+  await page.keyboard.press("ArrowDown");
+  await expect(film(page)).toHaveAttribute("data-beat", "out");
+}
+
+/**
  * Buka film dengan panggung 3D dipaksa hidup, dan tunggu sampai kanvas tampil penuh. Di slide pertama gunungan
- * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang).
+ * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang). Tahap gong hero tidak dilewati di sini:
+ * `step` maju melewatinya bila perlu.
  */
 async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" | "keep" = "open") {
   await open(page, query, hash);
@@ -61,7 +73,9 @@ async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" 
   if (gate === "open" && !hash) await openGate(page);
 }
 
+/** Satu langkah yang memindah slide (langkah maju di judul/hero melewati tahap gongnya dulu). */
 async function step(page: Page, key = "ArrowDown") {
+  if (key === "ArrowDown" || key === "ArrowRight" || key === "PageDown") await release(page);
   const before = Number(await film(page).getAttribute("data-index"));
   await page.keyboard.press(key);
   await expect.poll(async () => Number(await film(page).getAttribute("data-index"))).not.toBe(before);
@@ -647,13 +661,68 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     expect(await film(page).getAttribute("data-index")).toBe("0");
   });
 
-  test("film 2,5D: tanpa gerbang, teks prolog langsung tampil dan langkah pertama memindah slide", async ({ page }) => {
+  test("film 2,5D: tanpa gerbang, teks prolog langsung tampil; langkah pertama menabuh gong hero, kedua memindah slide", async ({ page }) => {
     await open(page);
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
     await expect.poll(() => opacity(page, HERO)).toBe(1);
     await expect(page.locator(".fl-kayon")).toHaveCount(0);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    expect(await film(page).getAttribute("data-index")).toBe("0");
     await step(page);
     expect(await film(page).getAttribute("data-index")).toBe("1");
+  });
+});
+
+test.describe("tahap gong di slide judul, panggung 3D (Tugas 7b)", () => {
+  type Live = { kick: number; strikes: number; camera: [number, number, number] };
+  const live = () => (window as unknown as { __lakonStage: Live }).__lakonStage;
+
+  test("judul hari: gong 3D ditabuh tanpa hentakan kamera, kamera tetap di shot judul; langkah berikutnya baru pindah", async ({ page }) => {
+    // pantau tiap frame: hentakan terbesar dan simpangan kamera terjauh selama tahap gong
+    await page.addInitScript(() => {
+      const w = window as unknown as { __kickMax: number; __camFar: number; __cam0: number[] | null; __lakonStage?: { kick: number; camera: number[] } };
+      w.__kickMax = 0;
+      w.__camFar = 0;
+      w.__cam0 = null;
+      const loop = () => {
+        const s = w.__lakonStage;
+        if (s && w.__cam0) {
+          w.__kickMax = Math.max(w.__kickMax, s.kick);
+          w.__camFar = Math.max(w.__camFar, Math.hypot(s.camera[0]! - w.__cam0[0]!, s.camera[1]! - w.__cam0[1]!, s.camera[2]! - w.__cam0[2]!));
+        }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    });
+    await open3d(page, "?stage=low", "#day-1");
+    await nextFrames(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { __cam0: number[]; __lakonStage: { camera: number[] } };
+      w.__cam0 = [...w.__lakonStage.camera];
+    });
+    const struck = (await page.evaluate(live)).strikes;
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-beat", "out");
+    await expect.poll(async () => (await page.evaluate(live)).strikes, { timeout: WAIT }).toBe(struck + 1);
+    await nextFrames(page, 4);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/title");
+    const watch = await page.evaluate(() => {
+      const w = window as unknown as { __kickMax: number; __camFar: number };
+      return { kick: w.__kickMax, far: w.__camFar };
+    });
+    expect(watch.kick).toBe(0);
+    // kamera hanya bergoyang pelan (napas kamera, < 4 cm), tidak berpindah shot
+    expect(watch.far).toBeLessThan(0.1);
+    // huruf judul tersedot habis
+    await expect
+      .poll(() => page.locator(".fl-layer[data-pos='cur'] .fs-beat").evaluate((el) => Math.max(...[...el.querySelectorAll(".fs-display .k-char")].map((c) => Number(getComputedStyle(c).opacity)))), { timeout: WAIT })
+      .toBe(0);
+    const cam = (await page.evaluate(live)).camera;
+    await step(page);
+    expect(await film(page).getAttribute("data-slide")).toBe("day-1/intro");
+    await nextFrames(page);
+    expect(far((await page.evaluate(live)).camera, cam)).toBeGreaterThan(1);
   });
 });
 
@@ -707,6 +776,7 @@ test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspecti
 
   test("film 2,5D: kedalaman ikut gulir, lapisan yang ditinggalkan membesar dan yang datang tumbuh dari kedalaman", async ({ page }) => {
     await open(page, "?stage=static");
+    await release(page);
     await page.keyboard.press("ArrowDown");
     const scales = await page.evaluate(async () => {
       await new Promise((r) => setTimeout(r, 120));

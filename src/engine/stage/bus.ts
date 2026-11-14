@@ -26,8 +26,11 @@ function act<T>(fn: (t: number) => T): T {
   return r;
 }
 
-/** Memulai satu pukulan. Mengembalikan detik sampai tabuh mengenai gong, atau `null` bila pukulan sebelumnya belum selesai. */
-type Striker = () => number | null;
+/**
+ * Memulai satu pukulan. Mengembalikan detik sampai tabuh mengenai gong, atau `null` bila pukulan sebelumnya belum
+ * selesai. `kick` = kamera ikut terhentak (gong penutup hari); false di slide judul, tempat kamera harus diam.
+ */
+type Striker = (kick: boolean) => number | null;
 
 let striker: Striker | null = null;
 let ready = false;
@@ -50,9 +53,9 @@ export const stageBus = {
    * Minta gong dipukul. Angka = pukulan dimulai, hantamannya sekian detik lagi; "busy" = pukulan sebelumnya
    * belum selesai; "flat" = tidak ada gong 3D (film 2,5D), pemanggil mengurus sendiri bunyi dan riaknya.
    */
-  strikeGong(): number | "busy" | "flat" {
+  strikeGong(opts: { kick?: boolean } = {}): number | "busy" | "flat" {
     if (!striker) return "flat";
-    return striker() ?? "busy";
+    return striker(opts.kick ?? true) ?? "busy";
   },
   /** Kursor atau fokus ada di atas gong: tabuh terangkat sedikit, tanda siap dipukul. */
   setReady(on: boolean) {
