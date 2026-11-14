@@ -5,29 +5,33 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Audit host 1 dan 2 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
+### Audit host 1–5 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
 
-**Arahan host, kata demi kata:** "perbaiki hasil audit ini" (berkas `audit_1.zip`), lalu "ini juga" (`audit_2.zip`). Berkas audit disimpan di scratchpad, tidak masuk repo: tangkapan layar memuat nama asli tamu.
+**Arahan host, kata demi kata, urut:** "perbaiki hasil audit ini" (`audit_1.zip`), "ini juga" (`audit_2.zip`), "ini juga" (`audit_3.zip`), "ini" (`audit_4.zip`), "ini terakhir" (`audit_5.zip`), lalu **"perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md"**. Artinya: dikerjakan audit demi audit (1 → 5); sesudah tiap audit selesai, butir-butirnya di daftar ini dicentang dengan bukti tes, lalu commit. Berkas audit disimpan di scratchpad, tidak masuk repo (tangkapan layar memuat nama asli tamu).
 
-Isi audit dan tafsir Claude:
-1. **"button ui, masih versi lama"** (sheet SOS Today "If you need help"): ubin nomor darurat 112/119/110 dan tombol tutup × masih tampak versi lama (ubin bertebal, cincin ganda di ×). Sheet SOS didesain ulang dalam bahasa kapsul baru, termasuk baris kontak dan alamat penginapan.
-2. **"bukti video, cacat visual"** (rekaman layar iPhone, gunungan pembuka, tier High dipaksa): saat HP dimiringkan dan gunungan berpaling, **muncul segi delapan hitam** di permukaan gunungan (detik 8–12,5). Ciri khas nilai piksel tidak sah (NaN/Inf) yang disebar bloom. Diperbaiki di sumbernya dan diamankan di rantai post.
-3. **"design + ui masih versi lama"** (Today atas): kepala, tiket boarding pass versi lama, tombol "Watch the film", baris status; garis punggung bukit yang bersinar terlihat menembus di belakang tiket dan tombol.
-4. **"design masih versi lama"** (Today "The programme"): pilihan hari, garis waktu, chip makanan, label NEXT/OPTIONAL masih versi lama; garis punggung bukit memotong teks; tombol Rain plan tertutup sakelar bahasa.
-5. **"ke crop"** (film, slide prolog headline di iPhone tegak): bingkai 3D memotong gayor, naga kanan keluar layar.
+**Satu penyebab untuk semua segi delapan hitam** (butir 2, 6, 7, 9, 11, 12): beberapa shader menghitung `pow(1.0 - dot(n, v), k)`. Bila arah pandang tepat segaris dengan permukaan (mangkuk blencong, tiang), pembulatan membuat `dot` sedikit di atas 1, dasarnya negatif, dan `pow` menghasilkan NaN di GPU iPhone. NaN itu menembus apa pun yang digambar di depannya (pencampuran warna NaN × 0 = NaN) dan disebar bloom menjadi segi delapan. Karena itu ia juga muncul di gunungan dan kelir saat panggung di belakangnya masih digambar.
 
-**Audit 3 (`audit_3.zip`, "ini juga"):**
-6. **"cacat"** (credits, gunungan penutup tertancap, `high ×1 (paksa)`): segi delapan hitam besar di gunungan, kiri-tengah, dan bagian bawah (gedebog/lantai).
-7. **"cacat visual"** (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam di kiri atas, dekat blencong. Jadi sumbernya bukan gunungan saja: ada piksel tak sah di adegan (dugaan: blencong atau lantai) yang menembus apa pun di depannya lewat pencampuran warna dan disebar bloom. Overlay di sini juga menunjukkan paksaan High sempat dilepas (rata-rata < 35 fps), perlu dicek.
-8. **"ke crop:tembus"** (slide pembuka Hari 0 "Arrival", iPhone): di tepi kiri ada pita tempat bidang gelap teks bergeser dan lanskap di belakangnya terlihat; dugaan: parallax 2,5D menggeser `.fl-body` (dan bidang gelapnya) saat HP dimiringkan.
+**Audit 1**
+- [ ] 1. "button ui, masih versi lama": sheet SOS Today ("If you need help"); ubin nomor darurat 112/119/110 dan tombol tutup × masih versi lama (ubin bertebal, cincin ganda di ×). Didesain ulang dalam bahasa kapsul baru, termasuk baris kontak dan alamat penginapan.
+- [ ] 2. "bukti video, cacat visual": segi delapan hitam di gunungan pembuka saat HP dimiringkan (video detik 8–12,5, tier High dipaksa).
 
-**Audit 4 (`audit_4.zip`, "ini"):**
-9. **"cacat visual, lampunya"** (slide fakta "A royal city"): segi delapan hitam tepat di tempat blencong yang tergantung. Ini memastikan sumber NaN ada di shader blencong (dan kemungkinan shader lain yang memakai `pow(1.0 - dot(n, v), k)`: bila arah pandang tepat segaris dengan permukaan, pembulatan membuat dasarnya negatif dan `pow` menghasilkan NaN di GPU iPhone).
-10. **"fps down"** dan **"fps down, 60-30 di fase gong"** (slide prolog/intro, `high ×1 (paksa)`): 37–48 fps (rata-rata 44–48), 22 draw, 52 ribu segitiga. High tertahan tetapi tidak mulus. Perlu dihemat lewat cara menggambar tanpa menurunkan kualitas.
+**Audit 2**
+- [ ] 3. "design + ui masih versi lama" (Today atas): kepala, tiket boarding pass versi lama, tombol "Watch the film", baris status; garis punggung bukit yang bersinar terlihat menembus di belakang tiket dan tombol.
+- [ ] 4. "design masih versi lama" (Today "The programme"): pilihan hari, garis waktu, chip makanan, label NEXT/OPTIONAL; garis punggung bukit memotong teks; tombol Rain plan tertutup sakelar bahasa.
+- [ ] 5. "ke crop" (film, slide prolog headline di iPhone tegak): bingkai 3D memotong gayor, naga kanan keluar layar.
 
-Urutan kerja: (a) NaN/segi delapan hitam, (b) fps High di iPhone, (c) bidang teks 2,5D yang bergeser (tembus), (d) bingkai prolog yang terpotong di HP tegak, (e) Today atas dan "The programme" desain baru, sheet SOS desain baru.
+**Audit 3**
+- [ ] 6. "cacat" (credits, gunungan penutup, `high ×1 (paksa)`): segi delapan hitam di gunungan, kiri-tengah, dan bawah.
+- [ ] 7. "cacat visual" (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam dekat blencong; paksaan High sempat dilepas (rata-rata < 35 fps).
+- [ ] 8. "ke crop:tembus" (slide pembuka Hari 0 "Arrival"): pita di tepi kiri tempat bidang gelap teks bergeser dan lanskap terlihat; dugaan: parallax 2,5D menggeser `.fl-body` dan bidang gelapnya saat HP dimiringkan.
 
-Status tiap butir ditulis di bawah begitu selesai.
+**Audit 4**
+- [ ] 9. "cacat visual, lampunya" (slide fakta "A royal city"): segi delapan hitam tepat di blencong.
+- [ ] 10. "fps down" dan "fps down, 60-30 di fase gong" (slide prolog/intro, `high ×1 (paksa)`): 37–48 fps. Dihemat lewat cara menggambar, tanpa menurunkan kualitas.
+
+**Audit 5**
+- [ ] 11. "lampunya, cacat" (slide intro prolog): segi delapan hitam di blencong.
+- [ ] 12. "penutup dan pembuka, cacat visual" (gunungan pembuka tertancap): segi delapan hitam di kiri-tengah, tempat blencong di balik kelir.
 
 ### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
 
