@@ -30,7 +30,11 @@ Hasil yang terbaca:
   - ubin darurat bermedali telepon.
 - **Tombol yang berubah:** kapsul bermedali tanpa tebal 3D.
 - **Yang sama:** tata letak, urutan bagian, warna, dan bentuk dasarnya, jadi kesannya halaman lama yang dipoles, bukan desain baru. Ditawarkan desain ulang yang sungguh baru, dengan 2–3 rancangan gambar diam lebih dulu; menunggu jawaban host.
-- **Temuan dari tangkapan host:** bar bawah hanya berisi SOS. Menurut `HelpBar.tsx`, tombol WhatsApp dan Telepon hanya tampil bila `private.contacts` punya nomor, jadi data privat trip di Supabase belum memuat nomor kontak host.
+- **Temuan dari tangkapan host:** bar bawah hanya berisi SOS. Menurut `HelpBar.tsx`, tombol WhatsApp dan Telepon hanya tampil bila `private.contacts` punya nomor, dan data privat trip di Supabase memang belum memuat nomor kontak host (`guest` hanya berisi `party`).
+  - **Beres 14 Nov 21.24 WIB:** host mengirim nomor WhatsApp-nya ("gausa kasih guide, karena gw juga guidenya"). Claude mengisinya lewat SQL di `trip_private.guest.contacts` baris `solo-2027`: satu kontak berlabel "Host", tanpa guide, dan `updated_at = now()` supaya ETag berganti.
+  - Dicek: `guest` kini berisi `party` dan `contacts`, dan `waNumber` membaca nomornya dengan benar.
+  - Nomornya hanya ada di Supabase, tidak di repo.
+  - Langkah host: buka ulang Today di HP; WhatsApp Host dan Telepon harus muncul di samping SOS.
 
 **Langkah 1: Tugas 7b, gong ditabuh di slide judul hari.** Dimulai hanya sesudah host memberi perintah. Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
 - **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
