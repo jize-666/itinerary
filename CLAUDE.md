@@ -12,7 +12,8 @@
 3. Kerjakan "Daftar tugas" di bawah secara urut, mulai dari tugas pertama yang belum dicentang. Jangan melompati urutan.
 4. Setiap sesi wajib ditutup dengan keempat hal ini:
    - **Output**: perubahan yang benar-benar jalan dan sudah dites (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm content:check`, `pnpm build`, `pnpm test:e2e`).
-   - **Pratinjau** foto dan/atau video dikirim ke host di chat (video lewat `scripts/preview/record-film.cjs`). Berkas yang memuat nama asli tamu tidak boleh masuk repo.
+   - **Pratinjau** foto dan/atau video dikirim ke host di chat (video lewat `scripts/preview/record-film.cjs`, Today lewat `scripts/preview/record-today.cjs`). Berkas yang memuat nama asli tamu tidak boleh masuk repo.
+   - **Data pratinjau = trip klien April** (aturan host 14 Nov: "kalo record preview pake akun client aja yang april"): rekam dengan trip Solo 7–11 April 2027 yang sebenarnya, bukan data tiruan e2e. Buat datanya dengan `pnpm -s exec tsx scripts/preview/client-data.ts <scratchpad>/client.json` (konten `content/trips/solo`, disusun sama seperti respons `trip-data`), simpan di scratchpad. Data privat (nama asli, WhatsApp, jam jemput) hanya ada di Supabase dan kode booking klien tidak tersimpan di repo, jadi di pratinjau diisi pengganti ("Your Name"). Rekam versi **desktop dan HP** untuk halaman yang punya keduanya (Today, home).
    - **PR** siap **Squash and merge**: commit, push, tanpa konflik dengan `main`, judul dan deskripsi sesuai isi. Host sendiri yang klik merge; jangan pernah merge sendiri.
    - **Perbarui berkas ini**: centang tugas yang selesai, tulis tanggalnya, catat sisa pekerjaan. Perbarui juga `HANDOFF.md`.
 

@@ -2,7 +2,8 @@
 // Perekam pratinjau Today 2,5D (permintaan host 14 Nov) dalam gerak lambat, mulus walau server tanpa GPU.
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
 //   node scripts/preview/record-today.cjs <data-trip.json> <keluaran.mp4> [iphone|desktop] [K=0.2]
-// <data-trip.json> = respons trip-data tiruan (JANGAN pakai data tamu asli di repo; simpan di luar repo).
+// <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo). Aturan host 14 Nov:
+// pratinjau memakai trip klien April, dibuat dengan `pnpm -s exec tsx scripts/preview/client-data.ts <keluaran.json>`.
 // Tur: sebelum trip (judul, kemiringan HP / kursor menggeser latar dan memutar kartu, gulir ke Before you go,
 // dua kotak dicentang), lalu hari pertama trip (Now/Next, gulir pelan: kartu datang dari kedalaman dan latar turun,
 // Rain plan, sheet SOS dibuka dan ditutup, kembali ke atas). Jamnya diputar lewat Date.now (tanpa banner pratinjau).

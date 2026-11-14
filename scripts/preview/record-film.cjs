@@ -19,7 +19,8 @@
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
 // kecil, dan jangan menjalankan pekerjaan berat lain selama merekam. Rekaman 38 detik memakan ±35 menit.
 // Semua frame screencast diambil (everyNthFrame 1): melewatkan frame membuat video patah-patah.
-// <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo).
+// <data-trip.json> = respons trip-data (JANGAN menaruh data tamu asli di repo; simpan di luar repo). Aturan host 14 Nov:
+// pratinjau memakai trip klien April, dibuat dengan `pnpm -s exec tsx scripts/preview/client-data.ts <keluaran.json>`.
 // Teknik sama dengan record-flow.cjs: waktu halaman diperlambat K kali (animasi CSS/WAAPI dan jam rAF lewat CDP
 // Animation.setPlaybackRate; timer dan performance.now diskalakan), frame screencast dialirkan ke ffmpeg pada jam virtual
 // 60 fps. desktop = 1920×1080, iphone = 1080 px lebar (tegak). Butuh: playwright (Chromium), ffmpeg.

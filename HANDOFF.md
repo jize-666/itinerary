@@ -5,6 +5,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 14 Nov (sesudah PR #9 dibuka): pratinjau pakai data trip klien, kirim ulang, dan Today versi desktop
+
+**Arahan host, kata demi kata:** "kalo record preview pake akun client aja yang april., kirim ulang dan perbarui info ini di claude.md" lalu "versi dekstop nya juga di perbarui? mana preview nya".
+
+Tafsir Claude: pratinjau tidak lagi memakai data tiruan e2e ("Test City", AAA → BBB → CCC), tetapi **trip klien yang sebenarnya, Solo 7–11 April 2027**, dari `content/trips/solo` (isi yang sama dengan yang diterbitkan ke Supabase). Kode booking klien tidak tersimpan di repo maupun sesi (hanya hash-nya di Supabase Vault), jadi data privat (nama asli, WhatsApp, jam jemput) tidak bisa diambil; di pratinjau diisi pengganti netral ("Your Name", nomor contoh). Yang dikerjakan: alat pembuat data pratinjau dari konten klien, rekam ulang video gunungan (desktop), Today iPhone, dan **Today desktop** (sebelumnya belum ada), kirim ke host, dan catat aturan ini di `CLAUDE.md`.
+
+**Status (14 Nov).** `scripts/preview/client-data.ts` membuat data pratinjau dari `content/trips/solo` lewat `buildTripPayload` yang sama dengan Edge Function (5 hari, 35 stop, Before you go 5 item, rute TJQ → CGK → SOC); data privat diganti "Your Name" dan nomor contoh. Aturannya dicatat di `CLAUDE.md` (bagian penutup sesi, "Data pratinjau = trip klien April"). **Today desktop (1920×1080, 40 dtk) dan Today iPhone (1080 px, 38 dtk) dengan data klien sudah dikirim ke host.** Video gunungan desktop dengan data klien sedang direkam (tur `gerbang`, K 0,02). Kendala: nama asli dan kontak tidak bisa tampil karena kode booking klien tidak ada di sesi ini.
+
 ### Permintaan host 14 Nov pagi: Today 2,5D dengan desain dan tombol baru
 
 **Arahan host, kata demi kata** (dikirim saat video Tugas 7 selesai direkam), disertai tangkapan layar Today di iPhone sebelum trip (kartu "The first scene" Belitung → Jakarta → Solo 13:00, daftar "Before you go" 0 of 5 ready dengan kotak centang, tombol SOS merah di bawah, sakelar EN/ID): "ini sekalian, button ui, design nya sekalian. buat 2,5D sekalian, sekaligus fitur yang gw mau seperti di handoff.md".
