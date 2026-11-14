@@ -33,6 +33,7 @@ const L = (en: string, id: string) => ({ en, id });
 /** Pengganti data privat: bukan data asli tamu. */
 const guest = {
   party: { name: "Your Name", short: "Your Name", size: 1, greeting: L("Welcome. This lakon was written for you.", "Selamat datang. Lakon ini ditulis untuk Anda.") },
+  lodging: { name: "Your stay", address: "Jl. Contoh No. 1, Surakarta", mapsUrl: "https://www.google.com/maps/search/?api=1&query=Surakarta" },
   contacts: [
     { label: L("Host", "Host"), whatsapp: "0800 0000 0001" },
     { label: L("Guide", "Pemandu"), phone: "0800 0000 0002" },

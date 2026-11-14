@@ -104,7 +104,7 @@ void main() {
   vec3 col = albedo * diffuseLight(n, vWorld);
   // petak tergenang memantulkan langit
   vec3 vd = v / max(dist, 1e-4);
-  col += skyColor(reflect(-vd, vec3(0.0, 1.0, 0.0))) * flooded * (1.0 - bund) * (0.1 + 0.5 * pow(1.0 - max(vd.y, 0.0), 4.0));
+  col += skyColor(reflect(-vd, vec3(0.0, 1.0, 0.0))) * flooded * (1.0 - bund) * (0.1 + 0.5 * pow(clamp(1.0 - vd.y, 0.0, 1.0), 4.0));
 
   // kabut lembah: lebih pekat di tanah rendah
   col = applyFog(col, vWorld);

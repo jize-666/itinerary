@@ -37,7 +37,7 @@ vec3 starLayer(vec3 d, float cells, float density, float size) {
   float r = size * (0.45 + rnd.x);
   float rr = max(r, px * 0.9);
   float dist = length(fract(p) - 0.5 - (rnd - 0.5) * 0.6);
-  float s = smoothstep(rr, rr * 0.25, dist) * (r * r) / (rr * rr);
+  float s = (1.0 - smoothstep(rr * 0.25, rr, dist)) * (r * r) / (rr * rr);
   float twinkle = 0.72 + 0.28 * sin(uTime * (0.8 + rnd.y * 2.4) + rnd.x * 60.0);
   vec3 tint = mix(vec3(0.75, 0.84, 1.0), vec3(1.0, 0.86, 0.66), step(0.72, rnd.y));
   return tint * s * on * twinkle;
@@ -47,7 +47,7 @@ void main() {
   vec3 dir = normalize(vDir);
   vec3 col = skyColor(dir);
   // di bawah cakrawala: kabut gelap (biasanya tertutup lanskap)
-  col = mix(col, uFogColor * 0.6, smoothstep(0.0, -0.18, dir.y));
+  col = mix(col, uFogColor * 0.6, (1.0 - smoothstep(-0.18, 0.0, dir.y)));
 
   float above = smoothstep(-0.01, 0.07, dir.y);
   if (uStars > 0.003) {
@@ -63,7 +63,7 @@ void main() {
   // cakram matahari: putih hangat di atas, jingga dan membesar di dekat cakrawala
   float sd = dot(dir, uSunDir);
   float rad = 0.0165 * uSunScale;
-  float sun = smoothstep(rad * rad * 1.2, rad * rad * 0.82, 2.0 * (1.0 - sd));
+  float sun = (1.0 - smoothstep(rad * rad * 0.82, rad * rad * 1.2, 2.0 * (1.0 - sd)));
   vec3 sunCol = mix(vec3(6.0, 5.6, 4.5), vec3(4.6, 1.9, 0.6), uWarm);
   col += sunCol * sun * uSunDisc;
 

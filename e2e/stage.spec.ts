@@ -203,6 +203,56 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     expect(bad).toEqual([]);
   });
 
+  test("satu piksel NaN di adegan tidak disebar bloom menjadi segi delapan hitam (audit host 14 Nov)", async ({ browser }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; dua kali buka panggung 3D");
+    /**
+     * Di iPhone, `pow` dengan dasar negatif di mangkuk blencong memberi NaN; bloom menyebarnya jadi segi delapan hitam.
+     * Di sini NaN disuntik dengan sengaja ke shader mangkuk blencong (sqrt(-1)), lalu jumlah piksel hitam dibandingkan
+     * dengan adegan yang sama tanpa suntikan. Dengan saringan `finite()` di rantai post, yang hitam hanya mangkuknya
+     * (±0,4 % layar); tanpa saringan, bidang hitam melebar ke nyala dan sekitarnya (±2,6 % layar, diukur 14 Nov).
+     */
+    const blackShare = async (inject: boolean) => {
+      const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+      const page = await context.newPage();
+      if (inject) {
+        await page.addInitScript(() => {
+          const orig = WebGL2RenderingContext.prototype.shaderSource;
+          WebGL2RenderingContext.prototype.shaderSource = function (sh: WebGLShader, src: string) {
+            if (src.includes("vec3 brass = vec3(0.72, 0.5, 0.2);")) {
+              const k = src.lastIndexOf("}");
+              src = `${src.slice(0, k)} gl_FragColor = vec4(sqrt(gl_FragCoord.x * 0.0 - 1.0)); }`;
+            }
+            return orig.call(this, sh, src);
+          };
+        });
+      }
+      await open3d(page);
+      await nextFrames(page, 6);
+      await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+      await nextFrames(page, 3);
+      const png = await page.screenshot();
+      const share = await page.evaluate(async (b64) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const c = document.createElement("canvas");
+        [c.width, c.height] = [img.width, img.height];
+        const g = c.getContext("2d")!;
+        g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data;
+        let black = 0;
+        for (let i = 0; i < d.length; i += 4) if (d[i]! + d[i + 1]! + d[i + 2]! <= 3) black++;
+        return black / (c.width * c.height);
+      }, png.toString("base64"));
+      await context.close();
+      return share;
+    };
+    const clean = await blackShare(false);
+    const poisoned = await blackShare(true);
+    expect(poisoned - clean).toBeGreaterThan(0.001); // suntikan memang mengenai mangkuk blencong yang terlihat
+    expect(poisoned - clean).toBeLessThan(0.012);
+  });
+
   test("?fps menampilkan overlay ukur", async ({ page }) => {
     await open3d(page, "?stage=low&fps");
     await nextFrames(page, 20);

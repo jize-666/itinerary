@@ -72,7 +72,7 @@ vec3 stageEnv(vec3 r, vec3 wp, float rough) {
 float shineOf(float rough) { return 2.0 / max(rough * rough, 0.004) - 2.0; }
 /* Logam: warna pantul × (lingkungan + kilap), sedikit lebih terang di sudut landai. */
 vec3 metal(vec3 f0, vec3 n, vec3 v, vec3 wp, float rough) {
-  float fres = pow(1.0 - max(dot(n, v), 0.0), 5.0);
+  float fres = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 5.0);
   vec3 tint = mix(f0, vec3(1.0), fres * (1.0 - rough) * 0.7);
   return tint * (stageEnv(reflect(-v, n), wp, rough) + specLight(n, v, wp, shineOf(rough)) * 0.3);
 }
@@ -176,7 +176,7 @@ void main() {
   // ---- bagian muka: pencu yang digosok tabuh, leher, dua punggung recep, pundak ----
   float pencu = 1.0 - smoothstep(0.2, 0.275, r);
   float neck = smoothstep(0.2, 0.26, r) * (1.0 - smoothstep(0.27, 0.34, r));
-  float recep = max(exp(-pow((r - 0.375) / 0.03, 2.0)), exp(-pow((r - 0.652) / 0.034, 2.0)));
+  float recep = max(exp(-sq((r - 0.375) / 0.03)), exp(-sq((r - 0.652) / 0.034)));
   float rai = smoothstep(0.3, 0.36, r) * (1.0 - smoothstep(0.84, 0.93, r));
 
   // ---- relief halus: kemiringan permukaan (bukan tinggi), dijumlahkan lalu dipakai membelokkan normal ----
@@ -217,7 +217,7 @@ void main() {
   // kilau satin perunggu tempa: sorot lebar dari blencong, paling terang di sisi yang menghadap lampu
   vec3 L;
   vec3 lamp = lampAt(vWorld, L);
-  float sheen = pow(max(dot(nb, normalize(L + v)), 0.0), 9.0) * step(0.0, dot(n, L));
+  float sheen = pow(max(dot(nb, safeNormalize(L + v)), 0.0), 9.0) * step(0.0, dot(n, L));
   float form = 0.5 + 0.5 * max(max(recep, pencu), rim) - 0.22 * smoothstep(0.7, 0.9, r) * (1.0 - rim);
   col += f0 * lamp * sheen * 0.36 * form * (1.0 - 0.5 * polish) * lekuk;
 
@@ -233,8 +233,8 @@ void main() {
     vec2 wq = q + (vec2(fbm(q * 13.0), fbm(q * 13.0 + 7.7)) - 0.5) * 0.05;
     vec4 k = cells(wq * 15.0 + 3.0);
     float crack = (1.0 - smoothstep(0.0, 0.05 + px * 22.0, k.w)) * (0.4 + 0.6 * hash21(floor(wq * 15.0 + 3.0 + k.xy)));
-    float seen = smoothstep(reach, reach - 0.18, r) * smoothstep(0.16, 0.3, r) * (1.0 - smoothstep(0.86, 0.98, r));
-    float rings = exp(-pow((r - 0.375) / 0.012, 2.0)) + exp(-pow((r - 0.652) / 0.012, 2.0));
+    float seen = (1.0 - smoothstep(reach - 0.18, reach, r)) * smoothstep(0.16, 0.3, r) * (1.0 - smoothstep(0.86, 0.98, r));
+    float rings = exp(-sq((r - 0.375) / 0.012)) + exp(-sq((r - 0.652) / 0.012));
     float glow = (crack * seen + rings * 0.5 * step(r, reach + 0.05)) * front;
     col += mix(ember, vec3(1.0, 0.62, 0.22), smoothstep(1.2, 2.2, uEmber.y)) * glow * uEmber.y * 1.6;
     col += ember * 0.12 * uEmber.y * front * (1.0 - r); // seluruh muka ikut memerah sesaat
@@ -319,7 +319,7 @@ vec3 lacquer(float gold, vec3 n, vec3 v) {
   float grain = fbm(vec2(vLocal.y * 5.0 + vLocal.x * 2.0, vLocal.x * 9.0 + vLocal.z * 7.0));
   vec3 lak = mix(vec3(0.115, 0.011, 0.01), vec3(0.2, 0.024, 0.017), grain);
   vec3 col = lak * diffuseLight(n, vWorld);
-  float fres = pow(1.0 - max(dot(n, v), 0.0), 4.0);
+  float fres = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 4.0);
   // lapisan lak bening: pantulan lembut + kilap tajam
   col += stageEnv(reflect(-v, n), vWorld, 0.18) * (0.05 + 0.5 * fres) * vec3(1.0, 0.72, 0.66);
   col += min(specLight(n, v, vWorld, 520.0) * 0.03, vec3(0.8));
@@ -370,7 +370,7 @@ void main() {
     float lodS = 1.0 - smoothstep(0.25, 0.7, uvw.x * 46.0);
     float groove = smoothstep(0.5, 0.62, edge) * lodS;
     float ridge = (1.0 - smoothstep(0.0, 0.5, edge)) * lodS;
-    float band = 1.0 - smoothstep(0.016, 0.016 + uvw.x * 1.5, abs(fract(vUv.x * 9.0 + 0.5) - 0.5) / 9.0);
+    float band = 1.0 - smoothstep(0.016, 0.016 + uvw.x * 1.5 + 1e-5, abs(fract(vUv.x * 9.0 + 0.5) - 0.5) / 9.0);
     band *= step(0.06, vUv.x) * step(vUv.x, 0.9);
     vec3 gold = GOLD * 0.1 * diffuseLight(n, vWorld) + metal(mix(GOLD, vec3(1.0, 0.86, 0.5), ridge * 0.6), n, v, vWorld, 0.34 - 0.14 * ridge);
     gold *= 0.8 + 0.5 * ridge;
@@ -395,7 +395,7 @@ void main() {
     float grain = fbm(vec2(vLocal.z * 30.0, vLocal.x * 200.0 + vLocal.y * 160.0));
     vec3 wood = mix(vec3(0.02, 0.01, 0.005), vec3(0.06, 0.028, 0.012), grain);
     col = wood * diffuseLight(n, vWorld) + specLight(n, v, vWorld, 60.0) * 0.025;
-    col += stageEnv(reflect(-v, n), vWorld, 0.3) * 0.05 * pow(1.0 - max(dot(n, v), 0.0), 4.0);
+    col += stageEnv(reflect(-v, n), vWorld, 0.3) * 0.05 * pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 4.0);
   } else {
     // kain pembungkus kepala tabuh: merah tua bertenun, diikat tali gelap di pangkal
     float weave = 0.5 + 0.25 * sin(vLocal.x * 900.0) * sin(vLocal.y * 900.0) + 0.25 * fbm(vLocal.xy * 120.0);
@@ -403,7 +403,7 @@ void main() {
     vec3 cloth = mix(vec3(0.2, 0.022, 0.018), vec3(0.34, 0.05, 0.032), weave);
     cloth = mix(cloth, vec3(0.03, 0.012, 0.01), tie);
     // kain: tepi siluet sedikit terang (bulu halus), tanpa kilap
-    float fuzz = pow(1.0 - max(dot(n, v), 0.0), 3.0);
+    float fuzz = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 3.0);
     col = cloth * diffuseLight(n, vWorld) * (1.0 + 0.6 * fuzz);
   }
 

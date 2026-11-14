@@ -159,7 +159,9 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
     float hx = dFdx(aux.b), hy = dFdy(aux.b);
     vec3 r1 = cross(dpy, N), r2 = cross(N, dpx);
     float det = dot(dpx, r1);
-    vec3 n = normalize(abs(det) * N - 0.011 * sign(det) * (hx * r1 + hy * r2));
+    // relief: vektor nol (turunan merosot) tidak boleh menjadi NaN, yang di iPhone disebar bloom jadi segi delapan hitam
+    vec3 nr = abs(det) * N - 0.011 * sign(det) * (hx * r1 + hy * r2);
+    vec3 n = dot(nr, nr) > 1e-30 ? normalize(nr) : N;
 
     vec3 L = normalize(uLamp - vView);
     float ndl = dot(n, L);
@@ -168,7 +170,7 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
     // sungging: cahaya lampu membungkus sedikit, supaya sisi yang berpaling tidak hitam
     vec3 lit = base * (lamp * clamp(ndl * 0.72 + 0.28, 0.0, 1.0) * (1.0 - 0.7 * metal) + vec3(0.05, 0.045, 0.065));
     // prada: kilap sempit + kilap lebar + pantulan ruang yang hangat
-    vec3 Hh = normalize(L + V);
+    vec3 Hh = normalize(L + V + vec3(0.0, 0.0, 1e-6));
     float nh = max(dot(n, Hh), 0.0);
     float gate = smoothstep(-0.05, 0.15, ndl);
     vec3 gold = base * 1.7 + 0.06;
@@ -194,7 +196,7 @@ ${KAYON.spare.map(([u, v, ru, rv]) => `  spare *= smoothstep(0.75, 1.05, length(
       float front = rage * ${f(GENI.reach)} - uv.y + (n1 - 0.5) * 0.3;
       float burn = smoothstep(0.0, 0.16, front) * spare;
       float flick = 0.85 + 0.35 * n2 + 0.3 * beat;
-      float crack = pow(1.0 - abs(vnoise(st * vec2(26.0, 38.0) + vec2(0.0, uTime * 0.25)) * 2.0 - 1.0), 10.0);
+      float crack = pow(clamp(1.0 - abs(vnoise(st * vec2(26.0, 38.0) + vec2(0.0, uTime * 0.25)) * 2.0 - 1.0), 0.0, 1.0), 10.0);
       vec3 ablaze = lit * 0.08 + vec3(1.0, 0.3, 0.04) * crack * (0.9 + 0.6 * beat);
       ablaze += fire * fire * (0.95 + 0.25 * fire.g) * flick;
       // tepi bakar: garis bara terang di batas api
@@ -310,7 +312,7 @@ vec3 kelir(vec2 q) {
   vec3 cloth = vec3(1.0, 0.66, 0.35) * pool * weave;
   // bayangan: makin gelap di tengah kolam cahaya (kontras), tatahan tembus tetap bercahaya
   float sh = shade(q) * uShadeRoll.y;
-  cloth *= 1.0 - sh * (0.9 - 0.15 * smoothstep(1.4, 0.2, r2));
+  cloth *= 1.0 - sh * (0.9 - 0.15 * (1.0 - smoothstep(0.2, 1.4, r2)));
   // pendar lampu menembus kain di sekitar bayangan tepi: sedikit merah jingga
   cloth += vec3(0.05, 0.018, 0.004) * pool * (1.0 - sh);
   float cut = uKelir.w;
@@ -331,7 +333,7 @@ vec3 kelir(vec2 q) {
     float round = sqrt(max(1.0 - n * n, 0.0));
     float fiber = 0.86 + 0.14 * sin(q.y * 1400.0 + vnoise(vec2(k.x * 40.0, q.y * 90.0)) * 3.0);
     float joint = 1.0 - 0.35 * smoothstep(0.9, 1.0, abs(sin(k.x * uVeil.w * 2.3 + 0.4)));
-    vec3 trunk = vec3(0.36, 0.34, 0.2) * (0.18 + 0.95 * round * smoothstep(1.0, -0.6, n)) * fiber * joint;
+    vec3 trunk = vec3(0.36, 0.34, 0.2) * (0.18 + 0.95 * round * (1.0 - smoothstep(-0.6, 1.0, n))) * fiber * joint;
     trunk *= 0.35 + 0.9 * pool;
     vec3 ground = vec3(0.012, 0.009, 0.008);
     cloth = t < 1.0 ? trunk : ground;

@@ -25,7 +25,7 @@ void main() {
   vec3 n = normalize(vNormal);
   vec3 v = normalize(cameraPosition - vWorld);
   vec3 brass = vec3(0.72, 0.5, 0.2);
-  float fres = pow(1.0 - max(dot(n, v), 0.0), 3.0);
+  float fres = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 3.0);
   // kuningan: pantulan langit + pijar dari nyala di atasnya
   vec3 col = brass * 0.25 * hemi(n) + skyColor(reflect(-v, n)) * brass * (0.5 + fres);
   col += uLampColor * brass * (0.09 * smoothstep(-0.2, 0.1, vWorld.y - uLampPos.y) + 0.03);
@@ -56,11 +56,11 @@ void main() {
   // lidah api: lebar di bawah, runcing dan bergoyang di atas
   float sway = (vnoise(vec2(t * 3.1, p.y * 3.0)) - 0.5) * 0.5 * smoothstep(0.0, 0.7, p.y);
   float width = 0.2 * (1.0 - smoothstep(-0.05, 0.62 + 0.1 * vnoise(vec2(t * 5.0, 1.0)), p.y)) + 0.012;
-  float body = smoothstep(width, width * 0.25, abs(p.x - sway * 0.25)) * smoothstep(-0.12, -0.02, p.y) * step(p.y, 0.9);
+  float body = (1.0 - smoothstep(width * 0.25, width, abs(p.x - sway * 0.25))) * smoothstep(-0.12, -0.02, p.y) * step(p.y, 0.9);
   vec3 flame = mix(vec3(1.0, 0.32, 0.05), vec3(1.0, 0.86, 0.5), smoothstep(0.1, 0.9, body)) * body * 7.0;
   // pendar lembut di sekeliling nyala
   vec2 h = vUv - vec2(0.5, 0.34);
-  float edge = smoothstep(0.5, 0.2, length(vUv - 0.5));
+  float edge = (1.0 - smoothstep(0.2, 0.5, length(vUv - 0.5)));
   float halo = (exp(-dot(h, h) * 90.0) * 0.55 + exp(-dot(h, h) * 14.0) * 0.07) * edge;
   vec3 col = (flame + vec3(1.0, 0.55, 0.2) * halo) * uGlow;
   gl_FragColor = vec4(col, 1.0);
@@ -89,7 +89,7 @@ void main() {
   vec3 v = normalize(cameraPosition - vWorld);
   // tepi kerucut memudar (dilihat menyamping), makin jauh dari lampu makin tipis
   float rim = pow(abs(dot(n, v)), 2.4);
-  float fade = smoothstep(0.0, 0.12, vAlong) * pow(1.0 - vAlong, 1.8);
+  float fade = smoothstep(0.0, 0.12, vAlong) * pow(clamp(1.0 - vAlong, 0.0, 1.0), 1.8);
   float dust = 0.6 + 0.4 * fbm(vWorld.xy * 2.6 + vec2(uTime * 0.05, -uTime * 0.08));
   gl_FragColor = vec4(vec3(1.0, 0.6, 0.3) * rim * fade * dust * 0.055 * uGlow, 1.0);
 }`;

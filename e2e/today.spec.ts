@@ -95,6 +95,9 @@ test.describe("Today selama trip", () => {
     await sos.click();
     const sheet = page.getByRole("dialog", { name: "If you need help" });
     await expect(sheet).toBeVisible();
+    // fokus di judul sheet (dibacakan), bukan di tombol tutup yang lalu tampak bercincin (audit host 14 Nov)
+    await expect(sheet.getByRole("heading", { name: "If you need help" })).toBeFocused();
+    await expect(sheet.getByRole("button", { name: "Close" })).not.toBeFocused();
     await expect(sheet.getByRole("link", { name: /112/ })).toHaveAttribute("href", "tel:112");
     await expect(sheet.getByRole("link", { name: "Call Guide" })).toHaveAttribute("href", "tel:+6280000000002");
     await expect(sheet.getByText("Jl. Uji No. 1")).toBeVisible();
@@ -107,20 +110,22 @@ test.describe("Today selama trip", () => {
     await expect(sheet).toBeHidden();
   });
 
-  test("tombol tekan 3D: wajah tombol turun saat ditekan, lalu kembali", async ({ page }) => {
+  test("tombol tekan (bahasa kapsul, tanpa tebal 3D): wajah tombol mengecil saat ditekan, lalu kembali", async ({ page }) => {
     await openToday(page, "2027-04-08T10:45:00");
     const sos = page.getByRole("button", { name: /SOS/ });
     await expect(sos).toBeVisible();
     await page.waitForTimeout(1300); // dock selesai masuk
-    const faceY = () => sos.locator(".pb-face").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42);
+    const face = () => sos.locator(".pb-face").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+    // tebal di bawah wajah tombol (ciri versi lama) tidak digambar lagi di Today
+    expect(await sos.evaluate((el) => getComputedStyle(el, "::before").display)).toBe("none");
     const box = (await sos.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await expect(sos).toHaveAttribute("data-pressed", "");
-    await expect.poll(faceY).toBeGreaterThan(3);
+    await expect.poll(face).toBeLessThan(0.97);
     await page.mouse.up();
     await expect(sos).not.toHaveAttribute("data-pressed", "");
-    await expect.poll(faceY).toBeLessThan(1.5);
+    await expect.poll(face).toBeGreaterThan(0.995);
   });
 
   test("tim: catatan tim & biaya; tamu tidak pernah melihatnya", async ({ page }) => {

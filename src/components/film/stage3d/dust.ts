@@ -25,7 +25,7 @@ void main() {
   // terang oleh blencong, samar oleh cahaya sekitar; pudar di ujung daur dan terlalu dekat kamera
   vec3 dl = uLampPos - wp;
   float lamp = dot(uLampColor, vec3(0.33)) / (1.0 + 0.5 * dot(dl, dl));
-  float life = smoothstep(0.0, 0.08, p.y) * smoothstep(1.0, 0.86, p.y);
+  float life = smoothstep(0.0, 0.08, p.y) * (1.0 - smoothstep(0.86, 1.0, p.y));
   vLight = (lamp * 0.42 + 0.014 * dot(uAmbSky, vec3(0.33)) + 0.003) * life * smoothstep(0.35, 1.2, dist);
   vSeed = aSeed.w;
   // butir kecil: 1–4 px; yang lebih kecil dari satu piksel digambar satu piksel dengan terang diturunkan
@@ -39,7 +39,7 @@ varying float vLight;
 varying float vSeed;
 void main() {
   vec2 q = gl_PointCoord - 0.5;
-  float a = smoothstep(0.5, 0.05, length(q));
+  float a = (1.0 - smoothstep(0.05, 0.5, length(q)));
   vec3 gold = mix(vec3(1.0, 0.72, 0.36), vec3(1.0, 0.9, 0.7), vSeed);
   gl_FragColor = vec4(gold * a * vLight, 1.0);
 }`;

@@ -17,6 +17,7 @@ const phoneOf = (c: Contact) => c.phone ?? c.whatsapp;
 export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boolean) => void }) {
   const { t, tx } = useI18n();
   const sheet = useRef<HTMLDialogElement>(null);
+  const title = useRef<HTMLHeadingElement>(null);
   const [closing, setClosing] = useState(false);
   const contacts = (data.private?.contacts ?? []).filter((c) => waNumber(c.whatsapp) || c.phone);
   const [main] = contacts;
@@ -27,6 +28,8 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
   const open = () => {
     setClosing(false);
     sheet.current?.showModal();
+    // fokus pindah ke judul sheet (dibacakan screen reader), bukan ke tombol tutup yang lalu tampak bercincin
+    title.current?.focus({ preventScroll: true });
   };
   const close = () => {
     if (prefersReducedMotion()) return sheet.current?.close();
@@ -103,7 +106,7 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
           <span className="sheet-grip" aria-hidden="true" />
           {/* pola modal: judul kiri atas, tutup kanan atas */}
           <div className="sheet-head">
-            <h2 id="sheet-title" className="sheet-title">
+            <h2 ref={title} id="sheet-title" className="sheet-title" tabIndex={-1}>
               {t("today.emergencyTitle")}
             </h2>
             <button type="button" className="pb pb--glass pb--sm pb--icon sheet-x" aria-label={t("today.close")} onClick={close}>
@@ -118,6 +121,9 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
               <li key={e.number}>
                 <a className="pb pb--sos sheet-num" data-haptic="" href={telHref(e.number)}>
                   <span className="pb-face">
+                    <span className="sheet-call" aria-hidden="true">
+                      <IconPhone size={11} />
+                    </span>
                     <span className="sheet-digits">{e.number}</span>
                     <span>{tx(e.label)}</span>
                   </span>

@@ -32,16 +32,26 @@ void main() {
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }`;
 
+/*
+ * Jaring pengaman (audit host 14 Nov: segi delapan hitam di iPhone): satu piksel NaN di target HDR disebar bloom
+ * menjadi segi delapan hitam. Piksel tak sah dijadikan 0 dan nilai tak hingga dibatasi sebelum dipakai; sumber
+ * NaN di shader adegan sudah diperbaiki, ini hanya supaya satu piksel salah tidak pernah melebar lagi.
+ */
+const FINITE = /* glsl */ `
+vec3 finite(vec3 c) { return any(isnan(c)) ? vec3(0.0) : min(c, vec3(256.0)); }
+`;
+
 const DOWN = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uTexel;
 uniform float uThreshold;
 varying vec2 vUv;
+${FINITE}
 void main() {
   vec2 h = uTexel * 0.5;
-  vec3 c = texture2D(tSrc, vUv).rgb * 4.0;
-  c += texture2D(tSrc, vUv - h).rgb + texture2D(tSrc, vUv + h).rgb;
-  c += texture2D(tSrc, vUv + vec2(h.x, -h.y)).rgb + texture2D(tSrc, vUv - vec2(h.x, -h.y)).rgb;
+  vec3 c = finite(texture2D(tSrc, vUv).rgb) * 4.0;
+  c += finite(texture2D(tSrc, vUv - h).rgb) + finite(texture2D(tSrc, vUv + h).rgb);
+  c += finite(texture2D(tSrc, vUv + vec2(h.x, -h.y)).rgb) + finite(texture2D(tSrc, vUv - vec2(h.x, -h.y)).rgb);
   c *= 0.125;
   if (uThreshold > 0.0) {
     // ambang lunak: hanya yang lebih terang dari putih; nilai ekstrem diredam supaya tidak berkedip
@@ -75,7 +85,7 @@ uniform float uExposure;
 uniform float uDim;
 uniform float uTime;
 varying vec2 vUv;
-
+${FINITE}
 vec3 aces(vec3 x) {
   // ACES (Narkowicz) dengan sedikit pra-eksposur, seperti ACESFilmic di three
   x *= 0.6;
@@ -84,16 +94,16 @@ vec3 aces(vec3 x) {
 float hash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 
 void main() {
-  vec3 c = texture2D(tScene, vUv).rgb;
-  c += texture2D(tBloom, vUv).rgb * uBloom;
+  vec3 c = finite(texture2D(tScene, vUv).rgb);
+  c += finite(texture2D(tBloom, vUv).rgb) * uBloom;
   // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim)
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
   float vig = 1.0 - 0.42 * smoothstep(0.28, 0.82, length(q));
   // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
-  vig *= 1.0 - 0.38 * smoothstep(0.3, 0.0, vUv.y);
+  vig *= 1.0 - 0.38 * (1.0 - smoothstep(0.0, 0.3, vUv.y));
   c *= uExposure * vig * (1.0 - uDim);
   c = aces(c);
-  c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+  c = mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
   c += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
   gl_FragColor = vec4(c, 1.0);
 }`;

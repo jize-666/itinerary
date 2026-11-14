@@ -43,13 +43,13 @@ void main() {
   // lebar tepi garis ≥ sedikit di atas nol: di sisi tegak turunannya nol, dan smoothstep dengan dua batas sama tak terdefinisi
   float w = max(max(fwidth(uv.x), fwidth(uv.y)) * 1.3, 0.002);
   float d = min(abs(length(fract(uv) - 0.5) - 0.5), abs(length(fract(uv + 0.5) - 0.5) - 0.5));
-  float line = smoothstep(0.02 + w, 0.02, d);
+  float line = (1.0 - smoothstep(0.02, 0.02 + w, d));
   // titik di tengah tiap kelopak
   vec2 q = fract(uv * 2.0 + 0.5) - 0.5;
-  float dot4 = smoothstep(0.055 + w, 0.055, length(q));
+  float dot4 = (1.0 - smoothstep(0.055, 0.055 + w, length(q)));
   // bingkai tepi lantai
   float edge = max(abs(vWorld.x), abs(vWorld.z));
-  float band = smoothstep(0.02 + w, 0.02, abs(edge - 4.42)) + smoothstep(0.012 + w, 0.012, abs(edge - 4.3));
+  float band = (1.0 - smoothstep(0.02, 0.02 + w, abs(edge - 4.42))) + (1.0 - smoothstep(0.012, 0.012 + w, abs(edge - 4.3)));
   float gold = clamp(max(line, dot4 * 0.8) * step(edge, 4.3) + band, 0.0, 1.0) * top;
 
   vec3 goldCol = vec3(0.78, 0.55, 0.2);
@@ -65,14 +65,14 @@ void main() {
   vec3 col = albedo * (hemi(n) * contact + uKeyColor * max(dot(n, uKeyDir), 0.0) + lamp * max(dot(n, L), 0.0) * shade);
 
   // batu dipoles: memantulkan langit di sudut landai, emas berkilat
-  float fres = pow(1.0 - max(dot(n, v), 0.0), 5.0);
+  float fres = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 5.0);
   vec3 refl = skyColor(reflect(-v, n));
   col += refl * mix(0.02 + 0.32 * fres, 0.26, gold) * mix(vec3(1.0), goldCol, gold) * top * contact;
   col += specLight(n, v, vWorld, mix(90.0, 46.0, gold)) * mix(vec3(0.2), goldCol * 1.1, gold) * mix(0.25, 1.0, shade);
 
   // bayangan kontak di kaki saka
   vec2 pc = abs(vWorld.xz) - 3.5;
-  col *= 1.0 - 0.6 * smoothstep(0.75, 0.1, length(pc)) * top;
+  col *= 1.0 - 0.6 * (1.0 - smoothstep(0.1, 0.75, length(pc))) * top;
 
   gl_FragColor = vec4(applyFog(col, vWorld), 1.0);
 }`;
@@ -95,24 +95,24 @@ void main() {
   // gelang emas dan lung-lungan (sulur bergelombang) di badan saka
   float w = max(fwidth(y) * 1.5, 0.002);
   float rings = 0.0;
-  rings += smoothstep(0.035 + w, 0.035, abs(y - 0.62));
-  rings += smoothstep(0.02 + w, 0.02, abs(y - 0.74));
-  rings += smoothstep(0.035 + w, 0.035, abs(y - 3.86));
-  rings += smoothstep(0.02 + w, 0.02, abs(y - 3.74));
-  rings += smoothstep(0.02 + w, 0.02, abs(y - 2.2)) + smoothstep(0.02 + w, 0.02, abs(y - 2.36));
+  rings += (1.0 - smoothstep(0.035, 0.035 + w, abs(y - 0.62)));
+  rings += (1.0 - smoothstep(0.02, 0.02 + w, abs(y - 0.74)));
+  rings += (1.0 - smoothstep(0.035, 0.035 + w, abs(y - 3.86)));
+  rings += (1.0 - smoothstep(0.02, 0.02 + w, abs(y - 3.74)));
+  rings += (1.0 - smoothstep(0.02, 0.02 + w, abs(y - 2.2))) + (1.0 - smoothstep(0.02, 0.02 + w, abs(y - 2.36)));
   float side = abs(n.x) > abs(n.z) ? vLocal.z : vLocal.x;
   float wave = sin(y * 9.0) * 0.07;
-  float vine = smoothstep(0.014 + w, 0.014, abs(side - wave)) * step(0.8, y) * step(y, 3.7) * step(abs(n.y), 0.5);
-  float curl = smoothstep(0.03 + w, 0.03, length(vec2(side - wave * 1.8, fract(y * 1.43) - 0.5) * vec2(1.0, 0.35)) - 0.035) * step(0.8, y) * step(y, 3.7) * step(abs(n.y), 0.5);
+  float vine = (1.0 - smoothstep(0.014, 0.014 + w, abs(side - wave))) * step(0.8, y) * step(y, 3.7) * step(abs(n.y), 0.5);
+  float curl = (1.0 - smoothstep(0.03, 0.03 + w, length(vec2(side - wave * 1.8, fract(y * 1.43) - 0.5) * vec2(1.0, 0.35)) - 0.035)) * step(0.8, y) * step(y, 3.7) * step(abs(n.y), 0.5);
   // blandar: garis emas memanjang
   float beam = step(${(4.4 - 0.2).toFixed(2)}, y);
-  float along = smoothstep(0.012 + w, 0.012, abs(y - 4.33)) + smoothstep(0.012 + w, 0.012, abs(y - 4.47));
+  float along = (1.0 - smoothstep(0.012, 0.012 + w, abs(y - 4.33))) + (1.0 - smoothstep(0.012, 0.012 + w, abs(y - 4.47)));
   float gold = clamp((rings + vine + curl * 0.8) * (1.0 - isStone) * (1.0 - beam) + along * beam, 0.0, 1.0);
 
   vec3 goldCol = vec3(0.8, 0.56, 0.2);
   vec3 albedo = mix(mix(lak, stone, isStone), goldCol * 0.4, gold);
   vec3 col = albedo * diffuseLight(n, vWorld);
-  float fres = pow(1.0 - max(dot(n, v), 0.0), 4.0);
+  float fres = pow(clamp(1.0 - dot(n, v), 0.0, 1.0), 4.0);
   col += skyColor(reflect(-v, n)) * (0.04 + 0.3 * fres) * mix(vec3(1.0, 0.5, 0.45), goldCol * 1.6, gold) * (1.0 - isStone);
   col += specLight(n, v, vWorld, mix(60.0, 40.0, gold)) * mix(vec3(0.35, 0.16, 0.14), goldCol * 1.8, gold) * (1.0 - 0.7 * isStone);
 

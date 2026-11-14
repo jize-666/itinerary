@@ -102,6 +102,13 @@ vec3 skyColor(vec3 dir) {
   return c;
 }
 
+/*
+ * Aman untuk GPU HP (audit host 14 Nov: segi delapan hitam di iPhone): vektor nol tidak dinormalisasi menjadi NaN,
+ * dan kuadrat ditulis sebagai perkalian (pow dengan dasar negatif tidak terdefinisi dan menjadi NaN di GPU Apple).
+ */
+vec3 safeNormalize(vec3 x) { return x * inversesqrt(max(dot(x, x), 1e-12)); }
+float sq(float x) { return x * x; }
+
 /* Cahaya sekitar dari langit dan pantulan tanah. */
 vec3 hemi(vec3 n) { return mix(uAmbGround, uAmbSky, n.y * 0.5 + 0.5); }
 
@@ -132,8 +139,8 @@ vec3 diffuseLight(vec3 n, vec3 wp) {
 vec3 specLight(vec3 n, vec3 v, vec3 wp, float shininess) {
   vec3 L;
   vec3 lamp = lampAt(wp, L);
-  float a = pow(max(dot(n, normalize(L + v)), 0.0), shininess);
-  float b = pow(max(dot(n, normalize(uKeyDir + v)), 0.0), shininess);
+  float a = pow(max(dot(n, safeNormalize(L + v)), 0.0), shininess);
+  float b = pow(max(dot(n, safeNormalize(uKeyDir + v)), 0.0), shininess);
   return (lamp * a * step(0.0, dot(n, L)) + uKeyColor * b * step(0.0, dot(n, uKeyDir))) * (shininess + 8.0) * 0.0398;
 }
 
