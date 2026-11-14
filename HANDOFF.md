@@ -5,6 +5,12 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 14 Nov pagi: Today 2,5D dengan desain dan tombol baru
+
+**Arahan host, kata demi kata** (dikirim saat video Tugas 7 selesai direkam), disertai tangkapan layar Today di iPhone sebelum trip (kartu "The first scene" Belitung → Jakarta → Solo 13:00, daftar "Before you go" 0 of 5 ready dengan kotak centang, tombol SOS merah di bawah, sakelar EN/ID): "ini sekalian, button ui, design nya sekalian. buat 2,5D sekalian, sekaligus fitur yang gw mau seperti di handoff.md".
+
+Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ulang, termasuk tombolnya (SOS, kotak centang, sakelar bahasa, tombol aksi), dan dibuat 2,5D dengan arti yang sama seperti home dan film (kedalaman berlapis, DOM dengan `transform`/`opacity`, bukan WebGL; Today tetap ringan dan bisa offline). "Fitur yang gw mau seperti di handoff.md" = aturan tetap gerak pandang 13 Nov: **kamera parallax** (kursor di desktop, kemiringan HP di HP), **perspective shift**, dan **scroll-driven depth** (di Today: kedalaman mengikuti gulir halaman). "Sekalian" = dikerjakan di sesi ini dan masuk PR yang sama dengan Tugas 7. Status di bawah diperbarui begitu tiap langkah selesai.
+
 ### Tugas 7: pembuka dan penutup gunungan (sesi 14 Nov pagi WIB)
 
 **Arahan host, kata demi kata:** "kerjakan tugas 7, gunungan" (sesi baru sesudah `/clear`; PR #8 sudah di-merge host 13 Nov 17.26 UTC, jadi branch kerja dibuat ulang dari `main` `d785e65`).
