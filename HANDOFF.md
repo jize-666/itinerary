@@ -5,6 +5,49 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Rencana sesudah PR #11 (14 Nov malam, atas pertanyaan host "apa planningmu habis ini, catat di handoff.md")
+
+PR #11 (tier High iPhone bertahan + catatan gong judul hari) di-merge host 14 Nov 10.51 UTC (squash `c5e8eeb`). Branch kerja dibuat ulang dari `main`. Urutan mengikuti daftar tugas di `CLAUDE.md`; tidak ada yang dimulai tanpa arahan host.
+
+**Langkah 0: menunggu uji host di iPhone produksi (tanpa kode).** Buka `/film/?fps` dan kirim tangkapan:
+- Gerbang gunungan, prolog/intro, dan slide gong harus tertulis `high ×1 (paksa)`.
+- Segi delapan hitam tidak muncul lagi (gerbang, blencong, credits).
+- fps di prolog/intro dan saat gong dipukul (pembanding sebelum Audit 4: 37–48 dan 30).
+
+Bila tertulis `(paksa, turun: N fps)` atau fps di slide berat jauh di bawah 45, langkah berikutnya adalah "Cadangan fps" di bawah, sebelum tugas baru.
+
+**Langkah 1: Tugas 7b, gong ditabuh di slide judul hari.** Dimulai hanya sesudah host memberi perintah. Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
+- **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
+- **7b.2 Animasi teks keluar (baru):** misalnya huruf judul terurai jadi debu emas yang tersedot ke arah gong tepat saat dipukul. Hanya `transform`/`opacity`, tanpa reflow. Film 2,5D (tanpa 3D) mendapat versi yang sama dengan gong CSS.
+- **7b.3 Pukulan di judul:** memakai pukulan gong yang sudah ada (bunyi, kilatan, riak, bara, bunga api, napas api naga), tetapi tanpa hentakan kamera, karena host minta kamera tetap di tempatnya. Gong penutup hari tidak berubah.
+- **7b.4 Gallery dengan gerak 3D penuh:** kedalaman ikut gulir, perspective shift, dan kamera parallax (sudah ada), ditambah:
+  - **letak Z:** kartu dan lapisan lanskap di kedalaman berbeda, dan kamera 3D menyelaraskannya;
+  - **depth of field (baru):** kabur menurut jarak dari bidang fokus.
+
+  Catatan teknis: DOF butuh kedalaman adegan, padahal sejak Audit 4 depth MSAA tidak di-resolve demi bandwidth. Jadi DOF memakai pass kedalaman sendiri yang murah, atau depth di-resolve hanya saat DOF tampil; dampaknya diukur.
+- **7b.5 Penutup:** e2e, video HP dan desktop (data April), `HANDOFF.md`, `CLAUDE.md`, PR.
+
+**Langkah 2: Tugas 8, benang emas (desain ulang), siklus waktu 3D, post-FX, partikel.** Sesudah 7b dan dengan arahan host. Rupa benang emas belum diputuskan, jadi usulannya dikirim dulu sebagai gambar diam untuk disetujui. Pecahan:
+- **8.1 Benang emas 3D:** kurva ber-shader yang tergambar mengikuti kemajuan film.
+- **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery.
+- **8.3 Post-FX:** DOF dari 7b dipakai ulang, plus grading warna.
+- **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam.
+
+Tiap langkah: video sebagai output.
+
+**Langkah 3–6: Tugas 9–12,** urut, masing-masing dengan arahan host sebelum mulai:
+- **9, diorama Solo:** data OSM butuh akses jaringan; cadangannya bentuk prosedural.
+- **10, lereng Lawu:** data DEM, dengan cadangan yang sama.
+- **11, canting dan kain mori.**
+- **12, boarding pass 3D dengan fisika:** fisika tali dan kartu ditulis sendiri, karena CSP tanpa WASM kecuali host mengizinkan Rapier.
+
+**Cadangan fps (hanya bila uji host menunjukkan perlu):** efek tembus pandang digambar ke target tanpa MSAA lalu digabung ke adegan, tanpa beda gambar. Yang termasuk: api naga, bunga api, nyala dan kerucut cahaya blencong.
+
+**Menunggu host, bukan kode:**
+- Uji di MacBook, Android, dan iPhone lama.
+- Kepingan bara yang berkumpul jadi gong di prolog: masih mau atau dilewati.
+- Kode booking klien asli: pratinjau dengan data privat tidak bisa dibuat di sesi.
+
 ### Permintaan host 14 Nov 16.44–16.45 WIB: gong ditabuh di slide judul hari, sebelum gallery (dicatat, MENUNGGU PERINTAH HOST)
 
 **Kata host, kata demi kata:** "pas fase sebelum masuk galery, yang seperti di foto, harusnya ini fase yang pas untuk menabuh gong, ketika teks out (tambahin animasi), kamera masih berada di tempatnya, dan ketika di slide ke kiri/kanan kamera perbindah seperti fitur 3D (Scroll-driven depth, Depth of field, Perspective shift, Z-depth positioning, Camera parallax)", lalu "catat di handoff".
