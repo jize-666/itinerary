@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D selesai, dites, dan videonya dikirim; satu PR untuk keduanya (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
+Diperbarui 14 Nov 2026 siang (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #9) · **Audit host 1–5 selesai: 12 butir dicentang dengan bukti tes, satu commit per audit, video dikirim; satu PR (lihat bagian 0, paling atas).** Sebelumnya: Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D di PR #9.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -8,6 +8,11 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 ### Audit host 1–5 (14 Nov, sesudah PR #9 di-merge, uji di iPhone produksi)
 
 **Arahan host, kata demi kata, urut:** "perbaiki hasil audit ini" (`audit_1.zip`), "ini juga" (`audit_2.zip`), "ini juga" (`audit_3.zip`), "ini" (`audit_4.zip`), "ini terakhir" (`audit_5.zip`), lalu **"perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md"**. Artinya: dikerjakan audit demi audit (1 → 5); sesudah tiap audit selesai, butir-butirnya di daftar ini dicentang dengan bukti tes, lalu commit. Berkas audit disimpan di scratchpad, tidak masuk repo (tangkapan layar memuat nama asli tamu).
+
+**Ringkasan sesi (14 Nov):**
+- **Selesai:** Audit 1 (sheet SOS desain baru, tombol Today tanpa tebal, NaN shader + saringan post), Audit 2 (Today atas dan The programme desain baru, boarding pass home bersama, bingkai headline di HP tegak), Audit 3 (`atan(0, 0)` di blencong balik kelir, bidang gelap teks film tidak tembus), Audit 4 (hemat bandwidth GPU tier High), Audit 5 (butir 11 dan 12 ditelusuri ke sumber yang sudah diperbaiki).
+- **Tes akhir (sesudah Audit 4):** lint dan typecheck bersih, 341/341 tes unit, content:check OK, build OK, e2e penuh 249 lulus / 0 gagal / 21 dilewati (khusus perangkat). Video: Today HP dan desktop (data trip April), prolog film 3D di HP (`record-film.cjs … prolog`, tur baru: hero, headline, intro, fakta pertama). Kendala: kenaikan fps hanya bisa diukur di iPhone host; renderer di sesi adalah SwiftShader, dan segi delapan NaN tidak muncul di sana (jadi buktinya tes suntik NaN dan tes pola shader).
+- **Langkah berikutnya:** host mengecek `/film/?fps` di iPhone sesudah merge (segi delapan, fps High) dan meninjau video Today/film. Tugas 8 tetap menunggu arahan host.
 
 **Satu penyebab untuk semua segi delapan hitam** (butir 2, 6, 7, 9, 11, 12): beberapa shader menghitung `pow(1.0 - dot(n, v), k)`. Bila arah pandang tepat segaris dengan permukaan (mangkuk blencong, tiang), pembulatan membuat `dot` sedikit di atas 1, dasarnya negatif, dan `pow` menghasilkan NaN di GPU iPhone. NaN itu menembus apa pun yang digambar di depannya (pencampuran warna NaN × 0 = NaN) dan disebar bloom menjadi segi delapan. Karena itu ia juga muncul di gunungan dan kelir saat panggung di belakangnya masih digambar.
 
@@ -53,8 +58,10 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
   - **Bukti:** render tier High sebelum dan sesudah dibandingkan piksel demi piksel (jam dibekukan): selisih maksimum 5/255, rata-rata 0,15, nol piksel berbeda lebih dari 8/255. E2E baru "hemat bandwidth tanpa beda gambar" (statistik `bloom` = `r11g11b10` bila didukung) dan semua tes gambar panggung lulus. **Belum terbukti di iPhone:** SwiftShader bukan GPU berpetak, jadi kenaikan fps hanya bisa dilihat host di `/film/?fps` (pembanding: 37–48 fps di slide prolog/intro, 30 di fase gong). Bila belum cukup, langkah berikutnya: menggambar efek tembus pandang (api, kerucut cahaya) ke target tanpa MSAA.
 
 **Audit 5**
-- [ ] 11. "lampunya, cacat" (slide intro prolog): segi delapan hitam di blencong.
-- [ ] 12. "penutup dan pembuka, cacat visual" (gunungan pembuka tertancap): segi delapan hitam di kiri-tengah, tempat blencong di balik kelir.
+- [x] 11. "lampunya, cacat" (slide intro prolog): segi delapan hitam di blencong.
+  - Sumber yang sama dengan butir 2 dan 9 (`pow` berdasar negatif di mangkuk blencong), tertutup di Audit 1; saringan post menjamin satu piksel rusak tidak melebar. Bukti: tes suntik NaN di mangkuk blencong (Audit 1) dan `shader-safety.test.ts`.
+- [x] 12. "penutup dan pembuka, cacat visual" (gunungan pembuka tertancap): segi delapan hitam di kiri-tengah, tempat blencong di balik kelir.
+  - Tangkapan host mengunci penyebabnya: segi delapan tepat di pusat pendar lampu pada kelir (bayangan gunungan jatuh ke kanan, jadi lampunya di kiri), dan selama kelir menutup layar isi panggung di belakangnya tidak digambar. Jadi sumbernya pasti shader kelir: `atan(d.y, d.x)` di piksel pusat lampu (d = 0, 0), diperbaiki di Audit 3 dengan `atan2s`. Bukti: tes "atan dua argumen hanya lewat atan2s" (gagal pada kode lama), tes gerbang pembuka/penutup lulus. Sisa: konfirmasi di iPhone host.
 
 ### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
 
