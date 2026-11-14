@@ -5,6 +5,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
+
+Isi: gunungan pembuka dan penutup (Tugas 7), Today 2,5D, tier High dipaksa di iPhone, perbaikan tes 3D di CI. Branch kerja dibuat ulang dari `main` `01ce0ec` (branch remote lama sudah dihapus host, jadi tidak perlu menggabung riwayat lama).
+
+**Pertanyaan host sesudah merge, kata demi kata:** "https://kulonuwun-solo/film/?fps.vercel.app gini?". Jawaban: alamatnya `https://kulonuwun-solo.vercel.app/film/?fps` (`?fps` di akhir, sesudah `/film/`). Karena sesi per tab, kode dimasukkan dulu di `https://kulonuwun-solo.vercel.app` lalu alamat diganti di tab yang sama; tab baru meminta kode lagi. Vercel membangun produksi dari `main` beberapa menit sesudah merge.
+
+**Langkah berikutnya.** Tunggu hasil cek host di iPhone (harus `high ×1 (paksa)`) dan arahan Tugas 8. Masih menunggu jawaban: kepingan bara jadi gong di prolog (lanjut atau dicoret), dan kapan kode booking asli klien dipasang.
+
 ### Arahan host 14 Nov: paksa tier High di iPhone
 
 **Kata host, kata demi kata** (disertai tangkapan layar overlay `?fps` di iPhone, slide tiket: `59 fps · avg 60 · 0.7 ms`, `medium ×0.82 · 17 draw · 26k tri`): "cek beban dan fps di iphone kan udah di ukur dan gw udah acc. cuma kemarin kan gw dah bilang, paksa tier high ke iphone, soalnya cuma dapet medium doang".
@@ -41,7 +49,7 @@ Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ul
 
 **Pratinjau.** Video Today iPhone (`record-today.cjs`, 1080 px, 60 fps, 38 dtk: sebelum trip dengan kemiringan HP tiruan dan dua kotak dicentang, lalu hari pertama dengan Rain plan dan sheet SOS) dikirim ke host 14 Nov.
 
-**PR #9 dibuka:** https://github.com/jize-666/itinerary/pull/9 (Tugas 7 + Today 2,5D, siap Squash and merge; host yang menekan merge).
+**PR #9 dibuka dan di-merge host 14 Nov** (squash `01ce0ec`): https://github.com/jize-666/itinerary/pull/9.
 
 **Langkah berikutnya.** Tunggu tinjauan host atas kedua video dan PR #9. Sesudah merge, branch kerja dibuat ulang dari `main` terbaru. Tugas 8 (benang emas) hanya bila host memberi arahan.
 
@@ -546,7 +554,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D) dibuka 14 Nov, menunggu merge host.
+**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D + tier High iPhone) di-merge host 14 Nov (squash "revisi terosss(#9)").
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
