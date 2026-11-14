@@ -44,7 +44,16 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Beban DOF diukur di renderer perangkat lunak: +16% waktu frame (313 → 364 ms), hanya di gallery dengan tier High. fps di iPhone belum terukur. Bila tersendat lama, pengatur menurunkan satu anak tangga dan DOF otomatis mati.
 - Api naga saat gong judul ditabuh sebagian keluar bingkai atas (shot judul lebih dekat dari shot gong penutup); kamera sengaja tidak diubah sesuai arahan "kamera masih berada di tempatnya".
 
-**Pratinjau:** video tur `judul` (`record-film.cjs`, data April, tier High): judul Hari 1 ditabuh, mundur, ditabuh lagi, intro hari, gallery dengan letak Z dan DOF (di HP satu geser jari ditahan di tengah), lalu tahap gong hero. Desktop dan iPhone.
+**Pratinjau (dikirim ke host 14 Nov malam):** video tur `judul` (`record-film.cjs`, data April, tier High). Isinya: judul Hari 1 ditabuh, mundur, ditabuh lagi, intro hari, gallery dengan letak Z dan DOF (di HP satu geser jari ditahan di tengah), lalu tahap gong hero.
+- Desktop: 1920×1080, 47 dtk.
+- iPhone: 1080 px, 44 dtk.
+- Di kedua video api naga masih tampak di dalam bingkai saat gong judul ditabuh.
+
+**Pertanyaan host sesudah video desktop, kata demi kata:** "itu previews pas gong, bisa di zoom in/out? kemera bisa pindah haluan ke kanan dan kiri?". Jawaban Claude:
+- **Zoom:** baru ada di slide gong penutup hari (cubit, Ctrl+roda, tombol +/−, dua tahap gulir); belum di judul hari dan hero.
+- **Kamera:** baru parallax kecil (±0,42 m, ±3–4°), belum bisa mengitari gong.
+
+Ditawarkan: (1) zoom di judul dan hero dengan cara yang sama; (2) kamera mengitari gong dengan seret mouse atau geser jari ke kiri/kanan (misalnya ±60° atau ±90°), kembali pelan ke depan saat dilepas. Seret mendatar di luar gallery sekarang tidak dipakai, jadi tidak bentrok. **Menunggu jawaban host (dua-duanya atau salah satu, dan batas putarannya); belum dikerjakan.**
 
 **Langkah berikutnya:**
 - Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
