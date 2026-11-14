@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { MASCOT, MascotBehavior } from "@/engine/mascot/behavior";
-import { approachFace, BLINK, blinkOpen, FACES, faceOf, MOODS } from "@/engine/mascot/face";
+import { BLINK, BLINKABLE, blinkOpen, EXPRESSION_OF, EXPRESSIONS, expressionFor, FaceTrack, GREET_WINK, MOODS } from "@/engine/mascot/face";
 import { JourneyController } from "@/engine/mascot/journey";
 import { MOTION_DUR, poseAt } from "@/engine/mascot/pose";
 
 /**
  * Maskot pemandu (permintaan host 15 Nov). Perilaku diadaptasi dari tes paket coral-assistant
- * (`tests/behavior.test.ts`), ditambah suasana hati "sayang" dan ucapan berupa kunci teks.
+ * (`tests/behavior.test.ts`), ditambah suasana hati "sayang" dan ucapan berupa kunci teks. Rupa dan ekspresi dari
+ * `claude-3d-reference-kit` v4 (arahan host "update maskot").
  */
 describe("perilaku maskot: klik, spam, diam", () => {
   it("tiga klik pelan → senang, baru sesudah jendela 300 ms; lalu kembali netral", () => {
@@ -127,28 +128,21 @@ describe("perjalanan maskot", () => {
   });
 });
 
-describe("wajah dan pose maskot", () => {
-  it("delapan suasana hati, masing-masing berbeda; netral = mata titik, alis, pipi (foto acuan)", () => {
+describe("wajah dan pose maskot (kit Claude v4)", () => {
+  it("delapan suasana hati memakai ekspresi kit, masing-masing berbeda", () => {
     expect(MOODS).toHaveLength(8);
-    const n = FACES.neutral;
-    expect([n.sx, n.sy, n.happy, n.heart, n.brows]).toEqual([1, 1, 0, 0, 1]);
-    expect(n.cheeks).toBeGreaterThan(0.5);
-    expect(FACES.happy.happy).toBe(1);
-    expect(FACES.love.heart).toBe(1);
-    expect(FACES.sleeping.sy).toBeLessThan(0.2);
-    expect(FACES.surprised.sy).toBeGreaterThan(1.2);
-    expect(FACES.angry.browAngle).toBeGreaterThan(0);
-    expect(new Set(MOODS.map((m) => JSON.stringify(FACES[m]))).size).toBe(8);
+    expect(EXPRESSIONS).toHaveLength(12);
+    for (const m of MOODS) expect(EXPRESSIONS).toContain(EXPRESSION_OF[m]);
+    expect(new Set(MOODS.map((m) => EXPRESSION_OF[m])).size).toBe(8);
+    expect(EXPRESSION_OF.sleeping).toBe("blink");
+    expect(EXPRESSION_OF.love).toBe("excited");
   });
 
-  it("pergantian ekspresi halus: separuh jalan sesudah ±τ·ln2, sampai tujuan tanpa melewati", () => {
-    let f = faceOf("neutral");
-    const to = faceOf("surprised");
-    f = approachFace(f, to, 0.12 * Math.LN2, 0.12);
-    expect(f.sy).toBeCloseTo((1 + to.sy) / 2, 6);
-    for (let i = 0; i < 60; i++) f = approachFace(f, to, 1 / 30, 0.12);
-    expect(f.sy).toBeCloseTo(to.sy, 3);
-    expect(f.sy).toBeLessThanOrEqual(to.sy);
+  it("menyapa sambil senang = mengedip sebelah sebentar", () => {
+    expect(expressionFor("happy", "greet", 0)).toBe("happy");
+    expect(expressionFor("happy", "greet", GREET_WINK.from)).toBe("wink");
+    expect(expressionFor("happy", "greet", GREET_WINK.to)).toBe("happy");
+    expect(expressionFor("angry", "greet", 0.8)).toBe("angry");
   });
 
   it("kedipan: tertutup sampai 6,5% lalu terbuka lagi dalam 0,16 dtk", () => {
@@ -158,7 +152,48 @@ describe("wajah dan pose maskot", () => {
     expect(blinkOpen(9.9, 10)).toBe(1);
   });
 
-  it("gerakan sekali jalan kembali ke melayang sesudah durasinya; semua pose berhingga", () => {
+  it("pergantian ekspresi disembunyikan di tengah kedipan: berganti tepat saat mata tertutup", () => {
+    const f = new FaceTrack("neutral", 0, () => 0.99);
+    expect(f.update(0.5, "neutral")).toEqual({ expression: "neutral", open: 1 });
+    const start = f.update(1, "happy");
+    expect(start.expression).toBe("neutral");
+    expect(start.open).toBeCloseTo(1, 6);
+    const mid = f.update(1 + BLINK.close * 0.5, "happy");
+    expect(mid.expression).toBe("neutral");
+    expect(mid.open).toBeLessThan(0.6);
+    const shut = f.update(1 + BLINK.close, "happy");
+    expect(shut.expression).toBe("happy");
+    expect(shut.open).toBeCloseTo(BLINK.min, 6);
+    expect(f.update(1 + BLINK.close + BLINK.open + 0.01, "happy")).toEqual({ expression: "happy", open: 1 });
+  });
+
+  it("frame jarang (HP lambat) tetap berganti ekspresi sesudah mata tertutup, tanpa terulang tertunda", () => {
+    const f = new FaceTrack("neutral", 0, () => 0.99);
+    expect(f.update(1, "happy").expression).toBe("neutral");
+    expect(f.update(1.4, "happy").expression).toBe("happy");
+    expect(f.update(2.4, "angry").expression).toBe("happy");
+    expect(f.update(3.4, "angry").expression).toBe("angry");
+  });
+
+  it("kedip acak hanya di ekspresi bermata terbuka, dan mati di mode gerak dikurangi", () => {
+    const closedEyes = new FaceTrack("happy", 0, () => 0);
+    const open = new FaceTrack("neutral", 0, () => 0);
+    let minClosed = 1;
+    let minOpen = 1;
+    let minStill = 1;
+    const still = new FaceTrack("neutral", 0, () => 0);
+    for (let t = 0; t < 8; t += 0.01) {
+      minClosed = Math.min(minClosed, closedEyes.update(t, "happy").open);
+      minOpen = Math.min(minOpen, open.update(t, "neutral").open);
+      minStill = Math.min(minStill, still.update(t, "neutral", false).open);
+    }
+    expect(BLINKABLE).not.toContain("happy");
+    expect(minClosed).toBe(1);
+    expect(minOpen).toBeLessThan(0.2);
+    expect(minStill).toBe(1);
+  });
+
+  it("gerakan sekali jalan kembali ke melayang sesudah durasinya; semua pose berhingga dan kaku (tanpa stretch)", () => {
     for (const [m, dur] of Object.entries(MOTION_DUR)) {
       const after = poseAt(m as keyof typeof MOTION_DUR, 100 + dur! + 0.1, 100);
       const hover = poseAt("hover", 100 + dur! + 0.1, 0);
@@ -167,10 +202,21 @@ describe("wajah dan pose maskot", () => {
     for (const m of ["hover", "greet", "fly", "point", "happy", "angry", "sleep", "wake", "surprised", "look", "talk"] as const) {
       for (let t = 0; t < 3; t += 0.37) {
         const p = poseAt(m, 50 + t, 50);
-        const nums = [p.bob, p.tiltX, p.tiltZ, p.spin, p.stretch, ...p.armL, ...p.armR, ...p.legs];
+        expect(Object.keys(p).sort()).toEqual(["armL", "armR", "bob", "legs", "spin", "tiltX", "tiltZ"]);
+        const nums = [p.bob, p.tiltX, p.tiltZ, p.spin, ...p.armL, ...p.armR, ...p.legs];
         expect(nums.every(Number.isFinite), `${m} ${t}`).toBe(true);
-        expect(p.stretch).toBeGreaterThan(0.6);
       }
+    }
+  });
+
+  it("melayang mengikuti amplitudo kecil kit: naik-turun ≤ 3% tinggi badan, lengan terangkat ±0,15 rad", () => {
+    for (let t = 0; t < 6; t += 0.1) {
+      const p = poseAt("hover", t, 0);
+      expect(Math.abs(p.bob)).toBeLessThanOrEqual(0.03);
+      expect(Math.abs(p.tiltZ)).toBeLessThanOrEqual(0.041);
+      expect(p.armL[0]).toBeGreaterThan(0.1);
+      expect(p.armL[0]).toBeLessThan(0.2);
+      expect(Math.max(...p.legs.map(Math.abs))).toBeLessThanOrEqual(0.071);
     }
   });
 });

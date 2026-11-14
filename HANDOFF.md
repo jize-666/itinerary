@@ -61,6 +61,50 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Seluruh pekerjaan maskot (rupa, M2–M4) tidak dilanjutkan sampai ada arahan. Kode M1 sudah di-commit tetapi belum disambungkan ke film, jadi tidak terlihat tamu.
 - Bila dilanjutkan, arah yang mungkin (menunggu pilihan host): badan lebih membulat seperti bantal/mochi, sudut jauh lebih bulat, atau sisi sedikit menggembung.
 
+**Arahan host 15 Nov (sesudah jeda), kata demi kata:** "update maskot", dengan `claude-3d-reference-kit.zip` (v4.0.0; disimpan di scratchpad, tidak di repo). Isi kit:
+- `AGENT_BRIEF.md`, `CHARACTER_SPEC.md`, `specs/*.json`;
+- `models/claude.glb` dan 12 GLB ekspresi;
+- constructor Three.js `src/claude-character.js`;
+- render turnaround, ekspresi, dan pose.
+
+Tafsir Claude: **kit ini menggantikan rupa M1 buatan Claude**. Brief kit: "Pakai langsung `models/claude.glb` atau constructor `src/claude-character.js`. Jangan menggambar ulang model". Yang wajib dipertahankan dari kit:
+- **Badan:** balok 2 × 1,9 × 1,4 dengan bevel tipis (bukan membulat seperti bantal), oranye #F26D3D doff.
+- **Lengan dan kaki:** dua lengan balok 0,52; empat kaki sebaris pada Z +0,10.
+- **Wajah:** mata arang besar bergaris tebal, pipi peach, tanpa mulut.
+- **Ekspresi:** 12 ekspresi berupa pergantian mata/alis.
+- **Larangan:** tidak ada stretch pada badan, dan badan tidak memerah saat marah.
+
+Yang dari pekerjaan sebelumnya tetap dipakai, karena tidak mengubah bentuk karakter:
+- perilaku klik/spam/diam;
+- perjalanan (lintasan);
+- partikel emosi di sekitar karakter.
+
+**M1 ulang dengan kit: selesai 15 Nov** (belum disambungkan ke film; menunggu tinjauan host atas pratinjau).
+
+1. Yang selesai:
+   - `src/components/film/stage3d/claude.ts`: port TypeScript setia constructor kit (geometri, material MeshStandardMaterial, normal map tanah liat, 12 ekspresi, gerak prosedural kit). Bedanya hanya: TypeScript, impor addon three versi repo, dan klip GLB tidak ikut.
+   - `stage3d/mascot.ts` sekarang pembungkus kit, sesuai brief ("tempatkan `root` di dalam Group lain"):
+     - letak, arah hadap, dan skala di dunia;
+     - pose kaku dari `engine/mascot/pose.ts` dipasang ke pivot kit (badan, 2 lengan, 4 kaki); tanpa stretch, dan ketukan memberi loncatan kecil (geser tegak);
+     - lampu three sendiri yang mengikuti uniform panggung tiap frame (matahari/bulan, langit, blencong, kilatan gong, isi lembut dari arah kamera), dilunakkan bersama dekat blencong supaya badan tidak berpendar.
+   - `stage3d/emotes.ts`: partikel emosi dipisah dari badan (zzz, hati, kilau, tanda marah, kepulan, "!", "?"), warnanya diredam.
+   - `engine/mascot/face.ts`:
+     - suasana hati → ekspresi kit (sayang = `excited`, tidur = `blink`); menyapa sambil senang = `wink` sebentar;
+     - `FaceTrack`: kedip acak hanya di ekspresi bermata terbuka; pergantian ekspresi terjadi tepat saat mata tertutup di tengah kedipan;
+     - mode gerak dikurangi: `still`, tanpa kedip.
+   - `pose.ts`: melayang memakai amplitudo kecil kit; `stretch` dihapus dari pose.
+2. Tes:
+   - `pnpm lint`, `pnpm typecheck`, dan unit 377 lulus (tes maskot 18, termasuk pergantian ekspresi di tengah kedipan, kedip hanya di mata terbuka, dan pose tanpa stretch).
+   - Bug yang ketemu saat merekam dan sudah diperbaiki: ekspresi hanya berganti bila ada frame yang jatuh di 0,1 dtk mata tertutup, jadi di HP lambat (< ±6 fps) atau tab tersendat ekspresi bisa macet. Sekarang pergantian yang tertunda selalu terjadi begitu mata sudah tertutup (ada tesnya).
+   - Lembar 12 ekspresi dari constructor dibandingkan dengan `reference/02-expressions.png` kit: bentuk mata, alis, pipi, dan empat kaki sama.
+   - Pratinjau dikirim ke host di chat (bukan di repo):
+     - lembar 12 ekspresi;
+     - lembar 8 suasana hati di cahaya malam dan senja panggung;
+     - close-up 3/4;
+     - klip ±28 dtk: menyapa, klik, senang, sayang, marah, mengantuk, tidur, bangun, terkejut.
+   - e2e tidak dijalankan karena maskot belum disambungkan ke film; tidak ada perubahan di jalur film.
+3. Berikutnya: tunggu tinjauan host atas rupa kit di panggung. Bila disetujui: M2 (perilaku + chat piksel), M3 (pemandu di film 3D), M4 (2,5D), sesuai urutan di atas.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
