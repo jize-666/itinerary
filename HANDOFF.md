@@ -19,6 +19,19 @@ Hasil yang terbaca:
 - fps: fase gong 40 (sebelum Audit 4: 30); intro prolog rata-rata 42 (sebelumnya 37–48). CPU 0,5 ms per frame, jadi bebannya tetap di GPU.
 - **Keputusan host: fps cukup.** "Cadangan fps" di bawah tidak dikerjakan dan tetap tersimpan sebagai pilihan bila suatu saat diperlukan.
 
+**Pertanyaan host 14 Nov 19.12 WIB (tangkapan Today di iPhone produksi, sebelum trip), kata demi kata:** "ini font doang yang berubah? ui? button?". Dijawab dengan perbandingan berdampingan di iPhone 14 Pro (data April; kiri `d785e65`, versi sebelum PR #9; kanan `main`), dikirim ke host, tidak disimpan di repo:
+- **Font tidak diganti:** jenis hurufnya sama. Yang berubah, beberapa teks pindah ke huruf judul serif: judul stop, jam, angka hari, "Host", "Guide", "Your stay".
+- **UI yang berubah:**
+  - hitung mundur dari kapsul kecil jadi angka besar;
+  - boarding pass jadi kartu home (sudut bertakik, kawung, tergantung di benang);
+  - pilihan hari jadi medali bernomor;
+  - stop jadi kartu kaca;
+  - kotak centang jadi medali bulat;
+  - ubin darurat bermedali telepon.
+- **Tombol yang berubah:** kapsul bermedali tanpa tebal 3D.
+- **Yang sama:** tata letak, urutan bagian, warna, dan bentuk dasarnya, jadi kesannya halaman lama yang dipoles, bukan desain baru. Ditawarkan desain ulang yang sungguh baru, dengan 2–3 rancangan gambar diam lebih dulu; menunggu jawaban host.
+- **Temuan dari tangkapan host:** bar bawah hanya berisi SOS. Menurut `HelpBar.tsx`, tombol WhatsApp dan Telepon hanya tampil bila `private.contacts` punya nomor, jadi data privat trip di Supabase belum memuat nomor kontak host.
+
 **Langkah 1: Tugas 7b, gong ditabuh di slide judul hari.** Dimulai hanya sesudah host memberi perintah. Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
 - **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
 - **7b.2 Animasi teks keluar (baru):** misalnya huruf judul terurai jadi debu emas yang tersedot ke arah gong tepat saat dipukul. Hanya `transform`/`opacity`, tanpa reflow. Film 2,5D (tanpa 3D) mendapat versi yang sama dengan gong CSS.
