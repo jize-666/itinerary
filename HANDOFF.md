@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) selesai dan dites; video pratinjau dan PR menyusul (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
+Diperbarui 14 Nov 2026 pagi (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #8) · **Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D selesai, dites, dan videonya dikirim; satu PR untuk keduanya (lihat bagian 0, paling atas).** Tugas 6 (gong) selesai; gerak pandang (parallax, perspective shift, kedalaman ikut gulir) berlaku sebagai aturan tetap di 3D dan 2,5D.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -13,9 +13,11 @@ Tafsir Claude (belum ditegaskan host): halaman **Today** (`/today/`) didesain ul
 
 **Yang selesai (14 Nov).** Latar berlapis (`today/Scene.tsx`: langit berbintang dengan pendar cakrawala mengikuti jam WIB, punggung Lawu bersinar tipis, perbukitan, debu emas); gerak pandang di `today/today.css` (parallax kursor/kemiringan HP lewat `look.ts`, perspective shift pada kartu dan judul, kedalaman ikut gulir lewat scroll-driven animation: bukit turun dan membesar, kartu datang dari kedalaman dan mundur saat keluar); tombol kapsul berbahasa home (foil + medali, SOS pernis merah lampion dengan medali berdenyut, kaca nila bergaris emas; tetap ditekan turun); medali centang Before you go; sakelar bahasa dan suara bergaya kapsul (`.hb`/`.segl` pindah ke `globals.css`); tepi atas memudar di bawah sakelar bahasa. Rincian: `docs/design/decisions.md` bagian "Today 2,5D". Perekam: `scripts/preview/record-today.cjs`.
 
-**Hasil tes.** `pnpm lint`, `pnpm typecheck` bersih; `pnpm test` 329 lulus; `e2e/today.spec.ts` + `e2e/home.spec.ts` 46 lulus sebelum tes baru; 5 tes e2e baru Today 2,5D (latar, parallax + perspective shift, kedalaman ikut gulir, tombol kapsul, gerak dikurangi) lulus di desktop dan iPhone. Catatan: minifier CSS menggabung `transform: none; translate: none` (gerak dikurangi) menjadi `transform: translate(0,0)`; hasilnya tetap diam (matriks identitas), tesnya memeriksa identitas. Kontainer sempat dimulai ulang di tengah tes; tidak ada yang hilang (semua sudah di-commit). e2e penuh sedang berjalan.
+**Hasil tes.** `pnpm lint`, `pnpm typecheck` bersih; `pnpm test` 329 lulus; `e2e/today.spec.ts` + `e2e/home.spec.ts` 46 lulus sebelum tes baru; 5 tes e2e baru Today 2,5D (latar, parallax + perspective shift, kedalaman ikut gulir, tombol kapsul, gerak dikurangi) lulus di desktop dan iPhone. Catatan: minifier CSS menggabung `transform: none; translate: none` (gerak dikurangi) menjadi `transform: translate(0,0)`; hasilnya tetap diam (matriks identitas), tesnya memeriksa identitas. Kontainer sempat dimulai ulang di tengah tes; tidak ada yang hilang (semua sudah di-commit). **`pnpm test:e2e` penuh (Tugas 7 + Today): 237 lulus, 19 dilewati, 0 gagal** (9,9 menit).
 
-**Langkah berikutnya.** e2e penuh → video Today (iPhone, gerak lambat) ke host → PR untuk Tugas 7 + Today.
+**Pratinjau.** Video Today iPhone (`record-today.cjs`, 1080 px, 60 fps, 38 dtk: sebelum trip dengan kemiringan HP tiruan dan dua kotak dicentang, lalu hari pertama dengan Rain plan dan sheet SOS) dikirim ke host 14 Nov.
+
+**Langkah berikutnya.** PR untuk Tugas 7 + Today (siap Squash and merge) → tunggu tinjauan host. Tugas 8 hanya bila host memberi arahan.
 
 ### Tugas 7: pembuka dan penutup gunungan (sesi 14 Nov pagi WIB)
 
@@ -37,7 +39,9 @@ Yang dikerjakan (sesuai keputusan host 13 Nov "pembuka dan penutupan saja, sapua
 
 **Kendala.** Branch remote ternyata sudah dihapus sesudah PR #8 di-merge, sementara salinan lokal ref lamanya masih ada; push paksa ditolak pengaman, jadi riwayat lama digabung dengan `merge -s ours` (isi tidak berubah). Akibatnya daftar commit PR berikutnya ikut memuat commit lama; diff-nya tetap hanya Tugas 7, dan Squash and merge menjadikannya satu commit. Belum diuji di perangkat nyata.
 
-**Langkah berikutnya.** Video pratinjau (tur `gerbang`, sedang direkam) ke host → PR siap Squash and merge → tunggu tinjauan host. Sesudah itu Tugas 8 (benang emas), tetapi hanya bila host memberi arahan.
+**Pratinjau.** Video tur `gerbang` (desktop 1920×1080, 60 fps, tier High, 33,7 dtk, 78% frame unik; sisanya saat layar memang diam) dikirim ke host 14 Nov.
+
+**Langkah berikutnya.** PR bersama Today 2,5D (lihat bagian di atas) → tunggu tinjauan host.
 
 ### Tugas 7 (gunungan): kemajuan (13 Nov dini hari, ditulis atas permintaan host "update ke handoff dulu")
 
