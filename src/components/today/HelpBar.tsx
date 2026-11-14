@@ -77,7 +77,9 @@ export function HelpBar({ data, onCopied }: { data: TripView; onCopied: (ok: boo
         )}
         <button type="button" className="pb pb--sos pb--lg dock-sos" data-haptic="" aria-haspopup="dialog" onClick={open}>
           <span className="pb-face">
-            <IconSiren size={22} />
+            <span className="dock-orb">
+              <IconSiren size={20} />
+            </span>
             <span>SOS</span>
             <span className="sr-only"> {t("today.emergency")}</span>
           </span>

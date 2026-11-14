@@ -801,37 +801,7 @@ html.home-on {
   animation: hm-fade 0.7s var(--ease-power3-out) calc(2300ms * var(--pace)) backwards;
 }
 
-/* ---------- Tombol home (.hb): kapsul foil, tanpa tebal 3D ---------- */
-.hb {
-  --h: 46px;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: var(--h);
-  margin: 0;
-  padding: 0 20px;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: var(--mori);
-  font-family: var(--font-ui);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.26s var(--ease-expo-out);
-}
-
-.hb[data-pressed] {
-  transform: scale(0.962);
-  transition-duration: 0.08s;
-}
+/* ---------- Tombol home (.hb): bentuk dasar, ikon, dan sakelar bahasa ada di globals.css (dipakai juga Today) ---------- */
 
 /* utama: foil gading-emas, medali gong di kanan */
 .hb--primary {
@@ -903,10 +873,6 @@ html.home-on {
   .hb--link:hover span::after {
     transform: scaleX(1);
   }
-
-  .hb--icon:hover::after {
-    opacity: 1;
-  }
 }
 
 /* tautan: teks dengan benang emas di bawahnya */
@@ -936,102 +902,7 @@ html.home-on {
   transition: transform 0.45s var(--ease-expo-out);
 }
 
-/* ikon: cincin tipis; menyala = emas */
-.hb--icon {
-  --h: 40px;
-  width: var(--h);
-  padding: 0;
-  background: rgb(10 12 24 / 0.55);
-  box-shadow: inset 0 0 0 1px rgb(200 162 90 / 0.62);
-  color: var(--prada);
-}
-
-.hb--icon[aria-pressed="false"] {
-  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
-  color: color-mix(in srgb, var(--mori) 66%, transparent);
-}
-
-.hb--icon::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 0 18px rgb(255 178 87 / 0.42);
-  opacity: 0;
-  transition: opacity 0.3s var(--ease-power3-out);
-}
-
-.hb-face {
-  display: grid;
-  place-items: center;
-}
-
-/* sakelar bahasa home: kapsul bergaris tipis, kunci gading bergeser */
-.segl {
-  --pad: 3px;
-  --w: 38px;
-  position: relative;
-  isolation: isolate;
-  display: inline-grid;
-  grid-template-columns: repeat(var(--n), var(--w));
-  height: 40px;
-  padding: var(--pad);
-  border-radius: 999px;
-  background: rgb(10 12 24 / 0.55);
-  box-shadow: inset 0 0 0 1px rgb(242 235 221 / 0.24);
-}
-
-.segl-thumb {
-  position: absolute;
-  z-index: -1;
-  top: var(--pad);
-  left: var(--pad);
-  width: var(--w);
-  height: calc(100% - var(--pad) * 2);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #fcf5e3, #dfc083);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.4);
-  transform: translate3d(calc(var(--i) * 100%), 0, 0);
-  transition: transform 0.5s var(--ease-expo-out);
-}
-
-.segl-opt {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: color-mix(in srgb, var(--mori) 74%, transparent);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.22s var(--ease-expo-out);
-}
-
-.segl-opt[aria-pressed="true"] {
-  color: var(--nila);
-}
-
-.segl-opt[data-pressed] {
-  transform: scale(0.9);
-}
-
-.lang-toggle.segl {
-  position: fixed;
-  top: calc(12px + env(safe-area-inset-top));
-  right: calc(16px + env(safe-area-inset-right));
-  z-index: 50;
-}
-
-.sound-toggle.hb {
-  position: fixed;
-  top: calc(12px + env(safe-area-inset-top));
-  right: calc(16px + 82px + 10px + env(safe-area-inset-right));
-  z-index: 50;
+.home-on .sound-toggle.hb {
   animation: hm-fade 0.7s var(--ease-power3-out) calc(1600ms * var(--pace, 1)) backwards;
 }
 
