@@ -386,6 +386,12 @@ Aturan menggambar muka Murka, dari penolakan-penolakan di atas:
 
 Uji host di iPhone menunjukkan 59–60 fps tetapi `medium ×0.82`. Penyebabnya: Safari menamai GPU-nya "Apple GPU" (tergolong High) tetapi melaporkan ≤ 4 inti, dan aturan lama menurunkan High ke Medium bila inti ≤ 4; pengatur FPS lalu sempat mengecilkan resolusi. Sekarang iPhone/iPad selalu mulai di High (`pinnedHigh`) dan pengatur menahannya di High ×1, tanpa mengecilkan resolusi, selama rata-rata fps ≥ 35. Di bawah itu (film benar-benar tersendat, misalnya iPhone lama) paksaan dilepas dan pengatur bekerja seperti biasa. Overlay `?fps` menulis `(paksa)`.
 
+**Revisi 14 Nov sore, keluhan host "masih medium, di gong juga":** sesudah PR #10, overlay di iPhone masih `medium ×0.82` di gerbang (60 fps). Paksaan ternyata dilepas oleh beberapa frame lambat saat film dibuka (rata-rata satu jendela 3 dtk < 35 fps). Sesudahnya aturan biasa (turun bila < 50 fps) menurunkan iPhone yang jalan 40–48 fps di High sampai `medium ×0.82`, dan kunci "jangan coba lagi" mencegahnya kembali. Aturan baru untuk perangkat yang dipaksa:
+- Keputusan memakai fps **median** jendela, bukan rata-rata: frame lambat sesaat (tekstur, shader) tidak menggesernya.
+- Turun satu anak tangga hanya bila median < 35 fps terus-menerus selama 10 dtk; aturan biasa 50 fps tidak berlaku.
+- Kembali naik sampai High ×1 begitu median ≥ 58 fps selama 8 dtk (jeda 20 dtk sejak perubahan terakhir).
+- Overlay: `(paksa)` di High ×1; bila sedang di bawahnya `(paksa, turun: N fps)` dengan fps median saat diturunkan.
+
 ## Gunungan pembuka dan penutup film (14 Nov 2026), keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"
 
 **Status: selesai, menunggu tinjauan host atas video pratinjau.** Berkas: `src/engine/stage/gate.ts` (mesin dan pose, murni, 25 tes unit), `stageBus.gate*` (`bus.ts`), shader kelir di `components/film/stage3d/gunungan.ts`, sambungan di `stage3d/runtime.ts`, `director.ts`, dan `Film.tsx`.

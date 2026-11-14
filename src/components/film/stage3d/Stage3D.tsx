@@ -113,7 +113,7 @@ export default function Stage3D({ film, probe, root, tier, locked, pinned = fals
           const tri = s.triangles >= 1000 ? `${Math.round(s.triangles / 1000)}k` : String(s.triangles);
           // baris 1: laju layar sekarang, rata-rata 3 dtk dari pengatur tier (bila sudah ada), waktu CPU per frame
           const avg = s.fps ? ` · avg ${s.fps.toFixed(0)}` : "";
-          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale}${governor.pinned() ? " (paksa)" : ""} · ${s.calls} draw · ${tri} tri`;
+          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale}${governor.pinned() ? " (paksa)" : governor.rescued() ? ` (paksa, turun: ${governor.rescued()} fps)` : ""} · ${s.calls} draw · ${tri} tri`;
         }
       },
     };

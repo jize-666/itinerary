@@ -147,12 +147,49 @@ describe("pengatur FPS (createGovernor)", () => {
     expect(g.pinned()).toBe(true);
   });
 
-  it("High dipaksa dilepas hanya bila benar-benar tersendat (di bawah GOVERNOR.rescueBelow)", () => {
+  it("High dipaksa turun hanya bila tersendat terus-menerus (median < GOVERNOR.rescueBelow selama rescueHold), satu anak tangga sekali", () => {
     const g = createGovernor("high", 0, false, true);
-    const { moves } = run(g, 0, 8000, 1000 / 25); // 25 fps
+    const early = run(g, 0, GOVERNOR.rescueHold, 1000 / 25); // 25 fps, belum cukup lama
+    expect(early.moves).toEqual([]);
+    expect(g.pinned()).toBe(true);
+    const later = run(g, early.t, 8000, 1000 / 25);
+    expect(later.moves).toEqual(["high×0.82"]);
     expect(g.pinned()).toBe(false);
-    expect(moves.length).toBeGreaterThan(0);
-    expect(moves[0]).toBe("high×0.82");
+    expect(g.rescued()).toBe(25);
+  });
+
+  it("keluhan host 14 Nov (\"masih medium\"): frame lambat saat film dibuka tidak melepas High, dan 40–48 fps tetap High", () => {
+    const g = createGovernor("high", 0, false, true);
+    let t = 0;
+    const frames = (ms: number, dt: number) => {
+      const moves: string[] = [];
+      for (const end = t + ms; t < end; t += dt) {
+        const r = g.sample(dt, t);
+        if (r) moves.push(`${r.tier}×${r.scale}`);
+      }
+      return moves;
+    };
+    // memuat: tekstur gunungan dan shader, frame 60–200 ms selama 4 dtk, diselingi frame normal
+    const loading: string[] = [];
+    for (let i = 0; i < 40; i++) loading.push(...frames(100, 1000 / 60), ...frames(200, 200), ...frames(60, 60));
+    expect(loading).toEqual([]);
+    // lalu slide prolog yang berat: 42 fps selama setengah menit
+    expect(frames(30_000, 1000 / 42)).toEqual([]);
+    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
+    expect(g.pinned()).toBe(true);
+    expect(g.rescued()).toBe(0);
+  });
+
+  it("perangkat yang dipaksa High dan sempat diturunkan kembali ke High begitu lancar lagi (gerbang 60 fps)", () => {
+    const g = createGovernor("high", 0, false, true);
+    const slow = run(g, 0, 40_000, 1000 / 25);
+    expect(slow.moves.length).toBeGreaterThanOrEqual(2);
+    expect(g.pinned()).toBe(false);
+    const smooth = run(g, slow.t, 120_000, 1000 / 60);
+    expect(smooth.moves.at(-1)).toBe("high×1");
+    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
+    expect(g.pinned()).toBe(true);
+    expect(g.rescued()).toBe(0);
   });
 
   it("High dipaksa di layar 30 Hz (Low Power Mode): 30 fps stabil tetap High", () => {
