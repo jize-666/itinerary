@@ -21,6 +21,12 @@ Isi audit dan tafsir Claude:
 7. **"cacat visual"** (slide gong penutup Hari 1, `medium ×0.82`): segi delapan hitam di kiri atas, dekat blencong. Jadi sumbernya bukan gunungan saja: ada piksel tak sah di adegan (dugaan: blencong atau lantai) yang menembus apa pun di depannya lewat pencampuran warna dan disebar bloom. Overlay di sini juga menunjukkan paksaan High sempat dilepas (rata-rata < 35 fps), perlu dicek.
 8. **"ke crop:tembus"** (slide pembuka Hari 0 "Arrival", iPhone): di tepi kiri ada pita tempat bidang gelap teks bergeser dan lanskap di belakangnya terlihat; dugaan: parallax 2,5D menggeser `.fl-body` (dan bidang gelapnya) saat HP dimiringkan.
 
+**Audit 4 (`audit_4.zip`, "ini"):**
+9. **"cacat visual, lampunya"** (slide fakta "A royal city"): segi delapan hitam tepat di tempat blencong yang tergantung. Ini memastikan sumber NaN ada di shader blencong (dan kemungkinan shader lain yang memakai `pow(1.0 - dot(n, v), k)`: bila arah pandang tepat segaris dengan permukaan, pembulatan membuat dasarnya negatif dan `pow` menghasilkan NaN di GPU iPhone).
+10. **"fps down"** dan **"fps down, 60-30 di fase gong"** (slide prolog/intro, `high ×1 (paksa)`): 37–48 fps (rata-rata 44–48), 22 draw, 52 ribu segitiga. High tertahan tetapi tidak mulus. Perlu dihemat lewat cara menggambar tanpa menurunkan kualitas.
+
+Urutan kerja: (a) NaN/segi delapan hitam, (b) fps High di iPhone, (c) bidang teks 2,5D yang bergeser (tembus), (d) bingkai prolog yang terpotong di HP tegak, (e) Today atas dan "The programme" desain baru, sheet SOS desain baru.
+
 Status tiap butir ditulis di bawah begitu selesai.
 
 ### PR #9 di-merge (14 Nov, 03.12 UTC, squash `01ce0ec`)
