@@ -55,6 +55,8 @@ export type StageStats = {
   kick: number;
   /** Gunungan 3D siap (teksturnya sudah di GPU). */
   kayon: boolean;
+  /** Format rantai bloom ("r11g11b10" = hemat bandwidth aktif, "rgba16f", "rgba8"); depth MSAA tidak pernah di-resolve. */
+  bloom: string;
   /** Gunungan pembuka/penutup pada frame terakhir: ujungnya, kadar tertancap (0–1), dan muka yang tampak. */
   gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" };
   /** Jam panggung pada frame terakhir (detik). */
@@ -354,6 +356,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t });
 
     stats.frames++;
+    stats.bloom = post.format;
     stats.calls = gl.info.render.calls;
     stats.triangles = gl.info.render.triangles;
     stats.camera = [camera.position.x, camera.position.y, camera.position.z];

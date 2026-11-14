@@ -20,7 +20,7 @@ test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
+type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -252,6 +252,17 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     const poisoned = await blackShare(true);
     expect(poisoned - clean).toBeGreaterThan(0.001); // suntikan memang mengenai mangkuk blencong yang terlihat
     expect(poisoned - clean).toBeLessThan(0.012);
+  });
+
+  test("hemat bandwidth tanpa beda gambar: rantai bloom R11F_G11F_B10F bila didukung (audit host 14 Nov \"fps down\")", async ({ page }) => {
+    await open3d(page);
+    await nextFrames(page, 3);
+    const s = (await stats(page))!;
+    const packed = await page.evaluate(() => {
+      const c = document.createElement("canvas").getContext("webgl2");
+      return !!c?.getExtension("EXT_color_buffer_float");
+    });
+    expect(s.bloom).toBe(packed ? "r11g11b10" : "rgba16f");
   });
 
   test("?fps menampilkan overlay ukur", async ({ page }) => {

@@ -13,12 +13,15 @@ import {
   HalfFloatType,
   LinearFilter,
   Mesh,
+  MeshBasicMaterial,
   NoBlending,
   OrthographicCamera,
   RGBAFormat,
+  RGBFormat,
   type Scene,
   ShaderMaterial,
   UnsignedByteType,
+  UnsignedInt101111Type,
   Vector2,
   type WebGLRenderer,
   WebGLRenderTarget,
@@ -110,6 +113,44 @@ void main() {
 
 export type PostParams = { exposure: number; dim: number; time: number };
 
+/**
+ * Hemat bandwidth tanpa mengubah gambar (audit host 14 Nov: fps 37–48 di tier High iPhone). GPU HP (berpetak, TBDR)
+ * menyimpan isi petak ke memori di akhir tiap pass kecuali diberi tahu isinya tidak dibutuhkan lagi. three hanya
+ * memberi tahu itu di Oculus Browser, jadi di iPhone tiap frame:
+ * - depth MSAA 4× ikut di-resolve ke tekstur yang tidak pernah dibaca → `resolveDepthBuffer: false`;
+ * - depth MSAA 4× disimpan ke memori di akhir pass adegan → dibuang (`invalidateFramebuffer`) oleh benda penjaga
+ *   yang digambar paling akhir di pass itu, sebelum three me-resolve warnanya.
+ * Rantai bloom (cahaya yang sudah dikaburkan) memakai R11F_G11F_B10F bila bisa digambar dan disaring: separuh byte
+ * dari RGBA half float, tanpa beda yang terlihat. Gambar adegan sendiri tetap RGBA half float (gradasi langit).
+ */
+function passEnd(gl: WebGLRenderer): Mesh {
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(9), 3));
+  geo.setDrawRange(0, 0); // tidak menggambar apa pun; hanya kaitnya yang dipakai
+  const m = new Mesh(geo, new MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, colorWrite: false }));
+  m.name = "pass-end";
+  m.renderOrder = Number.MAX_SAFE_INTEGER;
+  m.frustumCulled = false;
+  m.onAfterRender = () => {
+    const ctx = gl.getContext();
+    if (gl.getRenderTarget() && "invalidateFramebuffer" in ctx) ctx.invalidateFramebuffer(ctx.DRAW_FRAMEBUFFER, [ctx.DEPTH_ATTACHMENT]);
+  };
+  return m;
+}
+
+/** R11F_G11F_B10F bisa jadi target gambar (WebGL2 + EXT_color_buffer_float), dicoba sekali pada target kecil. */
+function packedBloom(gl: WebGLRenderer): boolean {
+  if (!gl.extensions.has("EXT_color_buffer_float")) return false;
+  const probe = new WebGLRenderTarget(4, 4, { type: UnsignedInt101111Type, format: RGBFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter, generateMipmaps: false });
+  const before = gl.getRenderTarget();
+  gl.setRenderTarget(probe);
+  const ctx = gl.getContext();
+  const ok = ctx.checkFramebufferStatus(ctx.FRAMEBUFFER) === ctx.FRAMEBUFFER_COMPLETE && ctx.getError() === ctx.NO_ERROR;
+  gl.setRenderTarget(before);
+  probe.dispose();
+  return ok;
+}
+
 export class StagePost {
   private readonly tri: Mesh;
   private readonly cam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -120,6 +161,8 @@ export class StagePost {
   private mips: WebGLRenderTarget[] = [];
   private readonly size = new Vector2(1, 1);
   private readonly hdr: boolean;
+  private readonly packed: boolean;
+  private readonly end: Mesh;
 
   constructor(
     private readonly gl: WebGLRenderer,
@@ -127,6 +170,8 @@ export class StagePost {
   ) {
     // target half float perlu ekstensi; tanpa itu jatuh ke 8-bit (bloom tetap jalan, rentangnya lebih sempit)
     this.hdr = gl.extensions.has("EXT_color_buffer_float") || gl.extensions.has("EXT_color_buffer_half_float");
+    this.packed = this.hdr && packedBloom(gl);
+    this.end = passEnd(gl);
     const geo = new BufferGeometry();
     geo.setAttribute("position", new BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
     const mat = (fragmentShader: string, uniforms: ShaderMaterial["uniforms"], additive = false) =>
@@ -140,16 +185,24 @@ export class StagePost {
   }
 
   private target(w: number, h: number, main = false): WebGLRenderTarget {
+    const packed = !main && this.packed;
     return new WebGLRenderTarget(w, h, {
-      type: this.hdr ? HalfFloatType : UnsignedByteType,
-      format: RGBAFormat,
+      type: packed ? UnsignedInt101111Type : this.hdr ? HalfFloatType : UnsignedByteType,
+      format: packed ? RGBFormat : RGBAFormat,
       minFilter: LinearFilter,
       magFilter: LinearFilter,
       depthBuffer: main,
       stencilBuffer: false,
       samples: main ? this.spec.msaa : 0,
+      resolveDepthBuffer: false,
+      resolveStencilBuffer: false,
       generateMipmaps: false,
     });
+  }
+
+  /** Format rantai bloom (dibaca statistik panggung dan e2e). */
+  get format(): string {
+    return this.packed ? "r11g11b10" : this.hdr ? "rgba16f" : "rgba8";
   }
 
   /** Ukuran kanvas dalam piksel perangkat. */
@@ -178,6 +231,7 @@ export class StagePost {
     const auto = gl.autoClear;
     gl.autoClear = true;
     gl.setRenderTarget(this.scene);
+    if (this.end.parent !== scene) scene.add(this.end);
     gl.render(scene, camera);
 
     gl.autoClear = false;
@@ -213,6 +267,9 @@ export class StagePost {
     this.scene.dispose();
     for (const m of this.mips) m.dispose();
     this.tri.geometry.dispose();
+    this.end.removeFromParent();
+    this.end.geometry.dispose();
+    (this.end.material as MeshBasicMaterial).dispose();
     this.down.dispose();
     this.up.dispose();
     this.final.dispose();
