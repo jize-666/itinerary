@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 siang (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #9) · **Audit host 1–5 selesai: 12 butir dicentang dengan bukti tes, satu commit per audit, video dikirim; satu PR (lihat bagian 0, paling atas).** Sebelumnya: Tugas 7 (gunungan pembuka dan penutup) dan Today 2,5D di PR #9.
+Diperbarui 14 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #11) · **Uji host di iPhone produksi selesai dan diterima ("fps aman, ga berat. done"): tier High bertahan, segi delapan tidak terlihat, gong 40 fps. Berikutnya Tugas 7b, menunggu perintah host (lihat bagian 0, paling atas).** Sebelumnya: Audit host 1–5 (PR #10), tier High iPhone bertahan (PR #11).
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -9,12 +9,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 PR #11 (tier High iPhone bertahan + catatan gong judul hari) di-merge host 14 Nov 10.51 UTC (squash `c5e8eeb`). Branch kerja dibuat ulang dari `main`. Urutan mengikuti daftar tugas di `CLAUDE.md`; tidak ada yang dimulai tanpa arahan host.
 
-**Langkah 0: menunggu uji host di iPhone produksi (tanpa kode).** Buka `/film/?fps` dan kirim tangkapan:
-- Gerbang gunungan, prolog/intro, dan slide gong harus tertulis `high ×1 (paksa)`.
-- Segi delapan hitam tidak muncul lagi (gerbang, blencong, credits).
-- fps di prolog/intro dan saat gong dipukul (pembanding sebelum Audit 4: 37–48 dan 30).
+**Langkah 0: uji host di iPhone produksi. ✅ Selesai 14 Nov 19.11 WIB, diterima host.** Kata host, kata demi kata: **"fps aman, ga berat. done"**, dengan dua tangkapan `/film/?fps` (iPhone, 4G; tidak disimpan di repo):
+- Slide intro prolog ("For three days the city is yours…"): `53 fps · avg 42 · 0.5 ms`, `high ×1 (paksa) · 23 draw · 52k tri`.
+- Slide gong penutup Hari 1 ("End of Day 1 / Tomorrow / Mist of Lawu"), gong menyala sesudah dipukul: `40 fps · avg 40 · 0.5 ms`, `high ×1 (paksa) · 24 draw · 52k tri`.
 
-Bila tertulis `(paksa, turun: N fps)` atau fps di slide berat jauh di bawah 45, langkah berikutnya adalah "Cadangan fps" di bawah, sebelum tugas baru.
+Hasil yang terbaca:
+- Tier High bertahan di kedua slide (`(paksa)`, bukan `(paksa, turun: …)`). Perbaikan PR #11 terkonfirmasi.
+- Segi delapan hitam tidak terlihat di blencong, baik di intro prolog maupun di slide gong. Gerbang gunungan dan credits tidak ada di tangkapan, tetapi host menyatakan "done".
+- fps: fase gong 40 (sebelum Audit 4: 30); intro prolog rata-rata 42 (sebelumnya 37–48). CPU 0,5 ms per frame, jadi bebannya tetap di GPU.
+- **Keputusan host: fps cukup.** "Cadangan fps" di bawah tidak dikerjakan dan tetap tersimpan sebagai pilihan bila suatu saat diperlukan.
 
 **Langkah 1: Tugas 7b, gong ditabuh di slide judul hari.** Dimulai hanya sesudah host memberi perintah. Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
 - **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
@@ -41,7 +44,7 @@ Tiap langkah: video sebagai output.
 - **11, canting dan kain mori.**
 - **12, boarding pass 3D dengan fisika:** fisika tali dan kartu ditulis sendiri, karena CSP tanpa WASM kecuali host mengizinkan Rapier.
 
-**Cadangan fps (hanya bila uji host menunjukkan perlu):** efek tembus pandang digambar ke target tanpa MSAA lalu digabung ke adegan, tanpa beda gambar. Yang termasuk: api naga, bunga api, nyala dan kerucut cahaya blencong.
+**Cadangan fps (tidak diperlukan menurut uji host 14 Nov 19.11; disimpan sebagai pilihan):** efek tembus pandang digambar ke target tanpa MSAA lalu digabung ke adegan, tanpa beda gambar. Yang termasuk: api naga, bunga api, nyala dan kerucut cahaya blencong.
 
 **Menunggu host, bukan kode:**
 - Uji di MacBook, Android, dan iPhone lama.
