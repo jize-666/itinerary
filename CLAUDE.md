@@ -19,7 +19,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 14 Nov 2026 malam (audit host 1–5 selesai dan dikonfirmasi host di iPhone; berikutnya 7b, menunggu perintah host).
+Diperbarui 14 Nov 2026 malam (Tugas 7b selesai atas perintah host; berikutnya Tugas 8, menunggu arahan host).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -63,7 +63,13 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 - [x] **7. Gunungan** sebagai pembuka dan penutup film (keputusan host 13 Nov: "pembuka dan penutupan saja, sapuanya pakai yang lama"; sapuan antar bab tetap bayangan kayon DOM). ✅ 14 Nov 2026. Rupa dua muka (Agung, dan Murka gaya wayang dengan garuda) diterima host 13 Nov. Pembuka: film 3D dibuka dengan gunungan tertancap di gedebog di depan kelir berlampu (bayangan tatahan jatuh di kelir); gulir/geser/panah maju mencabutnya (di HP mengikuti jari) dan kamera maju ke prolog; mundur di slide pertama menancapkannya lagi. Penutup: di credits gulir maju (atau diam 12 dtk) menancapkannya lagi dengan gong. Klik/tap/Enter membaliknya ke muka Murka. Rinciannya: `docs/design/decisions.md` bagian "Gunungan pembuka dan penutup film" dan `HANDOFF.md` bagian 0. Sisa pekerjaan, menunggu tinjauan host atas video:
   - Uji di perangkat nyata (`/film/?fps`): gerbang di HP, geser jari, bunyi balik dan gong tancep.
   - Lama menunggu gunungan di 4G belum diukur (tekstur ±1,2–1,6 MB diunduh bersamaan dengan bundle 3D; sesudah 6 dtk film dibuka tanpa gerbang).
-- [ ] **7b. Gong ditabuh di slide judul hari, sebelum gallery** (permintaan host 14 Nov 16.44, "catat di handoff"). Dicatat di `HANDOFF.md` bagian 0 dengan tafsir dan jawaban host (14 Nov): slide `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. **Jangan dikerjakan sebelum host memberi perintah** ("kerjakan ini ketika aku sudah beri perintah"). Isinya: teks judul keluar dengan animasi, gong dipukul, kamera diam di tempat; lalu geser kiri/kanan ke gallery menggerakkan kamera dengan kedalaman ikut gulir, depth of field, perspective shift, letak Z, dan kamera parallax.
+- [x] **7b. Gong ditabuh di slide judul hari, sebelum gallery** (permintaan host 14 Nov 16.44; dikerjakan atas perintah host "kerjakan tugas 7B"). ✅ 14 Nov 2026. Jawaban host: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Yang dikerjakan:
+  - Di judul hari dan hero prolog, langkah maju pertama mengeluarkan teks (huruf tersedot ke pencu gong bersama debu emas) dan menabuh gong tanpa hentakan kamera; langkah berikutnya baru pindah. Mundur mengembalikan teks tanpa pukulan.
+  - Gallery 3D: letak Z (kamera bergeser ±1 m per panel; tanah dekat, dataran, Lawu bergeser berbeda) dan depth of field (tier High: fokus dekat saat diam, ditarik ke lanskap selama geseran mengikuti gulir atau jari).
+
+  Rinciannya: `docs/design/decisions.md` bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field", dan `HANDOFF.md` bagian 0. Sisa pekerjaan, menunggu host:
+  - Tinjau video dan PR #12; uji di iPhone produksi (`/film/?fps`): tahap gong di judul, dan fps gallery dengan DOF di `high ×1 (paksa)`. Beban DOF di renderer perangkat lunak +16% waktu frame, hanya di gallery High.
+  - Api naga saat gong judul ditabuh sebagian keluar bingkai atas (kamera sengaja tidak diubah); bila host ingin terlihat utuh, shot judul perlu dilebarkan.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**

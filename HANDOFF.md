@@ -1,9 +1,56 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #11) · **Uji host di iPhone produksi selesai dan diterima ("fps aman, ga berat. done"): tier High bertahan, segi delapan tidak terlihat, gong 40 fps. Berikutnya Tugas 7b, menunggu perintah host (lihat bagian 0, paling atas).** Sebelumnya: Audit host 1–5 (PR #10), tier High iPhone bertahan (PR #11).
+Diperbarui 14 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #11) · **Tugas 7b selesai (perintah host "kerjakan tugas 7B"): gong ditabuh di slide judul hari dan hero prolog, gallery 3D dengan letak Z dan depth of field. Ada di PR #12 bersama catatan uji iPhone; menunggu tinjauan host atas video (lihat bagian 0, paling atas).** Sebelumnya: uji host di iPhone produksi diterima ("fps aman, ga berat. done"), Audit host 1–5 (PR #10), tier High iPhone bertahan (PR #11).
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
+
+**Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
+- [x] **7b.1 Dua tahap di slide judul hari dan hero prolog** (`engine/slides/beat.ts`, `director.ts`):
+  - Langkah maju pertama: teks keluar dan gong ditabuh, slide tidak pindah. Langkah berikutnya baru pindah ke `dayintro` (atau headline di prolog).
+  - Mundur saat teks sudah keluar: teks kembali tanpa pukulan.
+  - Tiba dari arah mana pun selalu mulai dengan teks tampil.
+  - Di hero, gunungan pembuka didahulukan; mundur mengembalikan teks dulu, baru langkah mundur berikutnya menancapkan gunungan.
+  - Geser jari yang dipakai tahap tidak menyeret slide.
+  - Calm mode tetap punya tahapnya.
+- [x] **7b.2 Animasi teks keluar** (`TitleStrike.tsx`, `film.css`):
+  - Huruf judul menyala emas, terangkat sedikit, lalu tersedot berputar ke pencu gong bersama debu emas (paling banyak 48 butir) dan pendar di pencu.
+  - Kicker dan nama tamu ikut tersedot.
+  - Mundur: huruf keluar lagi dari gong ke tempatnya.
+  - Hanya `transform`/`opacity`; film 2,5D memakai cakram gong CSS, yang kini juga ada di judul hari.
+- [x] **7b.3 Pukulan di judul** (`createStrikes(t, kick)`, `stageBus.strikeGong({ kick: false })`):
+  - Efek sama dengan gong penutup hari (bunyi, kilatan, bara, riak, bunga api, napas api naga), tanpa hentakan kamera.
+  - Hantaman jatuh tepat saat huruf terakhir masuk (0,92 dtk).
+  - Gong penutup hari tidak berubah.
+- [x] **7b.4 Gallery 3D**:
+  - **Letak Z:** kamera bergeser ±1 m per panel (`VISTA.travel` 7,2 m) sambil memandang ulang ke tengah. Tanah dekat bergeser searah rel kartu, dataran hampir diam, Lawu sedikit berlawanan.
+  - **Depth of field** (tier High saja, `TIER.dof`): saat diam fokus dekat (12 m, bidang kartu), jadi lanskap di belakang kartu lembut. Selama geseran fokus ditarik ke dataran (90 m) mengikuti gulir atau jari, lalu kembali.
+  - Jarak diambil dari pass kedalaman 1/16 piksel yang hanya menggambar tanah, jadi depth MSAA tetap tidak di-resolve. Di luar gallery semua pass DOF dilewati.
+  - Kedalaman ikut gulir, perspective shift, dan kamera parallax sudah ada sejak 13 Nov.
+
+**Hasil tes:**
+- Lint dan typecheck bersih; `pnpm test` 354/354 (11 tes unit baru: `beat.test.ts`, pukulan tanpa hentakan, bus, letak Z, fokus DOF); `pnpm content:check` OK; `pnpm build` OK.
+- e2e penuh (`pnpm test:e2e`): **266 lulus, 24 dilewati (khusus perangkat), 0 gagal** (11,6 menit).
+- Tes e2e baru:
+  - film 2,5D: judul hari, mundur, hero, Calm, geser jari;
+  - bunyi gong di hero;
+  - 3D: gong judul tanpa hentakan, kamera diam;
+  - DOF: digambar di gallery High, tepi tajam tanah turun 72%, fokus ditarik selama geseran, mati di Medium/Low.
+- Tes lama yang mengandaikan "langkah pertama di hero = pindah slide" disesuaikan lewat helper `release`.
+
+**Kendala:**
+- Beban DOF diukur di renderer perangkat lunak: +16% waktu frame (313 → 364 ms), hanya di gallery dengan tier High. fps di iPhone belum terukur. Bila tersendat lama, pengatur menurunkan satu anak tangga dan DOF otomatis mati.
+- Api naga saat gong judul ditabuh sebagian keluar bingkai atas (shot judul lebih dekat dari shot gong penutup); kamera sengaja tidak diubah sesuai arahan "kamera masih berada di tempatnya".
+
+**Pratinjau:** video tur `judul` (`record-film.cjs`, data April, tier High): judul Hari 1 ditabuh, mundur, ditabuh lagi, intro hari, gallery dengan letak Z dan DOF (di HP satu geser jari ditahan di tengah), lalu tahap gong hero. Desktop dan iPhone.
+
+**Langkah berikutnya:**
+- Host meninjau video dan PR #12, lalu cek di iPhone produksi (`/film/?fps`):
+  - tahap gong di judul hari dan hero;
+  - fps di gallery dengan DOF (tertulis `high ×1 (paksa)`).
+- Tugas 8 (benang emas, siklus waktu 3D, post-FX, partikel) hanya dengan arahan host. Rupa benang emas dikirim dulu sebagai gambar diam.
 
 ### Rencana sesudah PR #11 (14 Nov malam, atas pertanyaan host "apa planningmu habis ini, catat di handoff.md")
 
@@ -36,7 +83,7 @@ Hasil yang terbaca:
   - Nomornya hanya ada di Supabase, tidak di repo.
   - Langkah host: buka ulang Today di HP; WhatsApp Host dan Telepon harus muncul di samping SOS.
 
-**Langkah 1: Tugas 7b, gong ditabuh di slide judul hari.** Dimulai hanya sesudah host memberi perintah. Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
+**Langkah 1: Tugas 7b, gong ditabuh di slide judul hari. DIMULAI 14 Nov malam: perintah host, kata demi kata, "kerjakan tugas 7B"** (sesudah ditanya "planning?"; pertanyaan desain baru Today belum dijawab, jadi Today tidak disentuh). Jawaban host sudah ada: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Pecahan kerja, tiap langkah dengan output yang dites:
 - **7b.1 Dua tahap di slide judul:** langkah maju pertama di slide judul hari (dan hero prolog): teks keluar, gong dipukul, kamera diam. Langkah kedua baru pindah ke `dayintro`. Mundur mengembalikan teks tanpa memukul. Mesinnya sama dengan dua tahap gulir di slide gong; tes unit untuk urutannya.
 - **7b.2 Animasi teks keluar (baru):** misalnya huruf judul terurai jadi debu emas yang tersedot ke arah gong tepat saat dipukul. Hanya `transform`/`opacity`, tanpa reflow. Film 2,5D (tanpa 3D) mendapat versi yang sama dengan gong CSS.
 - **7b.3 Pukulan di judul:** memakai pukulan gong yang sudah ada (bunyi, kilatan, riak, bara, bunga api, napas api naga), tetapi tanpa hentakan kamera, karena host minta kamera tetap di tempatnya. Gong penutup hari tidak berubah.
