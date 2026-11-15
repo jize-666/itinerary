@@ -127,6 +127,16 @@ Tafsir Claude: aturan kit "tanpa stretch" dicabut untuk gerak. Yang boleh dan ti
    - Klip ±30 dtk dikirim ke host di chat (bukan di repo).
 3. Berikutnya: tunggu tinjauan host atas klip. Bila oke: M2 (perilaku + chat piksel).
 
+**Arahan host 15 Nov (sesudah klip lentur), kata demi kata:** "teks bubble nya? perkenalan dulu, nama dia clawd", "nanti kalo preview yang ini, record di 9:16 ya", lalu "gas m2".
+
+Tafsir Claude:
+- Mulai M2: gelembung teks ala piksel/Minecraft di atas kepala maskot, dengan efek ketik, dalam EN/ID mengikuti sakelar bahasa.
+- Nama maskot **Clawd**. Ucapan pertama = perkenalan.
+- Reaksi klik dari `behavior.ts` (sapa, senang, sayang, marah, tenang, bangun, gong) ikut tertulis di gelembung.
+- Pratinjau M2 direkam tegak **9:16**.
+
+Sedang dikerjakan.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
