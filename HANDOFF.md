@@ -111,7 +111,21 @@ Tafsir Claude: aturan kit "tanpa stretch" dicabut untuk gerak. Yang boleh dan ti
 - **Boleh (sementara, selama bergerak):** squash & stretch dengan volume tetap, badan melentur seperti jeli (puncak tertinggal saat bergerak, bergoyang sesudah ketukan atau mendarat), lengan dan kaki menyusul dan memantul, lengan sedikit memanjang saat menunjuk.
 - **Tetap tidak boleh:** mengganti bentuk atau ukuran karakter. Saat diam, maskot kembali persis ke bentuk dan ukuran kit (balok 2 × 1,9 × 1,4, lengan, empat kaki sebaris, wajah).
 
-Sedang dikerjakan.
+**Gerak lentur: selesai 15 Nov** (rincian: `docs/design/decisions.md` bagian "Maskot pemandu: rupa kit Claude v4 dan gerak lentur").
+
+1. Yang selesai:
+   - `pose.ts`: regang bervolume tetap kembali, dengan rupa baru:
+     - ancang-ancang memampat sebelum meloncat (menyapa, senang), melesat memanjang, mendarat memampat lalu memantul;
+     - menggeliat panjang saat bangun, napas perut saat tidur, mengangguk memampat saat bicara;
+     - lengan memanjang sebentar saat menunjuk, melambai, dan menggeliat.
+   - `engine/mascot/jelly.ts` (baru, murni):
+     - `Jelly`: puncak badan tertinggal terhadap percepatan, jadi badan melentur saat terbang dan bergoyang sesudah diketuk atau mendarat;
+     - `Follow`: lengan dan kaki menyusul pose dengan pantulan, lengan tertinggal saat badan naik dan kaki saat badan maju.
+   - `mascot.ts`: matriks `BodyRig` disusun sendiri (lentur + regang bertumpu di dasar badan, lalu putaran pose); ketukan = loncatan kecil + memampat + goyang ke samping.
+2. Tes:
+   - lint dan typecheck bersih; unit 384 lulus (tes maskot 25). Termasuk: lentur dalam batas, ancang-ancang sebelum loncat, melayang tetap bentuk kit, jeli memampat saat melesat dan memanjang saat berhenti, condong berlawanan percepatan, kembali persis ke bentuk kit sesudah diketuk, stabil di frame lambat dan saat pindah tempat, dan sendi memantul lalu diam.
+   - Klip ±30 dtk dikirim ke host di chat (bukan di repo).
+3. Berikutnya: tunggu tinjauan host atas klip. Bila oke: M2 (perilaku + chat piksel).
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 

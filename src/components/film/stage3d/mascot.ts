@@ -3,7 +3,11 @@
  * maskot"), dipakai langsung lewat constructor `claude.ts` tanpa digambar ulang. Di sini hanya pembungkusnya, sesuai
  * brief kit ("tempatkan `root` di dalam `THREE.Group` lain … atur posisi, arah target, dan skala pada group pembungkus"):
  *  - letak, arah hadap (ke kamera/objek, condong ke arah terbang), dan skala di dunia;
- *  - pose kaku dari `engine/mascot/pose.ts` dipasang ke pivot kit (badan, dua lengan, empat kaki); tanpa stretch;
+ *  - pose dari `engine/mascot/pose.ts` dipasang ke pivot kit (badan, dua lengan, empat kaki). Arahan host 15 Nov
+ *    ("gerak nya bisa dibuat lebih fleksibel? ganti aturan tanpa stretch itu. yang ga boleh cuma mengganti bentuk dan
+ *    ukuran saja"): badan boleh memampat/memanjang (volume tetap, bertumpu di dasar badan) dan melentur seperti jeli
+ *    (`engine/mascot/jelly.ts`), lengan dan kaki menyusul dengan pantulan, lengan memanjang sebentar saat menunjuk.
+ *    Semua lentur itu mereda ke nol, jadi saat diam bentuk dan ukuran kit kembali persis;
  *  - ekspresi kit dari suasana hati (`engine/mascot/face.ts`), berganti di tengah kedipan;
  *  - cahaya: material kit MeshStandardMaterial, jadi panggung memberinya lampu three sendiri yang mengikuti uniform
  *    panggung tiap frame (langit, matahari/bulan, blencong, kilatan gong) ditambah isi lembut dari arah kamera, supaya
@@ -11,8 +15,9 @@
  *    (ShaderMaterial tanpa `lights`);
  *  - partikel emosi (`emotes.ts`) di atas kepala.
  */
-import { AmbientLight, Color, DirectionalLight, Group, HemisphereLight, Vector3 } from "three";
+import { AmbientLight, Color, DirectionalLight, Euler, Group, HemisphereLight, Matrix4, Vector3 } from "three";
 import { EXPRESSION_OF, expressionFor, FaceTrack, type Mood } from "@/engine/mascot/face";
+import { Follow, Jelly } from "@/engine/mascot/jelly";
 import { mixPose, type Motion, type Pose, poseAt } from "@/engine/mascot/pose";
 import { GONG, GONG_SCALE } from "@/engine/stage/gong";
 import { createClaude, DIMENSIONS } from "./claude";
@@ -22,6 +27,15 @@ import type { Shared } from "./shared";
 /** Tinggi badan kit (satuan kit; lebar badan 2). */
 const BODY_H = DIMENSIONS.body[1];
 const CENTER_Y = DIMENSIONS.bodyCenter[1];
+/** Titik tumpu regang dan lentur: dasar badan (di bawah tengah badan sejauh setengah tinggi). */
+const ANCHOR = BODY_H / 2;
+/** Batas regang total (pose × jeli). */
+const STRETCH_MIN = 0.7;
+const STRETCH_MAX = 1.35;
+/** Dorongan inersia ke sendi (rad/dtk² per tinggi badan/dtk²): lengan tertinggal saat badan naik, kaki saat maju. */
+const ARM_LAG = 1.6;
+const ARM_SWING = 1.0;
+const LEG_LAG = 1.4;
 /** Albedo linear kanal merah badan (#F26D3D): dipakai untuk menjaga puncak terang di bawah ambang bloom. */
 const BODY_RED = new Color(0xf26d3d).r;
 /** Letak kilatan gong (sama dengan `flashLight` di shader panggung). */
@@ -50,7 +64,7 @@ export type MascotInput = {
   still?: boolean;
 };
 
-const STILL: Pose = { bob: 0, tiltX: 0, tiltZ: 0, spin: 0, armL: [0, 0], armR: [0, 0], legs: [0, 0, 0, 0] };
+const STILL: Pose = { bob: 0, tiltX: 0, tiltZ: 0, spin: 0, stretch: 1, armL: [0, 0], armR: [0, 0], reach: [1, 1], legs: [0, 0, 0, 0] };
 
 export function createMascot(shared: Shared) {
   const claude = createClaude({ expression: "neutral" });
@@ -84,9 +98,22 @@ export function createMascot(shared: Shared) {
   let lastSince = 0;
   let prevPose: Pose | null = null;
   let blendFrom = -10;
-  /** Pegas loncatan kecil saat diketuk (geser tegak, bukan stretch). */
+  /** Pegas loncatan kecil saat diketuk (geser tegak). */
   let hop = 0;
   let hopV = 0;
+  /** Badan jeli (dalam ruang dunia, satuan tinggi badan) dan sendi yang menyusul. */
+  const jelly = new Jelly();
+  const armJ = new Follow(4);
+  const legJ = new Follow(4);
+  const armDrive = [0, 0, 0, 0];
+  const legDrive = [0, 0, 0, 0];
+  let seed = 3;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  bodyRig.matrixAutoUpdate = false;
+  const euler = new Euler(0, 0, 0, "YXZ");
+  const mRot = new Matrix4();
+  const mFlex = new Matrix4();
+  const base = new Vector3();
   let lastMood: Mood = "neutral";
   let yaw = 0;
   let started = false;
@@ -130,10 +157,13 @@ export function createMascot(shared: Shared) {
     emotes: emotes.points,
     lights,
     character: claude,
-    /** Ketuk/klik: badan meloncat kecil. */
+    /** Ketuk/klik: badan meloncat kecil, memampat lalu memantul, dan bergoyang sedikit ke samping. */
     poke(strength = 1) {
-      hopV += 7 * strength;
+      hopV += 5 * strength;
+      jelly.kick((rand() - 0.5) * 1.4 * strength, -2.4 * strength, (rand() - 0.5) * 0.6 * strength);
     },
+    /** Lentur badan saat ini (untuk tes dan pratinjau). */
+    flex: jelly,
     /** Tinggi kanvas dalam piksel perangkat ÷ tan(fov/2): ukuran partikel mengikuti lensa dan resolusi. */
     setPixel(px: number) {
       emotes.setPixel(px);
@@ -146,8 +176,9 @@ export function createMascot(shared: Shared) {
       }
       // ---- wajah: ekspresi kit, berganti di tengah kedipan ----
       if (input.mood !== lastMood) {
-        if (input.mood === "surprised" || input.mood === "happy" || input.mood === "love") hopV += 4;
-        if (input.mood === "angry") hopV -= 3;
+        if (input.mood === "surprised") jelly.kick(0, 2.2, 0);
+        if (input.mood === "happy" || input.mood === "love") jelly.kick(0, 1.1, 0);
+        if (input.mood === "angry") jelly.kick(0, -1.8, 0);
         lastMood = input.mood;
       }
       const target = expressionFor(input.mood, input.motion, t - input.motionSince);
@@ -185,12 +216,49 @@ export function createMascot(shared: Shared) {
       yaw += input.still ? dy : dy * Math.min(1, dt * 6);
       root.rotation.set(0, yaw, 0);
 
-      // ---- pivot kit: badan, lengan (+ angkat = naik, + ayun = ke depan), kaki (+ = ke depan) ----
-      bodyRig.position.set(0, CENTER_Y + pose.bob * BODY_H + hop * 0.3, 0);
-      bodyRig.rotation.set(pose.tiltX, pose.spin, pose.tiltZ, "YXZ");
-      arms[0]!.rotation.set(0, pose.armL[1], -pose.armL[0]);
-      arms[1]!.rotation.set(0, -pose.armR[1], pose.armR[0]);
-      legs.forEach((l, i) => l.rotation.set(-pose.legs[i]!, 0, 0));
+      // ---- lentur: dasar badan diikuti jeli (ruang dunia, satuan tinggi badan) ----
+      const lift = pose.bob * BODY_H + hop * 0.3;
+      const cos = Math.cos(yaw);
+      const sin = Math.sin(yaw);
+      let stretch = pose.stretch;
+      let shx = 0;
+      let shz = 0;
+      if (input.still) {
+        armJ.snap([pose.armL[0], pose.armL[1], pose.armR[0], pose.armR[1]]);
+        legJ.snap(pose.legs);
+      } else {
+        base.copy(input.pos).y += lift * scale;
+        jelly.track([base.x / input.size, base.y / input.size, base.z / input.size], dt);
+        const [ax, ay, az] = jelly.accel;
+        // percepatan dan lentur dalam ruang maskot (tanpa putaran hadap)
+        const fwd = ax * sin + az * cos;
+        const [ox, , oz] = jelly.o;
+        shx = Math.max(-0.32, Math.min(0.32, ox * cos - oz * sin));
+        shz = Math.max(-0.32, Math.min(0.32, ox * sin + oz * cos));
+        stretch *= jelly.stretch;
+        armDrive[0] = armDrive[2] = -ARM_LAG * ay;
+        armDrive[1] = armDrive[3] = -ARM_SWING * fwd;
+        legDrive.fill(-LEG_LAG * fwd);
+        armJ.step([pose.armL[0], pose.armL[1], pose.armR[0], pose.armR[1]], dt, armDrive);
+        legJ.step(pose.legs, dt, legDrive);
+      }
+      stretch = Math.max(STRETCH_MIN, Math.min(STRETCH_MAX, stretch));
+      const wide = 1 / Math.sqrt(stretch);
+
+      // ---- pivot kit. Badan: tumpu di dasar badan, lentur (geser) + regang bervolume tetap, lalu putaran pose ----
+      euler.set(pose.tiltX, pose.spin, pose.tiltZ, "YXZ");
+      mRot.makeRotationFromEuler(euler);
+      const sy = stretch * ANCHOR;
+      mFlex.set(wide, shx * stretch, 0, shx * sy, 0, stretch, 0, sy - ANCHOR + CENTER_Y + lift, 0, shz * stretch, wide, shz * sy, 0, 0, 0, 1);
+      bodyRig.matrix.multiplyMatrices(mFlex, mRot);
+      bodyRig.matrixWorldNeedsUpdate = true;
+      // lengan (+ angkat = naik, + ayun = ke depan, panjang = reach), kaki (+ = ke depan)
+      const [lr, lf, rr, rf] = armJ.x as [number, number, number, number];
+      arms[0]!.rotation.set(0, lf, -lr);
+      arms[1]!.rotation.set(0, -rf, rr);
+      arms[0]!.scale.set(pose.reach[0], 1, 1);
+      arms[1]!.scale.set(pose.reach[1], 1, 1);
+      legs.forEach((l, i) => l.rotation.set(-legJ.x[i]!, 0, 0));
 
       root.updateMatrixWorld();
       updateLights(input.pos, input.camera);

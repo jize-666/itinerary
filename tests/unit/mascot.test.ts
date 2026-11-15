@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MASCOT, MascotBehavior } from "@/engine/mascot/behavior";
 import { BLINK, BLINKABLE, blinkOpen, EXPRESSION_OF, EXPRESSIONS, expressionFor, FaceTrack, GREET_WINK, MOODS } from "@/engine/mascot/face";
+import { Follow, JELLY, Jelly } from "@/engine/mascot/jelly";
 import { JourneyController } from "@/engine/mascot/journey";
 import { MOTION_DUR, poseAt } from "@/engine/mascot/pose";
 
@@ -128,6 +129,8 @@ describe("perjalanan maskot", () => {
   });
 });
 
+const ALL = ["hover", "greet", "fly", "point", "happy", "angry", "sleep", "wake", "surprised", "look", "talk"] as const;
+
 describe("wajah dan pose maskot (kit Claude v4)", () => {
   it("delapan suasana hati memakai ekspresi kit, masing-masing berbeda", () => {
     expect(MOODS).toHaveLength(8);
@@ -193,30 +196,126 @@ describe("wajah dan pose maskot (kit Claude v4)", () => {
     expect(minStill).toBe(1);
   });
 
-  it("gerakan sekali jalan kembali ke melayang sesudah durasinya; semua pose berhingga dan kaku (tanpa stretch)", () => {
+  it("gerakan sekali jalan kembali ke melayang sesudah durasinya; semua pose berhingga", () => {
     for (const [m, dur] of Object.entries(MOTION_DUR)) {
       const after = poseAt(m as keyof typeof MOTION_DUR, 100 + dur! + 0.1, 100);
       const hover = poseAt("hover", 100 + dur! + 0.1, 0);
       expect(after, m).toEqual(hover);
     }
-    for (const m of ["hover", "greet", "fly", "point", "happy", "angry", "sleep", "wake", "surprised", "look", "talk"] as const) {
+    for (const m of ALL) {
       for (let t = 0; t < 3; t += 0.37) {
         const p = poseAt(m, 50 + t, 50);
-        expect(Object.keys(p).sort()).toEqual(["armL", "armR", "bob", "legs", "spin", "tiltX", "tiltZ"]);
-        const nums = [p.bob, p.tiltX, p.tiltZ, p.spin, ...p.armL, ...p.armR, ...p.legs];
+        const nums = [p.bob, p.tiltX, p.tiltZ, p.spin, p.stretch, ...p.armL, ...p.armR, ...p.reach, ...p.legs];
         expect(nums.every(Number.isFinite), `${m} ${t}`).toBe(true);
       }
     }
   });
 
-  it("melayang mengikuti amplitudo kecil kit: naik-turun ≤ 3% tinggi badan, lengan terangkat ±0,15 rad", () => {
+  it("lentur boleh selama bergerak (arahan host 15 Nov), dalam batas: regang 0,8–1,25, lengan 0,9–1,25", () => {
+    let lo = 1;
+    let hi = 1;
+    for (const m of ALL)
+      for (let u = 0; u < 3; u += 0.01) {
+        const p = poseAt(m, 50 + u, 50);
+        lo = Math.min(lo, p.stretch);
+        hi = Math.max(hi, p.stretch);
+        for (const r of p.reach) {
+          expect(r, m).toBeGreaterThanOrEqual(0.9);
+          expect(r, m).toBeLessThanOrEqual(1.25);
+        }
+        expect(p.stretch, m).toBeGreaterThanOrEqual(0.8);
+        expect(p.stretch, m).toBeLessThanOrEqual(1.25);
+      }
+    // memang ada ancang-ancang memampat dan regang memanjang (bukan kaku lagi)
+    expect(lo).toBeLessThan(0.9);
+    expect(hi).toBeGreaterThan(1.12);
+  });
+
+  it("loncatan senang: ancang-ancang memampat sebelum naik, memanjang saat melesat", () => {
+    expect(poseAt("happy", 50.12, 50).stretch).toBeLessThan(0.9);
+    expect(poseAt("happy", 50.12, 50).bob).toBe(0);
+    const up = poseAt("happy", 50.2, 50);
+    expect(up.stretch).toBeGreaterThan(1.1);
+    expect(up.bob).toBeGreaterThan(0);
+  });
+
+  it("melayang tenang tetap bentuk dan ukuran kit: regang ±1%, naik-turun ≤ 3%, lengan 0,15 rad, panjang lengan 1", () => {
     for (let t = 0; t < 6; t += 0.1) {
       const p = poseAt("hover", t, 0);
+      expect(Math.abs(p.stretch - 1)).toBeLessThanOrEqual(0.0101);
+      expect(p.reach).toEqual([1, 1]);
       expect(Math.abs(p.bob)).toBeLessThanOrEqual(0.03);
       expect(Math.abs(p.tiltZ)).toBeLessThanOrEqual(0.041);
       expect(p.armL[0]).toBeGreaterThan(0.1);
       expect(p.armL[0]).toBeLessThan(0.2);
       expect(Math.max(...p.legs.map(Math.abs))).toBeLessThanOrEqual(0.071);
     }
+  });
+});
+
+describe("lentur jeli dan sendi yang menyusul (arahan host 15 Nov: gerak lebih fleksibel)", () => {
+  const run = (j: Jelly, path: (t: number) => [number, number, number], from: number, to: number, dt = 1 / 60) => {
+    for (let t = from; t <= to + 1e-9; t += dt) j.track(path(t), dt);
+  };
+
+  it("melesat naik = memampat, berhenti mendadak di atas = memanjang", () => {
+    const j = new Jelly();
+    run(j, () => [0, 0, 0], 0, 0.1);
+    run(j, (t) => [0, (t - 0.1) * 3, 0], 0.1 + 1 / 60, 0.2);
+    expect(j.stretch).toBeLessThan(0.99);
+    const y = 0.3;
+    let maxS = 0;
+    for (let i = 0; i < 30; i++) {
+      j.track([0, y, 0], 1 / 60);
+      maxS = Math.max(maxS, j.stretch);
+    }
+    expect(maxS).toBeGreaterThan(1.01);
+  });
+
+  it("bergerak ke samping: puncak badan tertinggal (lentur berlawanan arah percepatan)", () => {
+    const j = new Jelly();
+    run(j, () => [0, 0, 0], 0, 0.1);
+    run(j, (t) => [(t - 0.1) ** 2 * 4, 0, 0], 0.1 + 1 / 60, 0.3);
+    expect(j.shearX).toBeLessThan(-0.005);
+  });
+
+  it("sesudah diketuk badan memantul lalu kembali persis ke bentuk kit (bentuk dan ukuran tidak berubah)", () => {
+    const j = new Jelly();
+    j.kick(0.7, -2.4, 0.3);
+    let minS = 1;
+    let maxS = 1;
+    for (let i = 0; i < 60; i++) {
+      j.track([0, 0, 0], 1 / 60);
+      minS = Math.min(minS, j.stretch);
+      maxS = Math.max(maxS, j.stretch);
+    }
+    expect(minS).toBeLessThan(0.92);
+    expect(maxS).toBeGreaterThan(1.01);
+    for (let i = 0; i < 240; i++) j.track([0, 0, 0], 1 / 60);
+    expect(j.rest).toBeLessThan(1e-3);
+    expect(j.stretch).toBeCloseTo(1, 3);
+  });
+
+  it("lonjakan dan pindah tempat tidak membuat badan meledak; frame lambat tetap stabil", () => {
+    const j = new Jelly();
+    j.track([0, 0, 0], 1 / 60);
+    j.track([50, 0, 0], 1 / 60);
+    j.track([50, 0, 0], 1 / 60);
+    expect(j.rest).toBeLessThan(1e-6);
+    for (let i = 0; i < 40; i++) j.track([0, i % 2 ? 0.4 : 0, 0], 0.25);
+    expect(Math.abs(j.stretch - 1)).toBeLessThanOrEqual(JELLY.maxStretch);
+    expect(Math.abs(j.shearX)).toBeLessThanOrEqual(JELLY.maxShear);
+    expect(j.o.every(Number.isFinite)).toBe(true);
+  });
+
+  it("sendi menyusul pose dengan pantulan, lalu diam di sudut pose", () => {
+    const f = new Follow(1);
+    f.step([0], 1 / 60);
+    let peak = 0;
+    for (let i = 0; i < 30; i++) peak = Math.max(peak, f.step([1], 1 / 60)[0]!);
+    expect(peak).toBeGreaterThan(1.02);
+    for (let i = 0; i < 240; i++) f.step([1], 1 / 60);
+    expect(f.x[0]).toBeCloseTo(1, 4);
+    expect(f.snap([0.3])[0]).toBe(0.3);
   });
 });

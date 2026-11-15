@@ -457,6 +457,20 @@ Pratinjau: video `scripts/preview/record-today.cjs` (sebelum trip dan hari perta
 
 **Pratinjau dan uji.** `window.__lakonStage.dof` (kadar, fokus, digambar atau tidak), `window.__lakonStage.dofAt = [kadar, fokus]` menahan depth of field. Tur perekam `judul` dan `gallery` (`scripts/preview/record-film.cjs`).
 
+## Maskot pemandu: rupa kit Claude v4 dan gerak lentur (15 Nov 2026), arahan host: "update maskot" (dengan `claude-3d-reference-kit.zip`), lalu "gerak nya bisa dibuat lebih fleksibel? ganti aturan tanpa stretch itu. yang ga boleh cuma mengganti bentuk dan ukuran saja"
+
+Belum disambungkan ke film; menunggu tinjauan host.
+
+- **Rupa:** constructor kit diport setia ke `src/components/film/stage3d/claude.ts` (badan 2 × 1,9 × 1,4, #F26D3D doff dengan normal map tanah liat, dua lengan, empat kaki sebaris, 12 ekspresi mata/alis, tanpa mulut). `stage3d/mascot.ts` hanya pembungkus: letak, arah hadap, skala, lampu, dan gerak. Model tidak digambar ulang.
+- **Ekspresi:** suasana hati dipetakan ke ekspresi kit (`engine/mascot/face.ts`); pergantian disembunyikan di tengah kedipan.
+- **Gerak lentur:** aturan kit "tanpa stretch" dicabut host untuk gerak; yang tetap dilarang hanya mengganti bentuk dan ukuran. Maka:
+  - pose memampat/memanjang badan dengan volume tetap (ancang-ancang, melesat, mendarat, menggeliat, napas tidur) dan memanjangkan lengan sebentar saat menunjuk atau melambai;
+  - badan jeli (`engine/mascot/jelly.ts`): puncak badan = massa berpegas di dasar badan, tertinggal terhadap percepatan; lenturnya dipasang sebagai geser dan regang matriks `BodyRig` yang bertumpu di dasar badan, jadi wajah, lengan, dan kaki ikut melentur bersama badan;
+  - sendi lengan dan kaki menyusul pose dengan pegas yang memantul, ditambah dorongan inersia dari percepatan badan.
+- **Batas:** regang total 0,7–1,35, lentur ±0,32, lengan 0,9–1,25. Semua lentur mereda ke nol; saat melayang tenang regangnya ±1% (napas), jadi bentuk dan ukuran kit tidak berubah.
+- **Gerak dikurangi:** pose diam, tanpa jeli, tanpa kedip (brief kit).
+- **Cahaya:** material kit MeshStandardMaterial diberi lampu three sendiri yang mengikuti uniform panggung tiap frame; tidak menyentuh material panggung lain.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).
