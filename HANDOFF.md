@@ -105,6 +105,14 @@ Yang dari pekerjaan sebelumnya tetap dipakai, karena tidak mengubah bentuk karak
    - e2e tidak dijalankan karena maskot belum disambungkan ke film; tidak ada perubahan di jalur film.
 3. Berikutnya: tunggu tinjauan host atas rupa kit di panggung. Bila disetujui: M2 (perilaku + chat piksel), M3 (pemandu di film 3D), M4 (2,5D), sesuai urutan di atas.
 
+**Arahan host 15 Nov (sesudah melihat klip kit), kata demi kata:** "gerak nya bisa dibuat lebih fleksibel? ganti aturan tanpa stretch itu. yang ga boleh cuma mengganti bentuk dan ukuran saja."
+
+Tafsir Claude: aturan kit "tanpa stretch" dicabut untuk gerak. Yang boleh dan tidak:
+- **Boleh (sementara, selama bergerak):** squash & stretch dengan volume tetap, badan melentur seperti jeli (puncak tertinggal saat bergerak, bergoyang sesudah ketukan atau mendarat), lengan dan kaki menyusul dan memantul, lengan sedikit memanjang saat menunjuk.
+- **Tetap tidak boleh:** mengganti bentuk atau ukuran karakter. Saat diam, maskot kembali persis ke bentuk dan ukuran kit (balok 2 × 1,9 × 1,4, lengan, empat kaki sebaris, wajah).
+
+Sedang dikerjakan.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
