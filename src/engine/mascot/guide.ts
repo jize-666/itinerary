@@ -142,10 +142,10 @@ export const SIDE_CANDIDATES: readonly (readonly [number, number, BubbleSide])[]
   [-0.45, -0.72, "above"],
   [0.76, 0.15, "above"],
   [-0.76, 0.15, "above"],
-  [-0.66, 0.64, "right"],
-  [0.66, 0.64, "left"],
-  [-0.66, 0.56, "right"],
-  [0.66, 0.56, "left"],
+  [-0.6, 0.64, "right"],
+  [0.6, 0.64, "left"],
+  [-0.6, 0.56, "right"],
+  [0.6, 0.56, "left"],
 ];
 
 const overlap = (a: Block, x: number, y: number, w: number, h: number) =>

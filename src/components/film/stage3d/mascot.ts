@@ -21,6 +21,7 @@ import { Follow, Jelly } from "@/engine/mascot/jelly";
 import { mixPose, type Motion, type Pose, poseAt } from "@/engine/mascot/pose";
 import { GONG, GONG_SCALE } from "@/engine/stage/gong";
 import { createClaude, DIMENSIONS } from "./claude";
+import { batchClaude } from "./claude-batch";
 import { createEmotes } from "./emotes";
 import type { Shared } from "./shared";
 
@@ -69,6 +70,8 @@ const STILL: Pose = { bob: 0, tiltX: 0, tiltZ: 0, spin: 0, stretch: 1, armL: [0,
 export function createMascot(shared: Shared) {
   const claude = createClaude({ expression: "neutral" });
   const { bodyRig, arms, legs } = claude;
+  // digambar berkelompok: ±13 draw call menjadi 5–6, bentuk dan pivot kit tetap
+  const batch = batchClaude(claude);
   /** Pembungkus di dunia; `claude.root` tetap di titik asalnya. */
   const root = new Group();
   root.name = "mascot";
@@ -159,6 +162,8 @@ export function createMascot(shared: Shared) {
     key.color.copy(shared.uKeyColor.value).multiplyScalar(soft);
     hemi.color.copy(shared.uAmbSky.value).multiplyScalar(soft);
     hemi.groundColor.copy(shared.uAmbGround.value).multiplyScalar(soft);
+    flat.color.copy(FILL_FLAT).multiplyScalar(soft / 0.8);
+    fill.color.copy(FILL_CAM).multiplyScalar(soft / 0.8);
   };
 
   return {
@@ -192,8 +197,7 @@ export function createMascot(shared: Shared) {
       }
       const target = expressionFor(input.mood, input.motion, t - input.motionSince);
       const face = track.update(t, target, !input.still);
-      if (claude.expression !== face.expression) claude.setExpression(face.expression);
-      for (const e of claude.features[face.expression].eyes) e.scale.y = face.open;
+      batch.face(face.expression, face.open);
 
       // ---- pose: gerakan baru dicampur dari pose sebelumnya selama 0,25 dtk ----
       let pose: Pose = STILL;
@@ -268,12 +272,14 @@ export function createMascot(shared: Shared) {
       arms[0]!.scale.set(pose.reach[0], 1, 1);
       arms[1]!.scale.set(pose.reach[1], 1, 1);
       legs.forEach((l, i) => l.rotation.set(-legJ.x[i]!, 0, 0));
+      batch.pose();
 
       root.updateMatrixWorld();
       updateLights(input.pos, input.camera);
       emotes.update(t, input.mood, bodyRig.matrixWorld, input.size);
     },
     dispose() {
+      batch.dispose();
       claude.dispose();
       emotes.dispose();
       lights.children.forEach((l) => (l as { dispose?: () => void }).dispose?.());

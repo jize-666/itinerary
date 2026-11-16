@@ -938,6 +938,75 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
   });
 });
 
+test.describe("Clawd, maskot pemandu di panggung 3D (M3, arahan host 15–16 Nov)", () => {
+  const said = (page: Page) => page.locator(".clawd-bubble .cb-live");
+  const clawd = (page: Page) => page.getByRole("button", { name: "Clawd", exact: true });
+  /** Klik Clawd: badannya selalu sedikit bergerak (melayang), jadi tanpa menunggu diam. */
+  const poke = (page: Page) => clawd(page).click({ force: true });
+  const touch = (page: Page) => page.evaluate(() => matchMedia("(pointer: coarse)").matches);
+  /** Tamu lama: perkenalan dan petunjuk sudah tuntas di perangkat ini, kecuali `except`. */
+  const seenBefore = (page: Page, except: string[] = []) =>
+    page.addInitScript((tips) => localStorage.setItem("lakon.clawd", JSON.stringify({ intro: true, tips })), ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits"].filter((t) => !except.includes(t)));
+
+  test("muncul bersama gunungan pembuka dan memperkenalkan diri; petunjuk lama tidak tampil", async ({ page }) => {
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(said(page)).toHaveText("Clawd: Hi! I'm Clawd.", { timeout: WAIT_LONG });
+    await expect(clawd(page)).toBeVisible();
+    // teks petunjuk lama ("Scroll or swipe", "or press the arrow keys", "Click or tap the gunungan…") tidak ada lagi
+    await expect(page.locator(".fl-hint")).toHaveCount(0);
+    await expect(page.getByText("Scroll or swipe")).toHaveCount(0);
+    await expect(page.getByText("Click or tap the gunungan to turn it")).toHaveCount(0);
+  });
+
+  test("klik Clawd saat perkenalan memajukan kalimat tanpa memindah slide atau mencabut gunungan", async ({ page }) => {
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(said(page)).toContainText("Hi! I'm Clawd.", { timeout: WAIT_LONG });
+    // kalimat ketiga: cara maju, sesuai perangkat (layar sentuh = geser). Tiap klik melengkapi atau memajukan satu
+    // kalimat; gelembung digambar ulang di frame berikutnya, jadi tunggu satu frame sebelum membaca lagi
+    const third = `Clawd: ${(await touch(page)) ? "Swipe to move along." : "Scroll or press the arrow keys to move along."} I'll point out the fun stuff.`;
+    for (let i = 0; i < 6 && (await said(page).textContent()) !== third; i++) {
+      await poke(page);
+      await nextFrames(page, 1);
+    }
+    await expect(said(page)).toHaveText(third);
+    await expect(film(page)).toHaveAttribute("data-index", "0");
+    expect(await gateOf(page)).toBe("head");
+  });
+
+  test("tamu lama disapa singkat; spam klik membuatnya marah dengan ucapan", async ({ page }) => {
+    await seenBefore(page);
+    await open3d(page, "?stage=low", "", "keep");
+    await expect(said(page)).toHaveText("Clawd: Welcome back! Clawd here.", { timeout: WAIT_LONG });
+    await expect(page.locator(".clawd-bubble")).not.toHaveAttribute("data-on", "", { timeout: WAIT_LONG });
+    // spam: enam klik beruntun (dikirim sekaligus, seperti jari yang mengetuk cepat)
+    await clawd(page).evaluate((b) => {
+      for (let i = 0; i < 6; i++) (b as HTMLButtonElement).click();
+    });
+    await expect(said(page)).toHaveText(/Clawd: (Hey! Stop poking me!|Ow! Easy there!)/, { timeout: WAIT });
+  });
+
+  test("gallery: petunjuk geser diucapkan, dan Clawd serta gelembungnya tidak menutupi tombol kartu", async ({ page }) => {
+    test.slow();
+    await seenBefore(page, ["gallery"]);
+    await open3d(page, "?stage=low", "#day-1");
+    await step(page); // intro hari
+    await step(page); // panel pertama
+    await expect(film(page)).toHaveAttribute("data-kind", "panel");
+    await expect(said(page)).toContainText("These are the stops for the day.", { timeout: WAIT_LONG });
+    // tempat dipilih sesudah tata letak slide tenang: tunggu sampai Clawd dan gelembungnya diam di tempatnya
+    await page.waitForTimeout(2500);
+    await nextFrames(page, 6);
+    const hits = await page.evaluate(() => {
+      const rect = (el: Element) => el.getBoundingClientRect();
+      const meet = (a: DOMRect, b: DOMRect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      const mine = [document.querySelector(".clawd-hit")!, document.querySelector(".clawd-bubble .cb-box")!].map(rect);
+      const buttons = [...document.querySelectorAll(".fl-layer[data-pos='cur'] .gal-card[data-cur] button")].map(rect);
+      return mine.flatMap((m) => buttons.filter((b) => meet(m, b))).length;
+    });
+    expect(hits).toBe(0);
+  });
+});
+
 test.describe("gerak pandang (aturan host 13 Nov): parallax kamera dan perspective shift", () => {
   test("panggung 3D: kursor di tepi layar menggeser kamera", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "kursor hanya di desktop");

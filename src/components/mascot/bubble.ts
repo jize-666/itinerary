@@ -64,6 +64,7 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
   let px = 0;
   let py = 0;
   let placed = false;
+  let lastAt = 0;
 
   const measure = () => {
     width = el.offsetWidth;
@@ -124,8 +125,12 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
       const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, above ? x - width / 2 : side === "right" ? x + drop : x - drop - width));
       const goalY = above ? Math.max(MARGIN, y - height - drop) : Math.max(MARGIN, Math.min(vh - MARGIN - height, y - height / 2));
       // diam selama Clawd hanya melayang (ayunan kecil): teks lebih mudah dibaca dan diketuk; menyusul bila ia pindah
+      // menyusul bebas laju frame (tetapan 90 ms), juga di HP lambat
+      const now = performance.now();
+      const step = Math.min(500, now - lastAt);
+      lastAt = now;
       const far = Math.hypot(goalX - px, goalY - py);
-      const k = !placed ? 1 : far > DEADZONE ? 0.25 : 0;
+      const k = !placed ? 1 : far > DEADZONE ? 1 - Math.exp(-step / 90) : 0;
       px += (goalX - px) * k;
       py += (goalY - py) * k;
       placed = true;

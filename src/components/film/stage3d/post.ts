@@ -99,7 +99,13 @@ void main() { gl_FragColor = vec4(vDist, 0.0, 0.0, 1.0); }`;
 
 /* Benda yang selalu tajam: jaraknya ditulis sama dengan jarak fokus. */
 const SHARP_VERT = /* glsl */ `
-void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+void main() {
+  vec4 p = vec4(position, 1.0);
+  #ifdef USE_INSTANCING
+  p = instanceMatrix * p;
+  #endif
+  gl_Position = projectionMatrix * modelViewMatrix * p;
+}`;
 const SHARP_FRAG = /* glsl */ `
 uniform float uFocus;
 void main() { gl_FragColor = vec4(uFocus, 0.0, 0.0, 1.0); }`;
