@@ -150,6 +150,17 @@ Tafsir Claude:
    - e2e tidak dijalankan: belum ada perubahan di jalur halaman.
 3. Berikutnya: tunggu tinjauan host atas video 9:16. Bila oke: M3 (Clawd sebagai pemandu di film 3D: muncul di prolog, perkenalan, terbang menghampiri objek 3D, menjelaskan gong dan fitur kamera).
 
+**Arahan host 16 Nov (sesudah video M2 dan rencana M3), kata demi kata:** "jangan lupa untuk menghapus semua text pemandu yang lama, seperti \"click the gong\" dll."
+
+Tafsir Claude: bagian dari M3. Begitu Clawd memandu di film, semua teks petunjuk lama yang tampil di layar dihapus, dan isinya diucapkan Clawd di gelembung. Daftar teks petunjuk lama yang tampil (diperiksa 16 Nov):
+- `film.hint` "Scroll or swipe / Gulir atau geser" dan `film.hintKeys` "or press the arrow keys / atau tekan tombol panah" (`Hint` di `Chrome.tsx`, slide pertama);
+- `film.kayonHint` "Click or tap the gunungan to turn it / Klik atau ketuk gunungan untuk membaliknya" (bagian `Hint` yang sama, saat gunungan pembuka tertancap);
+- `film.phrasesHint` "Tap a card to turn it over. / Ketuk kartu untuk membaliknya." (slide ungkapan Jawa).
+
+Yang tetap dipertahankan karena tidak tampil di layar dan dipakai pembaca layar sebagai nama tombol: `aria-label` "Strike the gong / Pukul gongnya" (`film.gong`) dan "Turn the gunungan / Balik gunungannya" (`film.kayon`). Tes e2e yang memeriksa petunjuk lama ikut diganti dengan pemeriksaan ucapan Clawd.
+
+Penghapusannya dilakukan bersamaan dengan Clawd mulai memandu (bukan lebih dulu), supaya tamu tidak sempat kehilangan petunjuk.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):
