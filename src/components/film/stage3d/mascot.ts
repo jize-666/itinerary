@@ -15,7 +15,7 @@
  *    (ShaderMaterial tanpa `lights`);
  *  - partikel emosi (`emotes.ts`) di atas kepala.
  */
-import { AmbientLight, Color, DirectionalLight, Euler, Group, HemisphereLight, Matrix4, Vector3 } from "three";
+import { AmbientLight, Color, DirectionalLight, Euler, Group, HemisphereLight, Matrix4, type Mesh, Vector3 } from "three";
 import { EXPRESSION_OF, expressionFor, FaceTrack, type Mood } from "@/engine/mascot/face";
 import { Follow, Jelly } from "@/engine/mascot/jelly";
 import { mixPose, type Motion, type Pose, poseAt } from "@/engine/mascot/pose";
@@ -73,7 +73,16 @@ export function createMascot(shared: Shared) {
   const root = new Group();
   root.name = "mascot";
   root.add(claude.root);
+  // digambar sesudah kelir dan gunungan (lapisan layar penuh, renderOrder 2000–2001, tanpa uji kedalaman) supaya
+  // Clawd tetap tampak di depan gerbang; tetap diuji kedalaman terhadap panggung, dan tetap buram 0 (alpha 1)
+  claude.root.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh) return;
+    m.renderOrder = 2100;
+    for (const mat of Array.isArray(m.material) ? m.material : [m.material]) mat.transparent = true;
+  });
   const emotes = createEmotes();
+  emotes.points.renderOrder = 2110;
 
   // ---- lampu yang mengikuti panggung (koordinat dunia) ----
   const lights = new Group();

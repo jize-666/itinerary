@@ -98,6 +98,12 @@ export class MascotBehavior {
     this.clearTaps();
   }
 
+  /** Clawd sedang bicara: hitungan diam ditahan tanpa membangunkan atau memutus rangkaian klik. */
+  keepAwake(now: number) {
+    // pamit istirahat ("Hoaam...") tidak menunda tidur
+    if (!this.resting) this.lastActivity = now;
+  }
+
   setGuiding(value: boolean, now: number) {
     this.guiding = value;
     this.activity(now);

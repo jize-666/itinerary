@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Clawd } from "@/engine/mascot/clawd";
 import { Dialogue, holdTime, TYPE, typedLength, typingTime } from "@/engine/mascot/dialogue";
-import { INTRO, MASCOT_NAME, SAY } from "@/engine/mascot/lines";
+import { GUIDE_KEY, Guide, type GuideContext, readSeen, spotAt, stillApplies, tipAt, writeSeen } from "@/engine/mascot/guide";
+import { INTRO, MASCOT_NAME, SAY, TIPS } from "@/engine/mascot/lines";
 
 /** Clawd, gelembung ucapan ala piksel (M2, arahan host 15 Nov: "perkenalan dulu, nama dia clawd", "gas m2"). */
 const u = (id: string, text: string) => ({ id, text: () => text });
@@ -152,6 +153,42 @@ describe("Clawd: perkenalan dan reaksi", () => {
     expect(SAY.wake.map((x) => x.en)).toContain(awake.speech!.text);
   });
 
+  it("selama berbicara (perkenalan panjang, petunjuk) Clawd tidak mengantuk; diam 30 dtk sesudahnya baru mengantuk", () => {
+    const c = new Clawd(0, "en");
+    c.start(0);
+    // perkenalan dibiarkan berjalan sendiri, tanpa klik
+    let t = 0;
+    for (; c.dialogue.active; t += 100) expect(c.tick(t).mood).not.toBe("sleepy");
+    c.tip("gallery", t);
+    for (; c.dialogue.active; t += 100) expect(c.tick(t).mood).not.toBe("sleepy");
+    expect(c.tick(t + 29000).mood).not.toBe("sleepy");
+    expect(c.tick(t + 31000).mood).toBe("sleepy");
+  });
+
+  it("petunjuk diantrekan sesudah perkenalan, dan bisa dibuang tanpa memotong perkenalan", () => {
+    const c = new Clawd(0, "id", true);
+    c.start(0);
+    c.tip("kayon", 10);
+    expect(c.hasTip("kayon")).toBe(true);
+    expect(c.tick(20).speech!.id).toBe("intro.0");
+    c.hushTip("kayon", 30);
+    expect(c.hasTip("kayon")).toBe(false);
+    expect(c.tick(40).speech!.id).toBe("intro.0");
+    // layar sentuh: "ketuk", bukan "klik"
+    c.tip("phrases", 50);
+    let t = 60;
+    for (; c.tick(t).speech?.id !== "tip.phrases.0"; t += 50) c.tap(t);
+    expect(c.tick(t).speech!.text).toBe("Ketuk kartu untuk membaliknya. Coba ucapkan, ya!");
+  });
+
+  it("tamu lama disapa singkat, tanpa perkenalan ulang", () => {
+    const c = new Clawd(0, "id");
+    c.start(0, true);
+    const f = c.tick(10);
+    expect(f.speech!.id).toBe("welcome.0");
+    expect(f.speech!.more).toBe(false);
+  });
+
   it("selama mengetik Clawd bergerak bicara; variasi ucapan digilir", () => {
     const c = new Clawd(0, "en");
     c.start(0);
@@ -170,5 +207,67 @@ describe("Clawd: perkenalan dan reaksi", () => {
     // sapaan selesai (2,4 dtk) tetapi kalimat perkenalan kedua masih diketik → bicara
     const typingLater = c2.tick(2600 + 1);
     expect(["talk", "greet"]).toContain(typingLater.motion);
+  });
+});
+
+describe("Clawd pemandu di film 3D (M3)", () => {
+  const at = (over: Partial<GuideContext>): GuideContext => ({ kind: "hero", beat: false, gate: "off", moving: false, sheet: false, ...over });
+
+  it("petunjuk per tempat: gunungan, tahap gong, zoom, gallery, ungkapan, gong penutup, credits", () => {
+    expect(tipAt(at({ gate: "head" }))).toBe("kayon");
+    expect(tipAt(at({ kind: "hero" }))).toBe("beat");
+    expect(tipAt(at({ kind: "title", beat: true }))).toBe("zoom");
+    expect(tipAt(at({ kind: "panel" }))).toBe("gallery");
+    expect(tipAt(at({ kind: "phrases" }))).toBe("phrases");
+    expect(tipAt(at({ kind: "gong" }))).toBe("gong");
+    expect(tipAt(at({ gate: "tail", kind: "credits" }))).toBe("credits");
+    expect(tipAt(at({ kind: "fact" }))).toBeNull();
+    expect(tipAt(at({ kind: "gong", moving: true }))).toBeNull();
+    expect(tipAt(at({ kind: "panel", sheet: true }))).toBeNull();
+  });
+
+  it("petunjuk yang tidak berlaku lagi dibuang; geser antar kartu gallery tidak membuangnya", () => {
+    expect(stillApplies("kayon", at({ gate: "head" }))).toBe(true);
+    expect(stillApplies("kayon", at({ gate: "off", moving: true }))).toBe(false);
+    expect(stillApplies("gallery", at({ kind: "panel", moving: true }))).toBe(true);
+    expect(stillApplies("beat", at({ kind: "hero", beat: true }))).toBe(false);
+    expect(stillApplies("gong", at({ kind: "gong", moving: true }))).toBe(false);
+  });
+
+  it("Clawd menghampiri gunungan dan gong yang dijelaskan; selain itu di samping layar", () => {
+    expect(spotAt(at({ gate: "head" }), null)).toBe("kayon");
+    expect(spotAt(at({ kind: "gong" }), null)).toBe("gong");
+    expect(spotAt(at({ kind: "hero" }), "beat")).toBe("gong");
+    expect(spotAt(at({ kind: "hero" }), null)).toBe("side");
+    expect(spotAt(at({ kind: "panel" }), "gallery")).toBe("side");
+    expect(spotAt(at({ kind: "gong", moving: true }), null)).toBe("side");
+  });
+
+  it("petunjuk yang tuntas diingat per perangkat; data rusak tidak menggagalkan film", () => {
+    const mem = new Map<string, string>();
+    const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v) };
+    const g = new Guide(readSeen(store));
+    expect(g.due(at({ kind: "gong" }))).toBe("gong");
+    expect(g.done("gong")).toBe(true);
+    expect(g.done("gong")).toBe(false);
+    expect(g.introDone()).toBe(true);
+    writeSeen(g.seen, store);
+    const again = new Guide(readSeen(store));
+    expect(again.seen.intro).toBe(true);
+    expect(again.due(at({ kind: "gong" }))).toBeNull();
+    expect(again.due(at({ kind: "panel" }))).toBe("gallery");
+    mem.set(GUIDE_KEY, "{rusak");
+    expect(readSeen(store)).toEqual({ intro: false, tips: [] });
+    mem.set(GUIDE_KEY, JSON.stringify({ intro: true, tips: ["gong", "bukan-petunjuk"] }));
+    expect(readSeen(store)).toEqual({ intro: true, tips: ["gong"] });
+  });
+
+  it("tiap petunjuk punya teks EN/ID; yang menyebut klik/gulir punya varian layar sentuh", () => {
+    for (const [id, lines] of Object.entries(TIPS))
+      for (const t of lines) {
+        expect(t.en && t.id, id).toBeTruthy();
+        if (/click|scroll/i.test(t.en)) expect(t.touch, `${id}: ${t.en}`).toBeDefined();
+        if (t.touch) expect(/click|scroll|klik|gulir/i.test(t.touch.en + t.touch.id), `${id} touch`).toBe(false);
+      }
   });
 });

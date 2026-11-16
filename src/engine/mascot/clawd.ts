@@ -137,6 +137,10 @@ export class Clawd {
 
   tick(now: number): ClawdFrame {
     this.clock = now;
+    // selama berbicara Clawd tidak mengantuk; selama perkenalan dan petunjuk ia tidak menyela dirinya dengan celetukan
+    this.dialogue.tick(now);
+    this.behavior.guiding = this.dialogue.has("intro.") || this.dialogue.has("welcome.") || this.dialogue.has("tip.");
+    if (this.dialogue.active) this.behavior.keepAwake(now);
     const snap = this.behavior.tick(now);
     const speech = this.dialogue.tick(now);
     if (this.introducing && !this.dialogue.active) this.introducing = false;
