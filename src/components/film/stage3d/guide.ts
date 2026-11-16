@@ -15,7 +15,7 @@ import { type PerspectiveCamera, type Scene, Vector3 } from "three";
 import { createBubble } from "@/components/mascot/bubble";
 import { langStore } from "@/engine/i18n/lang";
 import { Clawd } from "@/engine/mascot/clawd";
-import { bestSide, type Block, BLOCK_WEIGHT, Guide, type GuideContext, readSeen, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
+import { bestSide, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
 import { createMascot } from "./mascot";
 import type { Shared } from "./shared";
@@ -112,7 +112,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
   const head = new Vector3();
   const v = new Vector3();
   /** Tempat di samping yang dipilih untuk slide ini (NDC) dan kunci pengukurannya (slide + ukuran layar). */
-  let side: readonly [number, number] | null = null;
+  let side: readonly [number, number, BubbleSide] | null = null;
   let sideKey = "";
   let settledAt = 0;
   let lastSlide = "";
@@ -170,6 +170,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       const tall = camera.aspect < 1;
       const spot = spotAt(ctx, brain.tipShown(speech));
       let d = NEAR;
+      let bubbleSide: BubbleSide = "above";
       if (spot === "gong") {
         // di samping gong, sedikit di depannya
         v.copy(f.gong).project(camera);
@@ -198,6 +199,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
         }
         const [x, y] = side ?? (tall ? [0.62, -0.63] : [0.76, -0.5]);
         fromNdc(camera, x, y, d, goal);
+        bubbleSide = side?.[2] ?? "above";
       }
       if (!placed) {
         local.copy(goal);
@@ -233,13 +235,19 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       const w = el.clientWidth;
       const h = el.clientHeight;
       const box = el.getBoundingClientRect();
-      head.set(0, 0.95 + 0.4, 0).applyMatrix4(rig.character.bodyRig.matrixWorld).project(camera);
-      bubble?.render(ctx.sheet ? null : speech, box.left + ((head.x + 1) / 2) * w, box.top + ((1 - head.y) / 2) * h);
+      v.copy(world).project(camera);
+      const px = (size / (2 * -local.z * tv)) * h;
+      const cx = ((v.x + 1) / 2) * w;
+      const cy = ((1 - v.y) / 2) * h;
+      if (bubbleSide === "above") {
+        head.set(0, 0.95 + 0.4, 0).applyMatrix4(rig.character.bodyRig.matrixWorld).project(camera);
+        bubble?.render(ctx.sheet ? null : speech, box.left + ((head.x + 1) / 2) * w, box.top + ((1 - head.y) / 2) * h, "above");
+      } else {
+        // di samping: ekor menunjuk sisi badan, sedikit di luar lengan
+        const edge = px * 0.95 * (bubbleSide === "right" ? 1 : -1);
+        bubble?.render(ctx.sheet ? null : speech, box.left + cx + edge, box.top + cy, bubbleSide);
+      }
       if (hit) {
-        v.copy(world).project(camera);
-        const px = (size / (2 * -local.z * tv)) * h;
-        const cx = ((v.x + 1) / 2) * w;
-        const cy = ((1 - v.y) / 2) * h;
         hit.style.width = hit.style.height = `${Math.round(px * 1.3)}px`;
         hit.style.transform = `translate(${(cx - px * 0.65).toFixed(1)}px, ${(cy - px * 0.6).toFixed(1)}px)`;
       }

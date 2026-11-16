@@ -122,19 +122,30 @@ export type Block = Readonly<{ x: number; y: number; w: number; h: number; weigh
 /** Bobot: tombol/tautan jangan ditutupi (bisa mencuri ketukan), teks lebih penting dari kartu latar. */
 export const BLOCK_WEIGHT = { control: 12, text: 4, card: 1 } as const;
 
-/** Calon tempat Clawd (NDC), urut dari yang paling disukai (kanan bawah). */
-export const SIDE_CANDIDATES: readonly (readonly [number, number])[] = [
-  [0.76, -0.5],
-  [0.62, -0.63],
-  [0.76, -0.3],
-  [-0.76, -0.5],
-  [-0.62, -0.63],
-  [0.76, -0.1],
-  [-0.76, -0.3],
-  [0.45, -0.72],
-  [-0.45, -0.72],
-  [0.76, 0.15],
-  [-0.76, 0.15],
+/** Letak gelembung terhadap Clawd: di atas kepala, atau di samping kanan/kiri badannya. */
+export type BubbleSide = "above" | "right" | "left";
+
+/**
+ * Calon tempat Clawd (NDC) dan letak gelembungnya, urut dari yang paling disukai (kanan bawah). Yang terakhir untuk
+ * layar tegak yang hampir penuh kartu (gallery di HP): Clawd di pita antara chrome atas dan kartu, gelembung di
+ * sampingnya.
+ */
+export const SIDE_CANDIDATES: readonly (readonly [number, number, BubbleSide])[] = [
+  [0.76, -0.5, "above"],
+  [0.62, -0.63, "above"],
+  [0.76, -0.3, "above"],
+  [-0.76, -0.5, "above"],
+  [-0.62, -0.63, "above"],
+  [0.76, -0.1, "above"],
+  [-0.76, -0.3, "above"],
+  [0.45, -0.72, "above"],
+  [-0.45, -0.72, "above"],
+  [0.76, 0.15, "above"],
+  [-0.76, 0.15, "above"],
+  [-0.66, 0.64, "right"],
+  [0.66, 0.64, "left"],
+  [-0.66, 0.56, "right"],
+  [0.66, 0.56, "left"],
 ];
 
 const overlap = (a: Block, x: number, y: number, w: number, h: number) =>
@@ -144,7 +155,7 @@ const overlap = (a: Block, x: number, y: number, w: number, h: number) =>
  * Tempat di samping yang paling sedikit menutupi isi layar. Clawd berukuran `body` px (tinggi badan), gelembungnya
  * kira-kira `bubble` px di atas kepalanya. Calon yang keluar layar dibuang. Seri: calon yang lebih awal (lebih disukai).
  */
-export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number; h: number }>, body: number, bubble: Readonly<{ w: number; h: number }>, candidates = SIDE_CANDIDATES): readonly [number, number] {
+export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number; h: number }>, body: number, bubble: Readonly<{ w: number; h: number }>, candidates = SIDE_CANDIDATES): readonly [number, number, BubbleSide] {
   let best = candidates[0]!;
   let bestCost = Infinity;
   for (const c of candidates) {
@@ -156,10 +167,12 @@ export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number;
     const bx = cx - bw / 2;
     const by = cy - body * 0.55;
     if (bx < 0 || bx + bw > screen.w || by < 0 || by + bh > screen.h) continue;
-    // gelembung di atas kepala, digeser masuk layar seperti bubble.ts
-    const gw = Math.min(bubble.w, screen.w - 24);
-    const gx = Math.max(12, Math.min(screen.w - 12 - gw, cx - gw / 2));
-    const gy = by - bubble.h - 8;
+    // gelembung di atas kepala atau di samping badan, digeser masuk layar seperti bubble.ts
+    const above = c[2] === "above";
+    const gw = Math.min(bubble.w, above ? screen.w - 24 : c[2] === "right" ? screen.w - 12 - (bx + bw + 8) : bx - 8 - 12);
+    if (gw < bubble.w * 0.7) continue;
+    const gx = above ? Math.max(12, Math.min(screen.w - 12 - gw, cx - gw / 2)) : c[2] === "right" ? bx + bw + 8 : bx - 8 - gw;
+    const gy = above ? by - bubble.h - 8 : Math.max(12, Math.min(screen.h - 12 - bubble.h, cy - bubble.h / 2));
     let cost = gy < 0 ? 1e9 : 0;
     for (const b of blocks) cost += b.weight * (overlap(b, bx, by, bw, bh) + 0.6 * overlap(b, gx, gy, gw, bubble.h));
     if (cost < bestCost - 1) {

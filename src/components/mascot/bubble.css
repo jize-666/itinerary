@@ -102,11 +102,26 @@
 
 .cb-tail {
   position: absolute;
+  left: var(--tail-x, 50%);
   top: calc(100% - var(--px) * 2);
   width: calc(var(--px) * 9);
   height: calc(var(--px) * 5);
   margin-left: calc(var(--px) * -4.5);
   pointer-events: none;
+}
+/* gelembung di samping Clawd: ekor diputar menunjuk badannya, menumpang dua piksel di tepi kotak seperti di bawah */
+.clawd-bubble[data-side="right"] .cb-tail,
+.clawd-bubble[data-side="left"] .cb-tail {
+  top: var(--tail-y, 50%);
+  margin-top: calc(var(--px) * -2.5);
+}
+.clawd-bubble[data-side="right"] .cb-tail {
+  left: calc(var(--px) * -0.5);
+  transform: rotate(90deg);
+}
+.clawd-bubble[data-side="left"] .cb-tail {
+  left: calc(100% + var(--px) * 0.5);
+  transform: rotate(-90deg);
 }
 .cb-tail svg,
 .cb-next svg {

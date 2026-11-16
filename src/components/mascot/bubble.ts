@@ -10,6 +10,7 @@
  */
 import "./bubble.css";
 import type { SpeechFrame } from "@/engine/mascot/dialogue";
+import type { BubbleSide } from "@/engine/mascot/guide";
 import { MASCOT_NAME } from "@/engine/mascot/lines";
 
 /** Ekor bertangga 9 × 5 piksel: ungu di tepi miring, gelap di dalam; baris pertama menutup garis bawah kotak. */
@@ -73,10 +74,10 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
   return {
     el,
     /**
-     * Gambar satu frame. `x`, `y` = titik di atas kepala Clawd di layar (px CSS), tempat ujung ekor menunjuk.
-     * `frame` null = gelembung disembunyikan.
+     * Gambar satu frame. `x`, `y` = titik di layar (px CSS) yang ditunjuk ujung ekor: di atas kepala Clawd
+     * (`side` "above"), atau di sisi badannya (gelembung di kanan/kiri Clawd). `frame` null = gelembung disembunyikan.
      */
-    render(frame: SpeechFrame | null, x: number, y: number) {
+    render(frame: SpeechFrame | null, x: number, y: number, side: BubbleSide = "above") {
       if (!frame) {
         if (el.hasAttribute("data-on")) {
           el.removeAttribute("data-on");
@@ -112,10 +113,16 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
       el.toggleAttribute("data-more", frame.more && !frame.typing);
       el.style.opacity = String(frame.fade);
 
-      // letak: di atas kepala, tetap di dalam layar; diikuti dengan pelan supaya tidak gemetar ikut ayunan badan
+      // letak: di atas kepala atau di samping badan, tetap di dalam layar
+      if (el.dataset.side !== side) {
+        el.dataset.side = side;
+        placed = false;
+      }
       const vw = document.documentElement.clientWidth;
-      const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, x - width / 2));
-      const goalY = Math.max(MARGIN, y - height - drop);
+      const vh = document.documentElement.clientHeight;
+      const above = side === "above";
+      const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, above ? x - width / 2 : side === "right" ? x + drop : x - drop - width));
+      const goalY = above ? Math.max(MARGIN, y - height - drop) : Math.max(MARGIN, Math.min(vh - MARGIN - height, y - height / 2));
       // diam selama Clawd hanya melayang (ayunan kecil): teks lebih mudah dibaca dan diketuk; menyusul bila ia pindah
       const far = Math.hypot(goalX - px, goalY - py);
       const k = !placed ? 1 : far > DEADZONE ? 0.25 : 0;
@@ -123,7 +130,8 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
       py += (goalY - py) * k;
       placed = true;
       el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0)`;
-      tail.style.left = `${Math.max(18, Math.min(width - 18, x - px)).toFixed(1)}px`;
+      if (above) el.style.setProperty("--tail-x", `${Math.max(18, Math.min(width - 18, x - px)).toFixed(1)}px`);
+      else el.style.setProperty("--tail-y", `${Math.max(14, Math.min(height - 14, y - py)).toFixed(1)}px`);
     },
     dispose() {
       el.removeEventListener("click", onClick);

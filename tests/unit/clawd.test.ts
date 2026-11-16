@@ -294,9 +294,23 @@ describe("tempat Clawd di samping: tidak menutupi tombol dan teks", () => {
 
   it("calon yang membuat gelembung keluar layar atas tidak dipilih", () => {
     const pick = bestSide([], { w: 390, h: 400 }, 74, bubble, [
-      [0.5, 0.6],
-      [0.5, -0.6],
+      [0.5, 0.6, "above"],
+      [0.5, -0.6, "above"],
     ]);
-    expect(pick).toEqual([0.5, -0.6]);
+    expect(pick).toEqual([0.5, -0.6, "above"]);
+  });
+
+  it("HP penuh kartu (gallery): Clawd ke pita atas dengan gelembung di sampingnya, bukan menutupi tombol", () => {
+    // kartu dari 195 sampai 670, tombolnya di bawah kartu, teks di tengah; label hari di pita atas
+    const blocks = [
+      { x: 30, y: 195, w: 360, h: 475, weight: BLOCK_WEIGHT.card },
+      { x: 50, y: 330, w: 300, h: 160, weight: BLOCK_WEIGHT.text },
+      { x: 50, y: 590, w: 220, h: 50, weight: BLOCK_WEIGHT.control },
+      { x: 120, y: 100, w: 160, h: 20, weight: BLOCK_WEIGHT.text },
+      { x: 0, y: 760, w: 393, h: 40, weight: BLOCK_WEIGHT.control },
+    ];
+    const pick = bestSide(blocks, { w: 393, h: 852 }, 75, bubble);
+    expect(pick[1]).toBeGreaterThan(0.4);
+    expect(pick[2]).not.toBe("above");
   });
 });
