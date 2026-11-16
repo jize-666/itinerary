@@ -13,7 +13,7 @@ import type { Lang } from "@/engine/i18n/lang";
 import { MascotBehavior } from "./behavior";
 import { Dialogue, type SpeechFrame, type Utterance } from "./dialogue";
 import type { Mood } from "./face";
-import { INTRO, SAY, type SpeechKey, textOf } from "./lines";
+import { INTRO, SAY, type SpeechKey, type Text, TIPS, type TipId, textOf, WELCOME_BACK } from "./lines";
 import type { Motion } from "./pose";
 
 export type ClawdFrame = Readonly<{
@@ -32,14 +32,17 @@ export class Clawd {
   readonly behavior: MascotBehavior;
   readonly dialogue = new Dialogue();
   lang: Lang;
+  /** Layar sentuh: ucapan memakai "ketuk"/"geser" alih-alih "klik"/"gulir". */
+  touch: boolean;
   introducing = false;
   private clock = 0;
   private turns: Partial<Record<SpeechKey, number>> = {};
   private talkSince = 0;
   private talking = false;
 
-  constructor(now: number, lang: Lang) {
+  constructor(now: number, lang: Lang, touch = false) {
     this.lang = lang;
+    this.touch = touch;
     this.clock = now;
     this.behavior = new MascotBehavior(now, { onSpeech: (line) => this.speak(line), onRest: () => this.speak("rest") });
   }
@@ -50,16 +53,50 @@ export class Clawd {
     const n = this.turns[key] ?? 0;
     this.turns[key] = n + 1;
     const text = options[n % options.length]!;
-    this.dialogue.say([{ id: `${key}.${n % options.length}`, text: () => textOf(text, this.lang) }], this.clock, true);
+    this.dialogue.say([this.line(`${key}.${n % options.length}`, text)], this.clock, true);
   }
 
-  /** Muncul pertama kali: menyapa dan memperkenalkan diri. */
-  start(now: number) {
+  private line(id: string, t: Text): Utterance {
+    return { id, text: () => textOf(t, this.lang, this.touch) };
+  }
+
+  /**
+   * Muncul: menyapa. Tamu baru diperkenalkan (`INTRO`); tamu yang sudah berkenalan di perangkat ini cukup disapa
+   * singkat (`WELCOME_BACK`).
+   */
+  start(now: number, returning = false) {
     this.clock = now;
     this.behavior.greet(now);
-    const lines: Utterance[] = INTRO.map((t, i) => ({ id: `intro.${i}`, text: () => textOf(t, this.lang) }));
+    const lines = (returning ? WELCOME_BACK : INTRO).map((t, i) => this.line(`${returning ? "welcome" : "intro"}.${i}`, t));
     this.dialogue.say(lines, now, true);
     this.introducing = true;
+  }
+
+  /** Petunjuk pemandu: diantrekan sesudah yang sedang diucapkan (perkenalan tidak dipotong). */
+  tip(id: TipId, now: number) {
+    this.clock = now;
+    this.behavior.activity(now);
+    this.dialogue.say(
+      TIPS[id].map((t, i) => this.line(`tip.${id}.${i}`, t)),
+      now,
+    );
+  }
+
+  /** Petunjuk yang sedang diucapkan atau menunggu giliran (null bila bukan petunjuk). */
+  tipShown(frame: SpeechFrame | null): TipId | null {
+    const m = frame?.id.match(/^tip\.([a-z]+)\./);
+    return m ? (m[1] as TipId) : null;
+  }
+
+  /** Petunjuk `id` sedang diucapkan atau menunggu giliran. */
+  hasTip(id: TipId) {
+    return this.dialogue.has(`tip.${id}.`);
+  }
+
+  /** Petunjuk tidak berlaku lagi (tamu sudah pindah tempat): kalimatnya dibuang, ucapan lain tetap. */
+  hushTip(id: TipId, now: number) {
+    this.clock = now;
+    this.dialogue.drop(`tip.${id}.`, now);
   }
 
   /** Ketukan pada Clawd atau gelembungnya. */

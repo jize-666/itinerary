@@ -97,6 +97,13 @@ const DEPTH_FRAG = /* glsl */ `
 varying float vDist;
 void main() { gl_FragColor = vec4(vDist, 0.0, 0.0, 1.0); }`;
 
+/* Benda yang selalu tajam: jaraknya ditulis sama dengan jarak fokus. */
+const SHARP_VERT = /* glsl */ `
+void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+const SHARP_FRAG = /* glsl */ `
+uniform float uFocus;
+void main() { gl_FragColor = vec4(uFocus, 0.0, 0.0, 1.0); }`;
+
 /** Jarak yang dipakai untuk piksel tanpa tanah (langit): sejauh tepi lanskap. */
 const FAR = 2000;
 
@@ -201,6 +208,8 @@ export class StagePost {
   private depth: WebGLRenderTarget | null = null;
   private dofChain: WebGLRenderTarget[] = [];
   private depthOf: Object3D | null = null;
+  private sharpOf: Object3D | null = null;
+  private readonly sharpMat: ShaderMaterial;
   private readonly far = new Color(FAR, 0, 0);
   private readonly keep = new Color();
 
@@ -220,6 +229,7 @@ export class StagePost {
     this.up = mat(UP, { tSrc: { value: null }, uTexel: { value: new Vector2() } }, true);
     this.copy = mat(UP, { tSrc: { value: null }, uTexel: { value: new Vector2() } });
     this.depthMat = new ShaderMaterial({ vertexShader: DEPTH_VERT, fragmentShader: DEPTH_FRAG });
+    this.sharpMat = new ShaderMaterial({ vertexShader: SHARP_VERT, fragmentShader: SHARP_FRAG, uniforms: { uFocus: { value: 1 } } });
     this.final = mat(FINAL, {
       tScene: { value: null },
       tBloom: { value: null },
@@ -259,6 +269,14 @@ export class StagePost {
     this.depthOf = obj;
   }
 
+  /**
+   * Benda yang selalu tajam di depth of field (Clawd): di pass kedalaman digambar dengan jarak = jarak fokus, jadi
+   * lingkar kaburnya nol, berapa pun jaraknya dari kamera.
+   */
+  setSharp(obj: Object3D | null) {
+    this.sharpOf = obj;
+  }
+
   /** Depth of field digambar pada frame terakhir (dibaca statistik panggung dan e2e). */
   dofDrawn = false;
 
@@ -294,7 +312,7 @@ export class StagePost {
   }
 
   /** Pass kedalaman: hanya `depthOf`, dengan bahan jarak; piksel tanpa tanah = FAR. */
-  private renderDepth(camera: Camera) {
+  private renderDepth(camera: Camera, focus: number) {
     const gl = this.gl;
     const obj = this.depthOf as Mesh;
     const before = obj.material;
@@ -306,6 +324,20 @@ export class StagePost {
     gl.clear(true, true, false);
     gl.render(obj, camera);
     obj.material = before;
+    const sharp = this.sharpOf;
+    if (sharp?.visible) {
+      this.sharpMat.uniforms.uFocus!.value = focus;
+      const swapped: [Mesh, Mesh["material"]][] = [];
+      sharp.traverseVisible((o) => {
+        if ((o as Mesh).isMesh) {
+          const m = o as Mesh;
+          swapped.push([m, m.material]);
+          m.material = this.sharpMat;
+        }
+      });
+      gl.render(sharp, camera);
+      for (const [m, mat] of swapped) m.material = mat;
+    }
     gl.setClearColor(this.keep, alpha);
   }
 
@@ -341,7 +373,7 @@ export class StagePost {
 
     gl.autoClear = false;
     if (dof) {
-      this.renderDepth(camera);
+      this.renderDepth(camera, dof.focus);
       this.blurScene();
     }
     this.dofDrawn = dof !== null;
@@ -385,6 +417,7 @@ export class StagePost {
     for (const m of this.dofChain) m.dispose();
     this.copy.dispose();
     this.depthMat.dispose();
+    this.sharpMat.dispose();
     this.tri.geometry.dispose();
     this.end.removeFromParent();
     this.end.geometry.dispose();

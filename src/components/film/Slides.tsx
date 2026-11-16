@@ -224,7 +224,7 @@ function Phrases({ slide }: Ctx) {
           </li>
         ))}
       </ul>
-      <Rise className="fs-fine" delay={900}>
+      <Rise className="fs-fine fs-phrases-hint" delay={900}>
         {t("film.phrasesHint")}
       </Rise>
     </div>

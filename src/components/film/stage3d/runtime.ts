@@ -23,6 +23,7 @@ import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
 import { createGong } from "./gong";
 import { createGunungan } from "./gunungan";
+import { createStageGuide } from "./guide";
 import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
 import { createShared } from "./shared";
@@ -134,6 +135,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   // tombol pukul di lapisan DOM memicu gong lewat bus
   const unbindGong = stageBus.bindGong((kick) => gong.strike(clock, kick));
   const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
+  // Clawd, maskot pemandu (M3): menyapa, memperkenalkan diri, dan menjelaskan fitur 3D di dekat objeknya
+  const clawd = createStageGuide({ shared, scene, host: root, touch: isMobile() });
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
   // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,
   // gerbang boleh tampil dan memudar masuk
@@ -157,6 +160,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const post = new StagePost(gl, spec);
   // depth of field: kedalaman diambil dari tanah lanskap saja (satu draw call di target kecil)
   post.setDepthSource(terrain.mesh);
+  // Clawd selalu tajam: di pass kedalaman ia digambar tepat di jarak fokus
+  post.setSharp(clawd.rig.root);
   gl.info.autoReset = false;
 
   let frame: Frame = { aspect: 16 / 9 };
@@ -325,6 +330,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.lookAt(look.set(forced[3]!, forced[4]!, forced[5]!));
     }
     camera.updateMatrixWorld();
+    clawd.update({ camera, t, dt, moving: cue.moving, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE });
 
     // slide gong, judul hari, hero: letak gong di layar ditulis ke lapisan DOM tiap frame (bidang sentuh tombol pukul
     // di slide gong, arah huruf yang tersedot di judul), teks memudar saat gong didekati atau dikitari, dan cubit di
@@ -385,6 +391,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     dust.setPixel(pixel);
     village.setPixel(pixel);
     gong.setPixel(pixel);
+    clawd.setPixel(pixel);
     gl.info.reset();
     // depth of field (tier High, gallery): fokus dekat (bidang kartu) saat diam, ditarik jauh ke lanskap selama
     // geseran di dalam gallery mengikuti kemajuan gulir, lalu kembali saat kartu tiba
@@ -453,7 +460,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const now = performance.now();
     const zoomGoal = stageBus.zoomHere() ? stageBus.gongZoom() : 0;
     const orbitGoal = stageBus.zoomHere() ? stageBus.orbitGoal() : 0;
-    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || Math.abs(orbitNow - orbitGoal) > 0.01 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1);
+    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || Math.abs(orbitNow - orbitGoal) > 0.01 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1) || clawd.busy();
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -504,6 +511,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     blencong.dispose();
     gong.dispose();
     gunungan.dispose();
+    clawd.dispose();
     dust.dispose();
     village.dispose();
     post.dispose();

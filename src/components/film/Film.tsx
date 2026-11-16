@@ -495,7 +495,8 @@ function Stage({ data }: { data: TripView }) {
       </div>
       <div className="fl-chrome">
         <Corner calm={calm} onCalm={onCalm} />
-        <Hint shown={(hint || gateShut) && view.index === 0 && !view.moving && !view.beat} kayon={gate.phase === "head"} />
+        {/* petunjuk lama hanya untuk film 2,5D; di panggung 3D Clawd yang memandu (arahan host 16 Nov) */}
+        {stage === "off" && <Hint shown={(hint || gateShut) && view.index === 0 && !view.moving && !view.beat} kayon={gate.phase === "head"} />}
         <Rail film={film} index={view.index} onJump={onJump} />
       </div>
       <p className="sr-only" role="status" aria-live="polite">

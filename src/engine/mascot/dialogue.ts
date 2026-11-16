@@ -99,6 +99,17 @@ export class Dialogue {
     if (!this.current) this.next(now);
   }
 
+  /** Ada kalimat (tampil atau menunggu) yang kuncinya diawali `prefix`. */
+  has(prefix: string) {
+    return !!this.current?.id.startsWith(prefix) || this.queue.some((u) => u.id.startsWith(prefix));
+  }
+
+  /** Buang kalimat yang kuncinya diawali `prefix`; bila sedang tampil, langsung lanjut ke kalimat berikutnya. */
+  drop(prefix: string, now: number) {
+    this.queue = this.queue.filter((u) => !u.id.startsWith(prefix));
+    if (this.current?.id.startsWith(prefix)) this.next(now);
+  }
+
   clear() {
     this.queue = [];
     this.current = null;
