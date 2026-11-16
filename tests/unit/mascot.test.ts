@@ -29,6 +29,18 @@ describe("perilaku maskot: klik, spam, diam", () => {
     expect(said).toContain("love");
   });
 
+  it("sudah senang: klik pelan berikutnya tidak mengulang ucapan senang, hanya menuju sayang", () => {
+    const said: string[] = [];
+    const b = new MascotBehavior(0, { onSpeech: (l) => said.push(l) });
+    [0, 600, 1200].forEach((t) => b.tap(t));
+    b.tick(1600);
+    [1800, 2400].forEach((t) => b.tap(t));
+    b.tick(2800);
+    expect(said.filter((l) => l === "happy")).toHaveLength(1);
+    b.tap(3000);
+    expect(b.tick(3400).mood).toBe("love");
+  });
+
   it("spam lima klik → marah (mengalahkan senang), habis sesudah 6 dtk, dan tidak bisa marah lagi selama jeda", () => {
     const said: string[] = [];
     const b = new MascotBehavior(0, { onSpeech: (l) => said.push(l) });

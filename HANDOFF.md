@@ -135,7 +135,20 @@ Tafsir Claude:
 - Reaksi klik dari `behavior.ts` (sapa, senang, sayang, marah, tenang, bangun, gong) ikut tertulis di gelembung.
 - Pratinjau M2 direkam tegak **9:16**.
 
-Sedang dikerjakan.
+**M2 (gelembung ucapan Clawd): selesai 16 Nov** (rincian: `docs/design/decisions.md` bagian "Clawd: gelembung ucapan piksel dan perkenalan"). Belum disambungkan ke film (itu M3).
+
+1. Yang selesai:
+   - `engine/mascot/lines.ts`: ucapan Clawd EN/ID (perkenalan 4 kalimat + reaksi bervariasi).
+   - `engine/mascot/dialogue.ts`: antrean kalimat, efek ketik dengan jeda tanda baca, waktu baca, ketukan melengkapi/memajukan.
+   - `engine/mascot/clawd.ts`: otak yang menyatukan perilaku klik dan dialog; selama perkenalan ketukan memajukan kalimat.
+   - `components/mascot/bubble.ts` + `bubble.css`: gelembung ala tooltip Minecraft dengan huruf Pixelify Sans (dependensi baru `@fontsource/pixelify-sans` 5.3.0, dipin).
+   - `behavior.ts`: saat sudah senang, klik pelan tidak mengulang ucapan senang; jam emosi diselesaikan sebelum ketukan dihitung (bug yang ketemu lewat tes).
+   - Catatan sesi: worker sesi sempat dimulai ulang di tengah M2. Berkas yang belum di-commit selamat, dan sejak itu tiap langkah langsung di-commit.
+2. Tes:
+   - lint dan typecheck bersih; unit 397 lulus, termasuk `tests/unit/clawd.test.ts` (12 tes: efek ketik, antrean, ketukan, sela, ganti bahasa di tengah kalimat, nama Clawd, ucapan EN/ID tanpa emoji, perkenalan, klik saat perkenalan tidak membuat marah, senang/marah/mengantuk/bangun dengan ucapan, variasi digilir).
+   - Pratinjau 9:16 (810 × 1440, tampilan HP 405 × 720 @2x) dikirim ke host di chat (bukan di repo).
+   - e2e tidak dijalankan: belum ada perubahan di jalur halaman.
+3. Berikutnya: tunggu tinjauan host atas video 9:16. Bila oke: M3 (Clawd sebagai pemandu di film 3D: muncul di prolog, perkenalan, terbang menghampiri objek 3D, menjelaskan gong dan fitur kamera).
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 

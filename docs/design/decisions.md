@@ -471,6 +471,27 @@ Belum disambungkan ke film; menunggu tinjauan host.
 - **Gerak dikurangi:** pose diam, tanpa jeli, tanpa kedip (brief kit).
 - **Cahaya:** material kit MeshStandardMaterial diberi lampu three sendiri yang mengikuti uniform panggung tiap frame; tidak menyentuh material panggung lain.
 
+## Clawd: gelembung ucapan piksel dan perkenalan (M2, 15–16 Nov 2026), arahan host: "teks bubble nya? perkenalan dulu, nama dia clawd", "nanti kalo preview yang ini, record di 9:16 ya", "gas m2"; sebelumnya "chat ui 💬 ala ala pixel, maincraft"
+
+Belum disambungkan ke film (itu M3).
+
+- **Nama dan ucapan:** maskot bernama Clawd. Ucapannya di `engine/mascot/lines.ts`, dua bahasa mengikuti sakelar EN | ID, tanpa emoji supaya tetap tergambar dengan huruf piksel. Perkenalan empat kalimat; reaksi (klik, senang, sayang, marah, tenang, mulai mengantuk, bangun, gong) punya variasi yang digilir.
+- **Gelembung** (`components/mascot/bubble.ts` + `.css`): gaya tooltip Minecraft.
+  - Kotak ungu-hitam dengan sudut bertakik satu piksel dan garis dalam ungu bergradasi.
+  - Nama "Clawd" kuning, teks putih berbayang keras, huruf Pixelify Sans (Fontsource, dimuat hanya bersama gelembung).
+  - Ekor bertangga yang membuka garis bawah kotak, tanda lanjut ▼ berkedip, dan muncul bertangga (`steps`).
+  - Gelembung imperatif (bukan komponen React) karena letaknya mengikuti kepala Clawd tiap frame. Tetap di dalam layar; ekornya bergeser supaya tetap menunjuk kepala.
+- **Efek ketik** (`engine/mascot/dialogue.ts`):
+  - 34 huruf/dtk, jeda sesudah tanda baca, lalu waktu baca dan lanjut sendiri;
+  - ketukan melengkapi kalimat yang sedang diketik, lalu ketukan berikutnya pindah kalimat;
+  - sisa kalimat ikut ditata secara transparan, jadi gelembung tidak melebar huruf demi huruf;
+  - pembaca layar mendapat kalimat utuh sekali (wilayah `aria-live` terpisah); gerak dikurangi = kalimat langsung utuh, tanpa animasi.
+- **Otak** (`engine/mascot/clawd.ts`):
+  - perilaku klik + dialog;
+  - selama perkenalan, ketukan memajukan kalimat dan tidak dihitung sebagai klik (tamu yang tidak sabar tidak membuat Clawd marah);
+  - selama mengetik Clawd bergerak "bicara".
+- **Perbaikan perilaku:** saat sudah senang, klik pelan berikutnya tidak mengulang ucapan senang (gelembung tidak berganti-ganti), hanya menuju "sayang". Jam emosi yang sudah lewat diselesaikan dulu sebelum ketukan dihitung.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

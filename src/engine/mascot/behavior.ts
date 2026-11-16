@@ -133,6 +133,7 @@ export class MascotBehavior {
 
   /** Satu klik/ketuk sah pada maskot. */
   tap(now: number) {
+    if (this.hiddenAt === null) this.settle(now);
     const asleep = this.mood === "sleepy" || this.mood === "sleeping";
     this.activity(now);
     if (asleep) {
@@ -158,7 +159,8 @@ export class MascotBehavior {
     if (this.gentle.length >= MASCOT.loveAfter) {
       this.happyAt = now + MASCOT.arbitration;
       this.happyMood = "love";
-    } else if (this.gentle.length >= MASCOT.happyAfter && this.mood !== "love") {
+    } else if (this.gentle.length >= MASCOT.happyAfter && this.mood !== "love" && this.mood !== "happy") {
+      // sudah senang: klik pelan berikutnya hanya menambah hitungan menuju "sayang", tidak mengulang ucapan senang
       this.happyAt = now + MASCOT.arbitration;
       this.happyMood = "happy";
     } else if (this.mood === "neutral") {
@@ -195,8 +197,8 @@ export class MascotBehavior {
     }
   }
 
-  tick(now: number): Snapshot {
-    if (this.hiddenAt !== null) return this.snapshot(this.hiddenAt);
+  /** Jalankan jam emosi yang sudah jatuh tempo (senang tertunda, akhir suasana hati). */
+  private settle(now: number) {
     if (now >= this.happyAt) {
       const mood = this.happyMood;
       this.happyAt = Infinity;
@@ -216,6 +218,11 @@ export class MascotBehavior {
         this.moodUntil = Infinity;
       }
     }
+  }
+
+  tick(now: number): Snapshot {
+    if (this.hiddenAt !== null) return this.snapshot(this.hiddenAt);
+    this.settle(now);
     const idle = now - this.lastActivity;
     if (!this.guiding && idle >= MASCOT.sleepyAfter && this.mood !== "angry") {
       if (!this.resting) {
