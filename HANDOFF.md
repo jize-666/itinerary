@@ -161,6 +161,28 @@ Yang tetap dipertahankan karena tidak tampil di layar dan dipakai pembaca layar 
 
 Penghapusannya dilakukan bersamaan dengan Clawd mulai memandu (bukan lebih dulu), supaya tamu tidak sempat kehilangan petunjuk.
 
+**M3 (Clawd memandu di film 3D): kode selesai 16 Nov** (rincian: `docs/design/decisions.md` bagian "Clawd memandu di film 3D").
+
+1. Yang selesai:
+   - `engine/mascot/guide.ts`: petunjuk per tempat, tempat Clawd, petunjuk yang sudah tuntas diingat per perangkat (`lakon.clawd`), dan `bestSide` (tempat di samping yang paling sedikit menutupi tombol/teks/kartu).
+   - `stage3d/guide.ts`: Clawd di panggung (ruang kamera; dekat gunungan, dekat gong, atau di samping), gelembung, dan tombol klik `Clawd`.
+   - `stage3d/claude-batch.ts`: karakter kit digambar berkelompok, ±13 → 6 draw call. Prolog tier Low 24 draw call (anggaran tes 26), segitiga 54 ribu.
+   - Clawd tampil di depan kelir/gunungan (renderOrder sesudahnya) dan selalu tajam di depth of field.
+   - Petunjuk lama tidak tampil di film 3D; di film 2,5D masih tampil sampai M4.
+   - Perbaikan yang ketemu saat menguji:
+     - Clawd tidak terlihat di gerbang (tertutup kelir);
+     - mengantuk di tengah perkenalan;
+     - warna kusam di adegan malam;
+     - gelembung menutupi tombol kartu gallery di HP;
+     - gelembung tertinggal di frame lambat.
+   - Perekam: `record-film.cjs` punya perangkat `hp916` (HP tegak 1080 × 1920) dan tur `clawd`.
+2. Tes:
+   - lint dan typecheck bersih; unit 409 lulus.
+   - e2e Clawd 8/8 lulus (desktop + iPhone): perkenalan bersama gunungan, petunjuk lama tidak ada, klik memajukan kalimat tanpa memindah slide, tamu lama disapa singkat, spam = marah, dan di gallery Clawd serta gelembungnya tidak menutupi tombol kartu.
+   - e2e penuh (310) sedang berjalan.
+   - Catatan build: Next.js menghentikan build dengan peringatan keamanan (GHSA-mfr8-8qww-v76h, moderate; 16.3.0–16.4.4 terdampak, perbaikan 16.4.5; repo memakai 16.4.3). Muncul karena sesi terdeteksi sebagai agen; diulang lalu lulus. Naik versi ditawarkan ke host, belum dikerjakan.
+3. Berikutnya: hasil e2e penuh; rekam video desktop dan HP 9:16 (tur `clawd`, data trip April) dan kirim ke host; perbarui deskripsi PR #12. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju.
+
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
 **Yang selesai** (rincian keputusan: `docs/design/decisions.md`, bagian "Gong ditabuh di slide judul hari dan hero prolog" dan "Gallery 3D: letak Z dan depth of field"):

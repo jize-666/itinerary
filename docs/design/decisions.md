@@ -492,6 +492,35 @@ Belum disambungkan ke film (itu M3).
   - selama mengetik Clawd bergerak "bicara".
 - **Perbaikan perilaku:** saat sudah senang, klik pelan berikutnya tidak mengulang ucapan senang (gelembung tidak berganti-ganti), hanya menuju "sayang". Jam emosi yang sudah lewat diselesaikan dulu sebelum ketukan dihitung.
 
+## Clawd memandu di film 3D (M3, 16 Nov 2026), arahan host 15 Nov: "peranmu sebagai pemandu, memberi tahu fitur fitur 3D sambil mengampiri objek 3D nya, menyapa client, menjelaskan alur"; 16 Nov: "jangan lupa untuk menghapus semua text pemandu yang lama, seperti \"click the gong\" dll."
+
+- **Kapan muncul:** di panggung 3D, begitu gunungan pembuka tampil (atau sejak awal bila film dibuka tanpa gerbang). Tamu baru diperkenalkan (empat kalimat), tamu yang sudah berkenalan di perangkat ini disapa singkat ("Halo lagi! Clawd di sini.").
+- **Petunjuk** (`engine/mascot/guide.ts`, teks di `lines.ts`):
+  - gunungan pembuka (balik/cabut), tahap gong di hero dan judul hari, zoom dan kitar gong, gallery (geser, "Ceritanya"), ungkapan Jawa (balik kartu), gong penutup hari (pukul), dan penutup (terima kasih);
+  - tiap petunjuk punya varian layar sentuh ("ketuk", "geser", "cubit");
+  - diucapkan sekali per perangkat, dan dianggap tuntas bila kalimat terakhirnya sudah lengkap diketik (`localStorage` `lakon.clawd`);
+  - petunjuk yang tidak berlaku lagi karena tamu sudah pindah dibuang tanpa memotong perkenalan.
+- **Teks petunjuk lama di layar** ("Scroll or swipe", "or press the arrow keys", "Click or tap the gunungan to turn it", "Tap a card to turn it over."):
+  - tidak tampil selama panggung 3D dipakai; isinya diucapkan Clawd;
+  - di film 2,5D (tanpa WebGL, Calm, gerak dikurangi) masih tampil karena belum ada Clawd di sana, sampai M4;
+  - `aria-label` tombol gong dan gunungan tetap, karena tidak tampil di layar dan dipakai pembaca layar.
+- **Letak:** dihitung dalam ruang kamera, jadi Clawd selalu di dalam bingkai dan kamera yang bergerak memberi badannya lentur jeli. Ada tiga tempat:
+  - dekat gunungan saat gerbang tertancap;
+  - di samping gong saat menjelaskannya dan di slide gong penutup (sambil menunjuk dan separuh berpaling ke gong);
+  - selain itu di samping layar. Tempat ini dipilih dari tata letak slide (`bestSide`): sesudah tamu tiba, kotak tombol, teks, dan kartu diukur, lalu dipilih calon tempat yang paling sedikit menutupinya (tombol paling berat, karena tombol yang tertutup tombol Clawd tidak bisa diketuk).
+  - Di HP yang hampir penuh kartu (gallery), Clawd naik ke pita antara chrome atas dan kartu, dan gelembungnya di sampingnya dengan ekor menunjuk ke samping.
+- **Tampil di depan gerbang:** kelir dan gunungan adalah lapisan layar penuh tanpa uji kedalaman (renderOrder 2000–2001). Jaring Clawd digambar sesudahnya (renderOrder 2100, tetap diuji kedalaman dan tetap buram 0).
+- **Depth of field:** di pass kedalaman Clawd digambar pada jarak fokus, jadi selalu tajam.
+- **Cahaya:** lampu Clawd mengikuti panggung, ditambah isi lembut dari arah kamera yang cukup kuat supaya oranye kit tetap terbaca di adegan malam; semuanya dilunakkan bersama dekat blencong supaya tidak berpendar.
+- **Hemat draw call** (aturan host "beban hemat tapi jangan turunkan kualitas"): `claude-batch.ts` menggambar karakter kit berkelompok, tanpa mengubah bentuknya:
+  - empat kaki, dua lengan, dan dua pipi masing-masing satu InstancedMesh yang matriksnya diambil dari pivot kit;
+  - kedua mata satu ekspresi satu jaring (kedipan = skala Y di garis tengah mata), kedua alis satu jaring.
+  - Hasilnya ±13 → 6 draw call; prolog tier Low 24 draw call (anggaran 26).
+- **Klik:** tombol tak terlihat `Clawd` di atas badannya (klik/ketuk/Enter), di bawah chrome, di atas teks slide.
+  - Selama perkenalan, klik memajukan kalimat dan tidak dihitung sebagai klik, jadi tidak membuat Clawd marah.
+  - Selama berbicara Clawd tidak mengantuk, dan selama perkenalan/petunjuk ia tidak menyela dirinya dengan celetukan.
+- **Gelembung:** diam selama Clawd hanya melayang (zona mati 10 px) supaya teks mudah dibaca dan diketuk; menyusul dengan tetapan waktu 90 ms, bebas laju frame.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

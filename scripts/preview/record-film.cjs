@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd]
+// clawd = M3: Clawd, maskot pemandu, di film 3D (perkenalan, petunjuk di gunungan, hero, gallery, gong penutup, spam klik).
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); prolog = empat slide pertama sesudah gunungan
@@ -38,9 +39,10 @@ const fs = require('fs');
   const BASE = process.env.BASE_URL || 'http://localhost:4173';
   const STAGE = process.env.STAGE || '';
   const FPS = 60;
-  const phone = device === 'iphone';
+  // hp916 = HP tegak tepat 9:16 (1080 × 1920; permintaan host 15 Nov "record di 9:16")
+  const phone = device === 'iphone' || device === 'hp916';
   const dpr = phone ? 3 : 1.5;
-  const base = phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
+  const base = device === 'hp916' ? { ...devices['iPhone 14 Pro'], viewport: { width: 360, height: 640 }, screen: { width: 360, height: 640 } } : phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
   const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
@@ -118,6 +120,30 @@ const fs = require('fs');
     console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
     await b.close();
   };
+
+  if (tour === 'clawd') {
+    // M3: Clawd memandu di film 3D. Gunungan tertancap, Clawd muncul dan memperkenalkan diri, satu klik memajukan
+    // kalimat, petunjuk gunungan; cabut → hero (petunjuk tahap gong), gong ditabuh (Clawd terkejut, lalu petunjuk
+    // zoom); gallery Hari 1 (petunjuk geser); gong penutup Hari 1 (petunjuk pukul, dipukul); spam klik = marah.
+    const clawd = p.locator('.clawd-hit');
+    await w(8500);
+    await tap(clawd, 3200);
+    await w(13500);
+    await key('ArrowDown', 6500);
+    await key('ArrowDown', 9000);
+    await p.evaluate(() => { location.hash = '#day-1'; });
+    await w(3500);
+    await advance(3200);
+    await advance(3000);
+    await w(8500);
+    await p.evaluate(() => { location.hash = '#day-2'; });
+    await w(2500);
+    await key('ArrowUp', 6500);
+    await tap(p.locator('.fl-layer[data-pos="cur"] .fs-strike'), 5500);
+    await clawd.evaluate((b) => { for (let i = 0; i < 6; i++) b.click(); });
+    await w(5000);
+    return finish();
+  }
 
   if (tour === 'kitar') {
     // seret: mouse di desktop, satu jari di iphone; `to` = letak akhir sebagai bagian lebar layar
