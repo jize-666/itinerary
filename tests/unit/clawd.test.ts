@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Clawd } from "@/engine/mascot/clawd";
 import { Dialogue, holdTime, TYPE, typedLength, typingTime } from "@/engine/mascot/dialogue";
-import { GUIDE_KEY, Guide, type GuideContext, readSeen, spotAt, stillApplies, tipAt, writeSeen } from "@/engine/mascot/guide";
+import { bestSide, BLOCK_WEIGHT, GUIDE_KEY, Guide, type GuideContext, readSeen, SIDE_CANDIDATES, spotAt, stillApplies, tipAt, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, MASCOT_NAME, SAY, TIPS } from "@/engine/mascot/lines";
 
 /** Clawd, gelembung ucapan ala piksel (M2, arahan host 15 Nov: "perkenalan dulu, nama dia clawd", "gas m2"). */
@@ -269,5 +269,34 @@ describe("Clawd pemandu di film 3D (M3)", () => {
         if (/click|scroll/i.test(t.en)) expect(t.touch, `${id}: ${t.en}`).toBeDefined();
         if (t.touch) expect(/click|scroll|klik|gulir/i.test(t.touch.en + t.touch.id), `${id} touch`).toBe(false);
       }
+  });
+});
+
+describe("tempat Clawd di samping: tidak menutupi tombol dan teks", () => {
+  const screen = { w: 390, h: 844 };
+  const bubble = { w: 292, h: 80 };
+
+  it("layar kosong: tempat yang paling disukai (kanan bawah); di HP sempit calon yang keluar layar dilewati", () => {
+    expect(bestSide([], { w: 1280, h: 720 }, 108, { w: 332, h: 84 })).toEqual(SIDE_CANDIDATES[0]);
+    expect(bestSide([], screen, 74, bubble)).toEqual(SIDE_CANDIDATES[1]);
+  });
+
+  it("tombol di kanan bawah (kartu gallery di HP): pindah ke tempat yang tidak menutupinya", () => {
+    const buttons = [{ x: 210, y: 560, w: 170, h: 200, weight: BLOCK_WEIGHT.control }];
+    const pick = bestSide(buttons, screen, 74, bubble);
+    expect(pick).not.toEqual(SIDE_CANDIDATES[0]);
+    // badan Clawd di tempat terpilih tidak menyentuh tombol
+    const cx = ((pick[0] + 1) / 2) * screen.w;
+    const cy = ((1 - pick[1]) / 2) * screen.h;
+    const touches = cx + 59 > 210 && cx - 59 < 380 && cy + 56 > 560 && cy - 41 < 760;
+    expect(touches).toBe(false);
+  });
+
+  it("calon yang membuat gelembung keluar layar atas tidak dipilih", () => {
+    const pick = bestSide([], { w: 390, h: 400 }, 74, bubble, [
+      [0.5, 0.6],
+      [0.5, -0.6],
+    ]);
+    expect(pick).toEqual([0.5, -0.6]);
   });
 });

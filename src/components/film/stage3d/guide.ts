@@ -15,7 +15,7 @@ import { type PerspectiveCamera, type Scene, Vector3 } from "three";
 import { createBubble } from "@/components/mascot/bubble";
 import { langStore } from "@/engine/i18n/lang";
 import { Clawd } from "@/engine/mascot/clawd";
-import { Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
+import { bestSide, type Block, BLOCK_WEIGHT, Guide, type GuideContext, readSeen, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
 import { createMascot } from "./mascot";
 import type { Shared } from "./shared";
@@ -36,11 +36,27 @@ export type GuideFrame = {
 /** Jarak Clawd dari kamera (m) dan tinggi badannya di layar (bagian sisi layar terpendek). */
 const NEAR = 3.4;
 const BODY_FRAC = { wide: 0.15, tall: 0.19 } as const;
-/** Letak di layar (NDC) untuk layar lebar dan tegak. */
-const SPOTS: Record<Exclude<Spot, "gong">, { wide: [number, number]; tall: [number, number] }> = {
-  side: { wide: [0.76, -0.5], tall: [0.6, -0.56] },
-  kayon: { wide: [0.5, -0.42], tall: [0.52, -0.5] },
-};
+/** Letak di layar (NDC) di dekat gunungan, untuk layar lebar dan tegak. Di samping: dipilih dari tata letak slide. */
+const KAYON_SPOT = { wide: [0.5, -0.42], tall: [0.52, -0.5] } as const;
+/** Perkiraan ukuran gelembung dua baris (px CSS) untuk memilih tempat. */
+const BUBBLE_EST = { wide: { w: 332, h: 84 }, tall: { w: 292, h: 80 } } as const;
+/** Tata letak slide diukur sekian detik sesudah tiba (teks dan kartu sudah selesai muncul). */
+const SETTLE = 0.45;
+
+/** Kotak isi slide dan chrome yang sebaiknya tidak ditutupi (px, relatif terhadap akar film). */
+function blocksOf(el: HTMLElement): Block[] {
+  const box = el.getBoundingClientRect();
+  const out: Block[] = [];
+  const add = (selector: string, weight: number) =>
+    el.querySelectorAll<HTMLElement>(selector).forEach((n) => {
+      const r = n.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) out.push({ x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height, weight });
+    });
+  add(".fl-layer[data-pos='cur'] :is(button, a[href], [role='button']), .fl-chrome :is(button, a[href])", BLOCK_WEIGHT.control);
+  add(".fl-layer[data-pos='cur'] :is(h1, h2, h3, p, li)", BLOCK_WEIGHT.text);
+  add(".fl-layer[data-pos='cur'] .gal-card", BLOCK_WEIGHT.card);
+  return out;
+}
 const TIP_IDS = Object.keys(TIPS) as TipId[];
 
 const storage = () => {
@@ -95,6 +111,11 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
   const faceAt = new Vector3();
   const head = new Vector3();
   const v = new Vector3();
+  /** Tempat di samping yang dipilih untuk slide ini (NDC) dan kunci pengukurannya (slide + ukuran layar). */
+  let side: readonly [number, number] | null = null;
+  let sideKey = "";
+  let settledAt = 0;
+  let lastSlide = "";
 
   /** NDC (x, y) pada jarak `d` dari kamera → ruang kamera. */
   const fromNdc = (camera: PerspectiveCamera, x: number, y: number, d: number, out: Vector3) => {
@@ -158,8 +179,24 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
         const x = Math.max(-0.82, Math.min(tall ? 0.62 : 0.8, v.x + r * 1.15 + (tall ? 0.18 : 0.12)));
         const y = Math.max(-0.7, Math.min(0.5, v.y - r * 0.35));
         fromNdc(camera, x, y, d, goal);
+      } else if (spot === "kayon") {
+        const [x, y] = KAYON_SPOT[tall ? "tall" : "wide"];
+        fromNdc(camera, x, y, d, goal);
       } else {
-        const [x, y] = SPOTS[spot][tall ? "tall" : "wide"];
+        // di samping: tempat paling lapang di slide ini, diukur sekali sesudah tamu tiba
+        const slideId = el.dataset.slide ?? "";
+        if (f.moving || slideId !== lastSlide) {
+          lastSlide = slideId;
+          settledAt = f.t;
+        }
+        const key = `${slideId}|${el.clientWidth}x${el.clientHeight}`;
+        if (!f.moving && key !== sideKey && f.t - settledAt >= SETTLE) {
+          sideKey = key;
+          const w = el.clientWidth;
+          const h = el.clientHeight;
+          side = bestSide(blocksOf(el), { w, h }, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(w, h), BUBBLE_EST[tall ? "tall" : "wide"]);
+        }
+        const [x, y] = side ?? (tall ? [0.62, -0.63] : [0.76, -0.5]);
         fromNdc(camera, x, y, d, goal);
       }
       if (!placed) {

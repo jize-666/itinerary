@@ -33,6 +33,8 @@ export type BubbleOptions = { onTap?: () => void; reduced?: boolean };
 
 /** Jarak dari tepi layar (px). */
 const MARGIN = 12;
+/** Gelembung tidak ikut bergerak bila kepala Clawd hanya bergeser sejauh ini (px): ayunan melayang. */
+const DEADZONE = 10;
 
 export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
   const el = document.createElement("div");
@@ -114,7 +116,9 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
       const vw = document.documentElement.clientWidth;
       const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, x - width / 2));
       const goalY = Math.max(MARGIN, y - height - drop);
-      const k = placed ? 0.25 : 1;
+      // diam selama Clawd hanya melayang (ayunan kecil): teks lebih mudah dibaca dan diketuk; menyusul bila ia pindah
+      const far = Math.hypot(goalX - px, goalY - py);
+      const k = !placed ? 1 : far > DEADZONE ? 0.25 : 0;
       px += (goalX - px) * k;
       py += (goalY - py) * k;
       placed = true;

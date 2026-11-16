@@ -41,8 +41,8 @@ const BODY_RED = new Color(0xf26d3d).r;
 /** Letak kilatan gong (sama dengan `flashLight` di shader panggung). */
 const FLASH_AT = new Vector3(0, GONG.y * GONG_SCALE, 0.45 * GONG_SCALE);
 /** Isi lembut maskot (linear): bagian rata dan bagian dari arah kamera. */
-const FILL_FLAT = new Color(0.058, 0.051, 0.05);
-const FILL_CAM = new Color(0.17, 0.15, 0.145);
+const FILL_FLAT = new Color(0.15, 0.135, 0.13);
+const FILL_CAM = new Color(0.5, 0.45, 0.43);
 
 export type MascotInput = {
   t: number;

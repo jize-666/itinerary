@@ -114,3 +114,58 @@ export class Guide {
     return true;
   }
 }
+
+// ---- tempat di samping yang paling lapang ----
+/** Kotak di layar (px CSS) yang sebaiknya tidak ditutupi Clawd atau gelembungnya; `weight` = seberapa penting. */
+export type Block = Readonly<{ x: number; y: number; w: number; h: number; weight: number }>;
+
+/** Bobot: tombol/tautan jangan ditutupi (bisa mencuri ketukan), teks lebih penting dari kartu latar. */
+export const BLOCK_WEIGHT = { control: 12, text: 4, card: 1 } as const;
+
+/** Calon tempat Clawd (NDC), urut dari yang paling disukai (kanan bawah). */
+export const SIDE_CANDIDATES: readonly (readonly [number, number])[] = [
+  [0.76, -0.5],
+  [0.62, -0.63],
+  [0.76, -0.3],
+  [-0.76, -0.5],
+  [-0.62, -0.63],
+  [0.76, -0.1],
+  [-0.76, -0.3],
+  [0.45, -0.72],
+  [-0.45, -0.72],
+  [0.76, 0.15],
+  [-0.76, 0.15],
+];
+
+const overlap = (a: Block, x: number, y: number, w: number, h: number) =>
+  Math.max(0, Math.min(a.x + a.w, x + w) - Math.max(a.x, x)) * Math.max(0, Math.min(a.y + a.h, y + h) - Math.max(a.y, y));
+
+/**
+ * Tempat di samping yang paling sedikit menutupi isi layar. Clawd berukuran `body` px (tinggi badan), gelembungnya
+ * kira-kira `bubble` px di atas kepalanya. Calon yang keluar layar dibuang. Seri: calon yang lebih awal (lebih disukai).
+ */
+export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number; h: number }>, body: number, bubble: Readonly<{ w: number; h: number }>, candidates = SIDE_CANDIDATES): readonly [number, number] {
+  let best = candidates[0]!;
+  let bestCost = Infinity;
+  for (const c of candidates) {
+    const cx = ((c[0] + 1) / 2) * screen.w;
+    const cy = ((1 - c[1]) / 2) * screen.h;
+    // badan + lengan + kaki
+    const bw = body * 1.6;
+    const bh = body * 1.3;
+    const bx = cx - bw / 2;
+    const by = cy - body * 0.55;
+    if (bx < 0 || bx + bw > screen.w || by < 0 || by + bh > screen.h) continue;
+    // gelembung di atas kepala, digeser masuk layar seperti bubble.ts
+    const gw = Math.min(bubble.w, screen.w - 24);
+    const gx = Math.max(12, Math.min(screen.w - 12 - gw, cx - gw / 2));
+    const gy = by - bubble.h - 8;
+    let cost = gy < 0 ? 1e9 : 0;
+    for (const b of blocks) cost += b.weight * (overlap(b, bx, by, bw, bh) + 0.6 * overlap(b, gx, gy, gw, bubble.h));
+    if (cost < bestCost - 1) {
+      bestCost = cost;
+      best = c;
+    }
+  }
+  return best;
+}
