@@ -33,3 +33,12 @@ export const SFX_LEVEL = 0.9;
 export const CLICK_LEVEL = 0.45;
 /** Saat efek besar berbunyi (gong), gendhing direndahkan sebentar. */
 export const DUCK_LEVEL = 0.32;
+
+/**
+ * Suara Clawd (`engine/mascot/voice.ts`, berkas di public/audio/clawd/<lang>/). Lewat bus efek, satu klip pada satu
+ * waktu. Selama Clawd bicara gendhing ditahan di VOICE_DUCK (lebih lama dari ducking gong, sepanjang klip).
+ */
+export const VOICE_LEVEL = 1;
+export const VOICE_DUCK = 0.3;
+/** Klip yang baru siap lebih telat dari ini sesudah kalimatnya muncul tidak diputar (suara tertinggal teks). */
+export const VOICE_LATE = 0.6;

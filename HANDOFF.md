@@ -14,6 +14,22 @@ Tafsir Claude:
 - Tugas berikutnya: PR suara Clawd (rencana di bawah, "Rencana PR suara Clawd").
 - Rekaman pratinjau memakai nama host "Jize" sebagai nama tamu, menggantikan "Your Name" (`scripts/preview/client-data.ts`). Data privat lain (WhatsApp, alamat, jam jemput) tetap pengganti netral.
 
+Kemajuan 17 Nov:
+1. Selesai: **pemutar suara Clawd** (rincian: `docs/design/decisions.md` bagian "Suara Clawd"). Sudah tersambung ke kedua film lewat `components/mascot/session.ts`; selama klip belum ada, perilakunya sama persis dengan sebelumnya.
+   - `engine/mascot/voice.ts`: daftar 39 klip per bahasa; nama klip = kunci kalimat di gelembung, `.touch` untuk varian sentuh.
+   - `voice-clips.json`: lama tiap klip, masih kosong.
+   - `dialogue.ts`: kalimat bersuara ditahan sampai klipnya selesai (+0,45 dtk). Ketukan pertama melengkapi teks; ketukan berikutnya melewati kalimat dan menghentikan suaranya.
+   - `clawd.ts`: klip diunduh saat kalimatnya diantrekan; Clawd tetap "bicara" selama suaranya berbunyi.
+   - `AudioEngine`: `playVoice`/`stopVoice`/`preloadVoice`, satu suara pada satu waktu, gendhing direndahkan ke 0,30 selama Clawd bicara, berhenti saat suara dimatikan.
+   - `scripts/audio/clawd-voice.ts`: `list` (teks yang direkam), `build <mentah>` (mono, pangkas hening, −16 LUFS, MP3 48 kbps, tulis `voice-clips.json`), `check` (78 klip lengkap).
+2. Tes: lint, typecheck, unit 425 lulus (tes suara 12 baru di `tests/unit/voice.test.ts`, `bus.test.ts` +1). Pengolah klip diuji dengan bunyi sintetis: hening terpangkas, −16,5 LUFS; berkas ujinya dihapus.
+   - Kendala: contoh EN di ElevenLabs masih "Free generations are busy right now", tanpa kredit terpakai (flow `aEPK4i7iFxLss3myjkm9`; perkiraan 290 kredit untuk 2 versi ±145 karakter). Percobaan ulang dijadwalkan otomatis.
+   - Konektor ElevenLabs menolak `account_get_usage` (perlu izin tambahan), jadi sisa kredit akun tidak terbaca dari sesi.
+3. Berikutnya:
+   - contoh EN + ID ke host begitu antrean longgar;
+   - bila host setuju: rekam 78 klip (±3.136 karakter; perkiraan ±6.300 kredit dengan 2 versi per kalimat, ±3.150 dengan 1 versi), `build`, `check`;
+   - tes e2e suara Clawd, video desktop + HP dengan suara (nama tamu "Jize"), lalu PR.
+
 ### Permintaan host 15 Nov ±00.30 WIB: maskot 3D pemandu (coral assistant) — DICATAT, SEDANG DIKERJAKAN
 
 **Kata host, kata demi kata** (dengan `coral-assistant.zip`: GLB 1.492 segitiga dengan 20 klip, `.blend`, runtime R3F, `behavior.ts`, pratinjau ekspresi; disimpan di scratchpad, tidak di repo):

@@ -3,11 +3,16 @@
  * otak (`engine/mascot/clawd.ts`), pemandu (`engine/mascot/guide.ts`, petunjuk yang sudah tuntas diingat per
  * perangkat), bahasa, dan tempat di samping yang dipilih dari tata letak slide. Yang berbeda antara kedua film hanya
  * cara menggambar Clawd dan cara menaruhnya di layar.
+ *
+ * Suara Clawd (`engine/mascot/voice.ts`) juga diputar di sini: klip kalimat dimulai saat kalimatnya muncul, dan
+ * dihentikan saat kalimat dilewati, dipotong reaksi, atau bahasa diganti. Ikut sakelar suara situs (`audioStatus`).
  */
+import { audioStatus } from "@/engine/audio/status";
 import { langStore } from "@/engine/i18n/lang";
 import { Clawd, type ClawdFrame } from "@/engine/mascot/clawd";
 import { bestSide, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
+import { clipMs, clipUrl } from "@/engine/mascot/voice";
 
 /** Tinggi badan Clawd di layar (bagian sisi layar terpendek). */
 export const BODY_FRAC = { wide: 0.15, tall: 0.19 } as const;
@@ -16,6 +21,8 @@ const BUBBLE_EST = { wide: { w: 332, h: 84 }, tall: { w: 292, h: 80 } } as const
 /** Tata letak slide diukur sekian detik sesudah tiba (teks dan kartu sudah selesai muncul). */
 const SETTLE = 0.45;
 const TIP_IDS = Object.keys(TIPS) as TipId[];
+/** Suara kalimat hanya dimulai bila frame pertamanya datang paling lambat sekian ms sesudah kalimat muncul. */
+const VOICE_START = 400;
 
 /** Kotak isi slide dan chrome yang sebaiknya tidak ditutupi (px, relatif terhadap akar film). */
 export function blocksOf(el: HTMLElement): Block[] {
@@ -55,7 +62,12 @@ export type SessionFrame = Readonly<{
 
 export function createSession({ touch }: { touch: boolean }) {
   const guide = new Guide(readSeen(storage()));
-  const brain = new Clawd(0, langStore.get(), touch);
+  const brain: Clawd = new Clawd(0, langStore.get(), touch, {
+    on: audioStatus.voiceOn,
+    prepare: (names) => audioStatus.prepareVoice(names.filter((n) => clipMs(brain.lang, n) !== null).map((n) => clipUrl(brain.lang, n))),
+  });
+  /** Kalimat bersuara yang sedang diputar: kunci + klip + bahasa + saat muncul. */
+  let voiced = "";
   const offLang = langStore.subscribe(() => (brain.lang = langStore.get()));
   let clock = 0;
   const onVisibility = () => brain.visibility(document.visibilityState === "hidden", clock);
@@ -100,6 +112,13 @@ export function createSession({ touch }: { touch: boolean }) {
       for (const id of TIP_IDS) if (brain.hasTip(id) && !stillApplies(id, ctx)) brain.hushTip(id, ms);
       const frame = brain.tick(ms);
       const speech = frame.speech;
+      // suara: satu klip per kalimat; kalimat berganti, dilewati, memudar, atau bahasa diganti → klip lama berhenti
+      const voiceKey = speech?.voice && speech.fade === 1 ? `${speech.id}|${speech.voice}|${brain.lang}|${speech.since}` : "";
+      if (voiceKey !== voiced) {
+        if (voiced) audioStatus.hush();
+        voiced = voiceKey;
+        if (speech?.voice && speech.voicing && ms - speech.since <= VOICE_START) audioStatus.voice(clipUrl(brain.lang, speech.voice));
+      }
       // tuntas: kalimat terakhir perkenalan/petunjuk sudah lengkap diketik
       if (speech && !speech.typing) {
         if (speech.id === `intro.${INTRO.length - 1}` && guide.introDone()) persist();
@@ -134,6 +153,7 @@ export function createSession({ touch }: { touch: boolean }) {
       brain.gong(ms);
     },
     dispose() {
+      if (voiced) audioStatus.hush();
       offLang();
       document.removeEventListener("visibilitychange", onVisibility);
     },
