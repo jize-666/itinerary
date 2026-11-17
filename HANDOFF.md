@@ -32,6 +32,20 @@ Tafsir Claude: benangnya terlalu polos (garis tipis dengan titik); di siang hari
 - jalur yang belum ditempuh tampak samar sebagai benang sutra redup, supaya perjalanan di depan terbaca.
 Tetap hemat: beberapa draw call, hanya saat gallery tampak.
 
+**Versi kedua: selesai 17 Nov, menunggu tinjauan host atas gambar diam.**
+1. Yang selesai:
+   - `engine/stage/thread.ts`: manik melayang 20 cm, benang melengkung turun 11 cm di antara manik, pangkal/ujung menyentuh tanah; `pointAt`, `currentKnot`.
+   - `stage3d/thread.ts`, enam draw call, hanya untuk benang hari yang tampak:
+     - tali sutra emas pilin tiga helai yang memantulkan langit (rona emas dijaga siang hari) dan berkelip;
+     - pendar yang menghadap kamera;
+     - cahaya hangat di tanah dengan genangan dan cincin riak di manik tempat sekarang;
+     - manik emas bersegi yang berputar (yang belum dilewati perunggu gelap);
+     - tiang cahaya tipis dan bunga api dari ujung yang sedang tergambar (lebih banyak selama geseran);
+     - jalur di depan berupa benang putus-putus yang redup; tali bergoyang pelan.
+2. Tes: lint, typecheck bersih; unit 434 lulus (benang 9; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
+   - Antrean ElevenLabs dicoba lagi 11.07 UTC (sedikit lebih awal dari jadwal 11.19): masih penuh, tanpa kredit terpakai.
+3. Berikutnya: tunggu tinjauan host atas rupa benang. Bila disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.
+
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
 **Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".

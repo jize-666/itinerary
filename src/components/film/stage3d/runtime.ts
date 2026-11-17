@@ -217,7 +217,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       terrain.reshape(shape);
     }
     strands = galleryStrands(film, frame, shape);
-    thread.setStrands(strands);
+    thread.setStrands(strands, shape);
   };
   /** Kanvas baru saja berganti ukuran (isinya terhapus): frame berikutnya wajib digambar walau sedang diam. */
   let stale = true;
@@ -402,6 +402,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       strands.map((s) => drawnAt(s, at)),
       strands.map((s) => shownAt(s, at)),
       strands.map((s) => currentKnot(s, at)),
+      cue.moving ? 1 : 0,
     );
     thread.setPixel(pixel);
     dust.setPixel(pixel);

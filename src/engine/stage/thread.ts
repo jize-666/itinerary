@@ -3,10 +3,12 @@
  * menyambungkan semua tempat). Murni: lintasan, simpul, dan seberapa panjang benang sudah tergambar pada letak film
  * tertentu. Cara menggambarnya ada di `components/film/stage3d/thread.ts`.
  *
- * Gallery tiap hari: benang tergelar di tanah, di pita lanskap tepat di bawah kartu (tempat yang tidak tertutup kartu
- * di layar lebar maupun HP). Tiap tempat singgah satu simpul, diletakkan tepat di bawah kartunya: titik di layar
- * (tengah, `THREAD.knotY`) ditembakkan dari kamera gallery panel itu ke tanah. Benang tergambar sampai simpul panel
- * yang sedang tampil, dan selama geseran ujungnya maju ke simpul berikutnya mengikuti kemajuan gulir atau jari.
+ * Gallery tiap hari: benang dibentangkan rendah di atas tanah, di pita lanskap tepat di bawah kartu (tempat yang
+ * tidak tertutup kartu di layar lebar maupun HP). Tiap tempat singgah satu manik, diletakkan tepat di bawah kartunya:
+ * titik di layar (tengah, `THREAD.knotY`) ditembakkan dari kamera gallery panel itu ke ketinggian manik di atas
+ * tanah. Di antara dua manik benang melengkung turun seperti benang yang dibentangkan; pangkal dan ujungnya menyentuh
+ * tanah. Benang tergambar sampai manik panel yang sedang tampil, dan selama geseran ujungnya maju ke manik berikutnya
+ * mengikuti kemajuan gulir atau jari (masukan host 17 Nov atas versi pertama: "upgrade lah, keliatan basic banget").
  */
 import type { Film } from "@/engine/slides/build-slides";
 import { galleryDrift } from "@/engine/slides/build-slides";
@@ -17,10 +19,13 @@ import { terrainHeight, TERRAIN_DEFAULT, type TerrainShape } from "./terrain";
 export const THREAD = {
   /** Letak simpul di layar gallery (NDC, −1 = tepi bawah): pita tanah di antara tepi bawah kartu dan label bab. */
   knotY: -0.7,
-  /** Benang melayang sekian m di atas tanah, supaya tidak tenggelam di lekuk tanah di antara titik contoh. */
-  lift: 0.06,
-  /** Titik contoh per bentang antar simpul. */
-  perSpan: 28,
+  /** Manik melayang sekian m di atas tanah; benang di antara dua manik melengkung turun sejauh `sag`. */
+  knotLift: 0.2,
+  sag: 0.11,
+  /** Pangkal dan ujung benang hampir menyentuh tanah. */
+  endLift: 0.025,
+  /** Titik contoh per bentang (pangkal → manik, manik → titik tengah, dst.). */
+  perSpan: 18,
   /** Lekuk benang: titik tengah tiap bentang bergeser sekian × panjang bentang ke depan/belakang, bergantian. */
   sway: 0.22,
   /** Ekor sebelum simpul pertama dan sesudah simpul terakhir, × jarak rata-rata antar simpul. */
@@ -84,7 +89,7 @@ function catmull(p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, t: number): Vec3 {
  * Kurva halus melewati `ctrl` (berurutan), dijatuhkan ke tanah: tiap titik contoh mengikuti tinggi tanah + `lift`.
  * Mengembalikan titik contoh dan indeks titik contoh tempat tiap titik kendali berada.
  */
-export function drape(ctrl: readonly Vec3[], per: number, shape: TerrainShape, lift: number): { points: Vec3[]; marks: number[] } {
+export function drape(ctrl: readonly Vec3[], per: number, shape: TerrainShape, lift = 0): { points: Vec3[]; marks: number[] } {
   const points: Vec3[] = [];
   const marks: number[] = [];
   const at = (i: number) => ctrl[Math.max(0, Math.min(ctrl.length - 1, i))]!;
@@ -96,6 +101,40 @@ export function drape(ctrl: readonly Vec3[], per: number, shape: TerrainShape, l
   points.push([...ctrl[ctrl.length - 1]!] as Vec3);
   for (const p of points) (p as [number, number, number])[1] = terrainHeight(p[0], p[2], shape) + lift;
   return { points, marks };
+}
+
+/**
+ * Tinggi benang di atas tanah (titik-titiknya sudah di permukaan): manik di `knotLift`, melengkung turun sejauh `sag`
+ * di tengah tiap bentang, dan dari pangkal/ke ujung naik/turun halus dari `endLift`.
+ */
+export function lift(points: Vec3[], knotMarks: readonly number[]): void {
+  const set = (i: number, h: number) => ((points[i] as [number, number, number])[1] += h);
+  const first = knotMarks[0]!;
+  const last = knotMarks[knotMarks.length - 1]!;
+  const ease = (u: number) => u * u * (3 - 2 * u);
+  for (let i = 0; i < first; i++) set(i, THREAD.endLift + (THREAD.knotLift - THREAD.endLift) * ease(i / first));
+  for (let j = 0; j < knotMarks.length - 1; j++) {
+    const [a, b] = [knotMarks[j]!, knotMarks[j + 1]!];
+    for (let i = a; i < b; i++) set(i, THREAD.knotLift - THREAD.sag * Math.sin((Math.PI * (i - a)) / (b - a)));
+  }
+  const n = points.length - 1;
+  for (let i = last; i <= n; i++) set(i, THREAD.knotLift + (THREAD.endLift - THREAD.knotLift) * ease(n > last ? (i - last) / (n - last) : 1));
+}
+
+/** Titik di sepanjang benang pada panjang busur `s` (0–1), di antara dua titik contoh. */
+export function pointAt(strand: Pick<Strand, "points" | "at">, s: number): Vec3 {
+  const { points, at } = strand;
+  if (s <= 0) return points[0]!;
+  if (s >= 1) return points[points.length - 1]!;
+  let [lo, hi] = [0, at.length - 1];
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (at[mid]! <= s) lo = mid;
+    else hi = mid;
+  }
+  const t = (s - at[lo]!) / (at[hi]! - at[lo]! || 1);
+  const [a, b] = [points[lo]!, points[hi]!];
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
 
 /** Panjang busur ternormalisasi tiap titik. */
@@ -125,7 +164,7 @@ export function galleryStrands(film: Film, frame: Frame, shape: TerrainShape = T
     const knots: Vec3[] = [];
     for (const i of panels) {
       const shot = galleryShot(galleryDrift(film.slides[i]), frame);
-      const hit = groundHit(shot.pos, rayThrough(shot, frame.aspect, 0, THREAD.knotY), shape, THREAD.lift);
+      const hit = groundHit(shot.pos, rayThrough(shot, frame.aspect, 0, THREAD.knotY), shape, THREAD.knotLift);
       if (hit) knots.push(hit);
     }
     if (knots.length !== panels.length) continue;
@@ -146,10 +185,12 @@ export function galleryStrands(film: Film, frame: Frame, shape: TerrainShape = T
       ctrl.push(add(scale(add(k, next), 0.5), scale(side, ((j % 2 ? 1 : -1) * THREAD.sway * len(d)) / s)));
     });
     ctrl.push(add(last, scale(along, gap * THREAD.tail)));
-    const { points, marks } = drape(ctrl, THREAD.perSpan, shape, THREAD.lift);
+    const { points, marks } = drape(ctrl, THREAD.perSpan, shape);
+    // manik ke-j ada di titik kendali ke-(1 + 2j)
+    const knotMarks = knots.map((_, j) => marks[1 + 2 * j]!);
+    lift(points, knotMarks);
     const at = arcLengths(points);
-    // simpul ke-j ada di titik kendali ke-(1 + 2j)
-    const knotAt = knots.map((_, j) => at[marks[1 + 2 * j]!]!);
+    const knotAt = knotMarks.map((m) => at[m]!);
     const lastPanel = panels[panels.length - 1]!;
     const keys: (readonly [number, number])[] = [];
     if (intro >= 0) keys.push([intro, 0]);
@@ -159,7 +200,7 @@ export function galleryStrands(film: Film, frame: Frame, shape: TerrainShape = T
       id: chapter.id,
       points,
       at,
-      knots: knots.map((_, j) => ({ pos: points[marks[1 + 2 * j]!]!, at: knotAt[j]!, slide: panels[j]! })),
+      knots: knotMarks.map((m, j) => ({ pos: points[m]!, at: knotAt[j]!, slide: panels[j]! })),
       keys,
       span: [intro >= 0 ? intro : panels[0]!, lastPanel],
     });
