@@ -167,6 +167,12 @@ Perbaikan gelembung (17 Nov):
    - `bubble.ts` menerima kotak badan Clawd (film 3D dan 2,5D) dan mengukur ukuran gelembung hanya saat lebarnya melewati anak tangga 16 px.
    - CSS: huruf `clamp(14px, 3,9vw, 17px)` (lebih kecil di HP), `data-tight` = 82 %.
 3. **Tes:** unit 445 lulus. `bubble-place.test.ts` (5 tes) mencakup kasus tangkapan layar host dan sapuan semua letak Clawd di 4 ukuran layar × 3 arah × 3 panjang kalimat: tidak pernah menutupi badan dan tidak keluar layar. e2e dan tangkapan layar menunggu rekaman video selesai (build ulang dulu).
+4. **Tangkapan layar sesudah build** (data April, nama Jize), dikirim ke host. Gelembung tidak menutupi Clawd di semua tangkapan:
+   - HP 2,5D: hero "See the gong?" (gelembung kini di atas kepala) dan gallery (di kanan);
+   - HP 3D: gallery;
+   - desktop 3D: gallery;
+   - desktop 2,5D: hero.
+   Catatan lain (bukan gelembung): di film 3D HP, kaki Clawd tertutup kartu gallery karena Clawd 3D digambar di bawah lapisan kartu DOM. Ditawarkan ke host sebagai perbaikan terpisah. e2e `film` + `stage` sedang dijalankan.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
