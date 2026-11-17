@@ -17,7 +17,7 @@ import { COMMON, type Shared } from "./shared";
 /** Lampion paling banyak yang pantulannya digambar (satu hari ≤ 15 tempat singgah + perahu). */
 export const MAX_LAMPS = 16;
 /** Titik melintang sungai (tepi kiri → tepi kanan). */
-const ACROSS = 7;
+const ACROSS = 4;
 
 const VERT = /* glsl */ `
 attribute float aAlong;

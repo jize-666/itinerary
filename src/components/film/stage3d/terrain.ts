@@ -11,16 +11,17 @@ import { COMMON, type Shared } from "./shared";
 const RINGS = 60;
 const SPOKES = 200;
 /**
- * Jari-jari cincin jala: berjarak logaritmik dari tepi dalam ke tepi luar, ditambah cincin rapat (0,3 m) di sekitar
+ * Jari-jari cincin jala: berjarak logaritmik dari tepi dalam ke tepi luar, ditambah cincin rapat (0,6 m) di sekitar
  * Bengawan Solo (`river.ts`), supaya tepi air dan tebingnya halus tepat di bawah kartu gallery.
  */
 function radii(ring: number): number[] {
   const out: number[] = [];
   for (let i = 0; i <= RINGS; i++) out.push(TERRAIN.inner * Math.pow(TERRAIN.outer / TERRAIN.inner, i / RINGS));
-  const [a, b] = [ring - RIVER.half - RIVER.bank * 1.2, ring + RIVER.half + RIVER.bank * 1.4];
-  for (let r = a; r <= b; r += 0.3) out.push(r);
+  // sungai mengikuti lingkaran cincin, jadi tepiannya tetap halus dengan cincin selang 0,6 m (hemat segitiga)
+  const [a, b] = [ring - RIVER.half - RIVER.bank * 0.9, ring + RIVER.half + RIVER.bank * 1.1];
+  for (let r = a; r <= b; r += 0.6) out.push(r);
   out.sort((p, q) => p - q);
-  return out.filter((r, i) => i === 0 || r - out[i - 1]! > 0.12);
+  return out.filter((r, i) => i === 0 || r - out[i - 1]! > 0.2);
 }
 
 export function terrainGeometry(shape: TerrainShape): BufferGeometry {

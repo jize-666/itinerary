@@ -110,12 +110,20 @@ Hasil pengecekan 17 Nov:
     - EN ekspresi 0,45: 170 Hz (rentang 135–267), paling mirip;
     - ID ekspresi 0,6: 209 Hz.
   - Ketiganya dikirim ke host (MP3 di `voice/hf/` scratchpad, tidak di repo). Menunggu pilihan/penilaian host sebelum merekam 78 klip. Bila jalur ini disetujui, percobaan ElevenLabs dihentikan.
+  - **ElevenLabs 17 Nov 14.51 UTC:** satu versi akhirnya mulai, tetapi gagal: "Unusual activity has been detected on your account, so Free Tier access has been disabled. This can be triggered by using a proxy or VPN, or by creating multiple free accounts. Please upgrade to a paid subscription to continue."
+    - Jalur gratis ElevenLabs tertutup; percobaan otomatis dihentikan dan tidak dijadwalkan lagi.
+    - Rincian generasi mencantumkan 145 kredit; apakah terpotong untuk generasi yang gagal belum jelas (konektor tidak bisa membaca pemakaian akun).
 
 **Gerbang dimensi: versi pertama selesai 17 Nov, video dikirim ke host.**
 1. Selesai: `PORTAL`/`portalWarp`/`portalRing` di `view.ts`; kamera 3D menukik/ditarik dan lensa melebar; post-FX (cincin riak, warna terpecah, garis cahaya berjitter, kilau, vinyet); koreografi kartu maju/mundur; `SKY_WINDOW.inner` 0,25–0,75; tur rekaman `dimensi` (`QUERY=` untuk parameter URL). Rincian: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
 2. Tes: lint, typecheck bersih; unit 439 lulus (tes jendela langit gallery diperbarui sesuai keputusan baru, tes PORTAL baru). Video desktop 22,9 dtk dan HP 9:16 26,7 dtk (data April, nama Jize, `clawd=0`) dikirim. e2e belum dijalankan untuk perubahan ini.
    - Server pratinjau sempat mati karena batas waktu tugas latar 30 menit; dinyalakan ulang dengan batas 2 jam. Rekaman desktop tidak terganggu.
-3. Berikutnya: tunggu penilaian host (halus/dramatis); jalankan e2e penuh; lalu PR (sungai + larung + gerbang dimensi) bila host setuju.
+   - e2e penuh pertama: 282 lulus, 4 gagal, 30 dilewati sesuai proyek perangkat. Penyebab dan perbaikannya:
+     - **Batas segitiga prolog** (desktop + iPhone, < 60.000): 64.868 karena cincin tanah rapat dan pita air. Bebannya diturunkan, batasnya tidak diubah: cincin rapat 0,6 m (sungai mengikuti lingkaran cincin, tepian tetap halus) dan pita air 4 titik melintang.
+     - **Scrub matahari** (iPhone): tarikan jari kini 112 px (±31 % jarak antarkartu, tetap di bawah ambang 35 %), karena langit gallery kini berganti di 25–75 % geseran.
+     - **DOF lanskap** (desktop): rincian diukur di lanskap di atas sungai (40–74 % tinggi layar). Sungai dekat bidang fokus, jadi sengaja tajam (seperti Clawd). Batas 0,6 tetap.
+     - Keempatnya lulus sesudah diperbaiki; e2e penuh diulang.
+3. Berikutnya: tunggu penilaian host (halus/dramatis); lalu PR (sungai + larung + gerbang dimensi) bila host setuju.
 
 Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 

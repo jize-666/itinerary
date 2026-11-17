@@ -851,18 +851,20 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
       [c.width, c.height] = [img.width, img.height];
       const g = c.getContext("2d")!;
       g.drawImage(img, 0, 0);
-      // pita tanah di bawah cakrawala; dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
+      // pita tanah di bawah cakrawala, di atas Bengawan Solo (sungai di pita bawah kartu ada di dekat bidang fokus,
+      // jadi sengaja tajam, seperti Clawd); dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
       // paling peka terhadap kabur: garis pematang sawah
       const y0 = Math.round(c.height * 0.4);
-      const d = g.getImageData(0, y0, c.width, c.height - y0).data;
+      const y1 = Math.round(c.height * 0.74);
+      const d = g.getImageData(0, y0, c.width, y1 - y0).data;
       const lum = (i: number) => d[i]! * 0.3 + d[i + 1]! * 0.59 + d[i + 2]! * 0.11;
       let e = 0;
-      for (let y = 0; y < c.height - y0 - 1; y++)
+      for (let y = 0; y < y1 - y0 - 1; y++)
         for (let x = 0; x < c.width - 1; x++) {
           const i = (y * c.width + x) * 4;
           if (Math.max(Math.abs(lum(i) - lum(i + 4)), Math.abs(lum(i) - lum(i + c.width * 4))) > 6) e++;
         }
-      return e / (c.width * (c.height - y0));
+      return e / (c.width * (y1 - y0));
     }, png.toString("base64"));
   }
   const hold = (page: Page, at: number[] | null) =>
