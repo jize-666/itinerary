@@ -19,7 +19,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 16 Nov 2026 (maskot Clawd M1–M3 selesai atas arahan host; berikutnya M4 atau Tugas 8, menunggu arahan host).
+Diperbarui 17 Nov 2026 (proyek maskot Clawd M1–M4 selesai; PR #12 menunggu merge host; berikutnya Tugas 8, menunggu arahan host).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -71,9 +71,9 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
   - Tinjau video dan PR #12; uji di iPhone produksi (`/film/?fps`): tahap gong di judul, dan fps gallery dengan DOF di `high ×1 (paksa)`. Beban DOF di renderer perangkat lunak +16% waktu frame, hanya di gallery High.
   - Api naga saat gong judul ditabuh sebagian keluar bingkai atas (kamera sengaja tidak diubah); bila host ingin terlihat utuh, shot judul perlu dilebarkan.
   - Tambahan 14 Nov malam (host: "dua dua nya, 90derajat"): zoom di judul hari dan hero, dan kamera mengitari gong ±90° (seret mouse, jari, atau trackpad) di judul, hero, dan gong penutup. Digabung di PR #12 (host: "gabung pr sebelumnya dan sekarang"). CI merah PR #12 diperbaiki: tes DOF memperlambat geseran lewat laju animasi, dan tarikan jari pelan tapi panjang di slide tanpa scrub kini satu langkah.
-- [x] **Maskot Clawd (permintaan host 15 Nov, di luar urutan; dikerjakan atas arahan host).** Pemandu 3D di film: rupa dari `claude-3d-reference-kit` v4 milik host (M1, "update maskot"), gerak lentur (arahan host "ganti aturan tanpa stretch itu"), gelembung ucapan piksel dengan perkenalan dan reaksi klik (M2, "nama dia clawd", "gas m2"), memandu di film 3D dan menggantikan teks petunjuk lama (M3, 16 Nov: "jangan lupa untuk menghapus semua text pemandu yang lama"). ✅ M1–M3 16 Nov 2026. Rinciannya: `docs/design/decisions.md` bagian "Maskot pemandu…", "Clawd: gelembung…", "Clawd memandu di film 3D", dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
-  - M4: Clawd di film 2,5D (tanpa WebGL, Calm, gerak dikurangi). Sampai itu selesai, teks petunjuk lama masih tampil di film 2,5D.
-  - Uji di iPhone produksi (`/film/?fps`): fps dengan Clawd di `high ×1 (paksa)`, ketukan pada Clawd, dan letaknya di gallery.
+- [x] **Maskot Clawd (permintaan host 15 Nov, di luar urutan; dikerjakan atas arahan host).** Pemandu 3D di film: rupa dari `claude-3d-reference-kit` v4 milik host (M1, "update maskot"), gerak lentur (arahan host "ganti aturan tanpa stretch itu"), gelembung ucapan piksel dengan perkenalan dan reaksi klik (M2, "nama dia clawd", "gas m2"), memandu di film 3D dan menggantikan teks petunjuk lama (M3, 16 Nov: "jangan lupa untuk menghapus semua text pemandu yang lama"). ✅ M1–M3 16 Nov 2026, M4 17 Nov 2026 (host: "selesain project clawd dulu, baru aku merge ketika sudah selesai"): Clawd juga di film 2,5D (balok CSS 3D), teks petunjuk lama dihapus seluruhnya, gerak pandang Clawd di kedua film. Rinciannya: `docs/design/decisions.md` bagian "Maskot pemandu…", "Clawd: gelembung…", "Clawd memandu di film 3D", "Clawd di film 2,5D…", dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+  - Uji di iPhone produksi (`/film/?fps`): fps dengan Clawd di `high ×1 (paksa)`, ketukan pada Clawd, letaknya di gallery, dan Clawd 2,5D (Calm).
+  - Suara Clawd: menunggu pilihan host (blip piksel, rekaman, atau tanpa suara).
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**

@@ -206,7 +206,32 @@ Tafsir Claude: PR #12 belum di-merge sampai seluruh proyek Clawd selesai. Sisany
 3. **Gerak pandang Clawd** (aturan host 13 Nov, berlaku di semua objek 3D dan 2,5D): kamera parallax, perspective shift, dan kedalaman ikut gulir, di film 3D maupun 2,5D.
 4. **Penutup:** tes penuh, video desktop dan HP 9:16, dokumen, `CLAUDE.md`, `HANDOFF.md`, dan deskripsi PR.
 
-Sedang dikerjakan.
+**M4: selesai 17 Nov** (rincian: `docs/design/decisions.md` bagian "Clawd di film 2,5D dan gerak pandang Clawd").
+
+1. Yang selesai:
+   - **Clawd di film 2,5D:**
+     - `components/mascot/flat.ts`: balok CSS 3D dengan ukuran, pivot, dan warna kit.
+     - `face-svg.ts`: wajah SVG dari data wajah kit `engine/mascot/kit-face.ts`, yang kini juga dipakai `claude.ts` (lembar 12 ekspresi 3D identik piksel).
+     - `flat-emotes.ts`: partikel emosi DOM.
+     - `components/film/clawd-flat.ts`: dimuat sebagai chunk terpisah, hanya di film 2,5D.
+   - **Dipakai bersama kedua film:**
+     - `engine/mascot/motor.ts` (gerak 3D identik piksel sesudah dipindah);
+     - `components/mascot/session.ts` (otak, petunjuk, tempat di samping);
+     - `stageBus.onStrike` (pukulan gong 3D maupun cakram CSS).
+   - **Teks petunjuk lama dihapus seluruhnya:** `Hint`, `film.hint`, `film.hintKeys`, `film.kayonHint`, `film.phrasesHint`, beserta CSS-nya.
+   - **Gerak pandang Clawd di kedua film:** parallax, perspective shift, dan kedalaman ikut gulir.
+   - **Calm/gerak dikurangi:** Clawd 2,5D diam.
+   - **`?clawd=0`:** tanpa Clawd, untuk pengukuran.
+2. Tes:
+   - lint dan typecheck bersih; unit 413 lulus (tes Clawd 28).
+   - e2e penuh 286 lulus, 0 gagal: smoke 7, home 14, today 47, pwa 8, sound 16, gate 24, film 76, stage 94.
+     - Tes lama "petunjuk navigasi hilang" diganti tes Clawd 2,5D: perkenalan, petunjuk lama tidak ada, klik memajukan kalimat, tamu lama, petunjuk ungkapan, Calm diam.
+     - Tes DOF lanskap kini diukur dengan `?clawd=0`. Clawd sengaja selalu tajam, jadi tepinya ikut terhitung sebagai rincian.
+   - Video 2,5D (desktop + HP 9:16, data trip April) sedang direkam.
+3. Berikutnya: kirim video 2,5D, perbarui deskripsi PR #12. Sesudah itu proyek Clawd selesai dan siap di-merge host.
+   - Pertanyaan ke host yang belum dijawab:
+     - suara Clawd: blip piksel, rekaman, atau tanpa suara;
+     - Next.js 16.4.3 → 16.4.5.
  Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
