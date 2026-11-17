@@ -260,6 +260,12 @@ Hasil 17 Nov malam:
   - Perbaikan ikut: daftar "Menunggu host" kini diambil dari blok berbutir terbaru di bagian 0. Sebelumnya yang terbaca blok terakhir yang tanpa butir, jadi hasilnya 0.
   - Tes mod 3 lulus: SVG di HP dan desktop, kartu di terminal. `tsc` dan `validate` lulus.
   - Pratinjau dikirim ke host (foto data sekarang dan video animasi 6 dtk) dan dicatat di ledger. Belum di Drive: 0,2 MB.
+- Host sesudah `/lakon` di HP: "lah terus liat nya dimana? disini masih kartu". Peta SVG tidak tampil di claude.ai browser HP.
+  - Dugaan: tampilan web melapor dengan nama lain (tanpa elemen `Svg`), atau punya `Svg` tapi tidak menggambarnya.
+  - Langkah diagnosis:
+    - mod mencatat nama tampilan, daftar elemennya, dan `$.session.surfaces()` ke `scratchpad/lakon-surfaces.json`;
+    - kaki dashboard menulis "tampilan: …".
+  - Sesudah itu: pilih cara gambar yang benar-benar tampil di tampilan host.
 - Langkah berikutnya:
   - host mencoba `/lakon` lagi di HP (versi berkartu);
   - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
