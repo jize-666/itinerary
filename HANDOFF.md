@@ -149,6 +149,11 @@ Tafsir Claude:
 **Pertanyaan host 17 Nov, kata demi kata:** "kamera + lensa dikurangi ga? kalau belum, kurangi dikit".
 Tafsir Claude: koreksi sebelumnya ternyata bukan "biarkan tetap". Kamera dan lensa dikurangi sedikit: menukik 2,8 → 2,3 m, lensa melebar 24° → 20°.
 
+Hasil 17 Nov:
+- e2e penuh kedua (kode sebelum perubahan halus): 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal.
+- Versi halus di-build; video desktop + HP 9:16 versi halus sedang direkam (`dimensi-halus-*.mp4` di scratchpad).
+- Berikutnya: kirim video, jalankan ulang e2e `film` + `stage` untuk versi halus, lalu PR bila host oke.
+
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
 - sayang 0,85/0,45: 203 Hz;
