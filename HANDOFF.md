@@ -245,6 +245,16 @@ Hasil pemeriksaan 17 Nov:
 
 Menunggu host: nama/ID suara di ElevenLabs (atau platform tempat membuatnya), atau konfirmasi bahwa suara itu milik host sehingga boleh dibuat tiruan suaranya (voice clone) dari bagian suara perempuan di video. Suara tidak ditiru sebelum ada konfirmasi itu.
 
+**Jawaban host 17 Nov, kata demi kata:** "woi itu video aku yg buat, suaranya ilang di akun elevenlabs. aku ganti akun baru karena plan berbayar gw habis".
+
+Tafsir Claude: video dan suaranya milik host, dan suaranya hilang bersama akun lama. Langkahnya:
+1. Ambil bagian suara perempuan saja dari video.
+2. Buat ulang suaranya di akun ElevenLabs baru yang tersambung.
+3. Kirim contoh 2–3 kalimat Clawd ke host.
+4. Bila disetujui, rekam semua kalimat dan pasang di Clawd (ikut sakelar suara situs).
+
+Rekaman suara dari video tidak disimpan di repo.
+
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
