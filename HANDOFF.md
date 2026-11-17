@@ -38,7 +38,7 @@ Kemajuan 17 Nov:
    - `clawd.ts`: klip diunduh saat kalimatnya diantrekan; Clawd tetap "bicara" selama suaranya berbunyi.
    - `AudioEngine`: `playVoice`/`stopVoice`/`preloadVoice`, satu suara pada satu waktu, gendhing direndahkan ke 0,30 selama Clawd bicara, berhenti saat suara dimatikan.
    - `scripts/audio/clawd-voice.ts`: `list` (teks yang direkam), `build <mentah>` (mono, pangkas hening, −16 LUFS, MP3 48 kbps, tulis `voice-clips.json`), `check` (78 klip lengkap).
-2. Tes: lint, typecheck, unit 425 lulus (tes suara 12 baru di `tests/unit/voice.test.ts`, `bus.test.ts` +1). Pengolah klip diuji dengan bunyi sintetis: hening terpangkas, −16,5 LUFS; berkas ujinya dihapus.
+2. Tes: lint, typecheck, unit 425 lulus (12 tes suara baru: 11 di `tests/unit/voice.test.ts`, 1 di `bus.test.ts`). Pengolah klip diuji dengan bunyi sintetis: hening terpangkas, −16,5 LUFS; berkas ujinya dihapus.
    - e2e `sound` + `film` (desktop dan iPhone): 92 lulus, 12 dilewati sesuai proyek perangkat, 0 gagal. Selama klip belum ada, perilaku film tidak berubah.
    - Kendala: contoh EN di ElevenLabs gagal dua kali (09.2x dan 09.58 UTC): "Free generations are busy right now", tanpa kredit terpakai (flow `aEPK4i7iFxLss3myjkm9`; perkiraan 290 kredit untuk 2 versi ±145 karakter). Percobaan berikutnya dijadwalkan otomatis.
    - Build Next.js sempat berhenti sekali dengan peringatan keamanan ("Your version of Next.js is affected by a known security vulnerability"), lalu jalan saat diulang. Ini pertanyaan lama ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
