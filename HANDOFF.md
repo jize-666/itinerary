@@ -28,6 +28,7 @@ Hasil 17 Nov:
    - e2e penuh 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal (13,7 mnt); `sound` diulang dengan build terakhir, 16 lulus.
    - Jalur mesin suara Clawd (`playVoice`, peredaman) belum punya tes yang menjalankannya, karena belum ada klip. Tes e2e suara (`debug().voice`) dibuat bersama klipnya.
    - Pratinjau: tidak ada video, karena belum ada yang berubah di layar. Video dengan suara dikirim bersama klipnya.
+   - Contoh suara EN percobaan ketiga (10.21 UTC) masih "Free generations are busy right now", tanpa kredit terpakai. Tidak dijadwalkan lagi; menunggu arahan host: coba lagi nanti, atau naik paket ElevenLabs (antrean berbayar tidak ikut antrean gratis).
 3. Berikutnya: host meninjau dan me-merge PR #13. Sesudahnya branch dimulai ulang dari `main`, lalu: contoh EN + ID, rekam 78 klip, tes e2e suara, video dengan suara (nama tamu "Jize"), PR klip.
 
 Kemajuan 17 Nov:
