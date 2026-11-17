@@ -233,8 +233,20 @@ Hasil 17 Nov malam:
   - Perbaikan: bila panel tidak ditempatkan, `/lakon` menulis dashboard yang sama sebagai teks di chat. Isinya: bar ▰▱, status agen ●/✓/✕, tugas berikutnya ▸.
   - Teks itu hanya untuk host, tidak masuk ke permintaan model. `/lakon teks` memaksa versi teks di mana saja.
   - Tes mod (`claude plugin test`): 2 lulus, untuk tanpa panel dan dengan panel. `tsc` dan `validate` juga lulus.
+- Host bertanya "ini ga pake credit sama berbayar kan". Jawaban:
+  - dashboard tidak memanggil model, jadi tidak memakai kredit;
+  - yang memakai jatah paket hanya kerja model: sesi utama dan agen pembantu;
+  - angka $ = perkiraan `/cost`, bukan tagihan.
+- Host tentang versi teks: "jelek banget, gada ui nya".
+  - Perbaikan: baris keluaran `/lakon` di chat (komponen `CommandOutput`, ada di semua tampilan termasuk HP) kini digambar mod sebagai dashboard berkartu. Isinya:
+    - judul dan tombol Perbarui;
+    - empat ubin angka;
+    - kartu Sesi & agen, Tugas, Sedang dikerjakan, Pratinjau & suara (bar progres asli), dan Git.
+  - Versi chat ringkas: satu kolom, tiga tugas berikutnya, paling banyak empat pembantu.
+  - Tetap tanpa panggilan model. Teks polos hanya cadangan bila tampilan tidak menjalankan mod.
+  - Tes mod 3 lulus. Tes ketiga menggambar baris itu di HP, desktop, dan terminal, dan memastikan perintah lain tidak disentuh. `tsc` dan `validate` lulus.
 - Langkah berikutnya:
-  - host mencoba `/lakon` lagi di HP;
+  - host mencoba `/lakon` lagi di HP (versi berkartu);
   - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
