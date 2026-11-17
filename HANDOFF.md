@@ -51,7 +51,17 @@ Tafsir Claude: host belum puas dengan benang dan terbuka mengganti benang emas d
 - **B. Bengawan Solo dan larung lampion:** sungai berkelok melintasi lanskap dengan air yang memantulkan langit menurut jam. Tiap tempat singgah satu lampion terapung; perahu lampion hanyut mengikuti gulir dan menyalakan lampion yang dilewati.
 - **C. Kain batik terbentang:** kain parang/kawung yang tergelar mengikuti gulir, dengan cap motif prada di tiap tempat singgah; menyiapkan canting di Hari 3.
 
-3. Berikutnya: tunggu pilihan host. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+**Pilihan host 17 Nov, kata demi kata:** "b aja coba".
+
+Tafsir Claude: benang emas diganti **Bengawan Solo dan larung lampion** (dicoba dulu, gambar diam untuk disetujui):
+- **Sungai:** berkelok melintasi lanskap gallery, tepat di pita di bawah kartu, dan berlanjut jauh ke kiri dan kanan cakrawala. Tanah diukir menjadi alur sungai. Airnya memantulkan langit menurut jam, beriak dan mengalir, dengan jalur kilau matahari.
+- **Lampion:** tiap tempat singgah satu lampion kertas di atas rakit daun, terapung tepat di bawah kartunya.
+- **Perahu:** perahu lampion tamu hanyut mengikuti gulir atau jari dan menyalakan tiap lampion yang dilewati. Ada riak buritan di air.
+- **Pantulan:** lampion yang menyala memantul di air sebagai garis cahaya.
+- Lampion di depan masih padam.
+- Kode benang emas diganti; tempat singgah di bawah kartu dan kemajuan ikut gulir dipakai ulang.
+
+3. Berikutnya: gambar diam sungai dan larung untuk disetujui host. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
