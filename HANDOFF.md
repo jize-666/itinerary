@@ -125,6 +125,21 @@ Hasil pengecekan 17 Nov:
      - Keempatnya lulus sesudah diperbaiki; e2e penuh diulang.
 3. Berikutnya: tunggu penilaian host (halus/dramatis); lalu PR (sungai + larung + gerbang dimensi) bila host setuju.
 
+**Jawaban host 17 Nov, kata demi kata:** "1. bikin lebih smooth / 2. yang tenang, bagus. tapi, bisa di sesuaikan juga ga? kalo marah ya nada merah/tinggi, seneng/happy ya ekspresif".
+
+Tafsir Claude:
+1. **Gerbang dimensi lebih halus:** efeknya lebih lembut tanpa hilang; dikerjakan dulu, lalu video ulang.
+   - kamera menukik lebih sedikit, lensa melebar lebih sedikit;
+   - garis cahaya, warna terpecah, riak, dan kilau lebih tipis;
+   - kartu menukik/muncul dari kedalaman yang lebih dangkal, kurva gerak lebih lembut, durasi sedikit lebih panjang.
+2. **Suara Clawd mengikuti emosi**, dengan dasar versi "tenang" (Chatterbox, ekspresi 0,45):
+   - marah = nada lebih tinggi dan tegang;
+   - senang/sayang = ekspresif;
+   - terkejut = ekspresif dan cepat;
+   - mengantuk = pelan;
+   - perkenalan, petunjuk, dan sapaan = tenang.
+   Pemetaan emosi per kalimat disimpan di `voice.ts`. Contoh per emosi dikirim dulu sebelum 78 klip direkam.
+
 Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
