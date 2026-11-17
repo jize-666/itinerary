@@ -187,6 +187,9 @@ Menunggu host:
 - keputusan kuota Hugging Face untuk 78 klip suara;
 - persetujuan membuka PR.
 
+**Permintaan host 17 Nov malam, kata demi kata:** "clode buatin gw fitur terbaru claude mods, bisa?"
+Tafsir Claude: mod Claude Code (tambahan tampilan/perilaku Claude di sesi ini: panel, baris di atas prompt, tema, perintah garis miring), bukan bagian situs. Jenisnya ditanyakan ke host dulu. Mod ditulis di folder mod sesi (`/root/.claude/dev-mods/<sesi>/`), tidak di repo.
+
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
 Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Drive host, ke folder "previews".
