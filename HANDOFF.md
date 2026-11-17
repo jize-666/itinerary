@@ -32,7 +32,7 @@ Tafsir Claude: benangnya terlalu polos (garis tipis dengan titik); di siang hari
 - jalur yang belum ditempuh tampak samar sebagai benang sutra redup, supaya perjalanan di depan terbaca.
 Tetap hemat: beberapa draw call, hanya saat gallery tampak.
 
-**Versi kedua: selesai 17 Nov, menunggu tinjauan host atas gambar diam.**
+**Versi kedua: selesai 17 Nov; host belum puas dan membuka opsi ganti konsep (lihat di bawah).**
 1. Yang selesai:
    - `engine/stage/thread.ts`: manik melayang 20 cm, benang melengkung turun 11 cm di antara manik, pangkal/ujung menyentuh tanah; `pointAt`, `currentKnot`.
    - `stage3d/thread.ts`, enam draw call, hanya untuk benang hari yang tampak:
@@ -44,7 +44,14 @@ Tetap hemat: beberapa draw call, hanya saat gallery tampak.
      - jalur di depan berupa benang putus-putus yang redup; tali bergoyang pelan.
 2. Tes: lint, typecheck bersih; unit 433 lulus (benang 8; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
    - Antrean ElevenLabs dicoba lagi 11.07 dan 11.19 UTC: masih penuh, tanpa kredit terpakai. Percobaan berikutnya terjadwal 11.50 UTC.
-3. Berikutnya: tunggu tinjauan host atas rupa benang. Bila disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.
+**Pertanyaan host 17 Nov atas versi kedua, kata demi kata:** "ada ide? atau mau remodel/redesign aja? kaya kurang gitu, di ganti apa gitu jangan benang, sekalian konsepnya juga ganti? saran?"
+
+Tafsir Claude: host belum puas dengan benang dan terbuka mengganti benang emas dengan elemen dan konsep lain. Yang bisa dipakai ulang apa pun pilihannya: letak tempat singgah tepat di bawah kartu dan kemajuan yang mengikuti gulir (`engine/stage/thread.ts`). Usul yang dikirim ke host (menunggu pilihan):
+- **A. Gending sehari (bonang), usul utama:** tiap tempat singgah satu pencon bonang di rancakan berukir yang terbentang di lanskap. Tiap geser panel menabuh pencon berikutnya: nada slendro, pendar, getar, dan riak cahaya di tanah. Satu hari = satu gending yang dimainkan tamu sendiri, ditutup gong ageng di akhir hari.
+- **B. Bengawan Solo dan larung lampion:** sungai berkelok melintasi lanskap dengan air yang memantulkan langit menurut jam. Tiap tempat singgah satu lampion terapung; perahu lampion hanyut mengikuti gulir dan menyalakan lampion yang dilewati.
+- **C. Kain batik terbentang:** kain parang/kawung yang tergelar mengikuti gulir, dengan cap motif prada di tiap tempat singgah; menyiapkan canting di Hari 3.
+
+3. Berikutnya: tunggu pilihan host. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
