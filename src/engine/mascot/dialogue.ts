@@ -7,7 +7,11 @@
  * - Ketukan pada gelembung/maskot: kalimat yang sedang diketik langsung lengkap; kalimat yang sudah lengkap diganti
  *   kalimat berikutnya.
  * - Ucapan yang menyela (reaksi klik) menggantikan antrean.
+ * - Kalimat bersuara (`voice.ts`): gelembung menunggu klipnya selesai (ditambah `VOICE.tail`) sebelum lanjut, walau
+ *   teksnya sudah lama lengkap. Ketukan pada kalimat yang sudah lengkap tetap langsung pindah (suaranya dihentikan
+ *   pemutar karena kuncinya berganti).
  */
+import { VOICE } from "./voice";
 
 export const TYPE = {
   /** Huruf per detik. */
@@ -57,8 +61,14 @@ export function typingTime(text: string): number {
 
 export const holdTime = (text: string) => TYPE.holdBase + TYPE.holdPerChar * text.length;
 
-/** Satu kalimat dalam antrean: `text()` dibaca ulang tiap frame (bahasa bisa berganti). */
-export type Utterance = { id: string; text: () => string };
+/**
+ * Satu kalimat dalam antrean: `text()` dibaca ulang tiap frame (bahasa bisa berganti). `clip()` = nama klip suaranya
+ * (`voice.ts`), dibaca sekali saat kalimat mulai tampil.
+ */
+export type Utterance = { id: string; text: () => string; clip?: () => string };
+
+/** Lama suara kalimat `u` (ms) bila suara menyala dan klipnya ada, selain itu null. */
+export type VoiceOf = (u: Utterance) => number | null;
 
 export type SpeechFrame = Readonly<{
   /** Kunci kalimat yang sedang tampil. */
@@ -71,6 +81,12 @@ export type SpeechFrame = Readonly<{
   more: boolean;
   /** 0–1: memudar saat kalimat terakhir selesai. */
   fade: number;
+  /** Nama klip suara kalimat ini, atau null bila kalimat ini tanpa suara. */
+  voice: string | null;
+  /** Kalimat mulai tampil (ms, jam pemanggil). */
+  since: number;
+  /** Klip suaranya masih berbunyi. */
+  voicing: boolean;
 }>;
 
 export class Dialogue {
@@ -81,6 +97,10 @@ export class Dialogue {
   private completedAt: number | null = null;
   private endedAt: number | null = null;
   private last: Utterance | null = null;
+  private voiceMs: number | null = null;
+  private voiceName: string | null = null;
+
+  constructor(private readonly voiceOf: VoiceOf = () => null) {}
 
   get active() {
     return this.current !== null;
@@ -123,6 +143,9 @@ export class Dialogue {
       this.startedAt = now;
       this.completedAt = null;
       this.endedAt = null;
+      this.voiceMs = this.voiceOf(u);
+      this.voiceName = this.voiceMs !== null ? (u.clip?.() ?? null) : null;
+      if (this.voiceName === null) this.voiceMs = null;
     } else if (this.current) {
       this.last = this.current;
       this.current = null;
@@ -130,11 +153,22 @@ export class Dialogue {
     }
   }
 
+  /** Saat kalimat sekarang lengkap diketik (ms, jam pemanggil). */
+  private doneAt(text: string): number {
+    const typed = this.startedAt + typingTime(text);
+    return this.completedAt !== null ? Math.min(this.completedAt, typed) : typed;
+  }
+
   /** Lama kalimat sekarang sudah lengkap (ms), atau null bila masih diketik. */
   private doneFor(text: string, now: number): number | null {
-    const typed = this.startedAt + typingTime(text);
-    const done = this.completedAt !== null ? Math.min(this.completedAt, typed) : typed;
+    const done = this.doneAt(text);
     return now >= done ? now - done : null;
+  }
+
+  /** Saat kalimat sekarang berganti: sesudah waktu baca, dan bila bersuara, sesudah klipnya selesai. */
+  private endAt(text: string): number {
+    const read = this.doneAt(text) + holdTime(text);
+    return this.voiceMs !== null ? Math.max(read, this.startedAt + this.voiceMs + VOICE.tail) : read;
   }
 
   /** Ketukan: lengkapi kalimat yang sedang diketik, atau lanjut ke kalimat berikutnya. Mengembalikan true bila terpakai. */
@@ -148,20 +182,20 @@ export class Dialogue {
 
   tick(now: number): SpeechFrame | null {
     if (this.current) {
-      const text = this.current.text();
-      const done = this.doneFor(text, now);
-      // berganti tepat di akhir waktu baca, walau frame berikutnya datang terlambat
-      if (done !== null && done >= holdTime(text)) this.next(now - (done - holdTime(text)));
+      // berganti tepat di akhir waktu baca (atau suara), walau frame berikutnya datang terlambat
+      const end = this.endAt(this.current.text());
+      if (now >= end) this.next(end);
     }
     if (this.current) {
       const text = this.current.text();
       const done = this.doneFor(text, now);
       const shown = done !== null ? text.length : typedLength(text, now - this.startedAt);
-      return { id: this.current.id, text, shown, typing: done === null, more: this.queue.length > 0, fade: 1 };
+      const voicing = this.voiceMs !== null && now < this.startedAt + this.voiceMs;
+      return { id: this.current.id, text, shown, typing: done === null, more: this.queue.length > 0, fade: 1, voice: this.voiceName, since: this.startedAt, voicing };
     }
     if (this.last && this.endedAt !== null && now - this.endedAt < TYPE.fade) {
       const text = this.last.text();
-      return { id: this.last.id, text, shown: text.length, typing: false, more: false, fade: 1 - (now - this.endedAt) / TYPE.fade };
+      return { id: this.last.id, text, shown: text.length, typing: false, more: false, fade: 1 - (now - this.endedAt) / TYPE.fade, voice: null, since: this.endedAt, voicing: false };
     }
     return null;
   }

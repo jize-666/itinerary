@@ -541,6 +541,20 @@ Belum disambungkan ke film (itu M3).
 - **Calm dan gerak dikurangi:** Clawd 2,5D diam (pose tetap, tanpa jeli dan kedip), kalimat langsung utuh, tanpa partikel.
 - **Tempat di HP:** calon tempat sedikit lebih rendah ditambahkan, supaya gelembung tidak menutupi subjudul hero.
 
+## Suara Clawd (17 Nov 2026), arahan host: "ini ada 2 suara, yang suara perempuan adalah suara yang pernah ku buat untuk clawd. bisa pakai suara ini?", "oke i choose clawd-deep-6"
+
+- **Suara:** "Clawd" di akun ElevenLabs host (Voice Design "clawd-deep-6", voice_id `4gpmKMMFEuQLCXLQGo99`), dibuat ulang dari deskripsi karena suara asli host hilang bersama akun lamanya dan clone tidak tersedia di paket gratis.
+- **Rekaman sekali, bukan TTS langsung:** semua kalimat Clawd tetap (tanpa nama tamu), jadi tiap kalimat direkam sekali per bahasa: 39 klip EN + 39 ID, termasuk varian layar sentuh ("ketuk", "geser"). Tidak ada kunci API atau panggilan ke ElevenLabs dari situs.
+- **Nama klip = kunci kalimat di gelembung** (`intro.0`, `tip.gong.0`, `angry.1`, ditambah `.touch` untuk varian sentuh); berkas `public/audio/clawd/<lang>/<nama>.mp3`. Daftar dan pengolahnya: `scripts/audio/clawd-voice.ts` (`list`, `build`, `check`).
+- **Olahan klip:** mono, hening di awal dan akhir dipangkas, kenyaringan −16 LUFS seperti gendhing dan efek lainnya, MP3 48 kbps.
+- **Gelembung menunggu klip:** lama tiap klip ada di `engine/mascot/voice-clips.json`. Kalimat bersuara ditahan sampai klipnya selesai (+0,45 dtk), walau teksnya sudah lengkap. Otak Clawd tetap murni (tanpa menunggu peristiwa audio), jadi bisa dites.
+- **Ketukan:** ketukan pertama melengkapi teks dan suara jalan terus; ketukan berikutnya melewati kalimat dan suaranya berhenti.
+- **Satu suara pada satu waktu:** klip baru, reaksi yang menyela, kalimat yang dilewati, gelembung yang memudar, atau bahasa yang diganti menghentikan klip lama. Klip yang baru siap lebih dari 0,6 dtk sesudah kalimatnya muncul tidak diputar, karena suaranya akan tertinggal teks.
+- **Ikut sakelar suara situs:** hanya berbunyi sesudah "Begin the lakon" dan selama suara menyala. Bila suara mati, tidak ada klip yang diunduh dan waktu gelembung seperti biasa. Selama Clawd bicara gendhing direndahkan (0,30, sepanjang klip).
+- **Dimuat seperlunya:** klip kalimat diunduh saat kalimatnya diantrekan (perkenalan sejak Clawd muncul, petunjuk sejak tamu tiba di tempatnya). Kalimat tanpa klip tetap tampil tanpa suara.
+- **Gerak:** selama suaranya berbunyi Clawd tetap bergerak "bicara" (lengan menjelaskan), tidak hanya selama teks diketik.
+- **Lisensi:** audio paket gratis ElevenLabs setahu Claude tanpa lisensi komersial dan wajib atribusi; perlu dicek host sebelum dipakai untuk klien berbayar.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

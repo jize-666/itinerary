@@ -21,6 +21,10 @@ export type AudioControl = {
   playSfx(name: ClickSound | SceneSound, opts: { gain?: number; delay?: number; duck?: boolean }): unknown;
   /** Unduh dan urai lebih dulu, supaya bunyi pertama tidak terlambat. */
   preload(name: SceneSound): void;
+  /** Suara Clawd: satu klip pada satu waktu (klip baru menghentikan yang lama). */
+  playVoice(url: string): unknown;
+  stopVoice(): void;
+  preloadVoice(urls: readonly string[]): void;
 };
 
 /** Sama dengan CLICK_LEVEL di catalog.ts (disalin supaya modul ini tetap tanpa kode mesin). */
@@ -63,5 +67,19 @@ export const audioStatus = {
   /** Siapkan bunyi adegan sebelum dipakai (tamu sedang menuju slide gong). Hening → tidak mengunduh apa pun. */
   prepare(...sounds: SceneSound[]) {
     if (state.started && state.enabled) for (const s of sounds) control?.preload(s);
+  },
+  /** Suara Clawd boleh berbunyi: lakon sudah dimulai, suara menyala, dan mesin audio sudah dimuat. */
+  voiceOn: () => state.started && state.enabled && control !== null,
+  /** Putar suara Clawd untuk satu kalimat (menghentikan yang sebelumnya). */
+  voice(url: string) {
+    if (state.started && state.enabled) void control?.playVoice(url);
+  },
+  /** Hentikan suara Clawd. */
+  hush() {
+    control?.stopVoice();
+  },
+  /** Unduh klip suara Clawd lebih dulu. Hening → tidak mengunduh apa pun. */
+  prepareVoice(urls: readonly string[]) {
+    if (state.started && state.enabled) control?.preloadVoice(urls);
   },
 };

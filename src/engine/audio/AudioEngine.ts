@@ -1,5 +1,5 @@
 import { BedPlayer } from "./bed";
-import { BED_LEVEL, BEDS, type BedName, DUCK_LEVEL, SFX, SFX_LEVEL, type SfxName } from "./catalog";
+import { BED_LEVEL, BEDS, type BedName, DUCK_LEVEL, SFX, SFX_LEVEL, type SfxName, VOICE_DUCK, VOICE_LATE, VOICE_LEVEL } from "./catalog";
 import { LOOP_LOOKAHEAD } from "./loop";
 import { writeSoundPref } from "./preference";
 import { type AudioState, audioStatus, INITIAL_AUDIO } from "./status";
@@ -34,6 +34,12 @@ class AudioEngine {
   private pumpTimer: ReturnType<typeof setInterval> | null = null;
   private suspendTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSfx: SfxName | null = null;
+  /** Suara Clawd yang sedang berbunyi; token membatalkan klip yang masih diunduh saat kalimatnya sudah lewat. */
+  private voice: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private voiceToken = 0;
+  /** Gendhing sedang direndahkan untuk suara Clawd (dilepas tepat sekali oleh `unduck`). */
+  private voiceDucked = false;
+  private lastVoice: string | null = null;
 
   constructor() {
     if (typeof window !== "undefined") (window as AudioWindow).__lakonAudio = { debug: () => this.debug() };
@@ -77,6 +83,7 @@ class AudioEngine {
       if (!this.bed?.playing) void this.playBed("keraton", { loop: true, fadeIn: 2.5, xfade: 4 });
       for (const url of Object.values(SFX)) void this.load(url);
     } else if (this.ctx) {
+      this.stopVoice();
       this.rampMaster(0, 0.3);
       this.clearSuspend();
       // Hemat baterai: hentikan jam konteks setelah redam selesai.
@@ -127,9 +134,65 @@ class AudioEngine {
     if (this.ctx && this.state.enabled) void this.load(SFX[name]).catch(() => null);
   }
 
+  /**
+   * Suara Clawd untuk satu kalimat: klip sebelumnya dihentikan, gendhing direndahkan sepanjang klip. Klip yang baru
+   * siap lebih dari VOICE_LATE sesudah diminta dibuang (suaranya akan tertinggal teks di gelembung).
+   */
+  async playVoice(url: string) {
+    const ctx = this.ctx;
+    const token = ++this.voiceToken;
+    // gendhing tetap rendah di antara dua kalimat; baru naik bila klip baru batal
+    this.endVoice(0.06, false);
+    if (!ctx || !this.state.enabled) return this.unduck(0.35);
+    const asked = ctx.currentTime;
+    const buffer = await this.load(url).catch(() => null);
+    if (token !== this.voiceToken) return; // sudah diganti kalimat lain atau dihentikan
+    if (!buffer || !this.state.enabled || ctx.currentTime - asked > VOICE_LATE) return this.unduck(0.35);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = VOICE_LEVEL;
+    src.connect(gain).connect(this.sfxBus);
+    const voice = { src, gain };
+    src.onended = () => {
+      gain.disconnect();
+      if (this.voice === voice) {
+        this.voice = null;
+        this.unduck(0.5);
+      }
+    };
+    const at = ctx.currentTime + 0.01;
+    src.start(at);
+    this.voice = voice;
+    this.lastVoice = url;
+    const g = this.bedBus.gain;
+    g.cancelScheduledValues(at);
+    g.setTargetAtTime(VOICE_DUCK, at, 0.08);
+    this.voiceDucked = true;
+  }
+
+  /** Hentikan suara Clawd (kalimatnya dilewati atau dipotong), juga klip yang masih diunduh. */
+  stopVoice() {
+    this.voiceToken++;
+    this.endVoice(0.08, false);
+    this.unduck(0.35);
+  }
+
+  /** Unduh klip suara lebih dulu (kalimat yang baru diantrekan). */
+  preloadVoice(urls: readonly string[]) {
+    if (this.ctx && this.state.enabled) for (const url of urls) void this.load(url).catch(() => null);
+  }
+
   /** Untuk e2e & debug; tidak memuat data apa pun selain status audio. */
   debug() {
-    return { ...this.state, ctx: this.ctx?.state ?? "none", bed: this.bed?.playing ? this.bedName : null, lastSfx: this.lastSfx };
+    return {
+      ...this.state,
+      ctx: this.ctx?.state ?? "none",
+      bed: this.bed?.playing ? this.bedName : null,
+      lastSfx: this.lastSfx,
+      voice: this.voice ? this.lastVoice : null,
+      lastVoice: this.lastVoice,
+    };
   }
 
   // ---- internal ----
@@ -176,7 +239,34 @@ class AudioEngine {
     const g = this.bedBus.gain;
     g.cancelScheduledValues(at);
     g.setTargetAtTime(DUCK_LEVEL, at, 0.04);
-    g.setTargetAtTime(BED_LEVEL, at + Math.min(2.4, dur * 0.5), 0.45);
+    // Clawd sedang bicara: gendhing kembali ke tingkat rendah suara Clawd, bukan ke tingkat biasa
+    g.setTargetAtTime(this.voiceDucked ? VOICE_DUCK : BED_LEVEL, at + Math.min(2.4, dur * 0.5), 0.45);
+  }
+
+  private endVoice(fade: number, unduck = true) {
+    const v = this.voice;
+    if (!v || !this.ctx) return;
+    this.voice = null;
+    const now = this.ctx.currentTime;
+    v.gain.gain.cancelScheduledValues(now);
+    v.gain.gain.setTargetAtTime(0, now, fade / 3);
+    try {
+      v.src.stop(now + fade);
+    } catch {
+      /* sudah berhenti */
+    }
+    if (unduck) this.unduck(0.35);
+  }
+
+  /** Gendhing kembali ke tingkat biasa sesudah Clawd selesai bicara. */
+  private unduck(tau: number) {
+    if (!this.ctx || !this.voiceDucked) return;
+    this.voiceDucked = false;
+    const g = this.bedBus.gain;
+    const now = this.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.setTargetAtTime(BED_LEVEL, now, tau);
   }
 
   private rampMaster(to: number, dur: number) {

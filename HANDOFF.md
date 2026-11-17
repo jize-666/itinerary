@@ -1,9 +1,54 @@
 # HANDOFF
 
-Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · **PR #12 siap Squash and merge** (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 di-merge 17 Nov; **PR #13 (pemutar suara Clawd + Next.js 16.4.6) siap Squash and merge** · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
+
+Tafsir Claude:
+- PR #12 di-merge 17 Nov 09.09 UTC (squash `5c9107d`). Branch kerja dimulai ulang dari `main` terbaru.
+- Tugas berikutnya: PR suara Clawd (rencana di bawah, "Rencana PR suara Clawd").
+- Rekaman pratinjau memakai nama host "Jize" sebagai nama tamu, menggantikan "Your Name" (`scripts/preview/client-data.ts`). Data privat lain (WhatsApp, alamat, jam jemput) tetap pengganti netral.
+
+**Jawaban host 17 Nov atas pertanyaan Next.js 16.4.3 → 16.4.5, kata demi kata:** "bebas, asal hasil yang terbaik".
+
+Tafsir Claude:
+- Next.js dinaikkan ke versi tambalan di branch ini (satu branch kerja, tidak boleh branch lain tanpa izin).
+- PR dibuka sekarang berisi tambalan Next.js + pemutar suara Clawd. Pemutar tidak mengubah apa pun selama klip belum ada, jadi tambalan keamanan bisa cepat sampai ke produksi.
+- Klip suara (78) menyusul di PR berikutnya sesudah host menyetujui contohnya.
+
+Hasil 17 Nov:
+1. Selesai: Next.js 16.4.3 → 16.4.6 (tambalan terbaru seri 16.4; celah tertambal sejak 16.4.5), `eslint-config-next` 16.4.6. `pnpm audit --prod` bersih. Peredaman gendhing untuk suara Clawd dirapikan: tetap rendah di antara dua kalimat dan saat gong dipukul, dan dilepas tepat sekali.
+2. Tes:
+   - lint, typecheck bersih; unit 425 lulus; `content:check` OK; build OK (16.4.6, tanpa peringatan keamanan);
+   - e2e penuh 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal (13,7 mnt); `sound` diulang dengan build terakhir, 16 lulus.
+   - Jalur mesin suara Clawd (`playVoice`, peredaman) belum punya tes yang menjalankannya, karena belum ada klip. Tes e2e suara (`debug().voice`) dibuat bersama klipnya.
+   - Pratinjau: tidak ada video, karena belum ada yang berubah di layar. Video dengan suara dikirim bersama klipnya.
+   - Contoh suara EN percobaan ketiga (10.21 UTC) masih "Free generations are busy right now", tanpa kredit terpakai. Tidak dijadwalkan lagi; menunggu arahan host: coba lagi nanti, atau naik paket ElevenLabs (antrean berbayar tidak ikut antrean gratis).
+3. Berikutnya: host meninjau dan me-merge PR #13. Sesudahnya branch dimulai ulang dari `main`, lalu: contoh EN + ID, rekam 78 klip, tes e2e suara, video dengan suara (nama tamu "Jize"), PR klip.
+
+Kemajuan 17 Nov:
+1. Selesai: **pemutar suara Clawd** (rincian: `docs/design/decisions.md` bagian "Suara Clawd"). Sudah tersambung ke kedua film lewat `components/mascot/session.ts`; selama klip belum ada, perilakunya sama persis dengan sebelumnya.
+   - `engine/mascot/voice.ts`: daftar 39 klip per bahasa; nama klip = kunci kalimat di gelembung, `.touch` untuk varian sentuh.
+   - `voice-clips.json`: lama tiap klip, masih kosong.
+   - `dialogue.ts`: kalimat bersuara ditahan sampai klipnya selesai (+0,45 dtk). Ketukan pertama melengkapi teks; ketukan berikutnya melewati kalimat dan menghentikan suaranya.
+   - `clawd.ts`: klip diunduh saat kalimatnya diantrekan; Clawd tetap "bicara" selama suaranya berbunyi.
+   - `AudioEngine`: `playVoice`/`stopVoice`/`preloadVoice`, satu suara pada satu waktu, gendhing direndahkan ke 0,30 selama Clawd bicara, berhenti saat suara dimatikan.
+   - `scripts/audio/clawd-voice.ts`: `list` (teks yang direkam), `build <mentah>` (mono, pangkas hening, −16 LUFS, MP3 48 kbps, tulis `voice-clips.json`), `check` (78 klip lengkap).
+2. Tes: lint, typecheck, unit 425 lulus (12 tes suara baru: 11 di `tests/unit/voice.test.ts`, 1 di `bus.test.ts`). Pengolah klip diuji dengan bunyi sintetis: hening terpangkas, −16,5 LUFS; berkas ujinya dihapus.
+   - e2e `sound` + `film` (desktop dan iPhone): 92 lulus, 12 dilewati sesuai proyek perangkat, 0 gagal. Selama klip belum ada, perilaku film tidak berubah.
+   - Kendala: contoh EN di ElevenLabs gagal dua kali (09.2x dan 09.58 UTC): "Free generations are busy right now", tanpa kredit terpakai (flow `aEPK4i7iFxLss3myjkm9`; perkiraan 290 kredit untuk 2 versi ±145 karakter). Percobaan berikutnya dijadwalkan otomatis.
+   - Build Next.js sempat berhenti sekali dengan peringatan keamanan ("Your version of Next.js is affected by a known security vulnerability"), lalu jalan saat diulang. Ini pertanyaan lama ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
+   - Branch kerja di remote sudah dihapus GitHub sesudah merge PR #12, lalu di-push ulang dari `main` terbaru (riwayat lama hanya berisi commit yang sudah di-merge).
+   - Konektor ElevenLabs menolak `account_get_usage` (perlu izin tambahan), jadi sisa kredit akun tidak terbaca dari sesi.
+3. Berikutnya:
+   - contoh EN + ID ke host begitu antrean longgar;
+   - bila host setuju: rekam 78 klip (±3.136 karakter; perkiraan ±6.300 kredit dengan 2 versi per kalimat, ±3.150 dengan 1 versi), `build`, `check`;
+   - tes e2e suara Clawd, video desktop + HP dengan suara (nama tamu "Jize"), lalu PR.
 
 ### Permintaan host 15 Nov ±00.30 WIB: maskot 3D pemandu (coral assistant) — DICATAT, SEDANG DIKERJAKAN
 
