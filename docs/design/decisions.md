@@ -502,7 +502,7 @@ Belum disambungkan ke film (itu M3).
   - petunjuk yang tidak berlaku lagi karena tamu sudah pindah dibuang tanpa memotong perkenalan.
 - **Teks petunjuk lama di layar** ("Scroll or swipe", "or press the arrow keys", "Click or tap the gunungan to turn it", "Tap a card to turn it over."):
   - tidak tampil selama panggung 3D dipakai; isinya diucapkan Clawd;
-  - di film 2,5D (tanpa WebGL, Calm, gerak dikurangi) masih tampil karena belum ada Clawd di sana, sampai M4;
+  - sejak M4 (17 Nov) dihapus seluruhnya, karena film 2,5D juga punya Clawd;
   - `aria-label` tombol gong dan gunungan tetap, karena tidak tampil di layar dan dipakai pembaca layar.
 - **Letak:** dihitung dalam ruang kamera, jadi Clawd selalu di dalam bingkai dan kamera yang bergerak memberi badannya lentur jeli. Ada tiga tempat:
   - dekat gunungan saat gerbang tertancap;
@@ -520,6 +520,26 @@ Belum disambungkan ke film (itu M3).
   - Selama perkenalan, klik memajukan kalimat dan tidak dihitung sebagai klik, jadi tidak membuat Clawd marah.
   - Selama berbicara Clawd tidak mengantuk, dan selama perkenalan/petunjuk ia tidak menyela dirinya dengan celetukan.
 - **Gelembung:** diam selama Clawd hanya melayang (zona mati 10 px) supaya teks mudah dibaca dan diketuk; menyusul dengan tetapan waktu 90 ms, bebas laju frame.
+
+## Clawd di film 2,5D dan gerak pandang Clawd (M4, 17 Nov 2026), arahan host: "selesain project clawd dulu, baru aku merge ketika sudah selesai."
+
+- **Rupa tanpa WebGL:** film 2,5D (tanpa WebGL, tier Static, Calm, gerak dikurangi) memakai Clawd dari balok CSS 3D (`components/mascot/flat.ts`), sesuai arti 2,5D dari host 11 Nov (DOM dengan `transform`, bukan WebGL).
+  - Ukuran, pivot lengan dan kaki, dan warna dari kit yang sama.
+  - Muka balok diberi warna berbeda per arah (cahaya dari kiri atas depan) supaya terbaca sebagai balok.
+  - Wajah SVG dari data wajah kit yang sama dengan film 3D (`engine/mascot/kit-face.ts`, `components/mascot/face-svg.ts`); `claude.ts` memakai data itu juga, dan lembar 12 ekspresi 3D identik piksel demi piksel sesudah dipindah.
+- **Satu otak untuk dua film:**
+  - Penggerak tubuh (wajah, pose, loncatan ketukan, jeli, sendi) dipisah ke `engine/mascot/motor.ts`; gerak 3D identik piksel demi piksel sesudah dipindah.
+  - Sesi (otak, petunjuk, tempat di samping) dipisah ke `components/mascot/session.ts`.
+  - Film 2,5D tidak punya zoom/kitar gong dan gunungan pembuka, jadi petunjuknya tidak diucapkan di sana.
+  - Pukulan gong (3D maupun cakram CSS) dikabarkan lewat `stageBus.onStrike`.
+- **Dimuat seperlunya:** Clawd 2,5D dimuat sebagai chunk terpisah, hanya bila film 2,5D dipakai.
+- **Teks petunjuk lama dihapus seluruhnya:** komponen `Hint`, `film.hint`, `film.hintKeys`, `film.kayonHint`, `film.phrasesHint`, beserta CSS-nya. `aria-label` tombol gong dan gunungan tetap.
+- **Gerak pandang Clawd** (aturan host 13 Nov, semua objek 3D dan 2,5D):
+  - kamera parallax: Clawd lapisan terdekat, bergeser searah pandang lebih jauh dari isi slide (2,5D: 22 px, isi slide 14 px; 3D: bergeser berlawanan dengan geseran kamera);
+  - perspective shift: badannya menoleh dan sedikit memiring mengikuti pandang (2,5D) atau wajahnya menoleh ke arah pandang (3D);
+  - kedalaman ikut gulir: selama perpindahan slide ia mendekat (membesar) mengikuti kemajuan gulir.
+- **Calm dan gerak dikurangi:** Clawd 2,5D diam (pose tetap, tanpa jeli dan kedip), kalimat langsung utuh, tanpa partikel.
+- **Tempat di HP:** calon tempat sedikit lebih rendah ditambahkan, supaya gelembung tidak menutupi subjudul hero.
 
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
