@@ -99,6 +99,11 @@ Hasil pengecekan 17 Nov:
 - Potongan suara Clawd dibersihkan secara lokal (`voice/hf/clawd-ref.wav` di scratchpad): saringan frekuensi suara, peredam derau, kenyaringan disamakan.
 - Unggahannya ditolak pengaman sesi karena mengirim rekaman suara host ke server pihak luar. Menunggu persetujuan eksplisit host.
 - **Jawaban host 17 Nov atas pertanyaan "Boleh saya unggah rekaman suara Clawd itu ke Space Chatterbox?", kata demi kata:** "gas". Rekaman yang sudah dibersihkan diunggah ke penyimpanan sementara Space; contoh pendek (2 kalimat EN + 1 ID) dikirim dulu sebelum 78 klip.
+- Hasil 17 Nov:
+  - Unggahan berhasil.
+  - `invoke` lewat connector dimatikan pengaturan connector (`gradio=none`), jadi API Gradio Space dipanggil langsung dari sesi.
+  - Panggilan anonim ditolak: kuota ZeroGPU per IP habis.
+  - Token Hugging Face host disimpan lewat formulir aman (network secret untuk `resembleai-chatterbox.hf.space`), tetapi ZeroGPU melaporkan "InvalidAccessToken" dan tetap memakai kuota IP. Kemungkinan token salah ketik, atau token fine-grained tanpa izin yang cukup. Menunggu host membuat token jenis "Read" dan mengisinya ulang.
 
 3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face begitu host mengizinkan unggah rekaman. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
