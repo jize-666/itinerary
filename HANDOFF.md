@@ -229,7 +229,10 @@ Tafsir Claude: PR #12 belum di-merge sampai seluruh proyek Clawd selesai. Sisany
      - Tes DOF lanskap kini diukur dengan `?clawd=0`. Clawd sengaja selalu tajam, jadi tepinya ikut terhitung sebagai rincian.
    - Video 2,5D dikirim ke host 17 Nov (desktop + HP 9:16, data trip April, 83 dtk; tur `clawd` dengan `STAGE=static`). Deskripsi PR #12 diperbarui.
    - Host bertanya "blip? apa itu". Dikirim contoh suara blip 8,6 dtk (netral, senang, marah, mengantuk; disintesis, tidak di repo).
-3. Berikutnya: proyek Clawd selesai, PR #12 siap di-merge host.
+   - CI: run PR #235, #239, #241, #243, #245 berakhir "cancelled". Bukan karena digantikan commit baru (dugaan awal), tetapi karena kena batas waktu job 20 menit di langkah e2e; langkah lain lulus. Run push untuk commit yang sama hijau (#237 15 mnt, #244 17,8 mnt).
+     - Sebab: e2e bertambah tes Clawd, dan tiap frame 3D di runner tanpa GPU kini juga menggambar Clawd.
+     - Perbaikan: `timeout-minutes` dinaikkan ke 35 di `.github/workflows/ci.yml`. Tidak ada tes yang dihapus atau dilewati.
+3. Berikutnya: proyek Clawd selesai. PR #12 siap di-merge host begitu run CI dengan batas baru hijau.
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
