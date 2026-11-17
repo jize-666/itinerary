@@ -5,6 +5,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
+
+Tafsir Claude:
+- PR #12 di-merge 17 Nov 09.09 UTC (squash `5c9107d`). Branch kerja dimulai ulang dari `main` terbaru.
+- Tugas berikutnya: PR suara Clawd (rencana di bawah, "Rencana PR suara Clawd").
+- Rekaman pratinjau memakai nama host "Jize" sebagai nama tamu, menggantikan "Your Name" (`scripts/preview/client-data.ts`). Data privat lain (WhatsApp, alamat, jam jemput) tetap pengganti netral.
+
 ### Permintaan host 15 Nov ±00.30 WIB: maskot 3D pemandu (coral assistant) — DICATAT, SEDANG DIKERJAKAN
 
 **Kata host, kata demi kata** (dengan `coral-assistant.zip`: GLB 1.492 segitiga dengan 20 klip, `.blend`, runtime R3F, `behavior.ts`, pratinjau ekspresi; disimpan di scratchpad, tidak di repo):
