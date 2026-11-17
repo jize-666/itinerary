@@ -14,6 +14,13 @@ Tafsir Claude:
 - Tugas berikutnya: PR suara Clawd (rencana di bawah, "Rencana PR suara Clawd").
 - Rekaman pratinjau memakai nama host "Jize" sebagai nama tamu, menggantikan "Your Name" (`scripts/preview/client-data.ts`). Data privat lain (WhatsApp, alamat, jam jemput) tetap pengganti netral.
 
+**Jawaban host 17 Nov atas pertanyaan Next.js 16.4.3 → 16.4.5, kata demi kata:** "bebas, asal hasil yang terbaik".
+
+Tafsir Claude:
+- Next.js dinaikkan ke versi tambalan di branch ini (satu branch kerja, tidak boleh branch lain tanpa izin).
+- PR dibuka sekarang berisi tambalan Next.js + pemutar suara Clawd. Pemutar tidak mengubah apa pun selama klip belum ada, jadi tambalan keamanan bisa cepat sampai ke produksi.
+- Klip suara (78) menyusul di PR berikutnya sesudah host menyetujui contohnya.
+
 Kemajuan 17 Nov:
 1. Selesai: **pemutar suara Clawd** (rincian: `docs/design/decisions.md` bagian "Suara Clawd"). Sudah tersambung ke kedua film lewat `components/mascot/session.ts`; selama klip belum ada, perilakunya sama persis dengan sebelumnya.
    - `engine/mascot/voice.ts`: daftar 39 klip per bahasa; nama klip = kunci kalimat di gelembung, `.touch` untuk varian sentuh.
