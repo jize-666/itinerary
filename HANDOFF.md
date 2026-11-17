@@ -189,6 +189,22 @@ Menunggu host:
 
 **Permintaan host 17 Nov malam, kata demi kata:** "clode buatin gw fitur terbaru claude mods, bisa?"
 Tafsir Claude: mod Claude Code (tambahan tampilan/perilaku Claude di sesi ini: panel, baris di atas prompt, tema, perintah garis miring), bukan bagian situs. Jenisnya ditanyakan ke host dulu. Mod ditulis di folder mod sesi (`/root/.claude/dev-mods/<sesi>/`), tidak di repo.
+- Host memilih **Panel "Lakon"**: panel di samping chat yang memperbarui diri. Isinya:
+  - daftar tugas `CLAUDE.md` (centang dan tugas aktif);
+  - langkah terakhir dan butir "Menunggu host" dari `HANDOFF.md`;
+  - pratinjau yang belum di Drive (MB, dengan peringatan 1 GB);
+  - jumlah klip suara Clawd dari 78;
+  - branch, jumlah commit yang belum di-push, dan commit terakhir.
+- Panel dibuka dengan `/lakon`, diperbarui tiap menit dan sesudah Claude mengedit berkas atau menjalankan perintah.
+- Hasil cek: `claude plugin validate` lulus (peringatan README/lisensi/ikon hanya berlaku untuk katalog plugin); `tsc` lulus.
+- Mod ini hidup di container sesi, tidak di repo, dan hilang bersama container.
+
+**Pertanyaan host 17 Nov malam, kata demi kata:** "katanya bisa agent bisa tanya ke sesi satu ke sesi dua, dan bisa di bagi modelnya, contoh opus kerjain task berat, sonet kerjain task ringan, benar? dan tampilan bisa dibuat kaya dashboard".
+Tafsir Claude: pertanyaan, belum perintah kerja. Dijawab di chat:
+- antarsesi bisa (sesi cloud membuat sesi lain dan mengirim pesan);
+- model bisa dibagi per sesi atau per subagen;
+- panel Lakon bisa dibuat seperti dashboard.
+Perubahannya menunggu pilihan host.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
