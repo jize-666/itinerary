@@ -266,6 +266,13 @@ Hasil 17 Nov malam:
     - mod mencatat nama tampilan, daftar elemennya, dan `$.session.surfaces()` ke `scratchpad/lakon-surfaces.json`;
     - kaki dashboard menulis "tampilan: …".
   - Sesudah itu: pilih cara gambar yang benar-benar tampil di tampilan host.
+  - Hasil diagnosis (`/lakon` host 17 Nov):
+    - `$.session.surfaces()` kosong, `presentation` = `{ isFullscreen: false, columns: 80 }`;
+    - hook gambar `CommandOutput` tidak pernah dipanggil.
+    - Artinya claude.ai di browser tidak tersambung sebagai tampilan mod: yang sampai hanya teks keluaran perintah. Peta dan kartu tidak bisa tampil di sana, apa pun cara gambarnya.
+  - Pilihan untuk host:
+    - (a) buka sesi ini di app Claude (iOS) atau app desktop: app termasuk tampilan mod (`mobile`, `desktop`), panel ada di lembar Mods. Ini belum diuji; catatan diagnosis akan menunjukkannya;
+    - (b) halaman Artifact "Lakon" (HTML, bisa dibuka di Safari) dengan peta beranimasi. Datanya diperbarui saat Claude menerbitkan ulang, jadi ada sedikit pemakaian model tiap pembaruan.
 - Langkah berikutnya:
   - host mencoba `/lakon` lagi di HP (versi berkartu);
   - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
