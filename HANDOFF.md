@@ -172,7 +172,20 @@ Perbaikan gelembung (17 Nov):
    - HP 3D: gallery;
    - desktop 3D: gallery;
    - desktop 2,5D: hero.
-   Catatan lain (bukan gelembung): di film 3D HP, kaki Clawd tertutup kartu gallery karena Clawd 3D digambar di bawah lapisan kartu DOM. Ditawarkan ke host sebagai perbaikan terpisah. e2e `film` + `stage` sedang dijalankan.
+   Catatan lain (bukan gelembung): di film 3D HP, kaki Clawd tertutup kartu gallery karena Clawd 3D digambar di bawah lapisan kartu DOM. Ditawarkan ke host sebagai perbaikan terpisah.
+5. e2e `film` + `stage` (dengan perbaikan gelembung dan gerbang versi halus): 170 lulus, 26 dilewati sesuai proyek perangkat, 0 gagal.
+
+**Keadaan branch 17 Nov malam (belum ada PR):**
+- Sungai dan larung lampion (pengganti benang emas).
+- Gerbang dimensi versi halus.
+- Gelembung Clawd yang tidak menutupi badan.
+- Emosi suara Clawd per kalimat.
+- Skrip catatan pratinjau Google Drive.
+Menunggu host:
+- penilaian video gerbang versi halus;
+- jawaban soal kaki Clawd 3D yang tertutup kartu;
+- keputusan kuota Hugging Face untuk 78 klip suara;
+- persetujuan membuka PR.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
