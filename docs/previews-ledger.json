@@ -78,6 +78,38 @@
       "sent": "2026-11-17",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "clawd-baru-tenang-en.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/clawd-voice2/contoh/clawd-baru-tenang-en.mp3",
+      "size": 71853,
+      "sent": "2026-11-17",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-baru-marah-en.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/clawd-voice2/contoh/clawd-baru-marah-en.mp3",
+      "size": 27309,
+      "sent": "2026-11-17",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-baru-tenang-id.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/clawd-voice2/contoh/clawd-baru-tenang-id.mp3",
+      "size": 94893,
+      "sent": "2026-11-17",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-baru-tenang-id-model-inggris.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/clawd-voice2/contoh/clawd-baru-tenang-id-model-inggris.mp3",
+      "size": 91053,
+      "sent": "2026-11-17",
+      "drive": null,
+      "driveId": null
     }
   ]
 }

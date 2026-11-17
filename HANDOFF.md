@@ -270,6 +270,25 @@ Hasil 17 Nov malam:
     - `$.session.surfaces()` kosong, `presentation` = `{ isFullscreen: false, columns: 80 }`;
     - hook gambar `CommandOutput` tidak pernah dipanggil.
     - Artinya claude.ai di browser tidak tersambung sebagai tampilan mod: yang sampai hanya teks keluaran perintah. Peta dan kartu tidak bisa tampil di sana, apa pun cara gambarnya.
+  - **Permintaan host 17 Nov malam, kata demi kata:** "sembari nunggu, buat artifacts nya di web. namanya jangan lakon, \"jize zone\"".
+    Tafsir Claude: pilihan (b) dikerjakan.
+    - Halaman Artifact claude.ai bernama **Jize Zone**, berisi dashboard peta saraf bergaya HUD machine learning, dengan data proyek yang sama seperti Lakon.
+    - Bisa dibuka di Safari HP. Mod di sesi tetap bernama Lakon.
+    - Hasil 17 Nov: https://claude.ai/artifact/KNJc3oEJvCAhQqdHTzr629 (tipe Data, privat sampai host membagikannya).
+      - Data: empat berkas JSON buatan `scratchpad/jize-zone/gen.py` (kodenya ikut di `meta`, terlihat di Sources):
+        - `ringkasan` (1 baris);
+        - `tugas` (16);
+        - `menunggu` (4);
+        - `kru` (sesi utama, agen, dan proses latar; dicatat Claude dari laporan sesi, sumbernya `scratchpad/jize-zone/kru-catatan.json`);
+        - kalkulasi `kru_ringkas` (pembantu jalan dari jumlah).
+      - Halaman: HUD gelap, berisi:
+        - ringkasan satu kalimat;
+        - empat ubin angka;
+        - peta aliran kanvas beranimasi: lima sumber mengalir ke simpul "JIZE / ZONE" lalu ke kru; berhenti bila pembaca memilih kurangi gerak;
+        - pipeline 16 sel (ketuk untuk nama tugas) dan tabel semua tugas;
+        - tabel sesi & agen, daftar menunggu, meter bersegmen, dan git.
+      - Sintaks skrip dicek (`node --check`). Laporan pemeriksaan halaman (`check`) belum ada karena halaman belum dibuka siapa pun.
+      - Memperbarui: jalankan `gen.py`, unggah ulang JSON-nya, lalu `update` `url` dan `updated` dataset terkait.
   - Pilihan untuk host:
     - (a) buka sesi ini di app Claude (iOS) atau app desktop: app termasuk tampilan mod (`mobile`, `desktop`), panel ada di lembar Mods. Ini belum diuji; catatan diagnosis akan menunjukkannya;
     - (b) halaman Artifact "Lakon" (HTML, bisa dibuka di Safari) dengan peta beranimasi. Datanya diperbarui saat Claude menerbitkan ulang, jadi ada sedikit pemakaian model tiap pembaruan.
@@ -338,6 +357,19 @@ Tafsir Claude: acuan suara Clawd diganti dengan rekaman baru ini, menggantikan p
     - yang berubah lebih besar hanya pita di bawah nada suara: 100–126 Hz −6 dB, 126–159 Hz −1,8 dB.
   - Contoh 12 dtk sebelum/sesudah dikirim ke host dan dicatat di ledger.
   - Acuan `clawd-ref2-jernih.wav` (22,3 dtk) diunggah ke Space. Pembuatan contoh gagal: "You have exceeded your ZeroGPU runs limit" (kuota gratis harian host masih habis).
+  - Hasil Chatterbox di CPU (17 Nov):
+    - Jaringan:
+      - lingkungan "itinerary" ditambah host `huggingface.co`, `cas-bridge.xethub.hf.co`, `cdn-lfs.hf.co`, `cdn-lfs-us-1.hf.co`, dan `us.aws.cdn.hf.co` (disetujui host lewat kartu);
+      - unduhan memakai `HF_HUB_DISABLE_XET=1`, karena `cas-server.xethub.hf.co` tidak diizinkan.
+    - `setuptools<81` dipasang untuk penanda air `perth`.
+    - Waktu buat per kalimat: 13–39 dtk. Model multibahasa butuh 92 dtk untuk dimuat.
+    - Nada median contoh: 229–264 Hz; acuan 238 Hz.
+    - Empat contoh dikirim ke host dan dicatat di ledger:
+      - tenang EN;
+      - marah EN;
+      - tenang ID (setelan Melayu);
+      - tenang ID dibaca model Inggris (pembanding).
+    - Menunggu pilihan host sebelum 78 klip.
   - Jalan keluar yang dicoba: Chatterbox dijalankan sendiri di container dengan CPU (torch CPU 2.6, `chatterbox-tts` 0.1.7, venv di scratchpad), tanpa kuota. Untuk kalimat ID dipertimbangkan model multibahasa dengan bahasa Melayu (`ms`), yang lebih dekat ke Indonesia daripada model Inggris.
     - Pemasangan:
       - `download.pytorch.org` diblokir proxy, jadi torch 2.6.0 diambil dari PyPI (cu124, jalan di CPU); venv ±6 GB di `scratchpad/cbenv`;
