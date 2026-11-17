@@ -314,6 +314,17 @@ Mengantuk dan contoh ID belum jadi: kuota ZeroGPU harian akun gratis host habis 
 
 Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
+**Permintaan host 17 Nov 23.12 WIB, kata demi kata, dengan dua rekaman (`AUDIO-2026-11-17-23-12-25.m4a`, `suara.m4a`):** "suara clawd, ganti dengan ini".
+Tafsir Claude: acuan suara Clawd diganti dengan rekaman baru ini, menggantikan potongan suara dari video host. Contohnya dibuat lewat Chatterbox seperti sebelumnya (dasar tenang, varian per emosi), lalu 78 klip.
+- Rekaman (tidak masuk repo, disimpan di `scratchpad/clawd-voice2/`):
+  - A: 31,9 dtk, ±19 dtk ucapan, jernih, −16 LUFS;
+  - B: 10,2 dtk, hanya ±3 dtk ucapan, sisanya bising;
+  - keduanya suara perempuan, nada median ±240 Hz, kemungkinan orang yang sama.
+- Acuan dari A (B jadi cadangan):
+  - pengolahan: high-pass 75 Hz, peredam bising ringan, −18 LUFS;
+  - potongan: `clawd-ref2.wav` 22,3 dtk dan `clawd-ref2-11s.wav` 11 dtk.
+- Sebelum diunggah ke Space: ditanyakan dulu ke host ini suara siapa. A bernama seperti pesan suara WhatsApp. Aturan lama proyek ini: suara orang lain tidak ditiru tanpa persetujuannya.
+
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
 **Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
