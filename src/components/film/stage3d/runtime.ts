@@ -11,7 +11,7 @@ import type { SkyState } from "@/engine/slides/sky";
 import { type GongPlace, stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
-import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, scrollDepth, VIEW } from "@/engine/motion/view";
+import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, PORTAL, portalRing, portalWarp, scrollDepth, VIEW } from "@/engine/motion/view";
 import { lookMoving, startLook, stepLook } from "../look";
 import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
 import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
@@ -70,6 +70,8 @@ export type StageStats = {
   time: number;
   /** Depth of field pada frame terakhir (tier High, gallery): kadar 0–1, jarak fokus (m), dan apakah digambar. */
   dof: { amount: number; focus: number; drawn: boolean };
+  /** Gerbang dimensi di gallery pada frame terakhir: kadar 0–1 (0 = tidak sedang menembus gerbang). */
+  portal: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
@@ -303,8 +305,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const leaving = cue.moving ? 1 - cursor.p : 1;
     const zoomed = spot ? zoomNow * leaving : 0;
     const orbited = spot ? orbitNow * leaving : 0;
-    if (camera.fov !== shot.fov) {
-      camera.fov = shot.fov;
+    // gerbang dimensi (geseran di gallery): kamera menukik maju (mundur: ditarik keluar) dan lensa melebar,
+    // mengikuti kemajuan geseran; post-FX menambahkan riak, garis cahaya, dan warna terpecah
+    const portal = cue.moving && cue.kind === "inner" && planted === 0 ? portalWarp(cursor.p) : 0;
+    const portalDir: 1 | -1 = cursor.to >= cursor.from ? 1 : -1;
+    const fov = shot.fov + PORTAL.fov * portal;
+    if (camera.fov !== fov) {
+      camera.fov = fov;
       camera.updateProjectionMatrix();
     }
     // kitar: letak kamera dan titik pandangnya diputar mengelilingi sumbu tegak yang melewati pusat gong
@@ -325,6 +332,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     camera.translateX((Math.sin(t * 0.21) * 0.035 + lk.x * VIEW.shiftX) * reach);
     camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - lk.y * VIEW.shiftY) * reach);
     camera.translateZ(-Math.min(0.9, (cue.moving ? scrollDepth(cursor.p) : 0) + zoomed * GONG_ZOOM.close) * dist);
+    if (portal > 0) camera.translateZ(-PORTAL.push * portal * portalDir);
     aim.set(lk.x * VIEW.shiftX * reach * VIEW.aim, -lk.y * VIEW.shiftY * reach * VIEW.aim, 0).applyQuaternion(camera.quaternion).add(look);
     camera.lookAt(aim);
     // gong kena: kamera terhentak mundur dan bergetar pelan (simpangan getar dalam ukuran layar, jadi sama di lensa mana pun)
@@ -441,7 +449,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const dofHeld = stats.dofAt && stats.dofAt.length >= 2 ? stats.dofAt : null;
     const dofAmount = spec.dof ? (dofHeld ? dofHeld[0]! : shot.dof) : 0;
     const dofAt = dofHeld ? dofHeld[1]! : dofFocus(cursor.p, inner);
-    post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t, dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture } });
+    post.render(scene, camera, {
+      exposure: mood.exposure,
+      dim: shot.dim,
+      time: t,
+      dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },
+      portal: { amount: portal, ring: portalRing(cursor.p, portalDir) },
+    });
 
     stats.frames++;
     stats.bloom = post.format;
@@ -458,6 +472,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.gate = { end: planted > 0 ? gateEnd : null, planted, face: pose && "turn" in pose ? pose.face : "agung" };
     stats.time = t;
     stats.dof = { amount: dofAmount, focus: dofAt, drawn: post.dofDrawn };
+    stats.portal = portal;
   };
   layout();
   resize();

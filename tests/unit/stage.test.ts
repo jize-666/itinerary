@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { DEPTH } from "@/engine/motion/tokens";
+import { portalRing, portalWarp } from "@/engine/motion/view";
 import { Trip } from "@content/schema";
 import { trip as soloInput } from "@content/trips/solo/trip";
 import { buildFilm, type Slide, transitionKind } from "@/engine/slides/build-slides";
@@ -457,10 +459,15 @@ describe("cue: letak film → shot + langit (cue.ts)", () => {
     expect(before.sky).toEqual(skyState(film.slides[i]!));
     const after = cues({ from: i, to: i + 1, p: (SKY_WINDOW.slide[1] + 1) / 2 });
     expect(after.sky).toEqual(skyState(film.slides[i + 1]!));
-    // di dalam gallery: sepanjang transisi
+    // di dalam gallery: selama menembus gerbang dimensi (tengah geseran), mulus tanpa lompatan
     const p = firstOf("panel");
     expect(transitionKind(film, p, p + 1)).toBe("inner");
-    expect(SKY_WINDOW.inner).toEqual([0, 1]);
+    expect(SKY_WINDOW.inner).toEqual([0.25, 0.75]);
+    expect(cues({ from: p, to: p + 1, p: 0.2 }).sky).toEqual(skyState(film.slides[p]!));
+    expect(cues({ from: p, to: p + 1, p: 0.8 }).sky).toEqual(skyState(film.slides[p + 1]!));
+    const sunAt = (q: number) => cues({ from: p, to: p + 1, p: q }).sky.sun.u;
+    const [a0, a1] = [sunAt(0.25), sunAt(0.75)];
+    expect(Math.abs(sunAt(0.5) - (a0 + a1) / 2)).toBeLessThan(Math.abs(a1 - a0) * 0.05 + 1e-9);
   });
 });
 
@@ -510,5 +517,28 @@ describe("lanskap (terrain.ts)", () => {
     }
     expect(near).toBe(0);
     expect(villageLights(0).position.length).toBe(0);
+  });
+});
+
+describe("gerbang dimensi di gallery (PORTAL)", () => {
+  it("nol di kedua ujung geseran, puncak di tengah, simetris", () => {
+    expect(portalWarp(0)).toBe(0);
+    expect(portalWarp(1)).toBeCloseTo(0, 9);
+    expect(portalWarp(0.5)).toBeCloseTo(1, 9);
+    expect(portalWarp(0.3)).toBeCloseTo(portalWarp(0.7), 9);
+    expect(portalWarp(0.1)).toBeLessThan(portalWarp(0.3));
+    expect(portalWarp(-1)).toBe(0);
+  });
+
+  it("kartu yang menukik tetap di depan mata (di bawah jarak pandang gallery), yang muncul datang dari jauh", () => {
+    expect(DEPTH.portalNear).toBeLessThan(DEPTH.perspective * 0.6);
+    expect(DEPTH.portalFar).toBeLessThan(DEPTH.cardZ * 5);
+  });
+
+  it("cincin riak: maju menyebar dari tengah, mundur menyusut ke tengah", () => {
+    expect(portalRing(0.2, 1)).toBeCloseTo(0.2, 9);
+    expect(portalRing(0.2, -1)).toBeCloseTo(0.8, 9);
+    expect(portalRing(1, 1)).toBe(1);
+    expect(portalRing(1, -1)).toBe(0);
   });
 });

@@ -139,6 +139,12 @@ export const DEPTH = {
   /** …dan berpaling sekian derajat (tepi luarnya menjauh) */
   cardTurn: 14,
   /**
+   * Gerbang dimensi (geseran gallery): kartu yang menukik melewati kamera sampai sekian px ke depan (harus di bawah
+   * jarak pandang gallery), dan kedalaman tempat kartu baru muncul.
+   */
+  portalNear: 560,
+  portalFar: -1100,
+  /**
    * Selama satu hari di gallery, bukit jauh / dekat bergeser sekian % dari lebarnya sendiri. Bukit jauh diam
    * bersama langit: tiap lapis selayar yang ikut digeser terukur memberatkan frame tanpa GPU, dan tiga bidang
    * (langit + bukit jauh, bukit dekat, kartu) sudah cukup untuk rasa kedalaman.

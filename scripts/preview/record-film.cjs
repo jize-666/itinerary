@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi]
+// dimensi = gerbang dimensi di gallery (permintaan host 17 Nov): judul Hari 1 → intro → tiga panel maju (masuk
+// dimensi), satu mundur (keluar dimensi), maju lagi; di HP satu geser jari ditahan di tengah gerbang. Bengawan Solo
+// dan larung lampion ikut tampak. QUERY=clawd=0 menambah parameter URL (mis. tanpa Clawd).
 // clawd = Clawd, maskot pemandu (perkenalan, petunjuk di gunungan, hero, gallery, gong penutup, spam klik); film 3D
 // (STAGE=high) atau film 2,5D (STAGE=static, tanpa gunungan pembuka).
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
@@ -103,7 +106,8 @@ const fs = require('fs');
   rolling = !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  await p.goto(`${BASE}/film/${STAGE ? `?stage=${STAGE}` : ''}${tour === 'gallery' || tour === 'judul' || tour === 'kitar' ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
+  const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
+  await p.goto(`${BASE}/film/${query ? `?${query}` : ''}${['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
   await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   await p.waitForSelector('.film');
   if (STAGE && STAGE !== 'static') {
@@ -353,6 +357,46 @@ const fs = require('fs');
     await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3400); // maju ke Hari 1: muka Agung melintas kiri → kanan
     await tap(p.locator('.fl-rail-list li:nth-child(1) button'), 3400); // mundur ke prolog: muka Murka kanan → kiri, api geni naik dari kaki
     await tap(p.locator('.fl-rail-list li:nth-child(2) button'), 3000); // maju lagi
+    await finish();
+    return;
+  }
+
+  if (tour === 'dimensi') {
+    const finger = async (type, x, y) => {
+      await cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+      await p.evaluate(([t, fx, fy]) => {
+        let dot = document.getElementById('rec-finger');
+        if (!dot) {
+          dot = document.body.appendChild(document.createElement('div'));
+          dot.id = 'rec-finger';
+          dot.style.cssText = 'position:fixed;z-index:999;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgb(255 255 255 / .28);box-shadow:0 0 0 1.5px rgb(255 255 255 / .6);pointer-events:none';
+        }
+        dot.style.display = t === 'touchEnd' ? 'none' : 'block';
+        dot.style.transform = `translate(${fx}px, ${fy}px)`;
+      }, [type, x, y]);
+    };
+    const pull = async (x0, x1, y, ms) => {
+      const steps = Math.max(2, Math.round(ms / 16));
+      for (let i = 1; i <= steps; i++) { await finger('touchMove', x0 + ((x1 - x0) * i) / steps, y); await w(ms / steps); }
+    };
+    await w(1600); // judul hari
+    await advance(2600); // intro hari (tahap gong judul dijalankan dulu)
+    await advance(2600); // panel pertama: perahu di lampion pertama
+    await advance(2400); // masuk dimensi
+    await advance(2400); // masuk dimensi lagi (jam berganti)
+    await key('ArrowUp', 2400); // keluar dimensi
+    await advance(2400); // masuk lagi
+    if (phone) {
+      // geser jari ditahan tepat di tengah gerbang, lalu dilanjutkan
+      const y = Math.round(height * 0.62);
+      const x0 = Math.round(width * 0.82);
+      await finger('touchStart', x0, y);
+      await pull(x0, x0 - width * 0.3, y, 700);
+      await w(1300);
+      await pull(x0 - width * 0.3, x0 - width * 0.62, y, 600);
+      await finger('touchEnd', 0, 0);
+      await w(2200);
+    } else await advance(2600);
     await finish();
     return;
   }
