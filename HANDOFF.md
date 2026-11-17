@@ -42,7 +42,7 @@ Tetap hemat: beberapa draw call, hanya saat gallery tampak.
      - manik emas bersegi yang berputar (yang belum dilewati perunggu gelap);
      - tiang cahaya tipis dan bunga api dari ujung yang sedang tergambar (lebih banyak selama geseran);
      - jalur di depan berupa benang putus-putus yang redup; tali bergoyang pelan.
-2. Tes: lint, typecheck bersih; unit 434 lulus (benang 9; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
+2. Tes: lint, typecheck bersih; unit 433 lulus (benang 8; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
    - Antrean ElevenLabs dicoba lagi 11.07 UTC (sedikit lebih awal dari jadwal 11.19): masih penuh, tanpa kredit terpakai.
 3. Berikutnya: tunggu tinjauan host atas rupa benang. Bila disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.
 
