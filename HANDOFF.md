@@ -206,6 +206,26 @@ Tafsir Claude: pertanyaan, belum perintah kerja. Dijawab di chat:
 - panel Lakon bisa dibuat seperti dashboard.
 Perubahannya menunggu pilihan host.
 
+**Permintaan host 17 Nov malam, kata demi kata:** "gas ubah ke sesi dan agen".
+Tafsir Claude:
+- Panel Lakon diubah jadi dashboard berkartu, ditambah kartu **"Sesi & agen"**. Isinya: tiap agen pembantu dan sesi cloud yang dibuat sesi ini, dengan model, tugas, status, dan lama kerjanya.
+- Kerja ringan mulai diserahkan ke agen Sonnet; kerja berat tetap di sesi utama (Opus).
+
+Hasil 17 Nov malam:
+- Lakon jadi dashboard berkartu. Isinya:
+  - deretan angka: tugas, agen yang jalan, MB belum di Drive, klip suara;
+  - kartu **Sesi & agen**;
+  - kartu Tugas (tugas berikutnya ditandai ▸), Sedang dikerjakan, Pratinjau & suara, dan Git;
+  - tombol "Perbarui".
+- Kartu Sesi & agen:
+  - Sesi utama: model dibaca dari giliran terakhir, persen konteks, dan perkiraan biaya.
+  - Agen pembantu: dibaca sendiri dari engine tiap 5 dtk, dengan model, status, lama kerja, token, dan biaya.
+  - Sesi cloud: dicatat begitu dibuat lewat `create_session`, statusnya dibaca tiap 30 dtk. Bila panel tidak diizinkan membaca, muncul catatan.
+- Kartu menyusun diri: dua kolom di layar lebar, satu kolom di layar sempit.
+- Hasil cek: `tsc` lulus; `claude plugin validate` lulus. Peringatannya hanya soal katalog plugin: author, README, lisensi, ikon.
+- Agen Sonnet pertama, kerja ringan: menjalankan `pnpm lint`, `typecheck`, `test`, `content:check`, dan `build` di branch kerja, lalu melaporkan hasilnya. Hanya baca, tanpa edit atau commit.
+- Langkah berikutnya: lihat dashboard di app; tampilan di HP belum dicek.
+
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
 Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Drive host, ke folder "previews".
