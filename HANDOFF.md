@@ -43,7 +43,7 @@ Tetap hemat: beberapa draw call, hanya saat gallery tampak.
      - tiang cahaya tipis dan bunga api dari ujung yang sedang tergambar (lebih banyak selama geseran);
      - jalur di depan berupa benang putus-putus yang redup; tali bergoyang pelan.
 2. Tes: lint, typecheck bersih; unit 433 lulus (benang 8; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
-   - Antrean ElevenLabs dicoba lagi 11.07, 11.19, dan 11.54 UTC: masih penuh, tanpa kredit terpakai. Percobaan berikutnya terjadwal 12.24 UTC.
+   - Antrean ElevenLabs dicoba lagi 11.07, 11.19, 11.54, dan 12.10 UTC (yang terakhir atas pertanyaan host "elevenlabs masih penuh?"): masih penuh, tanpa kredit terpakai. Percobaan berikutnya terjadwal 12.25 UTC.
 **Pertanyaan host 17 Nov atas versi kedua, kata demi kata:** "ada ide? atau mau remodel/redesign aja? kaya kurang gitu, di ganti apa gitu jangan benang, sekalian konsepnya juga ganti? saran?"
 
 Tafsir Claude: host belum puas dengan benang dan terbuka mengganti benang emas dengan elemen dan konsep lain. Yang bisa dipakai ulang apa pun pilihannya: letak tempat singgah tepat di bawah kartu dan kemajuan yang mengikuti gulir (`engine/stage/thread.ts`). Usul yang dikirim ke host (menunggu pilihan):
