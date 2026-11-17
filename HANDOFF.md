@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 14 Nov 2026 malam (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` (dibuat ulang dari `main` sesudah PR #11) · **Tugas 7b selesai (perintah host "kerjakan tugas 7B"): gong ditabuh di slide judul hari dan hero prolog, gallery 3D dengan letak Z dan depth of field. Ada di PR #12 bersama catatan uji iPhone; menunggu tinjauan host atas video (lihat bagian 0, paling atas).** Sebelumnya: uji host di iPhone produksi diterima ("fps aman, ga berat. done"), Audit host 1–5 (PR #10), tier High iPhone bertahan (PR #11).
+Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · **PR #12 siap Squash and merge** (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -311,6 +311,38 @@ Hasil 17 Nov:
 3. Berikutnya:
    - coba lagi contoh EN + ID begitu host minta atau sesudah antrean longgar;
    - teks EN: perkenalan 1–2 + petunjuk `beat` + reaksi `angry`; teks ID: kalimat padanannya.
+
+**Pertanyaan host 17 Nov:** "saran darimu, merge sekarang atau nunggu clawd selesai?"
+
+Saran Claude: merge PR #12 sekarang dan buat suara Clawd di PR terpisah. Alasannya:
+- Isi PR #12 sudah selesai dan dites; CI hijau (run PR #259), tanpa konflik.
+- Suara bergantung pada hal di luar kode: antrean gratis ElevenLabs, kredit, dan lisensi paket gratis.
+- PR terpisah bisa dibatalkan tanpa menyentuh Clawd dan gong.
+- Uji di iPhone produksi bisa dimulai lebih cepat.
+Selama suara belum ada, Clawd di produksi tetap tanpa suara. Deskripsi PR #12 diperbarui: status CI, video 2,5D sudah dikirim, suara tidak termasuk.
+
+**Jawaban host 17 Nov, kata demi kata:** "gas buat pr dan perbarui handoff".
+
+Tafsir Claude:
+- PR untuk pekerjaan ini sudah ada, yaitu PR #12 (satu branch hanya punya satu PR). PR itu dirapikan untuk Squash and merge: deskripsi diperbarui, `HANDOFF.md` dan `CLAUDE.md` diperbarui di commit ini.
+- PR suara Clawd dibuat sesudah host me-merge PR #12, dari branch yang sama yang dimulai ulang dari `main` terbaru (aturan `CLAUDE.md`).
+- Contoh EN dicoba lagi 17 Nov: masih "Free generations are busy right now", tanpa kredit terpakai (flow `l9FWnYPl4w0NGCxZ5wHo`).
+
+Rencana PR suara Clawd (sesudah PR #12 di-merge):
+1. Contoh EN + ID ke host (`eleven_v4`, suara `4gpmKMMFEuQLCXLQGo99`), sesudah antrean gratis longgar.
+2. Bila disetujui, rekam 39 kalimat per bahasa (78 klip; ±1.560 karakter EN + ±1.576 ID).
+   - Usul: 1 versi per kalimat, rekam ulang hanya yang janggal.
+   - Biaya diperkirakan dulu (`estimate_only`).
+3. Pasang di Clawd:
+   - Klip diputar saat kalimat muncul, berhenti saat dilewati atau dipotong.
+   - Ikut sakelar suara situs; dimuat sesuai kebutuhan (±1 MB total).
+   - Gelembung menunggu klip selesai.
+4. Tes:
+   - setiap kalimat punya klip;
+   - tidak ada suara saat sakelar mati;
+   - lint, typecheck, test, build, e2e.
+5. Video desktop + HP 9:16 dengan suara (perekam tidak menangkap audio; klip digabung sesuai waktunya).
+6. Catatan untuk host: audio paket gratis ElevenLabs setahu Claude tanpa lisensi komersial dan wajib atribusi. Perlu dicek host sebelum dipakai untuk klien berbayar.
 
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
@@ -1098,7 +1130,7 @@ Setiap pekerjaan baru dimulai dari `main` terbaru: `git fetch origin main && git
 
 ## 5. Panduan PR: Squash and merge
 
-**Keadaan semua PR per 14 Nov.** PR #1 sampai #8 sudah di-merge ke `main` (#7: fondasi panggung 3D, squash "redesign 3D (#7)"; #8: gong 3D, rupa gunungan, gerak pandang, squash "perspective shift, scroll driven depth, kamera parallax (#8)"). PR #9 (Tugas 7 gunungan pembuka dan penutup + Today 2,5D + tier High iPhone) di-merge host 14 Nov (squash "revisi terosss(#9)").
+**Keadaan semua PR per 17 Nov.** PR #1 sampai #11 sudah di-merge ke `main` (#9 "revisi terosss(#9)", #10 "kalo ga bug ya bag (#10)", #11 "gw vs bug (#11)"). **PR #12** (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4) terbuka dan siap Squash and merge. Sesudah merge, suara Clawd menyusul di PR baru.
 
 **Langkah merge (di GitHub, lewat browser).**
 1. Buka halaman PR-nya.
