@@ -222,6 +222,9 @@ describe("Clawd pemandu di film 3D (M3)", () => {
     expect(tipAt(at({ kind: "gong" }))).toBe("gong");
     expect(tipAt(at({ gate: "tail", kind: "credits" }))).toBe("credits");
     expect(tipAt(at({ kind: "fact" }))).toBeNull();
+    // film 2,5D: tidak ada zoom/kitar gong
+    expect(tipAt(at({ kind: "title", beat: true, flat: true }))).toBeNull();
+    expect(tipAt(at({ kind: "title", flat: true }))).toBe("beat");
     expect(tipAt(at({ kind: "gong", moving: true }))).toBeNull();
     expect(tipAt(at({ kind: "panel", sheet: true }))).toBeNull();
   });

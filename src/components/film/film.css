@@ -283,25 +283,6 @@ html.film-on body {
   outline-offset: 8px;
 }
 
-.fl-hint-kayon {
-  display: none;
-}
-
-.fl-hint[data-kayon] {
-  bottom: calc(var(--kayon-foot, 90px) + 6px);
-  flex-wrap: wrap;
-  justify-content: center;
-  row-gap: 6px;
-  max-width: calc(100vw - 32px);
-}
-
-.fl-hint[data-kayon] .fl-hint-kayon {
-  display: block;
-  flex-basis: 100%;
-  text-align: center;
-  color: color-mix(in srgb, var(--prada) 86%, transparent);
-}
-
 /* Gerak pandang 2,5D (aturan host 13 Nov: "perspective shift, scroll driven depth, kamera parallax" juga di film
    2,5D). --lx dan --ly (−1…1) ditulis Film.tsx dari kursor atau kemiringan HP. Lapisan bergeser menurut kedalamannya:
    langit sedikit dan berlawanan arah, isi slide searah pandang dan bidangnya sedikit memutar,
@@ -1755,9 +1736,9 @@ html.film-on body {
   outline-offset: 4px;
 }
 
-/* Clawd, maskot pemandu di panggung 3D (M3): gelembung ucapan di atas teks slide tetapi di bawah chrome, dan tombol
-   tak terlihat di atas badannya (klik/ketuk/Enter). Petunjuk lama di layar disembunyikan selama panggung 3D dipakai:
-   Clawd yang mengucapkannya (arahan host 16 Nov). */
+/* Clawd, maskot pemandu (M3–M4): gelembung ucapan di atas teks slide tetapi di bawah chrome, dan tombol tak terlihat
+   di atas badannya (klik/ketuk/Enter). Teks petunjuk lama di layar sudah dihapus: Clawd yang mengucapkannya (arahan
+   host 16 Nov). */
 .film .clawd-bubble {
   z-index: 26;
 }
@@ -1780,59 +1761,6 @@ html.film-on body {
 .film[data-sheet] .clawd-hit {
   visibility: hidden;
 }
-.film[data-stage] .fs-phrases-hint {
-  display: none;
-}
-
-.fl-hint {
-  position: absolute;
-  left: 50%;
-  bottom: calc(90px + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font: 600 12px/1.2 var(--font-ui);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: color-mix(in srgb, var(--mori) 82%, transparent);
-  opacity: 0;
-  transform: translate(-50%, 8px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.7s var(--ease-expo-out);
-  pointer-events: none;
-}
-
-.fl-hint[data-shown] {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  transition-delay: 3.2s;
-}
-
-.fl-hint-ico {
-  display: grid;
-  animation: fl-nudge 1.8s var(--ease-sine) infinite;
-}
-
-@keyframes fl-nudge {
-  50% {
-    transform: translateY(5px);
-  }
-}
-
-.fl-hint-keys {
-  display: none;
-  color: color-mix(in srgb, var(--mori) 56%, transparent);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .fl-hint-keys {
-    display: inline;
-  }
-}
-
 /* ---- sheet detail ---- */
 .fl-sheet .sheet-body {
   --line: color-mix(in srgb, var(--mori) 15%, transparent);
@@ -1897,8 +1825,7 @@ html.film-on body {
   animation-iteration-count: 1 !important;
 }
 
-.film[data-calm] .fs-gong i,
-.film[data-calm] .fl-hint-ico {
+.film[data-calm] .fs-gong i {
   animation: none;
 }
 

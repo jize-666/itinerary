@@ -33,6 +33,8 @@ function act<T>(fn: (t: number) => T): T {
 type Striker = (kick: boolean) => number | null;
 
 let striker: Striker | null = null;
+/** Pendengar pukulan gong (Clawd di film 2,5D): dikabari tiap pukulan dimulai, dengan detik sampai gong kena. */
+const strikeListeners = new Set<(dueS: number) => void>();
 let ready = false;
 let kayon = false;
 /**
@@ -64,8 +66,16 @@ export const stageBus = {
    * belum selesai; "flat" = tidak ada gong 3D (film 2,5D), pemanggil mengurus sendiri bunyi dan riaknya.
    */
   strikeGong(opts: { kick?: boolean } = {}): number | "busy" | "flat" {
-    if (!striker) return "flat";
-    return striker(opts.kick ?? true) ?? "busy";
+    const due = striker ? (striker(opts.kick ?? true) ?? "busy") : "flat";
+    if (due !== "busy") for (const fn of strikeListeners) fn(due === "flat" ? 0 : due);
+    return due;
+  },
+  /** Dengarkan pukulan gong (3D maupun cakram CSS film 2,5D). Mengembalikan pembatal. */
+  onStrike(fn: (dueS: number) => void): () => void {
+    strikeListeners.add(fn);
+    return () => {
+      strikeListeners.delete(fn);
+    };
   },
   /** Kursor atau fokus ada di atas gong: tabuh terangkat sedikit, tanda siap dipukul. */
   setReady(on: boolean) {

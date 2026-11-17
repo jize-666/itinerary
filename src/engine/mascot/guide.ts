@@ -20,6 +20,8 @@ export type GuideContext = Readonly<{
   moving: boolean;
   /** Sheet detail terbuka. */
   sheet: boolean;
+  /** Film 2,5D (tanpa panggung 3D): tidak ada zoom/kitar gong dan gunungan pembuka. Bawaan: film 3D. */
+  flat?: boolean;
 }>;
 
 /** Petunjuk yang berlaku di tempat ini, atau null. */
@@ -31,7 +33,7 @@ export function tipAt(c: GuideContext): TipId | null {
   switch (c.kind) {
     case "hero":
     case "title":
-      return c.beat ? "zoom" : "beat";
+      return c.beat ? (c.flat ? null : "zoom") : "beat";
     case "panel":
       return "gallery";
     case "phrases":

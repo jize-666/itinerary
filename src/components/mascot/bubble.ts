@@ -30,7 +30,8 @@ function pixels(map: readonly string[], colors: Record<string, string>) {
   return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
 }
 
-export type BubbleOptions = { onTap?: () => void; reduced?: boolean };
+/** `reduced`: gerak dikurangi (kalimat langsung utuh, tanpa animasi); boleh fungsi bila bisa berubah (Calm). */
+export type BubbleOptions = { onTap?: () => void; reduced?: boolean | (() => boolean) };
 
 /** Jarak dari tepi layar (px). */
 const MARGIN = 12;
@@ -48,6 +49,7 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
   const rest = el.querySelector<HTMLElement>(".cb-rest")!;
   const tail = el.querySelector<HTMLElement>(".cb-tail")!;
   const live = el.querySelector<HTMLElement>(".cb-live")!;
+  const reducedNow = () => (typeof options.reduced === "function" ? options.reduced() : !!options.reduced);
   const onClick = (e: Event) => {
     e.stopPropagation();
     options.onTap?.();
@@ -98,14 +100,14 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
         rest.textContent = text;
         el.setAttribute("data-on", "");
         measure();
-        if (fresh && !options.reduced) {
+        if (fresh && !reducedNow()) {
           el.removeAttribute("data-pop");
           void el.offsetWidth;
           el.setAttribute("data-pop", "");
         }
         placed = false;
       }
-      const n = options.reduced ? text.length : frame.shown;
+      const n = reducedNow() ? text.length : frame.shown;
       if (n !== shown) {
         shown = n;
         typed.textContent = text.slice(0, n);

@@ -331,7 +331,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.lookAt(look.set(forced[3]!, forced[4]!, forced[5]!));
     }
     camera.updateMatrixWorld();
-    clawd?.update({ camera, t, dt, moving: cue.moving, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE });
+    clawd?.update({ camera, t, dt, moving: cue.moving, depth: cue.moving ? scrollDepth(cursor.p) : 0, look: lk, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE });
 
     // slide gong, judul hari, hero: letak gong di layar ditulis ke lapisan DOM tiap frame (bidang sentuh tombol pukul
     // di slide gong, arah huruf yang tersedot di judul), teks memudar saat gong didekati atau dikitari, dan cubit di

@@ -11,6 +11,7 @@ import { createLiveStore } from "@/engine/slides/live";
 import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
 import { styleAt } from "@/engine/slides/timeline";
 import { stageBus } from "@/engine/stage/bus";
+import type { Cursor } from "@/engine/stage/cue";
 import { GATE, type GateSnapshot, logTop, plantSize } from "@/engine/stage/gate";
 import { KAYON as KAYON_SHEET } from "@/engine/stage/gunungan";
 import { sessionStore } from "@/lib/session";
@@ -19,7 +20,7 @@ import { IconRefresh } from "../Icons";
 import { useCurtainOpen } from "../motion/Curtain";
 import { BRANCHES, branchPath, KAYON, KAYON_GATE } from "../motion/kayon";
 import { useRequireSession } from "../useRequireSession";
-import { Corner, Hint, Rail, useChapterLabel } from "./Chrome";
+import { Corner, Rail, useChapterLabel } from "./Chrome";
 import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
@@ -33,7 +34,6 @@ type Var = CSSProperties & Record<`--${string}`, string | number>;
 /** Kedalaman gallery untuk CSS (satu sumber dengan lintasan transisi: DEPTH di tokens). */
 const DEPTH_VARS: Var = { "--depth-perspective": `${DEPTH.perspective}px`, "--depth-card-z": `${DEPTH.cardZ}px`, "--depth-card-turn": `${DEPTH.cardTurn}deg` };
 const CALM_KEY = "lakon.calm";
-const HINT_KEY = "lakon.film.hint";
 
 const readFlag = (key: string): string | null => {
   try {
@@ -245,6 +245,33 @@ function KayonFlip({ root, face }: { root: RefObject<HTMLElement | null>; face: 
   );
 }
 
+/**
+ * Clawd di film 2,5D (M4). Modulnya dimuat terpisah (chunk sendiri), hanya bila film 2,5D dipakai. Teks petunjuk lama
+ * di layar sudah dihapus (arahan host 16 Nov); di kedua film Clawd yang memandu.
+ */
+function ClawdFlat({ root, probe, calm }: { root: RefObject<HTMLElement | null>; probe: () => Cursor; calm: boolean }) {
+  const calmNow = useRef(calm);
+  useEffect(() => {
+    calmNow.current = calm;
+  }, [calm]);
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    let gone = false;
+    let dispose: (() => void) | undefined;
+    void import("./clawd-flat").then(({ createFlatGuide }) => {
+      if (gone) return;
+      const touch = window.matchMedia("(pointer: coarse)").matches;
+      dispose = createFlatGuide({ host, probe, still: () => calmNow.current || prefersReducedMotion(), touch }).dispose;
+    });
+    return () => {
+      gone = true;
+      dispose?.();
+    };
+  }, [root, probe]);
+  return null;
+}
+
 function Stage({ data }: { data: TripView }) {
   const { t, tx } = useI18n();
   const film = useMemo(() => buildFilm(data), [data]);
@@ -254,7 +281,6 @@ function Stage({ data }: { data: TripView }) {
   const [view, setView] = useState<FilmView>({ index: initial, moving: null, beat: 0 });
   const [live] = useState(createLiveStore);
   const [calm, setCalm] = useState(() => (readFlag(CALM_KEY) ?? (prefersReducedMotion() ? "1" : "0")) === "1");
-  const [hint, setHint] = useState(() => readFlag(HINT_KEY) === null);
   const [sheet, setSheet] = useState<{ slide: PanelSlide; origin: SheetOrigin | null } | null>(null);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -286,10 +312,6 @@ function Stage({ data }: { data: TripView }) {
           const url = chapter.kind === "prologue" ? window.location.pathname + window.location.search : `#${chapter.id}`;
           window.history.replaceState(window.history.state, "", url);
         }
-        setHint((shown) => {
-          if (shown) writeFlag(HINT_KEY, "1");
-          return false;
-        });
         // fokus yang tertinggal di slide lama (kini inert) dipindah ke panggung supaya keyboard tetap jalan
         const active = document.activeElement;
         if (!active || active === document.body || active.closest(".fl-layer")) el.focus({ preventScroll: true });
@@ -481,6 +503,8 @@ function Stage({ data }: { data: TripView }) {
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
       <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
+      {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
+      {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}
       <div className="fl-grain" aria-hidden="true" />
       <LiveContext value={live}>
         <div className="fl-stage">
@@ -495,8 +519,6 @@ function Stage({ data }: { data: TripView }) {
       </div>
       <div className="fl-chrome">
         <Corner calm={calm} onCalm={onCalm} />
-        {/* petunjuk lama hanya untuk film 2,5D; di panggung 3D Clawd yang memandu (arahan host 16 Nov) */}
-        {stage === "off" && <Hint shown={(hint || gateShut) && view.index === 0 && !view.moving && !view.beat} kayon={gate.phase === "head"} />}
         <Rail film={film} index={view.index} onJump={onJump} />
       </div>
       <p className="sr-only" role="status" aria-live="polite">
