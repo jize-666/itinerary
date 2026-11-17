@@ -56,14 +56,14 @@ export const scrollDepth = (p: number) => VIEW.push * Math.sin(Math.PI * clamp(p
  * "gas, buat video dimensinya dulu"). Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya:
  * kamera 3D menukik (maju) atau ditarik (mundur), lensa melebar, cahaya memanjang ke arah luar, cincin riak dari
  * tengah, warna terpecah di tepi. Semuanya mengikuti kemajuan geseran (gulir atau jari). Dibuat lebih halus atas
- * permintaan host 17 Nov ("bikin lebih smooth"; "kamera sama lensa nya biar ... kurangi semua, jangan di ubah"):
- * kamera dan lensa tetap, efek lainnya ±separuh versi pertama, kurva sin².
+ * permintaan host 17 Nov ("bikin lebih smooth"; lalu "kamera + lensa dikurangi ga? kalau belum, kurangi dikit"):
+ * kamera dan lensa dikurangi sedikit (2,8 → 2,3 m; 24° → 20°), efek lainnya ±separuh versi pertama, kurva sin².
  */
 export const PORTAL = {
   /** Kamera bergerak sekian m searah pandang di puncak gerbang (maju: menukik; mundur: ditarik). */
-  push: 2.8,
+  push: 2.3,
   /** Lensa melebar sekian derajat di puncak gerbang. */
-  fov: 24,
+  fov: 20,
   /** Panjang garis cahaya (zoom blur), bagian jarak ke tengah layar. */
   streak: 0.09,
   /** Pecahan warna di tepi layar (bagian ukuran layar). */

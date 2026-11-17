@@ -581,14 +581,15 @@ Pengganti benang emas. Riwayatnya: benang versi pertama ("upgrade lah, keliatan 
 ## Gerbang dimensi di gallery (17 Nov 2026), permintaan host: "setiap nge-slide itu kayak ada kayak masuk dimensi gitu", "gas, buat video dimensinya dulu"
 
 Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya. Semua mengikuti kemajuan geseran (gulir atau jari; ditahan di tengah = tertahan di dalam gerbang). Konstanta di `PORTAL` (view.ts), kadar `portalWarp(p)` (nol di ujung, puncak di tengah).
-- **Kamera 3D:** menukik 2,8 m searah pandang saat maju, ditarik keluar saat mundur, dan lensanya melebar 24° di puncak.
+- **Kamera 3D:** menukik 2,3 m searah pandang saat maju, ditarik keluar saat mundur, dan lensanya melebar 20° di puncak (versi pertama 2,8 m dan 24°; dikurangi sedikit atas permintaan host "bikin lebih smooth", "kurangi dikit").
 - **Post-FX** (pass gabungan, hanya selama geseran):
   - cincin riak dari tengah layar (maju menyebar, mundur menyusut);
   - warna terpecah yang menguat ke tepi;
   - garis cahaya: adegan dan bloom dikaburkan ke arah tengah dengan 7 cuplikan yang digeser acak per piksel, jadi lampion, matahari, dan bintang memanjang ke luar;
+  - versi halus (host: "bikin lebih smooth"): garis cahaya, warna terpecah, riak, kilau, dan vinyet ±separuh versi pertama; kurva gerbang sin²;
   - kilau, dan vinyet yang menebal.
 - **Kartu (DOM, juga di film 2,5D):**
-  - maju: kartu lama menukik ke arah kamera (sampai 560 px ke depan, di bawah jarak pandang 1100 px) lalu larut; kartu berikutnya mundur dulu ke kedalaman (−1100 px) lalu naik ke tempatnya;
+  - maju: kartu lama menukik ke arah kamera (sampai 360 px ke depan, di bawah jarak pandang 1100 px) lalu larut; kartu berikutnya mundur dulu ke kedalaman (−760 px) lalu naik ke tempatnya; laju sine, 15 % lebih panjang dari perpindahan slide biasa;
   - mundur: kebalikannya.
   - Keadaan akhir sama dengan sebelumnya. Mode Calm tetap crossfade datar.
 - **Lompat waktu:** langit dan matahari di gallery berpindah ke jam tempat berikutnya selama tengah geseran (`SKY_WINDOW.inner` 0,25–0,75, sebelumnya 0–1). Tetap bergerak mulus tanpa lompatan.

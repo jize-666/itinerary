@@ -146,6 +146,9 @@ Tafsir Claude:
 - Kamera menukik (2,8 m) dan lensa melebar (24°) dikembalikan ke nilai pertama.
 - Yang dikurangi hanya efek lainnya: garis cahaya, warna terpecah, riak, kilau, vinyet, serta kedalaman kartu dan kurva gerak yang lebih lembut.
 
+**Pertanyaan host 17 Nov, kata demi kata:** "kamera + lensa dikurangi ga? kalau belum, kurangi dikit".
+Tafsir Claude: koreksi sebelumnya ternyata bukan "biarkan tetap". Kamera dan lensa dikurangi sedikit: menukik 2,8 → 2,3 m, lensa melebar 24° → 20°.
+
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
 - sayang 0,85/0,45: 203 Hz;
