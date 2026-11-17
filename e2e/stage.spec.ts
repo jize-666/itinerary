@@ -145,7 +145,7 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     await open3d(page);
     await nextFrames(page, 5);
     // baca kanvas lewat tangkapan layar halaman dengan teks disembunyikan
-    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
     await nextFrames(page, 2);
     const png = await page.screenshot();
     const range = await page.evaluate(async (b64) => {
@@ -243,7 +243,7 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
       }
       await open3d(page);
       await nextFrames(page, 6);
-      await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+      await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
       await nextFrames(page, 3);
       const png = await page.screenshot();
       const share = await page.evaluate(async (b64) => {
@@ -840,7 +840,7 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
   const dofOf = async (page: Page) => (await page.evaluate(() => (window as unknown as { __lakonStage: { dof: Dof } }).__lakonStage.dof));
   /** Bagian pita tanah lanskap yang berupa tepi tajam (kartu dan teks disembunyikan). */
   async function detail(page: Page) {
-    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe{visibility:hidden!important}" });
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
     await nextFrames(page, 3);
     const png = await page.screenshot();
     return page.evaluate(async (b64) => {
@@ -875,7 +875,8 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
   test("tier High di gallery: depth of field digambar (fokus dekat saat diam) dan mengaburkan lanskap; di luar gallery tidak", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
     test.slow();
-    await open3d(page, "?stage=high", "#day-1");
+    // yang diukur kabur lanskap: Clawd (sengaja selalu tajam di depth of field) tidak ikut di gambar ini
+    await open3d(page, "?stage=high&clawd=0", "#day-1");
     await nextFrames(page);
     expect((await dofOf(page)).drawn).toBe(false); // judul hari: tanpa depth of field
     await step(page); // intro hari
