@@ -119,8 +119,9 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
         el.dataset.side = side;
         placed = false;
       }
-      const vw = document.documentElement.clientWidth;
-      const vh = document.documentElement.clientHeight;
+      // ukuran jendela tanpa membaca tata letak (dipanggil tiap frame)
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
       const above = side === "above";
       const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, above ? x - width / 2 : side === "right" ? x + drop : x - drop - width));
       const goalY = above ? Math.max(MARGIN, y - height - drop) : Math.max(MARGIN, Math.min(vh - MARGIN - height, y - height / 2));

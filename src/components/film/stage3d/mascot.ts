@@ -150,7 +150,7 @@ export function createMascot(shared: Shared) {
     v.subVectors(FLASH_AT, at);
     const f2 = v.lengthSq();
     flash.color.copy(fc).multiplyScalar(1 / (1 + 0.6 * f2));
-    flash.visible = fc.r > 0;
+    // jumlah lampu tetap (menyembunyikan lampu mengompilasi ulang shader semua bahan berlampu = tersendat tiap pukulan)
     aim(flash, at, v.normalize());
     aim(key, at, shared.uKeyDir.value);
     v.subVectors(camera, at).normalize();

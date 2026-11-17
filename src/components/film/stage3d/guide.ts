@@ -83,8 +83,22 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
   const tap = () => {
     if (brain.tap(clockMs) === "tap") rig.poke();
   };
+  /** Ukuran dan letak akar film, dibaca hanya saat berubah (membaca tata letak tiap frame memaksa layout ulang). */
+  const view = { w: 0, h: 0, left: 0, top: 0 };
+  const measureView = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    view.w = el.clientWidth;
+    view.h = el.clientHeight;
+    view.left = r.left;
+    view.top = r.top;
+  };
+  let resize: ResizeObserver | null = null;
   const mount = (el: HTMLElement) => {
     mounted = el;
+    measureView(el);
+    resize?.disconnect();
+    resize = new ResizeObserver(() => measureView(el));
+    resize.observe(el);
     bubble = createBubble(el, { onTap: () => brain.tapBubble(clockMs) });
     hit = document.createElement("button");
     hit.type = "button";
@@ -190,11 +204,10 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
           lastSlide = slideId;
           settledAt = f.t;
         }
-        const key = `${slideId}|${el.clientWidth}x${el.clientHeight}`;
+        const key = `${slideId}|${view.w}x${view.h}`;
         if (!f.moving && key !== sideKey && f.t - settledAt >= SETTLE) {
           sideKey = key;
-          const w = el.clientWidth;
-          const h = el.clientHeight;
+          const { w, h } = view;
           side = bestSide(blocksOf(el), { w, h }, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(w, h), BUBBLE_EST[tall ? "tall" : "wide"]);
         }
         const [x, y] = side ?? (tall ? [0.62, -0.63] : [0.76, -0.5]);
@@ -232,9 +245,8 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       });
 
       // ---- lapisan DOM: gelembung di atas kepala, tombol di atas badan ----
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      const box = el.getBoundingClientRect();
+      const { w, h } = view;
+      const box = view;
       v.copy(world).project(camera);
       const px = (size / (2 * -local.z * tv)) * h;
       const cx = ((v.x + 1) / 2) * w;
@@ -263,6 +275,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
     dispose() {
       offLang();
       document.removeEventListener("visibilitychange", onVisibility);
+      resize?.disconnect();
       bubble?.dispose();
       hit?.remove();
       scene.remove(rig.root, rig.emotes, rig.lights);

@@ -35,13 +35,22 @@ export function batchClaude(claude: ClaudeCharacter) {
   root.updateMatrixWorld(true);
   const face = bodyRig.getObjectByName("Face") as Group;
   const owned: { dispose(): void }[] = [];
+  /**
+   * Jaring kit yang digantikan kelompok dilepas dari pohon adegan (bukan sekadar disembunyikan): three tetap
+   * menghitung matriks anak yang tersembunyi tiap frame, dan 12 grup ekspresi kit berisi ratusan simpul.
+   */
+  const detached: Object3D[] = [];
+  const detach = (o: Object3D) => {
+    o.removeFromParent();
+    detached.push(o);
+  };
 
   const instanced = (members: Mesh[], parent: Object3D) => {
     const first = members[0]!;
     const inst = new InstancedMesh(first.geometry, first.material as Material, members.length);
     inst.frustumCulled = false;
     inst.name = `${first.name}_Batch`;
-    members.forEach((m) => (m.visible = false));
+    members.forEach((m) => detach(m));
     parent.add(inst);
     return inst;
   };
@@ -79,11 +88,9 @@ export function batchClaude(claude: ClaudeCharacter) {
     if (browsMesh) holder.add(browsMesh);
     holder.visible = false;
     face.add(holder);
-    group.visible = false;
+    detach(group);
     faces[ex] = { eyes: eyesMesh, brows: browsMesh };
   }
-  // kit dibuat dengan ekspresi netral: semua grup ekspresi asli tetap tersembunyi, yang tampil kelompoknya
-  for (const ex of EXPRESSIONS) features[ex].group.visible = false;
 
   let shown: Expression | null = null;
   const m = new Matrix4();
@@ -112,6 +119,11 @@ export function batchClaude(claude: ClaudeCharacter) {
     },
     dispose() {
       owned.forEach((g) => g.dispose());
+      // jaring kit yang dilepas tidak lagi terjangkau `claude.dispose()` (menelusuri pohon adegan)
+      for (const o of detached)
+        o.traverse((n) => {
+          if ((n as Mesh).isMesh) (n as Mesh).geometry.dispose();
+        });
       legInst.dispose();
       armInst.dispose();
       cheekInst.dispose();
