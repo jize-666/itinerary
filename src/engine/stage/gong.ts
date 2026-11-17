@@ -405,16 +405,19 @@ export type StrikeState = Readonly<{
  * tiap hantaman (bandul itu linear), jadi memukul gong yang masih berayun tidak membuatnya melompat.
  */
 export function createStrikes() {
-  /** Jam hantaman (bukan jam ayunan dimulai) dan lajur efeknya, yang terlama di depan. */
-  const hits: { at: number; lane: 0 | 1 }[] = [];
+  /**
+   * Jam hantaman (bukan jam ayunan dimulai), lajur efeknya, dan apakah kamera ikut terhentak, yang terlama di depan.
+   * Pukulan di slide judul (Tugas 7b) tanpa hentakan: host minta kamera tetap di tempatnya.
+   */
+  const hits: { at: number; lane: 0 | 1; kick: boolean }[] = [];
   let begun = -Infinity;
   let total = 0;
   return {
-    strike(t: number): boolean {
+    strike(t: number, kick = true): boolean {
       if (t - begun < STRIKE.rest) return false;
       begun = t;
       while (hits.length && t - hits[0]!.at > FORGET) hits.shift();
-      hits.push({ at: t + STRIKE.impact, lane: total % 2 ? 1 : 0 });
+      hits.push({ at: t + STRIKE.impact, lane: total % 2 ? 1 : 0, kick });
       total++;
       return true;
     },
@@ -433,6 +436,7 @@ export function createStrikes() {
         swing += gongSwing(d);
         hum += gongHum(d);
         heat += strikeHeat(d);
+        if (!hit.kick) continue;
         const k = cameraKick(d);
         back += k.back;
         up += k.up;

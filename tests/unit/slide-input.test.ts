@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keyAction, TouchTracker, WheelGestures, type WheelSample, wheelSample } from "@/engine/slides/input";
+import { keyAction, longDragPx, TouchTracker, WheelGestures, type WheelSample, wheelSample } from "@/engine/slides/input";
 
 /**
  * Jejak di bawah ini TIRUAN (model), bukan rekaman perangkat: bentuknya mengikuti perilaku yang diketahui
@@ -221,6 +221,17 @@ describe("sentuhan", () => {
     tr.move(200, 372, 500);
     tr.move(200, 300, 560); // lalu menyentak
     expect(tr.end(565)).toBe(1);
+  });
+
+  it("tarikan pelan tapi panjang (slide tanpa scrub): satu langkah ke arah tarikan, berapa pun lamanya", () => {
+    const h = 852;
+    expect(longDragPx(h)).toBeCloseTo(153.36, 1); // 18% tinggi layar iPhone
+    expect(longDragPx(300)).toBe(80); // paling sedikit 2 × 40 px
+    const slow = drag(0, -300, 1500, 300); // pelan, lalu diam sebelum diangkat: bukan sentakan…
+    expect(slow.flick).toBe(0);
+    expect(slow.tr.reach(longDragPx(h))).toBe(1); // …tetapi tarikan panjang
+    expect(drag(0, 300, 1500, 300).tr.reach(longDragPx(h))).toBe(-1);
+    expect(drag(0, -120, 1500, 300).tr.reach(longDragPx(h))).toBe(0); // terlalu pendek: tidak apa-apa
   });
 
   it("jari ditarik balik sebelum dilepas: sentakan mengikuti arah terakhir", () => {

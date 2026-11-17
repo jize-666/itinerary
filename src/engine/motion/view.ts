@@ -43,6 +43,34 @@ export const VIEW = {
 /** Dorongan kedalaman pada kemajuan perpindahan `p` (0–1): 0 di kedua ujung, `VIEW.push` di tengah. */
 export const scrollDepth = (p: number) => VIEW.push * Math.sin(Math.PI * clamp(p, 0, 1));
 
+/**
+ * Depth of field di gallery (Tugas 7b, permintaan host 14 Nov: "ketika di slide ke kiri/kanan kamera berpindah
+ * seperti fitur 3D … Depth of field …"). Kabur menurut jarak dari bidang fokus, dihitung dari kedalaman lanskap
+ * (rantai post, hanya tier High). Saat diam fokus berada dekat, di bidang kartu: lanskap di belakangnya lembut dan
+ * kartunya menonjol. Saat digeser, fokus ditarik jauh ke lanskap mengikuti kemajuan gulir (di HP mengikuti jari),
+ * jadi lapisan tanah dekat, desa, dan Lawu tampak jelas bergerak dengan kecepatan berbeda; begitu kartu tiba fokus
+ * kembali. Nol di kedua ujung perpindahan, jadi tidak ada lompatan.
+ */
+export const DOF = {
+  /** Jarak fokus saat diam (m): sedikit di depan tanah terdekat yang tampak, jadi seluruh lanskap lembut. */
+  rest: 12,
+  /** Jarak fokus di tengah geseran (m): dataran dan desa tajam, tanah dekat dan Lawu sedikit lembut. */
+  pull: 90,
+  /** Besar lingkar kabur: kabur = aperture × |1 − fokus / jarak|, dibatasi 0–1 (1 = kabur penuh). */
+  aperture: 0.62,
+} as const;
+
+/** Jarak fokus pada kemajuan perpindahan `p` (0–1) di dalam gallery; di luar perpindahan `DOF.rest`. */
+export const dofFocus = (p: number, moving: boolean): number => {
+  if (!moving) return DOF.rest;
+  const k = Math.sin(Math.PI * clamp(p, 0, 1));
+  // jarak ditempuh dalam skala log: tarikan fokus terasa merata dari dekat ke jauh
+  return DOF.rest * Math.pow(DOF.pull / DOF.rest, k);
+};
+
+/** Kadar kabur (0–1) titik sejauh `d` m pada fokus `focus` m. */
+export const dofBlur = (d: number, focus: number): number => clamp(DOF.aperture * Math.abs(1 - focus / Math.max(d, 0.01)), 0, 1);
+
 /** Mendekati `target` dari `cur` dengan tetapan waktu `tau` detik selama `dt` detik (bebas laju frame). */
 export const approach = (cur: number, target: number, dt: number, tau: number) => (tau <= 0 ? target : target + (cur - target) * Math.exp(-Math.max(0, dt) / tau));
 
@@ -81,6 +109,26 @@ export function recenterBase(base: Readonly<{ beta: number; gamma: number }>, be
   const k = 1 - Math.exp(-Math.max(0, dt) / VIEW.recenter);
   return { beta: base.beta + db * k, gamma: base.gamma + (gamma - base.gamma) * k };
 }
+
+/**
+ * Kamera mengitari gong (permintaan host 14 Nov, "dua dua nya, 90derajat"): di slide judul hari, hero prolog, dan
+ * gong penutup, seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan memutar kamera mengelilingi gong
+ * sampai ±90° (sampai ke samping gong). Seperti meja putar: seret ke kanan = gong berpaling ke kanan (kamera ke kiri).
+ * Saat dilepas kamera kembali pelan ke depan.
+ */
+export const ORBIT = {
+  /** Batas putaran (derajat) ke kiri dan ke kanan. */
+  max: 90,
+  /** Seret selebar layar = sekian derajat (jadi ±90° tercapai dengan seret 60% layar). */
+  perScreen: 150,
+  /** Penghalus selama diseret: tetapan waktu (detik). */
+  follow: 0.08,
+  /** Kembali ke depan sesudah dilepas: tetapan waktu (detik). */
+  back: 0.7,
+} as const;
+
+/** Sudut kitar (derajat) sesudah diseret `dx` px pada layar selebar `width` px, mulai dari sudut `from`. */
+export const orbitFromDrag = (from: number, dx: number, width: number): number => clamp(from - (dx / Math.max(1, width)) * ORBIT.perScreen, -ORBIT.max, ORBIT.max);
 
 /**
  * Zoom slide gong: 0 = bidikan biasa, 1 = dekat (kamera maju `close` bagian dari jaraknya ke gong). Zoom cubit,

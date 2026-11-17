@@ -263,6 +263,28 @@ describe("pencatat pukulan (createStrikes)", () => {
     expect(Math.abs(late.swing)).toBeLessThan(SWING.amp * 0.06);
   });
 
+  it("pukulan tanpa hentakan (slide judul, Tugas 7b): semua efek gong berjalan, kamera tidak bergerak", () => {
+    const k = createStrikes();
+    expect(k.strike(50, false)).toBe(true);
+    for (let st = 0; st <= KICK.end + 0.2; st += 0.05) {
+      const s = k.at(50 + STRIKE.impact + st);
+      expect(kickSize(s.kick), `st=${st.toFixed(2)}`).toBe(0);
+    }
+    const hit = k.at(50 + STRIKE.impact + 0.05);
+    expect(hit.count).toBe(1);
+    expect(hit.heat).toBeGreaterThan(1.8);
+    expect(hit.flare).toBeGreaterThan(0.9);
+    expect(hit.fx[0]).toBeCloseTo(0.05, 9);
+    expect(hit.swing).toBeGreaterThan(0);
+    // pukulan biasa sesudahnya tetap menghentak kamera, dan hanya pukulan itu yang dihitung hentakannya
+    expect(k.strike(50 + STRIKE.rest)).toBe(true);
+    const next = k.at(50 + STRIKE.rest + STRIKE.impact + 0.05);
+    const want = cameraKick(0.05);
+    for (const key of ["back", "up", "side", "roll"] as const) expect(next.kick[key]).toBeCloseTo(want[key], 9);
+    expect(kickSize(next.kick)).toBeGreaterThan(0);
+    expect(next.count).toBe(2);
+  });
+
   it("pukulan ditolak selama tabuh belum kembali menggantung", () => {
     const k = createStrikes();
     expect(k.strike(5)).toBe(true);

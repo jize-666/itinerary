@@ -1,0 +1,173 @@
+/*
+ * Gelembung ucapan Clawd ala piksel/Minecraft (arahan host 15 Nov: "chat ui 💬 ala ala pixel, maincraft"): kotak
+ * gelap ungu-hitam dengan sudut bertakik satu piksel, garis dalam ungu bergradasi seperti tooltip Minecraft, nama
+ * kuning, teks putih berbayang keras, ekor bertangga, dan tanda lanjut ▼ yang berkedip. Satu "piksel" = --px.
+ */
+@import "@fontsource/pixelify-sans/400.css";
+@import "@fontsource/pixelify-sans/600.css";
+
+.clawd-bubble {
+  --px: 3px;
+  --cb-bg: rgb(16 0 16 / 0.94);
+  --cb-line-a: #5000ff;
+  --cb-line-b: #28007f;
+  --cb-ink: #fff;
+  --cb-shade: #3f3f3f;
+  --cb-name: #ffff55;
+  --cb-name-shade: #3f3f15;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  max-width: min(19.5em, calc(100vw - 24px));
+  font-family: "Pixelify Sans", ui-monospace, monospace;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--cb-ink);
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform, opacity;
+  visibility: hidden;
+  opacity: 0;
+}
+.clawd-bubble[data-on] {
+  visibility: visible;
+}
+
+.cb-box {
+  position: relative;
+  padding: calc(var(--px) * 4) calc(var(--px) * 5) calc(var(--px) * 4.5);
+  background: var(--cb-bg);
+  /* sudut bertakik satu piksel */
+  clip-path: polygon(
+    var(--px) 0,
+    calc(100% - var(--px)) 0,
+    calc(100% - var(--px)) var(--px),
+    100% var(--px),
+    100% calc(100% - var(--px)),
+    calc(100% - var(--px)) calc(100% - var(--px)),
+    calc(100% - var(--px)) 100%,
+    var(--px) 100%,
+    var(--px) calc(100% - var(--px)),
+    0 calc(100% - var(--px)),
+    0 var(--px),
+    var(--px) var(--px)
+  );
+}
+/* garis dalam ungu (tooltip Minecraft), satu piksel dari tepi */
+.cb-box::before {
+  content: "";
+  position: absolute;
+  inset: var(--px);
+  border: var(--px) solid;
+  border-image: linear-gradient(var(--cb-line-a), var(--cb-line-b)) 1;
+  pointer-events: none;
+}
+
+.cb-name {
+  display: block;
+  margin-bottom: calc(var(--px) * 1.5);
+  font-weight: 600;
+  color: var(--cb-name);
+  text-shadow: 2px 2px 0 var(--cb-name-shade);
+  letter-spacing: 0.04em;
+}
+
+.cb-text {
+  margin: 0;
+  font-weight: 400;
+  text-shadow: 2px 2px 0 var(--cb-shade);
+  overflow-wrap: break-word;
+}
+/* sisa kalimat ikut ditata tapi tak terlihat, jadi gelembung tidak melebar huruf demi huruf */
+.cb-rest {
+  color: transparent;
+  text-shadow: none;
+}
+
+.cb-next {
+  position: absolute;
+  right: calc(var(--px) * 3.5);
+  bottom: calc(var(--px) * 3);
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 3);
+  opacity: 0;
+}
+.clawd-bubble[data-more] .cb-next {
+  opacity: 1;
+  animation: cb-blink 0.9s steps(1, end) infinite;
+}
+
+.cb-tail {
+  position: absolute;
+  left: var(--tail-x, 50%);
+  top: calc(100% - var(--px) * 2);
+  width: calc(var(--px) * 9);
+  height: calc(var(--px) * 5);
+  margin-left: calc(var(--px) * -4.5);
+  pointer-events: none;
+}
+/* gelembung di samping Clawd: ekor diputar menunjuk badannya, menumpang dua piksel di tepi kotak seperti di bawah */
+.clawd-bubble[data-side="right"] .cb-tail,
+.clawd-bubble[data-side="left"] .cb-tail {
+  top: var(--tail-y, 50%);
+  margin-top: calc(var(--px) * -2.5);
+}
+.clawd-bubble[data-side="right"] .cb-tail {
+  left: calc(var(--px) * -0.5);
+  transform: rotate(90deg);
+}
+.clawd-bubble[data-side="left"] .cb-tail {
+  left: calc(100% + var(--px) * 0.5);
+  transform: rotate(-90deg);
+}
+.cb-tail svg,
+.cb-next svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* muncul bertangga seperti sprite gim; kalimat baru memantul kecil */
+.clawd-bubble[data-pop] .cb-box {
+  animation: cb-pop 0.24s steps(4, end);
+}
+@keyframes cb-pop {
+  from {
+    transform: scale(0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes cb-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* yang hanya untuk pembaca layar: kalimat utuh sekali, bukan huruf demi huruf */
+.cb-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .clawd-bubble {
+    --px: 2.5px;
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clawd-bubble[data-pop] .cb-box,
+  .clawd-bubble[data-more] .cb-next {
+    animation: none;
+  }
+}

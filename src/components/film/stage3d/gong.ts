@@ -816,10 +816,11 @@ export function createGong(shared: Shared, particles = 1) {
     group,
     /**
      * Mulai satu pukulan pada jam `t` (detik, jam yang sama dengan `update`). Mengembalikan detik sampai tabuh
-     * mengenai gong, atau `null` bila tabuh belum kembali menggantung dari pukulan sebelumnya.
+     * mengenai gong, atau `null` bila tabuh belum kembali menggantung dari pukulan sebelumnya. `kick` = false: kamera
+     * tidak terhentak (slide judul).
      */
-    strike(t: number): number | null {
-      if (!strikes.strike(t)) return null;
+    strike(t: number, kick = true): number | null {
+      if (!strikes.strike(t, kick)) return null;
       busy = true;
       return STRIKE.impact;
     },

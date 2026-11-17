@@ -428,6 +428,119 @@ Pratinjau: video `scripts/preview/record-today.cjs` (sebelum trip dan hari perta
 - **Sheet SOS.** Panel kaca nila bergaris emas, ubin 112/119/110 tanpa tebal dengan medali telepon, kartu kontak dan penginapan, fokus pindah ke judul saat dibuka.
 - **Tepi atas** lebih tinggi dan pekat, jadi isi yang digulir tertutup di bawah sakelar bahasa.
 
+## Gong ditabuh di slide judul hari dan hero prolog (14 Nov 2026, Tugas 7b), permintaan host: "pas fase sebelum masuk galery … harusnya ini fase yang pas untuk menabuh gong, ketika teks out (tambahin animasi), kamera masih berada di tempatnya"
+
+**Status: selesai, menunggu tinjauan host atas video.** Jawaban host atas tiga pertanyaan: `dayintro` tetap ada, gong penutup hari tetap dipukul, berlaku untuk semua hari dan hero prolog. Berkas: `src/engine/slides/beat.ts` (logika tahap, murni), `director.ts`, `TitleStrike.tsx`, `film.css` (bagian "tahap gong"), `createStrikes(…, kick)` di `engine/stage/gong.ts`.
+
+- **Dua tahap di slide judul.** Langkah maju pertama (gulir, geser, panah, tombol) tidak memindah slide: teks keluar dan gong ditabuh. Langkah maju berikutnya baru pindah ke `dayintro` (atau ke headline di prolog). Mundur saat teks sudah keluar mengembalikan teks tanpa pukulan; mundur sekali lagi pindah ke slide sebelumnya. Tiba di slide judul dari arah mana pun selalu mulai dengan teks tampil, jadi tidak ada slide tanpa teks saat tamu mundur. Di hero, gunungan pembuka didahulukan: gunungan dicabut, lalu tahap gong, dan mundur mengembalikan teks dulu sebelum gunungan ditancapkan lagi. Geser jari yang dipakai tahap tidak menyeret slide (dinilai saat dilepas, seperti di slide gong). Atribut `data-beat="out"` di elemen film.
+- **Teks keluar (animasi baru).** Huruf judul menyala emas, terangkat sedikit menjauhi gong, lalu tersedot berputar dan mengecil ke pencu gong; yang dekat gong berangkat lebih dulu, semuanya masuk bersamaan. Kicker dan nama tamu ikut tersedot sebagai satu unit. Debu emas (paling banyak 48 butir) melengkung seperti pusaran ke pencu, dan pendar di pencu menguat sampai hantaman. Hanya `transform` dan `opacity`; letak huruf dan gong diukur sekali saat tahap berganti. Mundur: huruf keluar lagi dari gong ke tempatnya.
+- **Pukulan.** Tabuh mulai berayun supaya hantamannya jatuh tepat saat huruf terakhir masuk (0,92 dtk sesudah langkah). Efeknya sama dengan gong penutup hari (bunyi, kilatan, retakan bara, riak, bunga api, napas api naga), tetapi **tanpa hentakan kamera**: kamera tetap di shot judul. Gong penutup hari tidak berubah. Film 2,5D: cakram gong CSS di balik judul (kini juga di judul hari) beriak dari hantaman, dengan bunyi gong.
+- **Calm mode:** tahapnya tetap ada; teks hilang seketika dan gong tetap ditabuh.
+
+## Zoom dan kamera mengitari gong ±90° (14 Nov 2026), permintaan host: "itu previews pas gong, bisa di zoom in/out? kemera bisa pindah haluan ke kanan dan kiri?", lalu "dua dua nya, 90derajat"
+
+**Status: selesai, menunggu tinjauan host atas video.** Berkas: `ORBIT`/`orbitFromDrag` (`engine/motion/view.ts`), `stageBus` (`setGongHere("gong" | "title" | null)`, `orbit*`), `bindInput` (`engine/slides/input.ts`), `stage3d/runtime.ts`, `film.css`.
+
+- **Di mana:** slide gong penutup hari, judul hari, dan hero prolog (panggung 3D; selama gunungan pembuka tertancap tidak berlaku). Film 2,5D tidak punya keduanya.
+- **Zoom:** cubit dua jari, Ctrl+roda / cubit trackpad, tombol + / − (sama dengan gong penutup sejak 13 Nov). Dua tahap gulir tetap hanya di gong penutup, karena di judul langkah maju pertama sudah dipakai tahap gong.
+- **Kamera mengitari gong:** seret mouse, geser jari, atau geser dua jari trackpad ke kiri/kanan. Kamera dan titik pandangnya diputar mengelilingi sumbu tegak di pusat gong sampai ±90° (sampai ke samping gong), seperti meja putar: seret ke kanan = gong berpaling ke kanan (kamera ke kiri). ±90° tercapai dengan seret 60% layar. Saat dilepas kamera kembali pelan ke depan (tetapan waktu 0,7 dtk); seret baru mulai dari sudut yang sedang tampil. Tiang pendapa lewat di depan kamera saat berputar (kedalaman), tidak menutupi gong.
+- **Teks** di depan gong memudar saat gong didekati atau dikitari (sampai 20% di ±90°), supaya gong tidak tertutup huruf. Huruf yang tersedot saat gong ditabuh mengikuti letak gong yang sedang tampil, juga saat sudah dikitari atau di-zoom.
+- **Tidak bentrok:** seret mendatar di luar gallery sebelumnya tidak dipakai. Klik tanpa seret tetap klik (tombol pukul di gong penutup); seret yang dilepas di atas tombol bukan pukulan. Pindah slide tetap atas-bawah, dan langkah maju di judul tetap menabuh gong. Kursor `grab` di slide ini, dan teksnya tidak ikut terblok saat diseret.
+
+## Gallery 3D: letak Z dan depth of field (14 Nov 2026, Tugas 7b), lanjutan permintaan yang sama: "ketika di slide ke kiri/kanan kamera berpindah seperti fitur 3D (Scroll-driven depth, Depth of field, Perspective shift, Z-depth positioning, Camera parallax)"
+
+**Status: selesai, menunggu tinjauan host atas video.** Kedalaman ikut gulir, perspective shift, dan kamera parallax sudah ada sejak 13 Nov; yang ditambah:
+- **Letak Z.** Kamera gallery bergeser ±1 m per panel (sebelumnya ±0,5 m; `VISTA.travel` 7,2 m untuk satu hari) sambil sedikit memandang ulang ke tengah. Akibatnya tiap lapis lanskap bergeser berbeda: tanah dekat bergeser searah rel kartu, dataran dan desa (±90 m) hampir diam, Lawu sedikit berlawanan arah, seperti kamera yang mengorbit titik di dataran. Kartu DOM tetap di lapis paling depan (tetangganya mundur 110 px dan berpaling). Matahari ada di tak hingga, jadi letaknya tidak ikut bergeser.
+- **Depth of field** (tier High saja, sesuai `TIER.dof`; Medium dan Low tidak). Kabur = 0,62 × |1 − fokus/jarak|, dibatasi 0–1. Saat diam fokus berada dekat (12 m, bidang kartu): lanskap di belakang kartu lembut, kartunya menonjol. Selama geseran di gallery fokus ditarik jauh ke dataran (90 m) mengikuti kemajuan gulir (di HP mengikuti jari), jadi lapisan tanah dekat, desa, dan Lawu tampak jelas bergerak; begitu kartu tiba fokus kembali. Kadarnya ikut shot: 1 di panel, 0 di shot lain, berpindah bersama kamera saat masuk dan keluar gallery.
+- **Hemat tanpa menurunkan kualitas.** Jarak diambil dari pass kedalaman kecil (seperempat lebar dan tinggi, 1/16 piksel) yang hanya menggambar tanah lanskap (satu draw call); langit dan yang lain dianggap jauh. Depth MSAA tetap tidak di-resolve (hemat bandwidth Audit 4). Kabur dibuat di setengah dan seperempat resolusi lalu dicampur per piksel; di luar gallery semua pass ini dilewati.
+- **Film 2,5D** tanpa depth of field (kabur CSS pada lapisan yang bergerak memberatkan HP); letak Z-nya tetap kartu tetangga yang mundur dan bukit dekat yang bergeser.
+
+**Pratinjau dan uji.** `window.__lakonStage.dof` (kadar, fokus, digambar atau tidak), `window.__lakonStage.dofAt = [kadar, fokus]` menahan depth of field. Tur perekam `judul` dan `gallery` (`scripts/preview/record-film.cjs`).
+
+## Maskot pemandu: rupa kit Claude v4 dan gerak lentur (15 Nov 2026), arahan host: "update maskot" (dengan `claude-3d-reference-kit.zip`), lalu "gerak nya bisa dibuat lebih fleksibel? ganti aturan tanpa stretch itu. yang ga boleh cuma mengganti bentuk dan ukuran saja"
+
+Belum disambungkan ke film; menunggu tinjauan host.
+
+- **Rupa:** constructor kit diport setia ke `src/components/film/stage3d/claude.ts` (badan 2 × 1,9 × 1,4, #F26D3D doff dengan normal map tanah liat, dua lengan, empat kaki sebaris, 12 ekspresi mata/alis, tanpa mulut). `stage3d/mascot.ts` hanya pembungkus: letak, arah hadap, skala, lampu, dan gerak. Model tidak digambar ulang.
+- **Ekspresi:** suasana hati dipetakan ke ekspresi kit (`engine/mascot/face.ts`); pergantian disembunyikan di tengah kedipan.
+- **Gerak lentur:** aturan kit "tanpa stretch" dicabut host untuk gerak; yang tetap dilarang hanya mengganti bentuk dan ukuran. Maka:
+  - pose memampat/memanjang badan dengan volume tetap (ancang-ancang, melesat, mendarat, menggeliat, napas tidur) dan memanjangkan lengan sebentar saat menunjuk atau melambai;
+  - badan jeli (`engine/mascot/jelly.ts`): puncak badan = massa berpegas di dasar badan, tertinggal terhadap percepatan; lenturnya dipasang sebagai geser dan regang matriks `BodyRig` yang bertumpu di dasar badan, jadi wajah, lengan, dan kaki ikut melentur bersama badan;
+  - sendi lengan dan kaki menyusul pose dengan pegas yang memantul, ditambah dorongan inersia dari percepatan badan.
+- **Batas:** regang total 0,7–1,35, lentur ±0,32, lengan 0,9–1,25. Semua lentur mereda ke nol; saat melayang tenang regangnya ±1% (napas), jadi bentuk dan ukuran kit tidak berubah.
+- **Gerak dikurangi:** pose diam, tanpa jeli, tanpa kedip (brief kit).
+- **Cahaya:** material kit MeshStandardMaterial diberi lampu three sendiri yang mengikuti uniform panggung tiap frame; tidak menyentuh material panggung lain.
+
+## Clawd: gelembung ucapan piksel dan perkenalan (M2, 15–16 Nov 2026), arahan host: "teks bubble nya? perkenalan dulu, nama dia clawd", "nanti kalo preview yang ini, record di 9:16 ya", "gas m2"; sebelumnya "chat ui 💬 ala ala pixel, maincraft"
+
+Belum disambungkan ke film (itu M3).
+
+- **Nama dan ucapan:** maskot bernama Clawd. Ucapannya di `engine/mascot/lines.ts`, dua bahasa mengikuti sakelar EN | ID, tanpa emoji supaya tetap tergambar dengan huruf piksel. Perkenalan empat kalimat; reaksi (klik, senang, sayang, marah, tenang, mulai mengantuk, bangun, gong) punya variasi yang digilir.
+- **Gelembung** (`components/mascot/bubble.ts` + `.css`): gaya tooltip Minecraft.
+  - Kotak ungu-hitam dengan sudut bertakik satu piksel dan garis dalam ungu bergradasi.
+  - Nama "Clawd" kuning, teks putih berbayang keras, huruf Pixelify Sans (Fontsource, dimuat hanya bersama gelembung).
+  - Ekor bertangga yang membuka garis bawah kotak, tanda lanjut ▼ berkedip, dan muncul bertangga (`steps`).
+  - Gelembung imperatif (bukan komponen React) karena letaknya mengikuti kepala Clawd tiap frame. Tetap di dalam layar; ekornya bergeser supaya tetap menunjuk kepala.
+- **Efek ketik** (`engine/mascot/dialogue.ts`):
+  - 34 huruf/dtk, jeda sesudah tanda baca, lalu waktu baca dan lanjut sendiri;
+  - ketukan melengkapi kalimat yang sedang diketik, lalu ketukan berikutnya pindah kalimat;
+  - sisa kalimat ikut ditata secara transparan, jadi gelembung tidak melebar huruf demi huruf;
+  - pembaca layar mendapat kalimat utuh sekali (wilayah `aria-live` terpisah); gerak dikurangi = kalimat langsung utuh, tanpa animasi.
+- **Otak** (`engine/mascot/clawd.ts`):
+  - perilaku klik + dialog;
+  - selama perkenalan, ketukan memajukan kalimat dan tidak dihitung sebagai klik (tamu yang tidak sabar tidak membuat Clawd marah);
+  - selama mengetik Clawd bergerak "bicara".
+- **Perbaikan perilaku:** saat sudah senang, klik pelan berikutnya tidak mengulang ucapan senang (gelembung tidak berganti-ganti), hanya menuju "sayang". Jam emosi yang sudah lewat diselesaikan dulu sebelum ketukan dihitung.
+
+## Clawd memandu di film 3D (M3, 16 Nov 2026), arahan host 15 Nov: "peranmu sebagai pemandu, memberi tahu fitur fitur 3D sambil mengampiri objek 3D nya, menyapa client, menjelaskan alur"; 16 Nov: "jangan lupa untuk menghapus semua text pemandu yang lama, seperti \"click the gong\" dll."
+
+- **Kapan muncul:** di panggung 3D, begitu gunungan pembuka tampil (atau sejak awal bila film dibuka tanpa gerbang). Tamu baru diperkenalkan (empat kalimat), tamu yang sudah berkenalan di perangkat ini disapa singkat ("Halo lagi! Clawd di sini.").
+- **Petunjuk** (`engine/mascot/guide.ts`, teks di `lines.ts`):
+  - gunungan pembuka (balik/cabut), tahap gong di hero dan judul hari, zoom dan kitar gong, gallery (geser, "Ceritanya"), ungkapan Jawa (balik kartu), gong penutup hari (pukul), dan penutup (terima kasih);
+  - tiap petunjuk punya varian layar sentuh ("ketuk", "geser", "cubit");
+  - diucapkan sekali per perangkat, dan dianggap tuntas bila kalimat terakhirnya sudah lengkap diketik (`localStorage` `lakon.clawd`);
+  - petunjuk yang tidak berlaku lagi karena tamu sudah pindah dibuang tanpa memotong perkenalan.
+- **Teks petunjuk lama di layar** ("Scroll or swipe", "or press the arrow keys", "Click or tap the gunungan to turn it", "Tap a card to turn it over."):
+  - tidak tampil selama panggung 3D dipakai; isinya diucapkan Clawd;
+  - sejak M4 (17 Nov) dihapus seluruhnya, karena film 2,5D juga punya Clawd;
+  - `aria-label` tombol gong dan gunungan tetap, karena tidak tampil di layar dan dipakai pembaca layar.
+- **Letak:** dihitung dalam ruang kamera, jadi Clawd selalu di dalam bingkai dan kamera yang bergerak memberi badannya lentur jeli. Ada tiga tempat:
+  - dekat gunungan saat gerbang tertancap;
+  - di samping gong saat menjelaskan zoom dan kitar (sesudah huruf judul tersedot) dan di slide gong penutup (sambil menunjuk dan separuh berpaling ke gong); selama judul hero/hari masih tampil ia tetap di samping, karena di HP tegak gong ada di belakang judul dan gelembungnya akan menutupi judul;
+  - selain itu di samping layar. Tempat ini dipilih dari tata letak slide (`bestSide`): sesudah tamu tiba, kotak tombol, teks, dan kartu diukur, lalu dipilih calon tempat yang paling sedikit menutupinya (tombol paling berat, karena tombol yang tertutup tombol Clawd tidak bisa diketuk).
+  - Di HP yang hampir penuh kartu (gallery), Clawd naik ke pita antara chrome atas dan kartu, dan gelembungnya di sampingnya dengan ekor menunjuk ke samping.
+- **Tampil di depan gerbang:** kelir dan gunungan adalah lapisan layar penuh tanpa uji kedalaman (renderOrder 2000–2001). Jaring Clawd digambar sesudahnya (renderOrder 2100, tetap diuji kedalaman dan tetap buram 0).
+- **Depth of field:** di pass kedalaman Clawd digambar pada jarak fokus, jadi selalu tajam.
+- **Cahaya:** lampu Clawd mengikuti panggung, ditambah isi lembut dari arah kamera yang cukup kuat supaya oranye kit tetap terbaca di adegan malam; semuanya dilunakkan bersama dekat blencong supaya tidak berpendar.
+- **Hemat draw call** (aturan host "beban hemat tapi jangan turunkan kualitas"): `claude-batch.ts` menggambar karakter kit berkelompok, tanpa mengubah bentuknya:
+  - empat kaki, dua lengan, dan dua pipi masing-masing satu InstancedMesh yang matriksnya diambil dari pivot kit;
+  - kedua mata satu ekspresi satu jaring (kedipan = skala Y di garis tengah mata), kedua alis satu jaring.
+  - Hasilnya ±13 → 6 draw call; prolog tier Low 24 draw call (anggaran 26).
+- **Klik:** tombol tak terlihat `Clawd` di atas badannya (klik/ketuk/Enter), di bawah chrome, di atas teks slide.
+  - Selama perkenalan, klik memajukan kalimat dan tidak dihitung sebagai klik, jadi tidak membuat Clawd marah.
+  - Selama berbicara Clawd tidak mengantuk, dan selama perkenalan/petunjuk ia tidak menyela dirinya dengan celetukan.
+- **Gelembung:** diam selama Clawd hanya melayang (zona mati 10 px) supaya teks mudah dibaca dan diketuk; menyusul dengan tetapan waktu 90 ms, bebas laju frame.
+
+## Clawd di film 2,5D dan gerak pandang Clawd (M4, 17 Nov 2026), arahan host: "selesain project clawd dulu, baru aku merge ketika sudah selesai."
+
+- **Rupa tanpa WebGL:** film 2,5D (tanpa WebGL, tier Static, Calm, gerak dikurangi) memakai Clawd dari balok CSS 3D (`components/mascot/flat.ts`), sesuai arti 2,5D dari host 11 Nov (DOM dengan `transform`, bukan WebGL).
+  - Ukuran, pivot lengan dan kaki, dan warna dari kit yang sama.
+  - Muka balok diberi warna berbeda per arah (cahaya dari kiri atas depan) supaya terbaca sebagai balok.
+  - Wajah SVG dari data wajah kit yang sama dengan film 3D (`engine/mascot/kit-face.ts`, `components/mascot/face-svg.ts`); `claude.ts` memakai data itu juga, dan lembar 12 ekspresi 3D identik piksel demi piksel sesudah dipindah.
+- **Satu otak untuk dua film:**
+  - Penggerak tubuh (wajah, pose, loncatan ketukan, jeli, sendi) dipisah ke `engine/mascot/motor.ts`; gerak 3D identik piksel demi piksel sesudah dipindah.
+  - Sesi (otak, petunjuk, tempat di samping) dipisah ke `components/mascot/session.ts`.
+  - Film 2,5D tidak punya zoom/kitar gong dan gunungan pembuka, jadi petunjuknya tidak diucapkan di sana.
+  - Pukulan gong (3D maupun cakram CSS) dikabarkan lewat `stageBus.onStrike`.
+- **Dimuat seperlunya:** Clawd 2,5D dimuat sebagai chunk terpisah, hanya bila film 2,5D dipakai.
+- **Teks petunjuk lama dihapus seluruhnya:** komponen `Hint`, `film.hint`, `film.hintKeys`, `film.kayonHint`, `film.phrasesHint`, beserta CSS-nya. `aria-label` tombol gong dan gunungan tetap.
+- **Gerak pandang Clawd** (aturan host 13 Nov, semua objek 3D dan 2,5D):
+  - kamera parallax: Clawd lapisan terdekat, bergeser searah pandang lebih jauh dari isi slide (2,5D: 22 px, isi slide 14 px; 3D: bergeser berlawanan dengan geseran kamera);
+  - perspective shift: badannya menoleh dan sedikit memiring mengikuti pandang (2,5D) atau wajahnya menoleh ke arah pandang (3D);
+  - kedalaman ikut gulir: selama perpindahan slide ia mendekat (membesar) mengikuti kemajuan gulir.
+- **Calm dan gerak dikurangi:** Clawd 2,5D diam (pose tetap, tanpa jeli dan kedip), kalimat langsung utuh, tanpa partikel.
+- **Tempat di HP:** calon tempat sedikit lebih rendah ditambahkan, supaya gelembung tidak menutupi subjudul hero.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

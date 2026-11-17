@@ -16,6 +16,19 @@ describe("bus panggung (DOM → panggung 3D)", () => {
     expect(stageBus.strikeGong()).toBe("flat");
   });
 
+  it("pilihan hentakan kamera diteruskan ke panggung: bawaan ikut terhentak, slide judul tidak (Tugas 7b)", () => {
+    const seen: boolean[] = [];
+    const off = stageBus.bindGong((kick) => {
+      seen.push(kick);
+      return 0.52;
+    });
+    stageBus.strikeGong();
+    stageBus.strikeGong({ kick: false });
+    stageBus.strikeGong({ kick: true });
+    expect(seen).toEqual([true, false, true]);
+    off();
+  });
+
   it("panggung dibangun ulang (ganti tier): pembatal yang lama tidak melepas gong yang baru", () => {
     const offOld = stageBus.bindGong(() => 1);
     const offNew = stageBus.bindGong(() => 2);
@@ -23,6 +36,46 @@ describe("bus panggung (DOM → panggung 3D)", () => {
     expect(stageBus.strikeGong()).toBe(2);
     offNew();
     expect(stageBus.strikeGong()).toBe("flat");
+  });
+
+  it("zoom dan kitar: berlaku di gong penutup dan di judul/hero; dua tahap gulir hanya di gong penutup", () => {
+    stageBus.setGongHere(null);
+    expect(stageBus.gongZoomBy("key", 1)).toBe(false);
+    expect(stageBus.orbitStart()).toBe(false);
+    stageBus.setGongHere("title");
+    expect(stageBus.zoomHere()).toBe(true);
+    expect(stageBus.gongHere()).toBe(false);
+    expect(stageBus.gongStep(1)).toBe(false); // langkah pertama di judul dipakai tahap gong, bukan zoom
+    expect(stageBus.gongZoomBy("key", 1)).toBe(true);
+    expect(stageBus.gongZoom()).toBeGreaterThan(0);
+    stageBus.setGongHere("gong");
+    expect(stageBus.gongHere()).toBe(true);
+    expect(stageBus.gongPinchStart()).toBe(true);
+    stageBus.setGongHere(null);
+    expect(stageBus.gongZoom()).toBe(0);
+  });
+
+  it("kitar: seret dari sudut yang tampil, dibatasi ±90°, kembali ke depan saat dilepas atau meninggalkan slide", () => {
+    stageBus.setGongHere("title");
+    stageBus.setOrbitShown(0);
+    expect(stageBus.orbitStart()).toBe(true);
+    expect(stageBus.orbiting()).toBe(true);
+    stageBus.orbitDrag(-300, 1000);
+    expect(stageBus.orbitGoal()).toBeCloseTo(45, 9);
+    stageBus.orbitDrag(-3000, 1000);
+    expect(stageBus.orbitGoal()).toBe(90);
+    stageBus.orbitEnd();
+    expect(stageBus.orbiting()).toBe(false);
+    expect(stageBus.orbitGoal()).toBe(0);
+    // kamera masih kembali (tampil 30°): seret baru mulai dari 30°, bukan dari 0
+    stageBus.setOrbitShown(30);
+    stageBus.orbitStart();
+    stageBus.orbitDrag(0, 1000);
+    expect(stageBus.orbitGoal()).toBe(30);
+    stageBus.setGongHere(null);
+    expect(stageBus.orbiting()).toBe(false);
+    expect(stageBus.orbitGoal()).toBe(0);
+    stageBus.setOrbitShown(0);
   });
 
   it("tanda siap dipukul disimpan untuk panggung", () => {

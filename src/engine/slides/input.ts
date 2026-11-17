@@ -222,7 +222,21 @@ export class TouchTracker {
     if (Math.abs(total) >= INPUT.swipeMin && t - this.origin.t <= INPUT.swipeMaxMs) return total > 0 ? 1 : -1;
     return 0;
   }
+
+  /**
+   * Tarikan panjang, secepat atau selambat apa pun: arahnya bila jari sudah menempuh `min` px sepanjang sumbunya.
+   * Dipakai di slide yang tidak men-scrub (judul hari, gong penutup, Calm mode), supaya tarikan pelan yang jelas
+   * disengaja tetap satu langkah; di slide yang men-scrub keputusan tetap pada ambang 35% dan sentakan.
+   */
+  reach(min: number): Dir | 0 {
+    const total = this.signed();
+    return Math.abs(total) >= min ? (total > 0 ? 1 : -1) : 0;
+  }
 }
+
+/** Tarikan sepanjang ini (bagian dari tinggi/lebar layar, paling sedikit 2 × `swipeMin`) = satu langkah tanpa scrub. */
+export const LONG_DRAG = 0.18;
+export const longDragPx = (size: number) => Math.max(INPUT.swipeMin * 2, size * LONG_DRAG);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Keyboard
@@ -273,8 +287,8 @@ export type InputHandlers = {
   scrubStart(dir: Dir): void;
   scrub(signed: number): void;
   scrubEnd(flick: Dir | 0): void;
-  /** false = Calm mode: tanpa scrub, sentuhan hanya menghasilkan langkah. */
-  canScrub(): boolean;
+  /** false = jari ke arah `dir` tidak men-scrub (Calm mode, slide gong 3D, tahap judul): geser dinilai saat dilepas. */
+  canScrub(dir: Dir): boolean;
   /** true = input film sedang dimatikan (sheet detail terbuka). */
   paused(): boolean;
   /**
@@ -286,6 +300,14 @@ export type InputHandlers = {
   pinchStart?(): boolean;
   /** Cubit berlangsung: jarak jari sekarang ÷ jarak awal. */
   pinch?(ratio: number): void;
+  /**
+   * Seret mendatar di slide yang objeknya bisa dikitari (gong 3D di judul hari, hero, gong penutup): mouse, jari, atau
+   * geser dua jari trackpad. `orbitStart` true = dipakai (slide tidak ikut terseret); `orbit` menerima jarak seret
+   * (px, + = ke kanan) sejak mulai dan lebar layar; `orbitEnd` saat dilepas.
+   */
+  orbitStart?(): boolean;
+  orbit?(dx: number, width: number): void;
+  orbitEnd?(): void;
 };
 
 const CONTROL = "a[href], button, input, select, textarea, summary, [role='button'], [contenteditable='true']";
@@ -297,6 +319,14 @@ const within = (target: EventTarget | null, selector: string) => target instance
 /** Pasang semua pendengar pada `root`. Mengembalikan fungsi pelepas. */
 export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   const wheel = new WheelGestures();
+  /** Geser dua jari trackpad mendatar yang sedang mengitari objek: jarak terkumpul (px) dan pengakhirnya. */
+  let wheelOrbit: { dx: number; timer: ReturnType<typeof setTimeout> | null } | null = null;
+  const endWheelOrbit = () => {
+    if (!wheelOrbit) return;
+    if (wheelOrbit.timer) clearTimeout(wheelOrbit.timer);
+    wheelOrbit = null;
+    h.orbitEnd?.();
+  };
 
   const onWheel = (e: WheelEvent) => {
     // ctrl+roda (dan cubit trackpad, yang tiba sebagai ctrl+roda): zoom objek bila slide ini punya, selain itu zoom browser
@@ -307,6 +337,16 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     if (h.paused() || within(e.target, SCROLLER)) return;
     e.preventDefault(); // tanpa scroll bawaan dan tanpa gestur "kembali" trackpad
     const allowX = h.axisFor(1) === "x" || h.axisFor(-1) === "x";
+    // geser dua jari mendatar di luar gallery: mengitari objek (bila slide ini punya), lepas sesudah jeda singkat
+    const unit = e.deltaMode === 1 ? INPUT.wheelLine : e.deltaMode === 2 ? root.clientWidth : 1;
+    if (!allowX && !e.shiftKey && Math.abs(e.deltaX) > Math.abs(e.deltaY) && (wheelOrbit || h.orbitStart?.())) {
+      wheelOrbit ??= { dx: 0, timer: null };
+      wheelOrbit.dx -= e.deltaX * unit; // jari ke kanan = deltaX negatif = seret ke kanan
+      h.orbit?.(wheelOrbit.dx, root.clientWidth);
+      if (wheelOrbit.timer) clearTimeout(wheelOrbit.timer);
+      wheelOrbit.timer = setTimeout(endWheelOrbit, INPUT.wheelGap);
+      return;
+    }
     const dir = wheel.push(wheelSample(e, allowX, root.clientHeight));
     if (dir) h.step(dir, "wheel");
   };
@@ -326,7 +366,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   };
 
   // ---- sentuhan (pointer events; mouse tidak men-scrub) ----
-  let touch: { id: number; tracker: TouchTracker; scrubbing: boolean; dragged: boolean } | null = null;
+  let touch: { id: number; tracker: TouchTracker; scrubbing: boolean; dragged: boolean; orbiting: boolean; x0: number } | null = null;
 
   const signedProgress = (px: number): number => {
     const dir: Dir = px >= 0 ? 1 : -1;
@@ -349,6 +389,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     if (!h.pinchStart()) return;
     pinch = { from: Math.max(1, spread()) };
     if (touch?.scrubbing) h.scrubEnd(0);
+    if (touch?.orbiting) h.orbitEnd?.();
     touch = null;
   };
   const onFingerMove = (e: PointerEvent) => {
@@ -365,7 +406,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
 
   const onDown = (e: PointerEvent) => {
     if (e.pointerType === "mouse" || !e.isPrimary || touch || pinch || h.paused() || within(e.target, SCROLLER)) return;
-    touch = { id: e.pointerId, tracker: new TouchTracker(e.clientX, e.clientY, e.timeStamp), scrubbing: false, dragged: false };
+    touch = { id: e.pointerId, tracker: new TouchTracker(e.clientX, e.clientY, e.timeStamp), scrubbing: false, dragged: false, orbiting: false, x0: e.clientX };
   };
 
   const onMove = (e: PointerEvent) => {
@@ -379,28 +420,69 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
       } catch {
         /* pointer sudah dilepas */
       }
-      // scrub hanya bila jari searah sumbu transisi; selain itu gerakan dinilai saat dilepas
+      // scrub hanya bila jari searah sumbu transisi; selain itu gerakan dinilai saat dilepas. Geser mendatar di luar
+      // gallery mengitari objek bila slide ini punya.
       const dir: Dir = px >= 0 ? 1 : -1;
-      if (h.canScrub() && h.axisFor(dir) === touch.tracker.axis) {
+      if (h.canScrub(dir) && h.axisFor(dir) === touch.tracker.axis) {
         touch.scrubbing = true;
         h.scrubStart(dir);
-      }
+      } else if (touch.tracker.axis === "x" && h.axisFor(dir) !== "x" && h.orbitStart?.()) touch.orbiting = true;
     }
     if (touch.scrubbing) h.scrub(signedProgress(px));
+    else if (touch.orbiting) h.orbit?.(e.clientX - touch.x0, root.clientWidth);
   };
 
   const finish = (e: PointerEvent, cancelled: boolean) => {
     if (!touch || e.pointerId !== touch.id) return;
-    const { tracker, scrubbing, dragged } = touch;
+    const { tracker, scrubbing, dragged, orbiting } = touch;
     touch = null;
     if (!dragged) return; // ketukan: biarkan klik berjalan
+    if (orbiting) return h.orbitEnd?.();
     const flick = cancelled ? 0 : tracker.end(e.timeStamp);
     if (scrubbing) return h.scrubEnd(flick);
-    // geser yang tidak di-scrub: vertikal selalu memajukan slide; menyamping hanya di gallery
-    if (flick && (tracker.axis === "y" || h.axisFor(flick) === "x")) h.step(flick, "touch");
+    // geser yang tidak di-scrub (sentakan, atau tarikan pelan yang cukup panjang): vertikal selalu memajukan slide,
+    // menyamping hanya di gallery
+    const size = tracker.axis === "x" ? root.clientWidth : root.clientHeight;
+    const step = flick || (cancelled ? 0 : tracker.reach(longDragPx(size)));
+    if (step && (tracker.axis === "y" || h.axisFor(step) === "x")) h.step(step, "touch");
   };
   const onUp = (e: PointerEvent) => finish(e, false);
   const onCancel = (e: PointerEvent) => finish(e, true);
+
+  // ---- seret mouse mendatar: mengitari objek (slide yang punya). Klik tanpa seret tetap klik. ----
+  let mouse: { id: number; x0: number; y0: number; orbiting: boolean } | null = null;
+  const onMouseDown = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || h.paused() || within(e.target, SCROLLER) || within(e.target, "a[href], input, select, textarea")) return;
+    mouse = { id: e.pointerId, x0: e.clientX, y0: e.clientY, orbiting: false };
+  };
+  const onMouseMove = (e: PointerEvent) => {
+    if (!mouse || e.pointerId !== mouse.id) return;
+    const dx = e.clientX - mouse.x0;
+    if (!mouse.orbiting) {
+      if (Math.abs(dx) < INPUT.touchSlop || Math.abs(dx) < Math.abs(e.clientY - mouse.y0)) return;
+      if (!h.orbitStart?.()) {
+        mouse = null;
+        return;
+      }
+      mouse.orbiting = true;
+      root.dataset.orbiting = "";
+      try {
+        root.setPointerCapture(e.pointerId);
+      } catch {
+        /* tombol sudah dilepas */
+      }
+    }
+    h.orbit?.(dx, root.clientWidth);
+  };
+  const onMouseUp = (e: PointerEvent) => {
+    if (!mouse || e.pointerId !== mouse.id) return;
+    const { orbiting } = mouse;
+    mouse = null;
+    if (!orbiting) return;
+    delete root.dataset.orbiting;
+    swallowUntil = e.timeStamp + 350; // seret yang dilepas di atas tombol bukan klik
+    h.orbitEnd?.();
+  };
 
   // setelah menggeser, klik yang menyusul (di kartu/tombol tempat jari mendarat) tidak dijalankan
   let swallowUntil = 0;
@@ -426,7 +508,16 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   root.addEventListener("pointerup", onUp, { passive: true });
   root.addEventListener("pointercancel", onCancel, { passive: true });
   root.addEventListener("click", onClickCapture, { capture: true });
+  root.addEventListener("pointerdown", onMouseDown, { passive: true });
+  root.addEventListener("pointermove", onMouseMove, { passive: true });
+  root.addEventListener("pointerup", onMouseUp, { passive: true });
+  root.addEventListener("pointercancel", onMouseUp, { passive: true });
   return () => {
+    endWheelOrbit();
+    root.removeEventListener("pointerdown", onMouseDown);
+    root.removeEventListener("pointermove", onMouseMove);
+    root.removeEventListener("pointerup", onMouseUp);
+    root.removeEventListener("pointercancel", onMouseUp);
     root.removeEventListener("wheel", onWheel);
     window.removeEventListener("keydown", onKey);
     root.removeEventListener("pointerdown", onDown);

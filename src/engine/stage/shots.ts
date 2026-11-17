@@ -22,6 +22,8 @@ export type Shot = Readonly<{
   dim: number;
   /** Jarak fokus (untuk depth of field) = jarak kamera ke titik pandang. */
   focus: number;
+  /** Kadar depth of field (0–1): hanya gallery (Tugas 7b); berpindah bersama kamera saat transisi. */
+  dof: number;
   /** Rumpun shot: orbit mengitari pusat panggung, vista memandang lanskap. Menentukan cara berpindah. */
   rig: "orbit" | "vista";
   /** Pengali ketinggian pada gradien langit (lihat `skyStretch`). */
@@ -35,8 +37,12 @@ const dist = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b
 
 /** Pusat panggung: titik pandang bawaan shot orbit (kira-kira pencu gong). */
 export const STAGE_CENTER: Vec3 = [0, 1.5, 0];
-/** Tempat kamera berdiri saat memandang lanskap, dan sejauh apa ia bergeser sepanjang satu hari di gallery. */
-export const VISTA = { y: 1.7, z: -5.2, travel: 3.4, far: 60 } as const;
+/**
+ * Tempat kamera berdiri saat memandang lanskap, dan sejauh apa ia bergeser sepanjang satu hari di gallery. Geseran
+ * itu yang memperlihatkan letak Z lanskap (Tugas 7b, "Z-depth positioning"): tanah dekat bergeser lebih jauh dari
+ * desa, dan Lawu hampir diam; ±1 m per panel di hari ber-8 panel, searah dengan rel kartu.
+ */
+export const VISTA = { y: 1.7, z: -5.2, travel: 7.2, far: 60 } as const;
 
 /**
  * Film 2,5D membentangkan gradien langit dari tepi bawah ke tepi atas layar. Kamera 3D hanya melihat sebagian
@@ -90,7 +96,7 @@ function orbitShot(o: Orbit, aspect: number): Shot {
   const pos: Vec3 = [look[0] + r * Math.sin(az) * Math.cos(el), Math.max(0.35, look[1] + r * Math.sin(el)), look[2] + r * Math.cos(az) * Math.cos(el)];
   // layar tegak: kamera mendongak sedikit, supaya lantai tidak memenuhi separuh layar di belakang teks
   const aim: Vec3 = [look[0], look[1] + (o.tilt ?? PORTRAIT_TILT) * r * clamp(1 - aspect, 0, 0.6), look[2]];
-  return { pos, look: aim, fov, lamp: o.lamp ?? 1, dim: o.dim ?? 0, focus: dist(pos, look), rig: "orbit", sky: skyStretch(pos, aim, fov) };
+  return { pos, look: aim, fov, lamp: o.lamp ?? 1, dim: o.dim ?? 0, focus: dist(pos, look), dof: 0, rig: "orbit", sky: skyStretch(pos, aim, fov) };
 }
 
 /**
@@ -98,13 +104,13 @@ function orbitShot(o: Orbit, aspect: number): Shot {
  * cakrawala di layar, 0 = tengah … 1 = tepi bawah (kartu gallery menutupi bagian tengah, jadi cakrawala
  * diturunkan supaya langit dan matahari tampak di atas kartu).
  */
-function vistaShot(v: { drift: number; horizon: number; fov: number; lift?: number; lamp?: number; dim?: number }, aspect: number): Shot {
+function vistaShot(v: { drift: number; horizon: number; fov: number; lift?: number; lamp?: number; dim?: number; dof?: number }, aspect: number): Shot {
   const fov = fitFov(v.fov, aspect);
   const x = (v.drift - 0.5) * VISTA.travel;
   const pitch = Math.atan(v.horizon * Math.tan((fov * RAD) / 2));
   const pos: Vec3 = [x, VISTA.y + (v.lift ?? 0), VISTA.z];
   const look: Vec3 = [x * 0.35, pos[1] + VISTA.far * Math.tan(pitch), VISTA.z - VISTA.far];
-  return { pos, look, fov, lamp: v.lamp ?? 0.25, dim: v.dim ?? 0, focus: 40, rig: "vista", sky: skyStretch(pos, look, fov) };
+  return { pos, look, fov, lamp: v.lamp ?? 0.25, dim: v.dim ?? 0, focus: 40, dof: v.dof ?? 0, rig: "vista", sky: skyStretch(pos, look, fov) };
 }
 
 /** Lensa dan tinggi kamera gallery; dipakai juga untuk menaruh matahari di langit (`sunDirection`). */
@@ -113,7 +119,7 @@ export const GALLERY_LIFT = 2.6;
 
 /** Shot gallery pada letak `drift` (0–1) di sepanjang hari. */
 export const galleryShot = (drift: number, frame: Frame): Shot =>
-  vistaShot({ drift, horizon: clamp(frame.horizon ?? GALLERY_HORIZON, -0.8, 0.2), fov: GALLERY_FOV, lift: GALLERY_LIFT }, frame.aspect);
+  vistaShot({ drift, horizon: clamp(frame.horizon ?? GALLERY_HORIZON, -0.8, 0.2), fov: GALLERY_FOV, lift: GALLERY_LIFT, dof: 1 }, frame.aspect);
 
 /** Lebar gayor gong beserta naga di kedua ujungnya: yang harus muat di layar pada shot gong. */
 const GONG_WIDTH = 3.5;
@@ -210,7 +216,7 @@ export function blendShot(a: Shot, b: Shot, p: number, kind: TransitionKind): Sh
   if (kind === "wipe") return p < 0.5 ? a : b;
   const t = kind === "inner" ? p : smoother(p);
   const look: Vec3 = [lerp(a.look[0], b.look[0], t), lerp(a.look[1], b.look[1], t), lerp(a.look[2], b.look[2], t)];
-  const num = { fov: lerp(a.fov, b.fov, t), lamp: lerp(a.lamp, b.lamp, t), dim: lerp(a.dim, b.dim, t), focus: lerp(a.focus, b.focus, t), sky: lerp(a.sky, b.sky, t) };
+  const num = { fov: lerp(a.fov, b.fov, t), lamp: lerp(a.lamp, b.lamp, t), dim: lerp(a.dim, b.dim, t), focus: lerp(a.focus, b.focus, t), dof: lerp(a.dof, b.dof, t), sky: lerp(a.sky, b.sky, t) };
   let pos: Vec3;
   if (kind !== "inner" && a.rig === "orbit" && b.rig === "orbit") {
     // koordinat bola terhadap titik pandang masing-masing: sudut ditempuh lewat jalan terpendek

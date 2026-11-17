@@ -5,11 +5,13 @@ import { flushSync } from "react-dom";
 import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { DEPTH, prefersReducedMotion } from "@/engine/motion/tokens";
+import type { Beat } from "@/engine/slides/beat";
 import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
 import { createLiveStore } from "@/engine/slides/live";
 import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
 import { styleAt } from "@/engine/slides/timeline";
 import { stageBus } from "@/engine/stage/bus";
+import type { Cursor } from "@/engine/stage/cue";
 import { GATE, type GateSnapshot, logTop, plantSize } from "@/engine/stage/gate";
 import { KAYON as KAYON_SHEET } from "@/engine/stage/gunungan";
 import { sessionStore } from "@/lib/session";
@@ -18,7 +20,7 @@ import { IconRefresh } from "../Icons";
 import { useCurtainOpen } from "../motion/Curtain";
 import { BRANCHES, branchPath, KAYON, KAYON_GATE } from "../motion/kayon";
 import { useRequireSession } from "../useRequireSession";
-import { Corner, Hint, Rail, useChapterLabel } from "./Chrome";
+import { Corner, Rail, useChapterLabel } from "./Chrome";
 import { DetailSheet, type SheetOrigin } from "./DetailSheet";
 import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
@@ -32,7 +34,6 @@ type Var = CSSProperties & Record<`--${string}`, string | number>;
 /** Kedalaman gallery untuk CSS (satu sumber dengan lintasan transisi: DEPTH di tokens). */
 const DEPTH_VARS: Var = { "--depth-perspective": `${DEPTH.perspective}px`, "--depth-card-z": `${DEPTH.cardZ}px`, "--depth-card-turn": `${DEPTH.cardTurn}deg` };
 const CALM_KEY = "lakon.calm";
-const HINT_KEY = "lakon.film.hint";
 
 const readFlag = (key: string): string | null => {
   try {
@@ -105,7 +106,7 @@ export function Film() {
   return <Stage data={view.data} />;
 }
 
-type SceneView = { id: string; slides: Slide[]; first: number; pos: "cur" | "in" | "out" | "away"; step: number };
+type SceneView = { id: string; slides: Slide[]; first: number; pos: "cur" | "in" | "out" | "away"; step: number; beat: Beat };
 
 /** Scene yang dipasang: slide sekarang, tetangganya (siap untuk transisi berikutnya), dan tujuan transisi. */
 function scenesFor(film: FilmData, view: FilmView): SceneView[] {
@@ -127,12 +128,30 @@ function scenesFor(film: FilmData, view: FilmView): SceneView[] {
     const pos = id === current ? (target !== undefined && target !== current ? "out" : "cur") : id === target ? "in" : "away";
     // kartu yang ditunjuk: slide sekarang bila ada di scene ini, selain itu sisi yang menghadap penonton
     const at = index >= first && index <= last ? index : moving && moving.to >= first && moving.to <= last ? moving.to : first > index ? first : last;
-    out.set(id, { id, slides, first, pos, step: at - first });
+    // tahap judul (beat.ts) milik slide `index`: ikut dibawa lapisannya selama transisi keluar, supaya teks yang
+    // sudah tersedot ke gong tidak muncul lagi saat lapisan itu meninggalkan layar
+    out.set(id, { id, slides, first, pos, step: at - first, beat: first === index ? view.beat : 0 });
   }
   return [...out.values()];
 }
 
-const Layer = memo(function Layer({ data, id, slides, pos, step, onOpen }: { data: TripView; id: string; slides: Slide[]; pos: SceneView["pos"]; step: number; onOpen: (s: PanelSlide) => void }) {
+const Layer = memo(function Layer({
+  data,
+  id,
+  slides,
+  pos,
+  step,
+  beat,
+  onOpen,
+}: {
+  data: TripView;
+  id: string;
+  slides: Slide[];
+  pos: SceneView["pos"];
+  step: number;
+  beat: Beat;
+  onOpen: (s: PanelSlide) => void;
+}) {
   const head = slides[0]!;
   const live = useLive(head.id);
   const gallery = head.kind === "panel";
@@ -149,7 +168,7 @@ const Layer = memo(function Layer({ data, id, slides, pos, step, onOpen }: { dat
       aria-hidden={pos !== "cur"}
       inert={pos !== "cur"}
     >
-      {gallery ? <Gallery data={data} slides={slides as PanelSlide[]} step={step} onOpen={onOpen} /> : <SlideContent data={data} slide={head} pos={pos} />}
+      {gallery ? <Gallery data={data} slides={slides as PanelSlide[]} step={step} onOpen={onOpen} /> : <SlideContent data={data} slide={head} pos={pos} beat={beat} />}
     </section>
   );
 });
@@ -226,16 +245,42 @@ function KayonFlip({ root, face }: { root: RefObject<HTMLElement | null>; face: 
   );
 }
 
+/**
+ * Clawd di film 2,5D (M4). Modulnya dimuat terpisah (chunk sendiri), hanya bila film 2,5D dipakai. Teks petunjuk lama
+ * di layar sudah dihapus (arahan host 16 Nov); di kedua film Clawd yang memandu.
+ */
+function ClawdFlat({ root, probe, calm }: { root: RefObject<HTMLElement | null>; probe: () => Cursor; calm: boolean }) {
+  const calmNow = useRef(calm);
+  useEffect(() => {
+    calmNow.current = calm;
+  }, [calm]);
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    let gone = false;
+    let dispose: (() => void) | undefined;
+    void import("./clawd-flat").then(({ createFlatGuide }) => {
+      if (gone) return;
+      const touch = window.matchMedia("(pointer: coarse)").matches;
+      dispose = createFlatGuide({ host, probe, still: () => calmNow.current || prefersReducedMotion(), touch }).dispose;
+    });
+    return () => {
+      gone = true;
+      dispose?.();
+    };
+  }, [root, probe]);
+  return null;
+}
+
 function Stage({ data }: { data: TripView }) {
   const { t, tx } = useI18n();
   const film = useMemo(() => buildFilm(data), [data]);
   const root = useRef<HTMLElement>(null);
   const label = useChapterLabel();
   const [initial] = useState(() => indexForHash(film, window.location.hash) ?? 0);
-  const [view, setView] = useState<FilmView>({ index: initial, moving: null });
+  const [view, setView] = useState<FilmView>({ index: initial, moving: null, beat: 0 });
   const [live] = useState(createLiveStore);
   const [calm, setCalm] = useState(() => (readFlag(CALM_KEY) ?? (prefersReducedMotion() ? "1" : "0")) === "1");
-  const [hint, setHint] = useState(() => readFlag(HINT_KEY) === null);
   const [sheet, setSheet] = useState<{ slide: PanelSlide; origin: SheetOrigin | null } | null>(null);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -267,10 +312,6 @@ function Stage({ data }: { data: TripView }) {
           const url = chapter.kind === "prologue" ? window.location.pathname + window.location.search : `#${chapter.id}`;
           window.history.replaceState(window.history.state, "", url);
         }
-        setHint((shown) => {
-          if (shown) writeFlag(HINT_KEY, "1");
-          return false;
-        });
         // fokus yang tertinggal di slide lama (kini inert) dipindah ke panggung supaya keyboard tetap jalan
         const active = document.activeElement;
         if (!active || active === document.body || active.closest(".fl-layer")) el.focus({ preventScroll: true });
@@ -437,6 +478,7 @@ function Stage({ data }: { data: TripView }) {
       data-kind={slide?.kind}
       data-slide={slide?.id}
       data-index={view.index}
+      data-beat={view.beat ? "out" : undefined}
       data-gate={gate.phase === "off" ? undefined : gate.phase}
       data-face={gate.phase === "head" || gate.phase === "tail" ? gate.face : undefined}
       style={DEPTH_VARS}
@@ -461,11 +503,13 @@ function Stage({ data }: { data: TripView }) {
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
       <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
+      {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
+      {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}
       <div className="fl-grain" aria-hidden="true" />
       <LiveContext value={live}>
         <div className="fl-stage">
           {scenes.map((s) => (
-            <Layer key={s.id} data={data} id={s.id} slides={s.slides} pos={s.pos} step={s.step} onOpen={openSheet} />
+            <Layer key={s.id} data={data} id={s.id} slides={s.slides} pos={s.pos} step={s.step} beat={s.beat} onOpen={openSheet} />
           ))}
         </div>
       </LiveContext>
@@ -475,7 +519,6 @@ function Stage({ data }: { data: TripView }) {
       </div>
       <div className="fl-chrome">
         <Corner calm={calm} onCalm={onCalm} />
-        <Hint shown={(hint || gateShut) && view.index === 0 && !view.moving} kayon={gate.phase === "head"} />
         <Rail film={film} index={view.index} onJump={onJump} />
       </div>
       <p className="sr-only" role="status" aria-live="polite">

@@ -8,7 +8,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # e2e panggung 3D digambar CPU (runner tanpa GPU); sejak Clawd (M3–M4) tesnya lebih banyak dan tiap frame 3D
+    # menggambar Clawd juga, jadi e2e ±17–20 menit. Batas 20 menit memotong run PR yang berjalan bersamaan run push.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
