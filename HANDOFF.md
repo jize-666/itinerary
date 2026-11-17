@@ -167,6 +167,13 @@ Perbaikan gelembung (17 Nov):
    - CSS: huruf `clamp(14px, 3,9vw, 17px)` (lebih kecil di HP), `data-tight` = 82 %.
 3. **Tes:** unit 445 lulus. `bubble-place.test.ts` (5 tes) mencakup kasus tangkapan layar host dan sapuan semua letak Clawd di 4 ukuran layar × 3 arah × 3 panjang kalimat: tidak pernah menutupi badan dan tidak keluar layar. e2e dan tangkapan layar menunggu rekaman video selesai (build ulang dulu).
 
+**Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
+
+Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Drive host, ke folder "previews".
+- Isi scratchpad: 46 video (10–17 Nov, 681 MB), 64 audio (32 MB), ±4.900 gambar (±3.500 di antaranya bingkai kerja untuk merakit video: `cwclip`, `mclip`, `mclip2`, `video/kf`, `video/fr`).
+- Folder "previews" dibuat di My Drive host lewat connector Google Drive (id `1H-wMJltMnVnX2oJFjLQ9BkaTMVSHJCiX`).
+- Kendala: connector hanya mengunggah dengan isi file ditempel di perintah (base64), tidak mungkin untuk ±700 MB. Jalannya: API Google Drive langsung dari sesi dengan token akses host (formulir aman untuk `www.googleapis.com`).
+
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
 - sayang 0,85/0,45: 203 Hz;
