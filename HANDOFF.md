@@ -224,7 +224,13 @@ Hasil 17 Nov malam:
 - Kartu menyusun diri: dua kolom di layar lebar, satu kolom di layar sempit.
 - Hasil cek: `tsc` lulus; `claude plugin validate` lulus. Peringatannya hanya soal katalog plugin: author, README, lisensi, ikon.
 - Agen Sonnet pertama, kerja ringan: menjalankan `pnpm lint`, `typecheck`, `test`, `content:check`, dan `build` di branch kerja, lalu melaporkan hasilnya. Hanya baca, tanpa edit atau commit.
-- Langkah berikutnya: lihat dashboard di app; tampilan di HP belum dicek.
+- Hasil agen Sonnet pertama:
+  - semua lulus: `lint`, `typecheck`, `test` (445/445, 27 berkas), `content:check`, dan `build`;
+  - ±27 dtk, ±94rb token;
+  - log build dan tes diperiksa ulang oleh sesi utama.
+- Langkah berikutnya:
+  - lihat dashboard di app; tampilan di HP belum dicek;
+  - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
 
