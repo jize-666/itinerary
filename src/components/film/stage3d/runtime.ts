@@ -18,7 +18,8 @@ import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
-import { currentKnot, drawnAt, filmPosition, galleryStrands, shownAt, type Strand } from "@/engine/stage/thread";
+import { RIVER, riverLine } from "@/engine/stage/river";
+import { drawnAt, filmPosition, larungRoutes, pointAt, type Route, riverRing, shownAt } from "@/engine/stage/route";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
@@ -29,8 +30,9 @@ import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
 import { createShared } from "./shared";
 import { createSky, MOON_DIR } from "./sky";
+import { createLarung } from "./larung";
+import { createRiver } from "./river";
 import { createTerrain } from "./terrain";
-import { createThread } from "./thread";
 import { createVillage } from "./village";
 
 /** Angka yang dibaca overlay FPS, tes, dan skrip ukur. */
@@ -141,9 +143,11 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   // `?clawd=0`: tanpa Clawd (pengukuran beban, seperti `?fps` dan `?stage=`)
   const clawd = new URLSearchParams(window.location.search).get("clawd") === "0" ? null : createStageGuide({ shared, scene, host: root, touch: isMobile() });
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
-  // benang emas (Tugas 8.1): tergelar di tanah gallery, tergambar mengikuti gulir; dibangun ulang saat bentuk layar berubah
-  const thread = createThread(shared);
-  let strands: Strand[] = [];
+  // Bengawan Solo dan larung lampion (Tugas 8.1, pengganti benang emas): sungai tetap di dunia; lampion tiap tempat
+  // singgah dan jalur perahu dihitung ulang saat bentuk layar berubah (lampion selalu tepat di bawah kartunya)
+  const river = createRiver(shared);
+  const larung = createLarung(shared);
+  let routes: Route[] = [];
   // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,
   // gerbang boleh tampil dan memudar masuk
   let kayonFade = 0;
@@ -159,7 +163,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     },
   });
   /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
-  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, thread.group, dust.points, sky.mesh];
+  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, river.mesh, larung.group, dust.points, sky.mesh];
   let worldHidden = false;
   const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
@@ -211,13 +215,17 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // lanskap mengikuti lebar dan tinggi lintasan matahari di layar ini
     const end = sunDirection(1, 1, track, frame.aspect);
     const top = sunDirection(0.5, 0, track, frame.aspect);
-    const next: TerrainShape = { trackHalf: Math.abs(Math.atan2(end[0], -end[2])), trackTop: Math.asin(Math.max(0, Math.min(1, top[1]))) };
-    if (Math.abs(next.trackHalf - shape.trackHalf) > 0.02 || Math.abs(next.trackTop - shape.trackTop) > 0.01) {
+    // Bengawan Solo mengikuti baris lampion di layar ini (di bawah kartu): tanah dan air dibangun ulang bila bergeser
+    const ring = riverRing(frame);
+    const next: TerrainShape = { trackHalf: Math.abs(Math.atan2(end[0], -end[2])), trackTop: Math.asin(Math.max(0, Math.min(1, top[1]))), river: ring };
+    const moved = Math.abs(ring - (shape.river ?? RIVER.ring)) > 0.15;
+    if (Math.abs(next.trackHalf - shape.trackHalf) > 0.02 || Math.abs(next.trackTop - shape.trackTop) > 0.01 || moved) {
       shape = next;
       terrain.reshape(shape);
+      if (moved) river.setLine(riverLine(ring));
     }
-    strands = galleryStrands(film, frame, shape);
-    thread.setStrands(strands, shape);
+    routes = larungRoutes(film, frame, shape.river ?? RIVER.ring);
+    larung.setRoutes(routes);
   };
   /** Kanvas baru saja berganti ukuran (isinya terhapus): frame berikutnya wajib digambar walau sedang diam. */
   let stale = true;
@@ -396,15 +404,32 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
-    // benang emas: panjang tergambar dan kadar tampak dari letak film (pecahan selama geseran)
+    // larung: perahu hanyut sejauh letak film (pecahan selama geseran) dan menyalakan lampion yang disinggahi;
+    // lampion yang menyala dan lampion perahu memantul di air
     const at = filmPosition(cursor);
-    thread.update(
-      strands.map((s) => drawnAt(s, at)),
-      strands.map((s) => shownAt(s, at)),
-      strands.map((s) => currentKnot(s, at)),
-      cue.moving ? 1 : 0,
-    );
-    thread.setPixel(pixel);
+    const draws = routes.map((r) => drawnAt(r, at));
+    const shows = routes.map((r) => shownAt(r, at));
+    let live = -1;
+    shows.forEach((v, i) => (live = v > 0.002 && (live < 0 || v > shows[live]!) ? i : live));
+    const route = routes[live];
+    let boatAt: [number, number, number] | null = null;
+    let boatDir: [number, number] = [1, 0];
+    if (route) {
+      const d = draws[live]!;
+      const [a, b] = [pointAt(route, Math.max(0, d - 0.004)), pointAt(route, Math.min(1, d + 0.004))];
+      const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1;
+      boatDir = [(b[0] - a[0]) / l, (b[2] - a[2]) / l];
+      boatAt = pointAt(route, d) as [number, number, number];
+    }
+    const activity = cue.moving ? 1 : 0;
+    const glow = larung.update(t, draws, shows, boatAt, boatDir, activity);
+    if (boatAt) {
+      // lampion perahu (di buritan, ±0,47 m di atas air) ikut memantul
+      const s = shows[live]!;
+      glow.push([boatAt[0] - boatDir[0] * 0.24, boatAt[1], boatAt[2] - boatDir[1] * 0.24, s]);
+    }
+    river.update(glow, boatAt ? [boatAt[0], boatAt[1], boatAt[2], shows[live]!] : [0, 0, 0, 0], boatDir, activity);
+    larung.setPixel(pixel);
     dust.setPixel(pixel);
     village.setPixel(pixel);
     gong.setPixel(pixel);
@@ -530,7 +555,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     gunungan.dispose();
     clawd?.dispose();
     dust.dispose();
-    thread.dispose();
+    river.dispose();
+    larung.dispose();
     village.dispose();
     post.dispose();
   };

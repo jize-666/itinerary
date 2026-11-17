@@ -6,13 +6,18 @@
  * −z menjulang Gunung Lawu. Lawu ditaruh menurut lebar lintasan matahari di layar: puncaknya di kiri tengah,
  * sedangkan kedua ujung lintasan (tempat matahari terbit dan terbenam) dibiarkan rendah, supaya matahari yang
  * baru terbit tetap tampak menyembul di cakrawala pada bentuk layar apa pun.
+ *
+ * Bengawan Solo (`river.ts`) mengukir alurnya di tanah ini: melengkung mengitari bukit pendapa di bawah kartu gallery.
  */
+import { carve, riverLine } from "./river";
 
 export type TerrainShape = Readonly<{
   /** Setengah lebar lintasan matahari sebagai sudut datar (rad) dari kamera gallery. */
   trackHalf: number;
   /** Tinggi puncak lintasan matahari sebagai sudut dari cakrawala (rad). */
   trackTop: number;
+  /** Jari-jari busur Bengawan Solo (m), mengikuti baris lampion di layar ini; bawaan `RIVER.ring`. */
+  river?: number;
 }>;
 export const TERRAIN_DEFAULT: TerrainShape = { trackHalf: 0.46, trackTop: 0.12 };
 
@@ -79,7 +84,7 @@ export function terrainHeight(x: number, z: number, shape: TerrainShape = TERRAI
   const lawu = peak * across * ridge * (bell(-0.3, 0.2) + 0.62 * bell(-0.02, 0.26) + 0.4 * bell(-0.52, 0.16) + 0.3 * bell(0.42, 0.3));
   // kedua ujung lintasan matahari: cakrawala rendah
   const ends = 1 - 0.8 * Math.max(Math.exp(-0.5 * ((az + 0.95 * half) / (0.14 * half)) ** 2), Math.exp(-0.5 * ((az - 0.95 * half) / (0.14 * half)) ** 2)) * smooth(200, 420, r);
-  return y + rim * ends + lawu;
+  return carve(x, z, y + rim * ends + lawu, riverLine(shape.river));
 }
 
 /** Letak lampu: beberapa dusun (gugus rapat) dan lampu lepas di antaranya. Deterministik. */

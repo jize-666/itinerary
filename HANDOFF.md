@@ -61,7 +61,26 @@ Tafsir Claude: benang emas diganti **Bengawan Solo dan larung lampion** (dicoba 
 - Lampion di depan masih padam.
 - Kode benang emas diganti; tempat singgah di bawah kartu dan kemajuan ikut gulir dipakai ulang.
 
-3. Berikutnya: gambar diam sungai dan larung untuk disetujui host. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+**Sungai dan larung: versi pertama selesai 17 Nov, gambar diam dikirim ke host.**
+1. Yang selesai:
+   - `engine/stage/river.ts`: busur sungai mengitari bukit pendapa (muka air datar), kedua ujungnya berbelok ke cakrawala. Jari-jarinya mengikuti baris lampion di layar (`riverRing`: layar lebar ±15,5 m, HP ±12 m). Alur diukir di `terrainHeight` dengan bibir tebing/tanggul supaya air tidak melayang.
+   - Tanah: cincin jala rapat 0,3 m di sekitar sungai; normal dihitung dari titik tetangga, jadi pembangunan lanskap 41 ms (sebelumnya 85 ms tanpa sungai).
+   - `engine/stage/route.ts` (pengganti `thread.ts`): lampion tepat di bawah kartu, di tengah alur; jalur perahu di sisi dekat; kemajuan ikut gulir.
+   - `stage3d/river.ts`: riak mengalir, pantulan langit menurut jam (dibatasi supaya tidak jadi cermin putih), jalur kilau matahari, buih putus-putus, pantulan lampion, riak buritan.
+   - `stage3d/larung.ts`: lampion kertas di rakit daun (padam → menyala dengan kilatan), pendar, perahu jukung hijau tua bergaris gading dengan lampion di tiang.
+   - Benang emas (`stage3d/thread.ts`) dihapus.
+2. Tes: lint, typecheck bersih; unit lulus (sungai dan larung 11 tes); uji keamanan shader menangkap satu `smoothstep` terbalik di rangka lampion, sudah dibetulkan. e2e belum dijalankan untuk versi ini.
+3. Berikutnya: tinjauan host atas gambar sungai.
+
+**Permintaan host 17 Nov ±19.15 WIB, kata demi kata:** "Claude, gue pengen galerinya itu setiap nge-slide itu kayak ada kayak masuk dimensi gitu loh Claude. Jadi kayak apa ya, kameranya itu ya 3D, kayak ada vibes masuk atau keluar dimensi gitu. Coba lu asumsiin dulu deh."
+
+Tafsir Claude (dikirim ke host, menunggu persetujuan sebelum dikerjakan): tiap geser panel = menembus gerbang dimensi menuju waktu tempat singgah berikutnya.
+- Maju: kamera menukik maju menembus kartu yang sedang tampil. Ruang melengkung (lensa melebar lalu kembali, dolly zoom), garis-garis cahaya memancar dari tengah, riak seperti menembus permukaan air dari tengah layar, warna terpecah di tepi. Kartu lama melesat melewati kamera dan kartu berikutnya muncul dari kedalaman.
+- Mundur: kebalikannya (keluar dimensi, kamera ditarik mundur).
+- Langit dan cahaya berganti ke jam tempat singgah berikutnya tepat di puncak gerbang ("lompat waktu"). Perahu tetap hanyut ke lampion berikutnya.
+- Semua mengikuti gulir atau jari. Parallax, perspective shift, dan Calm/gerak dikurangi tetap berlaku.
+
+3. Berikutnya: tunggu jawaban host atas tafsir "masuk dimensi" dan tinjauan gambar sungai. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
