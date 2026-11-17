@@ -1,11 +1,20 @@
 # HANDOFF
 
-Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 di-merge 17 Nov; **PR #13 (pemutar suara Clawd + Next.js 16.4.6) siap Squash and merge** · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 dan **PR #13 (pemutar suara Clawd + Next.js 16.4.6) di-merge 17 Nov**; klip suara Clawd menunggu antrean gratis ElevenLabs · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd — SEDANG DIKERJAKAN
+### Sesudah PR #13 di-merge (17 Nov): klip suara Clawd — MENUNGGU ANTREAN ElevenLabs
+
+**Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
+
+Tafsir Claude:
+- PR #13 (pemutar suara Clawd + Next.js 16.4.6) di-merge 17 Nov 10.43 UTC (squash `46ed295`). Branch kerja dimulai ulang dari `main` terbaru.
+- Contoh suara EN dicoba lagi nanti lewat percobaan terjadwal: sekali tiap ±45 menit, paling banyak tiga kali. Bila ketiganya masih penuh, berhenti dan lapor ke host.
+- Bila contoh EN jadi: buat contoh ID, unduh, ukur, kirim ke host, lalu tunggu persetujuan sebelum merekam 78 klip.
+
+### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
 **Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
 
