@@ -37,6 +37,8 @@ class AudioEngine {
   /** Suara Clawd yang sedang berbunyi; token membatalkan klip yang masih diunduh saat kalimatnya sudah lewat. */
   private voice: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private voiceToken = 0;
+  /** Gendhing sedang direndahkan untuk suara Clawd (dilepas tepat sekali oleh `unduck`). */
+  private voiceDucked = false;
   private lastVoice: string | null = null;
 
   constructor() {
@@ -139,11 +141,13 @@ class AudioEngine {
   async playVoice(url: string) {
     const ctx = this.ctx;
     const token = ++this.voiceToken;
-    this.endVoice(0.06);
-    if (!ctx || !this.state.enabled) return;
+    // gendhing tetap rendah di antara dua kalimat; baru naik bila klip baru batal
+    this.endVoice(0.06, false);
+    if (!ctx || !this.state.enabled) return this.unduck(0.35);
     const asked = ctx.currentTime;
     const buffer = await this.load(url).catch(() => null);
-    if (!buffer || token !== this.voiceToken || !this.state.enabled || ctx.currentTime - asked > VOICE_LATE) return;
+    if (token !== this.voiceToken) return; // sudah diganti kalimat lain atau dihentikan
+    if (!buffer || !this.state.enabled || ctx.currentTime - asked > VOICE_LATE) return this.unduck(0.35);
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const gain = ctx.createGain();
@@ -164,12 +168,14 @@ class AudioEngine {
     const g = this.bedBus.gain;
     g.cancelScheduledValues(at);
     g.setTargetAtTime(VOICE_DUCK, at, 0.08);
+    this.voiceDucked = true;
   }
 
   /** Hentikan suara Clawd (kalimatnya dilewati atau dipotong), juga klip yang masih diunduh. */
   stopVoice() {
     this.voiceToken++;
-    this.endVoice(0.08);
+    this.endVoice(0.08, false);
+    this.unduck(0.35);
   }
 
   /** Unduh klip suara lebih dulu (kalimat yang baru diantrekan). */
@@ -233,10 +239,11 @@ class AudioEngine {
     const g = this.bedBus.gain;
     g.cancelScheduledValues(at);
     g.setTargetAtTime(DUCK_LEVEL, at, 0.04);
-    g.setTargetAtTime(BED_LEVEL, at + Math.min(2.4, dur * 0.5), 0.45);
+    // Clawd sedang bicara: gendhing kembali ke tingkat rendah suara Clawd, bukan ke tingkat biasa
+    g.setTargetAtTime(this.voiceDucked ? VOICE_DUCK : BED_LEVEL, at + Math.min(2.4, dur * 0.5), 0.45);
   }
 
-  private endVoice(fade: number) {
+  private endVoice(fade: number, unduck = true) {
     const v = this.voice;
     if (!v || !this.ctx) return;
     this.voice = null;
@@ -248,12 +255,13 @@ class AudioEngine {
     } catch {
       /* sudah berhenti */
     }
-    this.unduck(0.35);
+    if (unduck) this.unduck(0.35);
   }
 
   /** Gendhing kembali ke tingkat biasa sesudah Clawd selesai bicara. */
   private unduck(tau: number) {
-    if (!this.ctx) return;
+    if (!this.ctx || !this.voiceDucked) return;
+    this.voiceDucked = false;
     const g = this.bedBus.gain;
     const now = this.ctx.currentTime;
     g.cancelScheduledValues(now);
