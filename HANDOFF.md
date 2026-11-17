@@ -5,14 +5,21 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Sesudah PR #13 di-merge (17 Nov): klip suara Clawd — MENUNGGU ANTREAN ElevenLabs
+### Sesudah PR #13 di-merge (17 Nov): Tugas 8 — SEDANG DIKERJAKAN; klip suara Clawd menunggu antrean ElevenLabs
 
 **Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
 
 Tafsir Claude:
 - PR #13 (pemutar suara Clawd + Next.js 16.4.6) di-merge 17 Nov 10.43 UTC (squash `46ed295`). Branch kerja dimulai ulang dari `main` terbaru.
-- Contoh suara EN dicoba lagi nanti lewat percobaan terjadwal: sekali tiap ±45 menit, paling banyak tiga kali. Bila ketiganya masih penuh, berhenti dan lapor ke host.
+- Contoh suara EN dicoba lagi nanti lewat percobaan terjadwal (diubah host: tiap 30 menit, lihat di bawah).
 - Bila contoh EN jadi: buat contoh ID, unduh, ukur, kirim ke host, lalu tunggu persetujuan sebelum merekam 78 klip.
+
+**Arahan host 17 Nov ±17.45 WIB, kata demi kata:** "mulai saja tugas 8, tetapi tetap perhatikan antreanya, kalau perlu persingkat waktu nya jadi /30menit".
+
+Tafsir Claude:
+- Tugas 8 dimulai, dari 8.1 (benang emas 3D). Rupanya dikirim dulu sebagai gambar diam untuk disetujui, sesuai rencana di "Rencana sesudah PR #11".
+- Antrean ElevenLabs dicoba tiap 30 menit, tanpa batas tiga kali, sampai contoh EN jadi. Jadwal 45 menit sebelumnya dibatalkan.
+- Klip suara dan Tugas 8 berjalan bersamaan di branch yang sama.
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
