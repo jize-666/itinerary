@@ -296,6 +296,22 @@ Hasil putaran 2 (view `viewstate_01m7m7567pf19t12jsdtqzr10d`). Tiga contoh dikir
 
 Berikutnya: host memilih satu dari contoh 1–6, lalu disimpan sebagai suara "Clawd". Langkah sesudahnya sama dengan di atas.
 
+**Pilihan host 17 Nov, kata demi kata:** "oke i choose clawd-deep-6".
+
+Tafsir Claude:
+- Contoh 6 (`4gpmKMMFEuQLCXLQGo99`) disimpan sebagai suara "Clawd" di akun ElevenLabs host.
+- Contoh lain tidak ditandai "discarded" (arahan host: "jangan hapus clawd design nya").
+- Lalu contoh pendek EN + ID dikirim ke host sebelum semua kalimat direkam.
+
+Hasil 17 Nov:
+1. Selesai: suara "Clawd" tersimpan di akun ElevenLabs host. voice_id `4gpmKMMFEuQLCXLQGo99`, dari view `viewstate_01m7m7567pf19t12jsdtqzr10d`. Contoh lain tidak ditandai "discarded".
+2. Kendala:
+   - Contoh EN (`eleven_v4`, 3 kalimat dari `lines.ts`) tidak jalan: "Free generations are busy right now". Tidak ada kredit terpakai (flow `T5jZ0CPXyQiEpK6HrZ48`).
+   - Antrean generasi gratis ElevenLabs sedang penuh. Tidak diulang di giliran yang sama.
+3. Berikutnya:
+   - coba lagi contoh EN + ID begitu host minta atau sesudah antrean longgar;
+   - teks EN: perkenalan 1–2 + petunjuk `beat` + reaksi `angry`; teks ID: kalimat padanannya.
+
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
