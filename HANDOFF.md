@@ -154,6 +154,10 @@ Hasil 17 Nov:
 - Versi halus di-build; video desktop + HP 9:16 versi halus sedang direkam (`dimensi-halus-*.mp4` di scratchpad).
 - Berikutnya: kirim video, jalankan ulang e2e `film` + `stage` untuk versi halus, lalu PR bila host oke.
 
+**Permintaan host 17 Nov (dengan tangkapan layar iPhone produksi: film 2,5D, hero prolog, gelembung "See the gong? Swipe once more" menutupi separuh badan Clawd), kata demi kata:** "cek semua bubble chat clawd, jangan sampai clawd terpotong bubble chat seperti di video. bisa di perkecil bubble nya, atau arahnya".
+
+Tafsir Claude: periksa letak gelembung di semua tempat dan arah (atas, bawah, kiri, kanan; film 3D dan 2,5D; HP dan desktop). Gelembung tidak boleh pernah menutupi badan Clawd: diperkecil di layar sempit dan/atau dipindah arahnya, dengan tes yang memeriksa kotak gelembung tidak beririsan dengan kotak badan Clawd.
+
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
 - sayang 0,85/0,45: 203 Hz;
