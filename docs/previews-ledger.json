@@ -1,0 +1,51 @@
+{
+  "folder": "1H-wMJltMnVnX2oJFjLQ9BkaTMVSHJCiX",
+  "limitBytes": 1073741824,
+  "baseline": {
+    "until": "2026-11-17",
+    "files": 1659,
+    "note": "Semua pratinjau di scratchpad sampai 17 Nov (video, audio, gambar, 3 zip bingkai kerja) sudah diunggah ke folder previews."
+  },
+  "items": [
+    {
+      "name": "dimensi-halus-hp.mp4",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/t8/dimensi-halus-hp.mp4",
+      "size": 15384038,
+      "sent": "2026-11-17",
+      "drive": "2026-11-17",
+      "driveId": "1_5FH5CNSKlc8ANF5NI4CusWDe00QHBQ6"
+    },
+    {
+      "name": "hp-25d-hero-beat.png",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/t8/bubble/hp-25d-hero-beat.png",
+      "size": 1160947,
+      "sent": "2026-11-17",
+      "drive": "2026-11-17",
+      "driveId": "1JzxAbQ-LjlR-nqiwcaJc7LUspkw69Kdy"
+    },
+    {
+      "name": "hp-25d-gallery.png",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/t8/bubble/hp-25d-gallery.png",
+      "size": 862922,
+      "sent": "2026-11-17",
+      "drive": "2026-11-17",
+      "driveId": "19SSdFYPT3WVrIKZUAF2p8EGGwI5ZLWk-"
+    },
+    {
+      "name": "hp-3d-gallery.png",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/t8/bubble/hp-3d-gallery.png",
+      "size": 913889,
+      "sent": "2026-11-17",
+      "drive": "2026-11-17",
+      "driveId": "1x_FLiYssRNcebeCASNneG98_iqpkvjCD"
+    },
+    {
+      "name": "desktop-3d-gallery.png",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/t8/bubble/desktop-3d-gallery.png",
+      "size": 1056105,
+      "sent": "2026-11-17",
+      "drive": "2026-11-17",
+      "driveId": "1lIZUKudz_Qtm3j6yIecxK77Sq28UZLEi"
+    }
+  ]
+}
