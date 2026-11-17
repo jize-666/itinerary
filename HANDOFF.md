@@ -152,7 +152,8 @@ Tafsir Claude: koreksi sebelumnya ternyata bukan "biarkan tetap". Kamera dan len
 Hasil 17 Nov:
 - e2e penuh kedua (kode sebelum perubahan halus): 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal.
 - Versi halus di-build; video desktop + HP 9:16 versi halus sedang direkam (`dimensi-halus-*.mp4` di scratchpad).
-- Berikutnya: kirim video, jalankan ulang e2e `film` + `stage` untuk versi halus, lalu PR bila host oke.
+- Video versi halus (kamera 2,3 m, lensa +20°, efek lain ±separuh) dikirim 17 Nov: desktop 22,9 dtk, HP 9:16 26,7 dtk.
+- Berikutnya: build dengan perbaikan gelembung, e2e `film` + `stage`, tangkapan layar gelembung, lalu PR bila host oke.
 
 **Permintaan host 17 Nov (dengan tangkapan layar iPhone produksi: film 2,5D, hero prolog, gelembung "See the gong? Swipe once more" menutupi separuh badan Clawd), kata demi kata:** "cek semua bubble chat clawd, jangan sampai clawd terpotong bubble chat seperti di video. bisa di perkecil bubble nya, atau arahnya".
 
