@@ -255,6 +255,17 @@ Tafsir Claude: video dan suaranya milik host, dan suaranya hilang bersama akun l
 
 Rekaman suara dari video tidak disimpan di repo.
 
+Kemajuan 17 Nov (host mengulang konfirmasinya sesudah sesi sempat restart):
+1. Selesai: suara perempuan diambil dari video, 10 potongan (12 kalimat, 24,8 dtk, musik latar masih ada), dikirim ke host. Bagian suara pria dibuang. Berkas hanya di scratchpad sesi.
+2. Kendala:
+   - Konektor ElevenLabs di sesi tidak punya alat voice clone; kebutuhan itu sudah dilaporkan lewat `get_more_tools`. Yang ada hanya Voice Design dari deskripsi, Voice Changer ke suara yang sudah ada, TTS, dan isolasi suara.
+   - Voice clone harus lewat API ElevenLabs dengan API key host (network secret `api.elevenlabs.io`, header `xi-api-key`). Permintaan form kunci sempat terputus oleh restart.
+   - Instant Voice Clone di ElevenLabs biasanya hanya untuk paket berbayar (Starter ke atas), sedangkan paket berbayar host sudah habis.
+3. Menunggu host memilih:
+   - (a) paket Starter di akun baru, lalu kunci API untuk clone dari potongan video (paling mirip); atau
+   - (b) Voice Design gratis dari deskripsi suara (mirip, tidak sama persis); atau
+   - (c) deskripsi/prompt asli suara itu, bila dulu dibuat lewat Voice Design.
+
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
