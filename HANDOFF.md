@@ -183,6 +183,12 @@ Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Dri
 - Formulir token ditolak host ("Denied by user"); tidak dibuka lagi. Pilihan yang ditawarkan:
   - token ditambahkan host sendiri di pengaturan network secret lingkungan "itinerary";
   - atau berkas dikirim lewat chat dalam beberapa arsip zip untuk diunggah host sendiri.
+- Host bertanya "bayar ga jir" (jawaban: gratis, hanya memakai ruang Drive) dan "dimana si oauth playground google", lalu memberi token lewat formulir aman.
+  - Langkah token: developers.google.com/oauthplayground → Drive API v3 → `https://www.googleapis.com/auth/drive` → Authorize APIs → Exchange authorization code for tokens → salin Access token (`ya29.`).
+- Unggahan semua pratinjau ke folder "previews" sedang berjalan (`voicetools/drive_up.py` di scratchpad), 4 sekaligus. Isinya: subfolder `video` (48), `audio` (64), `gambar` (1.544), `bingkai-kerja` (3 zip berisi 3.438 bingkai kerja).
+
+**Aturan baru host 17 Nov, kata demi kata:** "sekarang ketika kamu mengirim preview disini, kamu juga langsung kirim/up ke gdrive ya".
+Tafsir Claude: setiap pratinjau (video, foto, audio) yang dikirim ke host di chat juga langsung diunggah ke folder "previews". Dicatat di `CLAUDE.md` bagian penutup sesi. Skripnya `scripts/preview/drive-upload.py`: subfolder per jenis, nama diawali tanggal, token dari proxy, 401 = minta token baru.
 
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
