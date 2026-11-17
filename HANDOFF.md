@@ -233,6 +233,18 @@ Tafsir Claude: PR #12 belum di-merge sampai seluruh proyek Clawd selesai. Sisany
      - Sebab: e2e bertambah tes Clawd, dan tiap frame 3D di runner tanpa GPU kini juga menggambar Clawd.
      - Perbaikan: `timeout-minutes` dinaikkan ke 35 di `.github/workflows/ci.yml`. Tidak ada tes yang dihapus atau dilewati.
 3. Berikutnya: proyek Clawd selesai. PR #12 siap di-merge host begitu run CI dengan batas baru hijau.
+
+**Permintaan host 17 Nov (menjawab soal suara Clawd), kata demi kata:** "ini ada 2 suara, yang suara perempuan adalah suara yang pernah ku buat untuk clawd. bisa pakai suara ini?" (dengan video MP4 berisi dua suara; berkas tidak disimpan di repo).
+
+Tafsir Claude: suara Clawd memakai suara perempuan buatan host itu, bukan blip. Kalimat Clawd semuanya tetap (perkenalan, petunjuk, reaksi; EN/ID), jadi bisa direkam sekali dengan suara itu dan diputar saat gelembung muncul, mengikuti sakelar suara situs.
+
+Hasil pemeriksaan 17 Nov:
+- Videonya animasi pendek (anak laki-laki dan karakter balok oranye), 56 dtk, berbahasa Inggris. Suara perempuan adalah suara karakter balok.
+- Suara itu **tidak ada** di akun ElevenLabs yang tersambung ke sesi ini (dicari "clawd", "claude", dan suara buatan sendiri; yang ada hanya suara bawaan dan pustaka umum).
+- Kalimat Clawd yang perlu direkam: ±40 per bahasa (perkenalan, sapaan, petunjuk beserta varian layar sentuh, reaksi), ±80 klip untuk EN + ID.
+
+Menunggu host: nama/ID suara di ElevenLabs (atau platform tempat membuatnya), atau konfirmasi bahwa suara itu milik host sehingga boleh dibuat tiruan suaranya (voice clone) dari bagian suara perempuan di video. Suara tidak ditiru sebelum ada konfirmasi itu.
+
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
