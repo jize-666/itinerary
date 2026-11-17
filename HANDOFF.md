@@ -324,6 +324,21 @@ Tafsir Claude: acuan suara Clawd diganti dengan rekaman baru ini, menggantikan p
   - pengolahan: high-pass 75 Hz, peredam bising ringan, −18 LUFS;
   - potongan: `clawd-ref2.wav` 22,3 dtk dan `clawd-ref2-11s.wav` 11 dtk.
 - Sebelum diunggah ke Space: ditanyakan dulu ke host ini suara siapa. A bernama seperti pesan suara WhatsApp. Aturan lama proyek ini: suara orang lain tidak ditiru tanpa persetujuannya.
+- **Jawaban host, kata demi kata:** "aku minta temenku vn untuk suara clawd, dan dia setuju. bagaimana jika kamu jernihin dulu, lalu baru up".
+  Tafsir Claude: suara teman host, dengan persetujuannya, untuk Clawd. Urutannya:
+  1. Jernihkan rekaman dulu, dan kirim hasilnya ke host untuk didengar.
+  2. Unggah ke Space Chatterbox.
+  3. Buat tiga contoh: tenang EN, tenang ID, marah.
+  - Pengukuran bising A: SNR ±27–31 dB di pita ucapan, dengung 100 Hz (harmonik listrik 50 Hz) +12 dB, dan gemuruh di bawah 100 Hz.
+  - Host di tengah kerja: "jernihinya, jangan sampai rusak suaranya".
+  - Penjernihan dipilih yang paling lembut dari empat setelan yang diukur:
+    - rantai: high-pass 80 Hz, takik sempit 100 Hz, `noisereduce` stasioner dengan profil dari jeda (prop 0,6, ambang 1,0), −18 LUFS;
+    - bising di jeda turun ±9 dB, dengung hilang;
+    - warna suara asli vs jernih per ⅓ oktaf, 159 Hz–12,8 kHz: paling jauh ±1 dB;
+    - yang berubah lebih besar hanya pita di bawah nada suara: 100–126 Hz −6 dB, 126–159 Hz −1,8 dB.
+  - Contoh 12 dtk sebelum/sesudah dikirim ke host dan dicatat di ledger.
+  - Acuan `clawd-ref2-jernih.wav` (22,3 dtk) diunggah ke Space. Pembuatan contoh gagal: "You have exceeded your ZeroGPU runs limit" (kuota gratis harian host masih habis).
+  - Jalan keluar yang dicoba: Chatterbox dijalankan sendiri di container dengan CPU (torch CPU 2.6, `chatterbox-tts` 0.1.7, venv di scratchpad), tanpa kuota. Untuk kalimat ID dipertimbangkan model multibahasa dengan bahasa Melayu (`ms`), yang lebih dekat ke Indonesia daripada model Inggris.
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
