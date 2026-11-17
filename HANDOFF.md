@@ -339,6 +339,17 @@ Tafsir Claude: acuan suara Clawd diganti dengan rekaman baru ini, menggantikan p
   - Contoh 12 dtk sebelum/sesudah dikirim ke host dan dicatat di ledger.
   - Acuan `clawd-ref2-jernih.wav` (22,3 dtk) diunggah ke Space. Pembuatan contoh gagal: "You have exceeded your ZeroGPU runs limit" (kuota gratis harian host masih habis).
   - Jalan keluar yang dicoba: Chatterbox dijalankan sendiri di container dengan CPU (torch CPU 2.6, `chatterbox-tts` 0.1.7, venv di scratchpad), tanpa kuota. Untuk kalimat ID dipertimbangkan model multibahasa dengan bahasa Melayu (`ms`), yang lebih dekat ke Indonesia daripada model Inggris.
+    - Pemasangan:
+      - `download.pytorch.org` diblokir proxy, jadi torch 2.6.0 diambil dari PyPI (cu124, jalan di CPU); venv ±6 GB di `scratchpad/cbenv`;
+      - skrip `scratchpad/voicetools/cb_local.py`: daftar pekerjaan JSON; `lang` "en" memakai model Inggris, bahasa lain model multibahasa.
+    - Host bertanya "kok lu tau dia orang melau jir". Jawaban: "Melayu" hanya setelan bahasa model untuk kalimat Indonesia (Chatterbox tidak punya bahasa Indonesia), bukan dugaan tentang orangnya. Versi model Inggris yang membaca kalimat ID dibuat sebagai pembanding.
+    - Host bertanya alternatif selain Chatterbox, lalu menemukan `github.com/jamiepine/voicebox`.
+      - Hasil baca README: Voicebox adalah aplikasi desktop berlisensi MIT yang membungkus Chatterbox Multilingual/Turbo, Qwen3-TTS, Kokoro, LuxTTS, dan HumeAI TADA; ada REST API dan bisa jalan di CPU.
+      - Bahasa Indonesia tidak disebut; yang terdekat tetap Chatterbox Multilingual dengan Melayu. Versi Linux belum ada yang jadi.
+      - Keputusan Claude:
+        - di container, mesinnya dipakai langsung;
+        - Voicebox disarankan untuk host coba sendiri di laptop;
+        - Chatterbox Turbo (tanda `[laugh]`, `[sigh]`) dicoba untuk reaksi EN.
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
