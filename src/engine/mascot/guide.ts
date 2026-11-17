@@ -137,9 +137,11 @@ export type BubbleSide = "above" | "right" | "left";
 export const SIDE_CANDIDATES: readonly (readonly [number, number, BubbleSide])[] = [
   [0.76, -0.5, "above"],
   [0.62, -0.63, "above"],
+  [0.62, -0.7, "above"],
   [0.76, -0.3, "above"],
   [-0.76, -0.5, "above"],
   [-0.62, -0.63, "above"],
+  [-0.62, -0.7, "above"],
   [0.76, -0.1, "above"],
   [-0.76, -0.3, "above"],
   [0.45, -0.72, "above"],

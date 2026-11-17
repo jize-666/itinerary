@@ -725,22 +725,54 @@ test.describe("bab, bahasa, Calm", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "id");
   });
 
-  test("petunjuk navigasi hilang setelah dipakai sekali dan tidak muncul lagi", async ({ page }) => {
+  test("Clawd memandu film 2,5D: muncul dan memperkenalkan diri; teks petunjuk lama tidak ada lagi", async ({ page }) => {
     await open(page, "", "guest", filmFixture("guest"), "keep");
-    await expect(page.locator(".fl-hint")).toHaveAttribute("data-shown", "");
-    // langkah pertama di hero menabuh gong (teks keluar): petunjuk ikut hilang
-    await page.keyboard.press("ArrowDown");
-    await expect(film(page)).toHaveAttribute("data-beat", "out");
-    await expect(page.locator(".fl-hint")).not.toHaveAttribute("data-shown", "");
-    await page.keyboard.press("ArrowDown");
-    await expect.poll(() => index(page)).toBe(1);
-    await page.keyboard.press("ArrowUp");
-    await expect.poll(() => index(page)).toBe(0);
-    await settled(page);
-    await expect(page.locator(".fl-hint")).not.toHaveAttribute("data-shown", "");
+    const clawd = page.getByRole("button", { name: "Clawd", exact: true });
+    await expect(clawd).toBeVisible();
+    await expect(page.locator(".clawd-bubble .cb-live")).toHaveText("Clawd: Hi! I'm Clawd.");
+    // petunjuk lama dihapus (arahan host 16 Nov): Clawd yang mengucapkannya
+    await expect(page.locator(".fl-hint")).toHaveCount(0);
+    await expect(page.getByText("Scroll or swipe")).toHaveCount(0);
+    await expect(page.getByText("or press the arrow keys")).toHaveCount(0);
+  });
+
+  test("Clawd 2,5D: klik memajukan perkenalan tanpa memindah slide; tamu lama disapa singkat", async ({ page }) => {
+    await open(page, "", "guest", filmFixture("guest"), "keep");
+    const said = page.locator(".clawd-bubble .cb-live");
+    await expect(said).toHaveText("Clawd: Hi! I'm Clawd.");
+    for (let i = 0; i < 6 && !(await said.textContent())?.includes("I'll be your guide"); i++) {
+      await page.getByRole("button", { name: "Clawd", exact: true }).click({ force: true });
+      await page.waitForTimeout(120);
+    }
+    await expect(said).toContainText("I'll be your guide");
+    expect(await index(page)).toBe(0);
     await page.reload();
     await expect(film(page)).toBeVisible();
-    await expect(page.locator(".fl-hint")).not.toHaveAttribute("data-shown", "");
+    // perkenalan belum tuntas → diperkenalkan lagi; tandai tuntas lalu muat ulang → disapa singkat
+    await page.evaluate(() => localStorage.setItem("lakon.clawd", JSON.stringify({ intro: true, tips: [] })));
+    await page.reload();
+    await expect(film(page)).toBeVisible();
+    await expect(said).toHaveText("Clawd: Welcome back! Clawd here.");
+  });
+
+  test("slide ungkapan Jawa: petunjuk balik kartu diucapkan Clawd, bukan teks di layar", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("lakon.clawd", JSON.stringify({ intro: true, tips: [] })));
+    await open(page);
+    await goTo(page, "phrases");
+    // teks petunjuk lama tidak ada di isi slide (gelembung Clawd sendiri memang mengucapkannya)
+    await expect(page.locator(".fl-stage").getByText("Tap a card to turn it over.")).toHaveCount(0);
+    await expect(page.locator(".clawd-bubble .cb-live")).toHaveText(/Clawd: (Click|Tap) a card to turn it over\. Try saying them out loud!/, { timeout: 15_000 });
+  });
+
+  test("Calm: Clawd diam (tanpa melayang dan lentur), kalimat langsung utuh", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("lakon.calm", "1"));
+    await open(page, "", "guest", filmFixture("guest"), "keep");
+    const flex = page.locator(".clawd-flat .cf-flex");
+    await expect(flex).toHaveCount(1);
+    const a = await flex.evaluate((e) => (e as HTMLElement).style.transform);
+    await page.waitForTimeout(700);
+    expect(await flex.evaluate((e) => (e as HTMLElement).style.transform)).toBe(a);
+    await expect(page.locator(".clawd-bubble .cb-typed")).toHaveText("Hi! I'm Clawd.");
   });
 
   test("Calm mode: sakelar diingat, navigasi tetap satu slide per gerakan", async ({ page }) => {
