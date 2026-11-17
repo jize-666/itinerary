@@ -142,8 +142,8 @@ export const DEPTH = {
    * Gerbang dimensi (geseran gallery): kartu yang menukik melewati kamera sampai sekian px ke depan (harus di bawah
    * jarak pandang gallery), dan kedalaman tempat kartu baru muncul.
    */
-  portalNear: 560,
-  portalFar: -1100,
+  portalNear: 360,
+  portalFar: -760,
   /**
    * Selama satu hari di gallery, bukit jauh / dekat bergeser sekian % dari lebarnya sendiri. Bukit jauh diam
    * bersama langit: tiap lapis selayar yang ikut digeser terukur memberatkan frame tanpa GPU, dan tiga bidang

@@ -175,14 +175,14 @@ void main() {
       acc += finite(texture2D(tScene, su).rgb);
       bacc += finite(texture2D(tBloom, su).rgb);
     }
-    c = mix(c, acc / 7.0, 0.6 * w);
-    b = mix(b, bacc / 7.0, 0.85 * w) * (1.0 + 1.6 * w);
+    c = mix(c, acc / 7.0, 0.5 * w);
+    b = mix(b, bacc / 7.0, 0.75 * w) * (1.0 + 0.9 * w);
     c *= 1.0 + ${PORTAL.flash.toFixed(3)} * w;
   }
   c += b * uBloom;
   // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim); menebal di dalam gerbang
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
-  float vig = 1.0 - (0.42 + 0.3 * w) * smoothstep(0.28 - 0.12 * w, 0.82, length(q));
+  float vig = 1.0 - (0.42 + 0.16 * w) * smoothstep(0.28 - 0.06 * w, 0.82, length(q));
   // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
   vig *= 1.0 - 0.38 * (1.0 - smoothstep(0.0, 0.3, vUv.y));
   c *= uExposure * vig * (1.0 - uDim);

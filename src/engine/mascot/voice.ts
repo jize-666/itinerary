@@ -13,8 +13,26 @@ import type { Lang } from "@/engine/i18n/lang";
 import { INTRO, SAY, type SpeechKey, type Text, TIPS, type TipId, WELCOME_BACK } from "./lines";
 import clips from "./voice-clips.json";
 
+/**
+ * Emosi suara tiap kalimat (host 17 Nov: "yang tenang, bagus. tapi, bisa di sesuaikan juga ga? kalo marah ya nada
+ * merah/tinggi, seneng/happy ya ekspresif"). Dasarnya tenang; reaksi mengikuti suasana hati Clawd.
+ */
+export type VoiceMood = "calm" | "happy" | "angry" | "surprised" | "sleepy";
+
+const MOODS: readonly (readonly [RegExp, VoiceMood])[] = [
+  [/^angry\./, "angry"],
+  [/^(happy|love)\./, "happy"],
+  [/^tap\.2/, "happy"], // "Hehe, that tickles!"
+  [/^gong\./, "surprised"],
+  [/^wake\.0/, "surprised"], // "Huh! I wasn't sleeping!"
+  [/^(rest|wake)\./, "sleepy"],
+];
+
+/** Emosi suara untuk klip `name` (perkenalan, sapaan, petunjuk, dan sisanya: tenang). */
+export const moodOf = (name: string): VoiceMood => MOODS.find(([re]) => re.test(name))?.[1] ?? "calm";
+
 /** Satu klip yang perlu direkam. */
-export type VoiceLine = Readonly<{ name: string; en: string; id: string }>;
+export type VoiceLine = Readonly<{ name: string; en: string; id: string; mood: VoiceMood }>;
 
 /** Nama klip untuk kalimat `id`; `touch` = varian layar sentuh dipakai. */
 export const clipName = (id: string, touch: boolean) => (touch ? `${id}.touch` : id);
@@ -25,8 +43,8 @@ export const clipUrl = (lang: Lang, name: string) => `/audio/clawd/${lang}/${nam
 export function voiceLines(): VoiceLine[] {
   const out: VoiceLine[] = [];
   const add = (id: string, t: Text) => {
-    out.push({ name: clipName(id, false), en: t.en, id: t.id });
-    if (t.touch) out.push({ name: clipName(id, true), en: t.touch.en, id: t.touch.id });
+    out.push({ name: clipName(id, false), en: t.en, id: t.id, mood: moodOf(id) });
+    if (t.touch) out.push({ name: clipName(id, true), en: t.touch.en, id: t.touch.id, mood: moodOf(id) });
   };
   INTRO.forEach((t, i) => add(`intro.${i}`, t));
   WELCOME_BACK.forEach((t, i) => add(`welcome.${i}`, t));

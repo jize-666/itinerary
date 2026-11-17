@@ -55,7 +55,9 @@ export const scrollDepth = (p: number) => VIEW.push * Math.sin(Math.PI * clamp(p
  * Gerbang dimensi di gallery (permintaan host 17 Nov: "setiap nge-slide itu kayak ada kayak masuk dimensi gitu",
  * "gas, buat video dimensinya dulu"). Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya:
  * kamera 3D menukik (maju) atau ditarik (mundur), lensa melebar, cahaya memanjang ke arah luar, cincin riak dari
- * tengah, warna terpecah di tepi. Semuanya mengikuti kemajuan geseran (gulir atau jari).
+ * tengah, warna terpecah di tepi. Semuanya mengikuti kemajuan geseran (gulir atau jari). Dibuat lebih halus atas
+ * permintaan host 17 Nov ("bikin lebih smooth"; "kamera sama lensa nya biar ... kurangi semua, jangan di ubah"):
+ * kamera dan lensa tetap, efek lainnya ±separuh versi pertama, kurva sin².
  */
 export const PORTAL = {
   /** Kamera bergerak sekian m searah pandang di puncak gerbang (maju: menukik; mundur: ditarik). */
@@ -63,19 +65,19 @@ export const PORTAL = {
   /** Lensa melebar sekian derajat di puncak gerbang. */
   fov: 24,
   /** Panjang garis cahaya (zoom blur), bagian jarak ke tengah layar. */
-  streak: 0.16,
+  streak: 0.09,
   /** Pecahan warna di tepi layar (bagian ukuran layar). */
-  chroma: 0.006,
+  chroma: 0.0028,
   /** Simpangan cincin riak (bagian ukuran layar). */
-  ripple: 0.022,
+  ripple: 0.011,
   /** Kilau di puncak gerbang (pengali terang). */
-  flash: 0.22,
+  flash: 0.1,
 } as const;
 
-/** Kadar gerbang 0–1 pada kemajuan geseran `p`: nol di kedua ujung, puncak di tengah, landai di awal dan akhir. */
+/** Kadar gerbang 0–1 pada kemajuan geseran `p`: nol di kedua ujung, puncak di tengah, landai di awal dan akhir (sin²). */
 export const portalWarp = (p: number) => {
   const s = Math.sin(Math.PI * clamp(p, 0, 1));
-  return s * s * (3 - 2 * s);
+  return s * s;
 };
 
 /** Jari-jari cincin riak (0 = tengah layar, 1 = tepi): maju menyebar keluar, mundur menyusut ke tengah. */

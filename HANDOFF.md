@@ -140,6 +140,12 @@ Tafsir Claude:
    - perkenalan, petunjuk, dan sapaan = tenang.
    Pemetaan emosi per kalimat disimpan di `voice.ts`. Contoh per emosi dikirim dulu sebelum 78 klip direkam.
 
+**Koreksi host 17 Nov (saat gerbang sedang dihaluskan), kata demi kata:** "kamera sama lensa nya biar, mau di ubah apa coba. kurangi semua, jangan di ubah."
+
+Tafsir Claude:
+- Kamera menukik (2,8 m) dan lensa melebar (24°) dikembalikan ke nilai pertama.
+- Yang dikurangi hanya efek lainnya: garis cahaya, warna terpecah, riak, kilau, vinyet, serta kedalaman kartu dan kurva gerak yang lebih lembut.
+
 Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)

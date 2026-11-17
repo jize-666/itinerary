@@ -167,34 +167,35 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
       if (old)
         tracks.push({
           el: old,
-          opacity: [[0, 1], [0.3, 0.7], [0.46, 0], [0.8, 0], [1, 0.42]],
-          z: [[0, 0], [0.46, DEPTH.portalNear], [0.47, DEPTH.cardZ - 240], [1, DEPTH.cardZ]],
-          rotateY: [[0, 0], [0.46, 0], [0.47, oldTurn * 1.6], [1, oldTurn]],
+          opacity: [[0, 1], [0.24, 0.86], [0.5, 0], [0.8, 0], [1, 0.42]],
+          z: [[0, 0], [0.5, DEPTH.portalNear], [0.51, DEPTH.cardZ - 160], [1, DEPTH.cardZ]],
+          rotateY: [[0, 0], [0.5, 0], [0.51, oldTurn * 1.3], [1, oldTurn]],
         });
       if (next)
         tracks.push({
           el: next,
-          opacity: [[0, 0.42], [0.26, 0.08], [0.48, 0.2], [0.86, 1], [1, 1]],
-          z: [[0, DEPTH.cardZ], [0.3, DEPTH.portalFar], [1, 0]],
-          rotateY: [[0, newTurn], [0.3, newTurn * 0.4], [1, 0]],
+          opacity: [[0, 0.42], [0.3, 0.14], [0.5, 0.26], [0.9, 1], [1, 1]],
+          z: [[0, DEPTH.cardZ], [0.34, DEPTH.portalFar], [1, 0]],
+          rotateY: [[0, newTurn], [0.34, newTurn * 0.5], [1, 0]],
         });
     } else {
       if (old)
         tracks.push({
           el: old,
-          opacity: [[0, 1], [0.4, 0], [0.8, 0], [1, 0.42]],
-          z: [[0, 0], [0.45, DEPTH.portalFar], [0.46, DEPTH.cardZ - 240], [1, DEPTH.cardZ]],
-          rotateY: [[0, 0], [0.45, 0], [0.46, oldTurn * 1.6], [1, oldTurn]],
+          opacity: [[0, 1], [0.45, 0], [0.8, 0], [1, 0.42]],
+          z: [[0, 0], [0.48, DEPTH.portalFar], [0.49, DEPTH.cardZ - 160], [1, DEPTH.cardZ]],
+          rotateY: [[0, 0], [0.48, 0], [0.49, oldTurn * 1.3], [1, oldTurn]],
         });
       if (next)
         tracks.push({
           el: next,
-          opacity: [[0, 0.42], [0.28, 0], [0.42, 0], [0.8, 1], [1, 1]],
+          opacity: [[0, 0.42], [0.28, 0], [0.4, 0], [0.86, 1], [1, 1]],
           z: [[0, DEPTH.cardZ], [0.3, DEPTH.cardZ], [0.31, DEPTH.portalNear], [1, 0]],
           rotateY: [[0, newTurn], [0.3, newTurn], [0.31, 0], [1, 0]],
         });
     }
-    return { kind, tracks, dur: kind === "fade" ? SLIDE.calmDur : SLIDE.dur, ease: kind === "fade" ? "sineInOut" : "power3InOut", textAt: kind === "fade" ? 0 : Math.round(SLIDE.textIn * 0.7) };
+    // laju lembut (sine) dan sedikit lebih panjang: gerbang terasa mengalir, tidak menyentak (host: "bikin lebih smooth")
+    return { kind, tracks, dur: kind === "fade" ? SLIDE.calmDur : Math.round(SLIDE.dur * 1.15), ease: "sineInOut", textAt: kind === "fade" ? 0 : Math.round(SLIDE.textIn * 0.7) };
   }
 
   if (kind === "fade") {
