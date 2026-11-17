@@ -5,11 +5,14 @@
  * - Teks diketik huruf demi huruf (`SpeechFrame.shown`); sisa kalimat ikut ditata tetapi transparan supaya ukuran
  *   gelembung tetap sejak huruf pertama.
  * - Pembaca layar mendapat kalimat utuh sekali per kalimat (wilayah `aria-live` terpisah).
- * - Gelembung tetap di dalam layar; ekornya bergeser supaya tetap menunjuk kepala.
+ * - Gelembung tetap di dalam layar dan tidak pernah menutupi badan Clawd (`bubble-place.ts`, host 17 Nov): lebarnya
+ *   menyesuaikan ruang di sisi yang dipilih, pindah sisi bila tidak muat, huruf diperkecil bila perlu. Ekornya
+ *   bergeser supaya tetap menunjuk Clawd.
  * - Ketukan pada gelembung memanggil `onTap` (maju/lengkapi kalimat).
  */
 import "./bubble.css";
 import type { SpeechFrame } from "@/engine/mascot/dialogue";
+import { type Box, placeBubble } from "@/engine/mascot/bubble-place";
 import type { BubbleSide } from "@/engine/mascot/guide";
 import { MASCOT_NAME } from "@/engine/mascot/lines";
 
@@ -33,8 +36,17 @@ function pixels(map: readonly string[], colors: Record<string, string>) {
 /** `reduced`: gerak dikurangi (kalimat langsung utuh, tanpa animasi); boleh fungsi bila bisa berubah (Calm). */
 export type BubbleOptions = { onTap?: () => void; reduced?: boolean | (() => boolean) };
 
-/** Jarak dari tepi layar (px). */
+/** Jarak dari tepi layar dan dari badan Clawd (px). */
 const MARGIN = 12;
+const GAP = 4;
+/** Gelembung samping yang lebih sempit dari ini dianggap tidak muat (pindah sisi). */
+const MIN_W = 150;
+/** Lebar maksimum dibulatkan ke kelipatan ini: ukuran gelembung hanya diukur ulang saat melewati satu anak tangga. */
+const W_STEP = 16;
+/** Lebar paling besar gelembung, dalam em (sama dengan max-width di bubble.css). */
+const CAP_EM = 19.5;
+/** Ukuran huruf saat gelembung harus diperkecil (`data-tight`), terhadap ukuran biasa. */
+const TIGHT = 0.82;
 /** Gelembung tidak ikut bergerak bila kepala Clawd hanya bergeser sejauh ini (px): ayunan melayang. */
 const DEADZONE = 10;
 
@@ -67,20 +79,45 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
   let py = 0;
   let placed = false;
   let lastAt = 0;
+  /** Ukuran yang sudah diukur untuk kalimat ini: [lebar maksimum, huruf kecil] → [lebar, tinggi]. */
+  const sizes = new Map<string, readonly [number, number]>();
+  let appliedMax = -1;
+  let appliedTight = false;
+  let fontPx = 17;
 
   const measure = () => {
     width = el.offsetWidth;
     height = el.querySelector<HTMLElement>(".cb-box")!.offsetHeight;
     drop = tail.offsetHeight - 2 * (parseFloat(getComputedStyle(el).getPropertyValue("--px")) || 3);
   };
+  const apply = (maxW: number, tight: boolean) => {
+    if (maxW === appliedMax && tight === appliedTight) return;
+    el.style.maxWidth = `${maxW}px`;
+    el.toggleAttribute("data-tight", tight);
+    appliedMax = maxW;
+    appliedTight = tight;
+    measure();
+  };
+  /** Ukuran gelembung bila lebar maksimumnya `w` (dibulatkan ke bawah per `W_STEP`); diukur sekali, lalu disimpan. */
+  const sizeAt = (w: number, tight: boolean) => {
+    const maxW = Math.max(W_STEP * 4, Math.floor(w / W_STEP) * W_STEP);
+    const key = `${maxW}|${tight ? 1 : 0}`;
+    let size = sizes.get(key);
+    if (!size) {
+      apply(maxW, tight);
+      size = [width, height];
+      sizes.set(key, size);
+    }
+    return { maxW, w: size[0], h: size[1] };
+  };
 
   return {
     el,
     /**
-     * Gambar satu frame. `x`, `y` = titik di layar (px CSS) yang ditunjuk ujung ekor: di atas kepala Clawd
-     * (`side` "above"), atau di sisi badannya (gelembung di kanan/kiri Clawd). `frame` null = gelembung disembunyikan.
+     * Gambar satu frame. `body` = kotak badan Clawd di layar (px CSS, beserta lengan, kaki, dan ruang di atas kepala);
+     * `prefer` = sisi yang diminta (atas kepala, kanan, atau kiri), dipakai bila muat. `frame` null = disembunyikan.
      */
-    render(frame: SpeechFrame | null, x: number, y: number, side: BubbleSide = "above") {
+    render(frame: SpeechFrame | null, body: Box, prefer: BubbleSide = "above") {
       if (!frame) {
         if (el.hasAttribute("data-on")) {
           el.removeAttribute("data-on");
@@ -99,6 +136,11 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
         typed.textContent = "";
         rest.textContent = text;
         el.setAttribute("data-on", "");
+        sizes.clear();
+        appliedMax = -1;
+        el.style.maxWidth = "";
+        el.removeAttribute("data-tight");
+        fontPx = parseFloat(getComputedStyle(el).fontSize) || 17;
         measure();
         if (fresh && !reducedNow()) {
           el.removeAttribute("data-pop");
@@ -116,17 +158,36 @@ export function createBubble(parent: HTMLElement, options: BubbleOptions = {}) {
       el.toggleAttribute("data-more", frame.more && !frame.typing);
       el.style.opacity = String(frame.fade);
 
-      // letak: di atas kepala atau di samping badan, tetap di dalam layar
+      // letak: sisi yang diminta bila muat, lalu sisi lain; tidak pernah menutupi badan Clawd, tetap di dalam layar
+      // (ukuran jendela dibaca tanpa tata letak; ukuran gelembung dari simpanan, diukur hanya saat lebarnya berganti)
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const cap = Math.min(CAP_EM * fontPx, vw - 2 * MARGIN);
+      const plan = placeBubble({
+        prefer,
+        body,
+        view: { w: vw, h: vh },
+        cap,
+        capTight: Math.min(CAP_EM * fontPx * TIGHT, vw - 2 * MARGIN),
+        heightAt: (w, tight) => sizeAt(w, tight).h,
+        widthAt: (w, tight) => sizeAt(w, tight).w,
+        drop,
+        gap: GAP,
+        margin: MARGIN,
+        minW: MIN_W,
+      });
+      const chosen = sizeAt(plan.maxW, plan.tight);
+      apply(chosen.maxW, plan.tight);
+      const side = plan.side;
       if (el.dataset.side !== side) {
         el.dataset.side = side;
         placed = false;
       }
-      // ukuran jendela tanpa membaca tata letak (dipanggil tiap frame)
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
       const above = side === "above";
-      const goalX = Math.max(MARGIN, Math.min(vw - MARGIN - width, above ? x - width / 2 : side === "right" ? x + drop : x - drop - width));
-      const goalY = above ? Math.max(MARGIN, y - height - drop) : Math.max(MARGIN, Math.min(vh - MARGIN - height, y - height / 2));
+      const goalX = plan.x;
+      const goalY = plan.y;
+      const x = (body.left + body.right) / 2;
+      const y = (body.top + body.bottom) / 2;
       // diam selama Clawd hanya melayang (ayunan kecil): teks lebih mudah dibaca dan diketuk; menyusul bila ia pindah
       // menyusul bebas laju frame (tetapan 90 ms), juga di HP lambat
       const now = performance.now();

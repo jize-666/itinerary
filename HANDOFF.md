@@ -158,6 +158,15 @@ Hasil 17 Nov:
 
 Tafsir Claude: periksa letak gelembung di semua tempat dan arah (atas, bawah, kiri, kanan; film 3D dan 2,5D; HP dan desktop). Gelembung tidak boleh pernah menutupi badan Clawd: diperkecil di layar sempit dan/atau dipindah arahnya, dengan tes yang memeriksa kotak gelembung tidak beririsan dengan kotak badan Clawd.
 
+Perbaikan gelembung (17 Nov):
+1. **Penyebab:** `bestSide` (guide.ts) memilih sisi dengan anggapan gelembung bisa menyempit sampai 70 %. Padahal `bubble.ts` tidak pernah menyempitkannya (19,5em ≈ 330 px); gelembung lalu digeser masuk layar dan menimpa badan Clawd. Gelembung di atas kepala juga bisa didorong turun ke badan di dekat tepi atas.
+2. **Perbaikan:**
+   - `engine/mascot/bubble-place.ts` (murni): sisi pilihan → sisi seberang → atas kepala, lalu huruf diperkecil, lalu sisi samping terlapang.
+   - Lebar gelembung samping menyesuaikan ruang (minimal 150 px); atas kepala hanya bila muat; tidak pernah digeser ke badan.
+   - `bubble.ts` menerima kotak badan Clawd (film 3D dan 2,5D) dan mengukur ukuran gelembung hanya saat lebarnya melewati anak tangga 16 px.
+   - CSS: huruf `clamp(14px, 3,9vw, 17px)` (lebih kecil di HP), `data-tight` = 82 %.
+3. **Tes:** unit 445 lulus. `bubble-place.test.ts` (5 tes) mencakup kasus tangkapan layar host dan sapuan semua letak Clawd di 4 ukuran layar × 3 arah × 3 panjang kalimat: tidak pernah menutupi badan dan tidak keluar layar. e2e dan tangkapan layar menunggu rekaman video selesai (build ulang dulu).
+
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
 - sayang 0,85/0,45: 203 Hz;
