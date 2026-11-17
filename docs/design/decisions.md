@@ -506,7 +506,7 @@ Belum disambungkan ke film (itu M3).
   - `aria-label` tombol gong dan gunungan tetap, karena tidak tampil di layar dan dipakai pembaca layar.
 - **Letak:** dihitung dalam ruang kamera, jadi Clawd selalu di dalam bingkai dan kamera yang bergerak memberi badannya lentur jeli. Ada tiga tempat:
   - dekat gunungan saat gerbang tertancap;
-  - di samping gong saat menjelaskannya dan di slide gong penutup (sambil menunjuk dan separuh berpaling ke gong);
+  - di samping gong saat menjelaskan zoom dan kitar (sesudah huruf judul tersedot) dan di slide gong penutup (sambil menunjuk dan separuh berpaling ke gong); selama judul hero/hari masih tampil ia tetap di samping, karena di HP tegak gong ada di belakang judul dan gelembungnya akan menutupi judul;
   - selain itu di samping layar. Tempat ini dipilih dari tata letak slide (`bestSide`): sesudah tamu tiba, kotak tombol, teks, dan kartu diukur, lalu dipilih calon tempat yang paling sedikit menutupinya (tombol paling berat, karena tombol yang tertutup tombol Clawd tidak bisa diketuk).
   - Di HP yang hampir penuh kartu (gallery), Clawd naik ke pita antara chrome atas dan kartu, dan gelembungnya di sampingnya dengan ekor menunjuk ke samping.
 - **Tampil di depan gerbang:** kelir dan gunungan adalah lapisan layar penuh tanpa uji kedalaman (renderOrder 2000–2001). Jaring Clawd digambar sesudahnya (renderOrder 2100, tetap diuji kedalaman dan tetap buram 0).

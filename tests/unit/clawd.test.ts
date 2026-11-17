@@ -237,7 +237,9 @@ describe("Clawd pemandu di film 3D (M3)", () => {
   it("Clawd menghampiri gunungan dan gong yang dijelaskan; selain itu di samping layar", () => {
     expect(spotAt(at({ gate: "head" }), null)).toBe("kayon");
     expect(spotAt(at({ kind: "gong" }), null)).toBe("gong");
-    expect(spotAt(at({ kind: "hero" }), "beat")).toBe("gong");
+    // judul masih tampil (tahap gong belum): di samping, supaya gelembung tidak menutupi judul
+    expect(spotAt(at({ kind: "hero" }), "beat")).toBe("side");
+    expect(spotAt(at({ kind: "hero", beat: true }), "zoom")).toBe("gong");
     expect(spotAt(at({ kind: "hero" }), null)).toBe("side");
     expect(spotAt(at({ kind: "panel" }), "gallery")).toBe("side");
     expect(spotAt(at({ kind: "gong", moving: true }), null)).toBe("side");

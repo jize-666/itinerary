@@ -166,7 +166,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       const due = guide.due(ctx);
       if (due && !brain.hasTip(due)) {
         brain.tip(due, ms);
-        if (due === "gong" || due === "beat" || due === "zoom") brain.behavior.point(ms);
+        if (due === "gong" || due === "zoom") brain.behavior.point(ms);
       }
       for (const id of TIP_IDS) if (brain.hasTip(id) && !stillApplies(id, ctx)) brain.hushTip(id, ms);
 

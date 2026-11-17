@@ -60,7 +60,9 @@ export function spotAt(c: GuideContext, speaking: TipId | null): Spot {
   if (c.gate === "head" || c.gate === "tail") return "kayon";
   if (c.moving) return "side";
   if (c.kind === "gong") return "gong";
-  if ((c.kind === "hero" || c.kind === "title") && (speaking === "beat" || speaking === "zoom")) return "gong";
+  // tahap gong: selama judul masih tampil Clawd tetap di samping (gong ada di belakang judul, terutama di HP tegak);
+  // sesudah huruf tersedot ia menghampiri gong untuk menjelaskan zoom dan kitar
+  if ((c.kind === "hero" || c.kind === "title") && speaking === "zoom") return "gong";
   return "side";
 }
 
