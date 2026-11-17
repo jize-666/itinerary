@@ -193,7 +193,21 @@ Penghapusannya dilakukan bersamaan dengan Clawd mulai memandu (bukan lebih dulu)
      - HP 9:16 1080 × 1920, 83 dtk.
      - Rekaman HP pertama terputus karena kontainer dimulai ulang, lalu direkam ulang.
    - Deskripsi PR #12 diperbarui; CI hijau untuk `d04be5e` (#224, #225).
-3. Berikutnya: tunggu tinjauan host atas video. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
+3. Berikutnya: tunggu tinjauan host atas video.
+
+**Arahan host 17 Nov (sesudah video M3), kata demi kata:** "selesain project clawd dulu, baru aku merge ketika sudah selesai."
+
+Tafsir Claude: PR #12 belum di-merge sampai seluruh proyek Clawd selesai. Sisanya (M4):
+1. **Clawd di film 2,5D** (tanpa WebGL, tier Static, Calm, gerak dikurangi):
+   - tetap DOM dengan `transform` (arti 2,5D dari host 11 Nov), bukan WebGL;
+   - rupa dari data kit yang sama (balok, lengan, empat kaki, ekspresi mata/alis);
+   - otak, petunjuk, dan gelembung yang sama dengan film 3D.
+2. **Teks petunjuk lama dihapus seluruhnya** (komponen `Hint`, `film.hint`, `film.hintKeys`, `film.kayonHint`, `film.phrasesHint`), karena di kedua film kini ada Clawd.
+3. **Gerak pandang Clawd** (aturan host 13 Nov, berlaku di semua objek 3D dan 2,5D): kamera parallax, perspective shift, dan kedalaman ikut gulir, di film 3D maupun 2,5D.
+4. **Penutup:** tes penuh, video desktop dan HP 9:16, dokumen, `CLAUDE.md`, `HANDOFF.md`, dan deskripsi PR.
+
+Sedang dikerjakan.
+ Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
