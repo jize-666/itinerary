@@ -80,7 +80,11 @@ Tafsir Claude (dikirim ke host, menunggu persetujuan sebelum dikerjakan): tiap g
 - Langit dan cahaya berganti ke jam tempat singgah berikutnya tepat di puncak gerbang ("lompat waktu"). Perahu tetap hanyut ke lampion berikutnya.
 - Semua mengikuti gulir atau jari. Parallax, perspective shift, dan Calm/gerak dikurangi tetap berlaku.
 
-3. Berikutnya: tunggu jawaban host atas tafsir "masuk dimensi" dan tinjauan gambar sungai. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+**Jawaban host 17 Nov, kata demi kata:** "gas, buat video dimensinya dulu".
+
+Tafsir Claude: tafsir "masuk dimensi" di atas disetujui untuk dicoba. Dikerjakan langsung di gallery (film 3D), lalu video contoh desktop + HP 9:16 (data April, nama Jize) dikirim ke host sebelum dirapikan lebih jauh. Tinjauan gambar sungai belum dijawab; dianggap lanjut karena sungai ikut tampak di video.
+
+3. Berikutnya: gerbang dimensi di gallery + video contoh. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
