@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 di-merge 17 Nov; **PR berikutnya (pemutar suara Clawd + Next.js 16.4.6) siap Squash and merge** · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 di-merge 17 Nov; **PR #13 (pemutar suara Clawd + Next.js 16.4.6) siap Squash and merge** · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -28,7 +28,7 @@ Hasil 17 Nov:
    - e2e penuh 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal (13,7 mnt); `sound` diulang dengan build terakhir, 16 lulus.
    - Jalur mesin suara Clawd (`playVoice`, peredaman) belum punya tes yang menjalankannya, karena belum ada klip. Tes e2e suara (`debug().voice`) dibuat bersama klipnya.
    - Pratinjau: tidak ada video, karena belum ada yang berubah di layar. Video dengan suara dikirim bersama klipnya.
-3. Berikutnya: host meninjau dan me-merge PR ini. Sesudahnya branch dimulai ulang dari `main`, lalu: contoh EN + ID, rekam 78 klip, tes e2e suara, video dengan suara (nama tamu "Jize"), PR klip.
+3. Berikutnya: host meninjau dan me-merge PR #13. Sesudahnya branch dimulai ulang dari `main`, lalu: contoh EN + ID, rekam 78 klip, tes e2e suara, video dengan suara (nama tamu "Jize"), PR klip.
 
 Kemajuan 17 Nov:
 1. Selesai: **pemutar suara Clawd** (rincian: `docs/design/decisions.md` bagian "Suara Clawd"). Sudah tersambung ke kedua film lewat `components/mascot/session.ts`; selama klip belum ada, perilakunya sama persis dengan sebelumnya.

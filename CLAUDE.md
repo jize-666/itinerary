@@ -19,7 +19,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 17 Nov 2026 (PR #12 di-merge; PR berikutnya: pemutar suara Clawd + Next.js 16.4.6, siap Squash and merge; klip suara Clawd menyusul sesudah host menyetujui contohnya, lalu Tugas 8 menunggu arahan host).
+Diperbarui 17 Nov 2026 (PR #12 di-merge; PR #13: pemutar suara Clawd + Next.js 16.4.6, siap Squash and merge; klip suara Clawd menyusul sesudah host menyetujui contohnya, lalu Tugas 8 menunggu arahan host).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
