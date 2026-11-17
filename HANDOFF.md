@@ -84,7 +84,16 @@ Tafsir Claude (dikirim ke host, menunggu persetujuan sebelum dikerjakan): tiap g
 
 Tafsir Claude: tafsir "masuk dimensi" di atas disetujui untuk dicoba. Dikerjakan langsung di gallery (film 3D), lalu video contoh desktop + HP 9:16 (data April, nama Jize) dikirim ke host sebelum dirapikan lebih jauh. Tinjauan gambar sungai belum dijawab; dianggap lanjut karena sungai ikut tampak di video.
 
-3. Berikutnya: gerbang dimensi di gallery + video contoh. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+**Pertanyaan host 17 Nov soal suara Clawd, kata demi kata:** "seleain elevenlabs, gada alternative lain?", lalu "cek di connectors, hugging face".
+
+Tafsir Claude: cari jalan lain untuk suara Clawd selain antrean gratis ElevenLabs. Usul yang dikirim:
+1. model open-source yang meniru suara Clawd asli dari video host (potongan 24,8 dtk masih ada di scratchpad);
+2. Google/OpenAI TTS dengan kunci host;
+3. rekam sendiri;
+4. suara bawaan browser (tidak disarankan).
+Host menunjuk connector Hugging Face: kini tersambung (akun host). Alat `dynamic_space` menjalankan Space Hugging Face dari jauh, jadi tidak perlu membuka jaringan sesi ke huggingface.co.
+
+3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
