@@ -266,6 +266,23 @@ Kemajuan 17 Nov (host mengulang konfirmasinya sesudah sesi sempat restart):
    - (b) Voice Design gratis dari deskripsi suara (mirip, tidak sama persis); atau
    - (c) deskripsi/prompt asli suara itu, bila dulu dibuat lewat Voice Design.
 
+**Pilihan host 17 Nov:** "Voice Design gratis".
+1. Selesai: satu putaran Voice Design (`eleven_ttv_v3`, bahasa en) dengan deskripsi dari pilihan host ("perempuan, hangat, tenang, sedikit jenaka"). Kalimat contohnya perkenalan Clawd EN dari `lines.ts`. Tiga contoh dikirim ke host:
+   - contoh 1: `FMidhJMXoXgqOQ9d6Ppm`
+   - contoh 2: `iOHIJBmPLUTMBi53mK9G`
+   - contoh 3: `rGIOLpf8MXIjCt8Oo2m9`
+   - view `viewstate_01m7m6ze7mf7nsk5zw21xajtkg`
+2. Ukuran kasar terhadap suara asli di video (nada dasar median 177 Hz, rentang 146–269):
+   - contoh 1: 210 Hz, lebih tinggi dan lebih cerah;
+   - contoh 2: 183 Hz, rentang 147–272, paling mirip nadanya;
+   - contoh 3: 178 Hz, lebih gelap.
+   Penilaian akhir tetap telinga host.
+3. Berikutnya:
+   - host memilih satu contoh, lalu simpan sebagai suara "Clawd" (`creative_save_designed_voice`);
+   - kirim contoh 2–3 kalimat EN + ID;
+   - bila disetujui: rekam ±80 klip, pasang di Clawd mengikuti sakelar suara situs, tes, video, PR.
+   - Jangan membuat putaran Voice Design baru tanpa diminta (memakai kredit).
+
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
