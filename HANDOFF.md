@@ -227,8 +227,9 @@ Tafsir Claude: PR #12 belum di-merge sampai seluruh proyek Clawd selesai. Sisany
    - e2e penuh 286 lulus, 0 gagal: smoke 7, home 14, today 47, pwa 8, sound 16, gate 24, film 76, stage 94.
      - Tes lama "petunjuk navigasi hilang" diganti tes Clawd 2,5D: perkenalan, petunjuk lama tidak ada, klik memajukan kalimat, tamu lama, petunjuk ungkapan, Calm diam.
      - Tes DOF lanskap kini diukur dengan `?clawd=0`. Clawd sengaja selalu tajam, jadi tepinya ikut terhitung sebagai rincian.
-   - Video 2,5D (desktop + HP 9:16, data trip April) sedang direkam.
-3. Berikutnya: kirim video 2,5D, perbarui deskripsi PR #12. Sesudah itu proyek Clawd selesai dan siap di-merge host.
+   - Video 2,5D dikirim ke host 17 Nov (desktop + HP 9:16, data trip April, 83 dtk; tur `clawd` dengan `STAGE=static`). Deskripsi PR #12 diperbarui.
+   - Host bertanya "blip? apa itu". Dikirim contoh suara blip 8,6 dtk (netral, senang, marah, mengantuk; disintesis, tidak di repo).
+3. Berikutnya: proyek Clawd selesai, PR #12 siap di-merge host.
    - Pertanyaan ke host yang belum dijawab:
      - suara Clawd: blip piksel, rekaman, atau tanpa suara;
      - Next.js 16.4.3 → 16.4.5.
