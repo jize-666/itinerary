@@ -188,7 +188,12 @@ Penghapusannya dilakukan bersamaan dengan Clawd mulai memandu (bukan lebih dulu)
      - Sudah diperbaiki di `d5123dd` (24 draw call); run #216–#218 sesudahnya lulus.
    - Catatan build: Next.js menghentikan build dengan peringatan keamanan (GHSA-mfr8-8qww-v76h, moderate; 16.3.0–16.4.4 terdampak, perbaikan 16.4.5; repo memakai 16.4.3). Muncul karena sesi terdeteksi sebagai agen; diulang lalu lulus. Naik versi ditawarkan ke host, belum dikerjakan.
    - Rekaman draf HP 9:16 menemukan gelembung petunjuk tahap gong menutupi judul hero di HP tegak. Diperbaiki: selama judul tampil, Clawd berbicara dari samping, dan baru menghampiri gong untuk petunjuk zoom.
-3. Berikutnya: kirim video desktop dan HP 9:16 (tur `clawd`, data trip April, sedang direkam); perbarui deskripsi PR #12. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
+   - Video pratinjau dikirim ke host 17 Nov (tur `clawd`, data trip April):
+     - desktop 1920 × 1080, 84 dtk;
+     - HP 9:16 1080 × 1920, 83 dtk.
+     - Rekaman HP pertama terputus karena kontainer dimulai ulang, lalu direkam ulang.
+   - Deskripsi PR #12 diperbarui; CI hijau untuk `d04be5e` (#224, #225).
+3. Berikutnya: tunggu tinjauan host atas video. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
