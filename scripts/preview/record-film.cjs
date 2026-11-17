@@ -2,7 +2,8 @@
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
 //   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd]
-// clawd = M3: Clawd, maskot pemandu, di film 3D (perkenalan, petunjuk di gunungan, hero, gallery, gong penutup, spam klik).
+// clawd = Clawd, maskot pemandu (perkenalan, petunjuk di gunungan, hero, gallery, gong penutup, spam klik); film 3D
+// (STAGE=high) atau film 2,5D (STAGE=static, tanpa gunungan pembuka).
 // film (bawaan) = tur dari prolog sampai credits; gallery = satu hari penuh di gallery Hari 1 (siklus waktu:
 // matahari mengikuti jam), di iphone termasuk satu scrub jari yang ditahan di tengah jalan; stage = tur pendek
 // panggung 3D (prolog, sapuan ke Hari 1, satu hari di gallery, gong); prolog = empat slide pertama sesudah gunungan
@@ -125,7 +126,8 @@ const fs = require('fs');
     // M3: Clawd memandu di film 3D. Gunungan tertancap, Clawd muncul dan memperkenalkan diri, satu klik memajukan
     // kalimat, petunjuk gunungan; cabut → hero (petunjuk tahap gong), gong ditabuh (Clawd terkejut, lalu petunjuk
     // zoom); gallery Hari 1 (petunjuk geser); gong penutup Hari 1 (petunjuk pukul, dipukul); spam klik = marah.
-    const clawd = p.locator('.clawd-hit');
+    // film 3D: tombol tak terlihat di atas Clawd; film 2,5D (STAGE=static): Clawd CSS 3D itu sendiri tombolnya
+    const clawd = p.locator('.clawd-hit, .clawd-flat').first();
     await w(8500);
     await tap(clawd, 3200);
     await w(13500);

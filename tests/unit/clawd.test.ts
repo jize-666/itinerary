@@ -3,6 +3,10 @@ import { Clawd } from "@/engine/mascot/clawd";
 import { Dialogue, holdTime, TYPE, typedLength, typingTime } from "@/engine/mascot/dialogue";
 import { bestSide, BLOCK_WEIGHT, GUIDE_KEY, Guide, type GuideContext, readSeen, SIDE_CANDIDATES, spotAt, stillApplies, tipAt, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, MASCOT_NAME, SAY, TIPS } from "@/engine/mascot/lines";
+import { EXPRESSIONS } from "@/engine/mascot/face";
+import { browPoints, EYE_STROKE, expressionShape, strokeOutline } from "@/engine/mascot/kit-face";
+import { Motor } from "@/engine/mascot/motor";
+import { faceMarkup } from "@/components/mascot/face-svg";
 
 /** Clawd, gelembung ucapan ala piksel (M2, arahan host 15 Nov: "perkenalan dulu, nama dia clawd", "gas m2"). */
 const u = (id: string, text: string) => ({ id, text: () => text });
@@ -317,5 +321,63 @@ describe("tempat Clawd di samping: tidak menutupi tombol dan teks", () => {
     const pick = bestSide(blocks, { w: 393, h: 852 }, 75, bubble);
     expect(pick[1]).toBeGreaterThan(0.4);
     expect(pick[2]).not.toBe("above");
+  });
+});
+
+describe("Clawd 2,5D (M4): wajah dari data kit yang sama, penggerak bersama", () => {
+  const count = (s: string, tag: string) => (s.match(new RegExp(`<${tag}\\b`, "g")) ?? []).length;
+
+  it("tiap ekspresi kit punya dua mata; data wajah sama untuk 3D dan SVG", () => {
+    for (const ex of EXPRESSIONS) {
+      const { eyes } = expressionShape(ex);
+      expect(eyes, ex).toHaveLength(2);
+    }
+    // netral: dua mata kotak, dua pipi, tanpa garis/alis
+    const n = faceMarkup("neutral");
+    expect([count(n, "rect"), count(n, "circle"), count(n, "polygon"), count(n, "ellipse")]).toEqual([2, 2, 0, 0]);
+    // senang: dua chevron; penasaran: dua mata bulat + dua alis; kedip sebelah: satu kotak + satu chevron
+    expect(count(faceMarkup("happy"), "polygon")).toBe(2);
+    const c = faceMarkup("curious");
+    expect([count(c, "ellipse"), count(c, "polygon")]).toEqual([2, 2]);
+    const w = faceMarkup("wink");
+    expect([count(w, "rect"), count(w, "polygon")]).toEqual([1, 1]);
+  });
+
+  it("garis tebal bersambung: chevron simetris kiri-kanan, ujungnya diperpanjang 0,2 × lebar", () => {
+    const happy = EYE_STROKE.happy!;
+    const out = strokeOutline(happy.points, happy.width);
+    expect(out).toHaveLength(happy.points.length * 2);
+    const xs = out.map(([x]) => x);
+    expect(Math.max(...xs) + Math.min(...xs)).toBeCloseTo(0, 6);
+    // ujung kiri lebih jauh dari titik awal sejauh 0,2 × lebar (searah garis)
+    const ext = Math.hypot(out[0]![0] - out.at(-1)![0], out[0]![1] - out.at(-1)![1]);
+    expect(ext).toBeCloseTo(happy.width, 6);
+  });
+
+  it("alis marah: ujung dalam lebih rendah dari ujung luar di kedua sisi", () => {
+    for (const sign of [-1, 1]) {
+      const [a, b] = browPoints("angry", sign);
+      const inner = Math.abs(a![0]) < Math.abs(b![0]) ? a! : b!;
+      const outer = inner === a ? b! : a!;
+      expect(inner[1]).toBeLessThan(outer[1]);
+    }
+  });
+
+  it("penggerak: mode diam = pose tetap, tanpa lentur; ketukan memampat lalu kembali ke bentuk kit", () => {
+    const m = new Motor();
+    const a = m.update({ t: 1, dt: 1 / 60, mood: "neutral", motion: "hover", motionSince: 0, still: true, base: [0, 0, 0], yaw: 0 });
+    const b = m.update({ t: 2.3, dt: 1 / 60, mood: "neutral", motion: "hover", motionSince: 0, still: true, base: [0, 0, 0], yaw: 0 });
+    expect(b.pose).toEqual(a.pose);
+    expect([b.stretch, b.shearX, b.shearZ, b.lift]).toEqual([1, 0, 0, 0]);
+    const g = new Motor();
+    let t = 0;
+    const step = () => g.update({ t: (t += 1 / 60), dt: 1 / 60, mood: "neutral", motion: "hover", motionSince: 0, base: [0, 0, 0], yaw: 0 });
+    for (let i = 0; i < 30; i++) step();
+    g.poke();
+    let min = 2;
+    for (let i = 0; i < 30; i++) min = Math.min(min, step().stretch);
+    expect(min).toBeLessThan(0.95);
+    for (let i = 0; i < 400; i++) step();
+    expect(Math.abs(step().stretch - 1)).toBeLessThan(0.012);
   });
 });
