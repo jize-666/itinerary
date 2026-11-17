@@ -228,8 +228,13 @@ Hasil 17 Nov malam:
   - semua lulus: `lint`, `typecheck`, `test` (445/445, 27 berkas), `content:check`, dan `build`;
   - ±27 dtk, ±94rb token;
   - log build dan tes diperiksa ulang oleh sesi utama.
+- Host 17 Nov 23.34 WIB, tangkapan layar claude.ai di Safari iPhone: "mobile ga supp? kok gada".
+  - Penyebab: claude.ai di browser HP tidak menempatkan panel samping. `$.ui.open` menjawab "tidak ditempatkan", tapi `/lakon` tetap menulis "dibuka".
+  - Perbaikan: bila panel tidak ditempatkan, `/lakon` menulis dashboard yang sama sebagai teks di chat. Isinya: bar ▰▱, status agen ●/✓/✕, tugas berikutnya ▸.
+  - Teks itu hanya untuk host, tidak masuk ke permintaan model. `/lakon teks` memaksa versi teks di mana saja.
+  - Tes mod (`claude plugin test`): 2 lulus, untuk tanpa panel dan dengan panel. `tsc` dan `validate` juga lulus.
 - Langkah berikutnya:
-  - lihat dashboard di app; tampilan di HP belum dicek;
+  - host mencoba `/lakon` lagi di HP;
   - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
 
 **Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
