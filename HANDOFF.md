@@ -104,6 +104,12 @@ Hasil pengecekan 17 Nov:
   - `invoke` lewat connector dimatikan pengaturan connector (`gradio=none`), jadi API Gradio Space dipanggil langsung dari sesi.
   - Panggilan anonim ditolak: kuota ZeroGPU per IP habis.
   - Token Hugging Face host disimpan lewat formulir aman (network secret untuk `resembleai-chatterbox.hf.space`), tetapi ZeroGPU melaporkan "InvalidAccessToken" dan tetap memakai kuota IP. Kemungkinan token salah ketik, atau token fine-grained tanpa izin yang cukup. Menunggu host membuat token jenis "Read" dan mengisinya ulang.
+  - Host: "udah ada tokenya". Masih InvalidAccessToken. Formulir dibuka ulang dengan petunjuk "isi hanya nilai token hf_, tanpa kata Bearer". Sesudah diisi ulang, Space menerima token.
+  - Tiga contoh dibuat dari rekaman Clawd asli. Nada dasar median, dibandingkan rekaman acuan 176 Hz (rentang 145–267):
+    - EN ekspresi 0,6: 253 Hz;
+    - EN ekspresi 0,45: 170 Hz (rentang 135–267), paling mirip;
+    - ID ekspresi 0,6: 209 Hz.
+  - Ketiganya dikirim ke host (MP3 di `voice/hf/` scratchpad, tidak di repo). Menunggu pilihan/penilaian host sebelum merekam 78 klip. Bila jalur ini disetujui, percobaan ElevenLabs dihentikan.
 
 3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face begitu host mengizinkan unggah rekaman. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
