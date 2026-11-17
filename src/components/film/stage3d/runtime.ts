@@ -18,6 +18,7 @@ import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
+import { currentKnot, drawnAt, filmPosition, galleryStrands, shownAt, type Strand } from "@/engine/stage/thread";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
@@ -29,6 +30,7 @@ import { StagePost } from "./post";
 import { createShared } from "./shared";
 import { createSky, MOON_DIR } from "./sky";
 import { createTerrain } from "./terrain";
+import { createThread } from "./thread";
 import { createVillage } from "./village";
 
 /** Angka yang dibaca overlay FPS, tes, dan skrip ukur. */
@@ -139,6 +141,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   // `?clawd=0`: tanpa Clawd (pengukuran beban, seperti `?fps` dan `?stage=`)
   const clawd = new URLSearchParams(window.location.search).get("clawd") === "0" ? null : createStageGuide({ shared, scene, host: root, touch: isMobile() });
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
+  // benang emas (Tugas 8.1): tergelar di tanah gallery, tergambar mengikuti gulir; dibangun ulang saat bentuk layar berubah
+  const thread = createThread(shared);
+  let strands: Strand[] = [];
   // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,
   // gerbang boleh tampil dan memudar masuk
   let kayonFade = 0;
@@ -154,7 +159,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     },
   });
   /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
-  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
+  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, thread.group, dust.points, sky.mesh];
   let worldHidden = false;
   const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
@@ -211,6 +216,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       shape = next;
       terrain.reshape(shape);
     }
+    strands = galleryStrands(film, frame, shape);
+    thread.setStrands(strands);
   };
   /** Kanvas baru saja berganti ukuran (isinya terhapus): frame berikutnya wajib digambar walau sedang diam. */
   let stale = true;
@@ -389,6 +396,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
+    // benang emas: panjang tergambar dan kadar tampak dari letak film (pecahan selama geseran)
+    const at = filmPosition(cursor);
+    thread.update(
+      strands.map((s) => drawnAt(s, at)),
+      strands.map((s) => shownAt(s, at)),
+      strands.map((s) => currentKnot(s, at)),
+    );
+    thread.setPixel(pixel);
     dust.setPixel(pixel);
     village.setPixel(pixel);
     gong.setPixel(pixel);
@@ -514,6 +529,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     gunungan.dispose();
     clawd?.dispose();
     dust.dispose();
+    thread.dispose();
     village.dispose();
     post.dispose();
   };

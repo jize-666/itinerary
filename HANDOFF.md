@@ -21,6 +21,17 @@ Tafsir Claude:
 - Antrean ElevenLabs dicoba tiap 30 menit, tanpa batas tiga kali, sampai contoh EN jadi. Jadwal 45 menit sebelumnya dibatalkan.
 - Klip suara dan Tugas 8 berjalan bersamaan di branch yang sama.
 
+**Tugas 8.1, benang emas — versi pertama (17 Nov):** benang tergelar di tanah gallery, di pita tepat di bawah kartu (satu-satunya bagian lanskap yang tidak tertutup kartu di layar lebar maupun HP). Tiap tempat singgah satu simpul, tepat di bawah kartunya. Benang tergambar sampai simpul panel yang tampil, dan ujungnya maju mengikuti gulir atau jari. Lintasan murni di `engine/stage/thread.ts` (8 tes), gambar di `stage3d/thread.ts` (tabung + simpul, 2 draw call).
+
+**Masukan host 17 Nov atas versi pertama, kata demi kata:** "upgrade lah, keliatan basic banget".
+
+Tafsir Claude: benangnya terlalu polos (garis tipis dengan titik); di siang hari hampir tak terlihat. Versi kedua:
+- benang sutra emas pilin tiga helai yang lebih tebal, dengan pendar lembut di sekelilingnya (terbaca juga siang hari) dan cahaya hangat yang jatuh ke tanah di bawahnya;
+- benang melayang sedikit dan bergoyang pelan, dengan gelombang cahaya yang merambat dan bunga api yang rontok dari ujung yang sedang tergambar;
+- simpul jadi manik emas 3D yang berputar; manik tempat sekarang lebih besar, bercincin cahaya di tanah, dengan tiang cahaya tipis;
+- jalur yang belum ditempuh tampak samar sebagai benang sutra redup, supaya perjalanan di depan terbaca.
+Tetap hemat: beberapa draw call, hanya saat gallery tampak.
+
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
 **Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
