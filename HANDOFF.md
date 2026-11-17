@@ -179,9 +179,16 @@ Penghapusannya dilakukan bersamaan dengan Clawd mulai memandu (bukan lebih dulu)
 2. Tes:
    - lint dan typecheck bersih; unit 409 lulus.
    - e2e Clawd 8/8 lulus (desktop + iPhone): perkenalan bersama gunungan, petunjuk lama tidak ada, klik memajukan kalimat tanpa memindah slide, tamu lama disapa singkat, spam = marah, dan di gallery Clawd serta gelembungnya tidak menutupi tombol kartu.
-   - e2e penuh (310) sedang berjalan.
+   - e2e penuh lulus (17 Nov). Per berkas: smoke 7, home 14, today 47, pwa 8, sound 16, gate 24, film 70, stage 94; sisanya dilewati sesuai proyek. Total 280 lulus, 0 gagal.
+     - Run pertama sempat 1 gagal: "kamera berpindah bersama slide" di desktop kehabisan 30 dtk karena kanvas CPU melambat saat beberapa tes 3D berjalan bersamaan. Saat dijalankan sendiri tes itu lulus.
+     - Profil CPU: beban JS Clawd kecil, dan jumlah frame dengan atau tanpa Clawd sama (`?clawd=0`).
+     - Dari pengukuran itu ditemukan dan diperbaiki: pembacaan tata letak tiap frame, simpul kit tersembunyi yang tetap dihitung matriksnya, dan lampu kilatan gong yang disembunyikan (mengompilasi ulang shader tiap pukulan).
+   - CI yang ditanyakan host 17 Nov 07.27 ("ada yang gagal, aman?"):
+     - Run #215 (dan #212, #214) di commit WIP sebelum Clawd digambar berkelompok. Yang gagal hanya anggaran draw call prolog (30 > 26).
+     - Sudah diperbaiki di `d5123dd` (24 draw call); run #216–#218 sesudahnya lulus.
    - Catatan build: Next.js menghentikan build dengan peringatan keamanan (GHSA-mfr8-8qww-v76h, moderate; 16.3.0–16.4.4 terdampak, perbaikan 16.4.5; repo memakai 16.4.3). Muncul karena sesi terdeteksi sebagai agen; diulang lalu lulus. Naik versi ditawarkan ke host, belum dikerjakan.
-3. Berikutnya: hasil e2e penuh; rekam video desktop dan HP 9:16 (tur `clawd`, data trip April) dan kirim ke host; perbarui deskripsi PR #12. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju.
+   - Rekaman draf HP 9:16 menemukan gelembung petunjuk tahap gong menutupi judul hero di HP tegak. Diperbaiki: selama judul tampil, Clawd berbicara dari samping, dan baru menghampiri gong untuk petunjuk zoom.
+3. Berikutnya: kirim video desktop dan HP 9:16 (tur `clawd`, data trip April, sedang direkam); perbarui deskripsi PR #12. Sesudah itu M4 (Clawd di film 2,5D) bila host setuju. Pertanyaan ke host yang belum dijawab: naikkan Next.js 16.4.3 → 16.4.5 (GHSA-mfr8-8qww-v76h)?
 
 ### Tugas 7b selesai (14 Nov malam, perintah host "kerjakan tugas 7B")
 
