@@ -173,6 +173,9 @@ Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Dri
 - Isi scratchpad: 46 video (10–17 Nov, 681 MB), 64 audio (32 MB), ±4.900 gambar (±3.500 di antaranya bingkai kerja untuk merakit video: `cwclip`, `mclip`, `mclip2`, `video/kf`, `video/fr`).
 - Folder "previews" dibuat di My Drive host lewat connector Google Drive (id `1H-wMJltMnVnX2oJFjLQ9BkaTMVSHJCiX`).
 - Kendala: connector hanya mengunggah dengan isi file ditempel di perintah (base64), tidak mungkin untuk ±700 MB. Jalannya: API Google Drive langsung dari sesi dengan token akses host (formulir aman untuk `www.googleapis.com`).
+- Formulir token ditolak host ("Denied by user"); tidak dibuka lagi. Pilihan yang ditawarkan:
+  - token ditambahkan host sendiri di pengaturan network secret lingkungan "itinerary";
+  - atau berkas dikirim lewat chat dalam beberapa arsip zip untuk diunggah host sendiri.
 
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
