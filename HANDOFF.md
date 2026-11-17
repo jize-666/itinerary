@@ -146,6 +146,14 @@ Tafsir Claude:
 - Kamera menukik (2,8 m) dan lensa melebar (24°) dikembalikan ke nilai pertama.
 - Yang dikurangi hanya efek lainnya: garis cahaya, warna terpecah, riak, kilau, vinyet, serta kedalaman kartu dan kurva gerak yang lebih lembut.
 
+Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
+- tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
+- sayang 0,85/0,45: 203 Hz;
+- senang 0,85/0,45: 267 Hz;
+- terkejut 0,95/0,4: 267 Hz;
+- marah 1,1/0,4: 345 Hz.
+Mengantuk dan contoh ID belum jadi: kuota ZeroGPU harian akun gratis host habis ("Subscribe to Hugging Face PRO to get 40 min of ZeroGPU quota a day") sesudah ±8 kali pembuatan. Dengan kuota gratis, 78 klip butuh ±10 hari; dengan PRO, cukup sehari. Keempat contoh dikirim ke host; menunggu penilaian dan keputusan kuota.
+
 Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
