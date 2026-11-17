@@ -111,7 +111,13 @@ Hasil pengecekan 17 Nov:
     - ID ekspresi 0,6: 209 Hz.
   - Ketiganya dikirim ke host (MP3 di `voice/hf/` scratchpad, tidak di repo). Menunggu pilihan/penilaian host sebelum merekam 78 klip. Bila jalur ini disetujui, percobaan ElevenLabs dihentikan.
 
-3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face begitu host mengizinkan unggah rekaman. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+**Gerbang dimensi: versi pertama selesai 17 Nov, video dikirim ke host.**
+1. Selesai: `PORTAL`/`portalWarp`/`portalRing` di `view.ts`; kamera 3D menukik/ditarik dan lensa melebar; post-FX (cincin riak, warna terpecah, garis cahaya berjitter, kilau, vinyet); koreografi kartu maju/mundur; `SKY_WINDOW.inner` 0,25–0,75; tur rekaman `dimensi` (`QUERY=` untuk parameter URL). Rincian: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
+2. Tes: lint, typecheck bersih; unit 439 lulus (tes jendela langit gallery diperbarui sesuai keputusan baru, tes PORTAL baru). Video desktop 22,9 dtk dan HP 9:16 26,7 dtk (data April, nama Jize, `clawd=0`) dikirim. e2e belum dijalankan untuk perubahan ini.
+   - Server pratinjau sempat mati karena batas waktu tugas latar 30 menit; dinyalakan ulang dengan batas 2 jam. Rekaman desktop tidak terganggu.
+3. Berikutnya: tunggu penilaian host (halus/dramatis); jalankan e2e penuh; lalu PR (sungai + larung + gerbang dimensi) bila host setuju.
+
+Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
