@@ -245,6 +245,21 @@ Hasil 17 Nov malam:
   - Versi chat ringkas: satu kolom, tiga tugas berikutnya, paling banyak empat pembantu.
   - Tetap tanpa panggilan model. Teks polos hanya cadangan bila tampilan tidak menjalankan mod.
   - Tes mod 3 lulus. Tes ketiga menggambar baris itu di HP, desktop, dan terminal, dan memastikan perintah lain tidak disentuh. `tsc` dan `validate` lulus.
+- Permintaan host 17 Nov malam, kata demi kata, dengan video acuan (kumpulan dashboard ala machine learning: HUD gelap, garis neon yang mengalir ke satu simpul, partikel, grid sel, meter bersegmen): "ui diagram atau apalah di buat ala ala machine learning gini bisa ga?"
+  Tafsir Claude: Lakon diberi diagram bergaya HUD machine learning, gayanya saja, tanpa menjiplak desain di video. Bentuknya "peta saraf":
+  - sumber data (CLAUDE.md, HANDOFF.md, ledger, klip suara, git) mengalir ke simpul Lakon, lalu ke sesi utama dan agen-agen;
+  - ditambah pipeline tugas dan meter bersegmen.
+  - Digambar sebagai SVG beranimasi (didukung di HP dan desktop) di panel dan di baris `/lakon`, tetap tanpa panggilan model. Terminal tetap memakai kartu.
+  - Hasil: `hooks/neural.ts` di mod (`neuralSvg`, murni, ±39 rb karakter). Isinya:
+    - kepala dengan lampu LIVE;
+    - empat sel angka;
+    - peta: lima sumber data dengan serat neon dan denyut yang mengalir ke simpul "LAKON / LOADED" (cincin berputar), lalu ke sesi utama dan maksimal lima pembantu. Pembantu yang jalan berdenyut; slot kosong bergaris putus;
+    - pipeline 16 sel tugas, sel berikutnya berkedip;
+    - meter bersegmen untuk Drive dan suara.
+  - Di bawah peta: kartu ringkas Sesi & agen (lama kerja, token, biaya), kartu Menunggu host, dan tombol Perbarui.
+  - Perbaikan ikut: daftar "Menunggu host" kini diambil dari blok berbutir terbaru di bagian 0. Sebelumnya yang terbaca blok terakhir yang tanpa butir, jadi hasilnya 0.
+  - Tes mod 3 lulus: SVG di HP dan desktop, kartu di terminal. `tsc` dan `validate` lulus.
+  - Pratinjau dikirim ke host (foto data sekarang dan video animasi 6 dtk) dan dicatat di ledger. Belum di Drive: 0,2 MB.
 - Langkah berikutnya:
   - host mencoba `/lakon` lagi di HP (versi berkartu);
   - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
