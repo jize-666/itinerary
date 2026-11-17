@@ -11,6 +11,7 @@
 import { CircleGeometry, DataTexture, ExtrudeGeometry, Group, LinearFilter, LinearMipmapLinearFilter, type Material, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, Shape, SphereGeometry, Vector2 } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { BLINKABLE, EXPRESSIONS, type Expression } from "@/engine/mascot/face";
+import { type BrowKind, browPoints, EYE_BOX, EYE_OVAL, EYE_STROKE, type EyeType, expressionShape, FACE_DIM, type Pt, strokeOutline } from "@/engine/mascot/kit-face";
 
 export { BLINKABLE, EXPRESSIONS, type Expression };
 
@@ -81,9 +82,6 @@ export function createClayNormalTexture(): DataTexture {
   return texture;
 }
 
-type Pt = readonly [number, number];
-type EyeType = "open" | "round" | "small" | "happy" | "closed" | "sleepy" | "sad" | "angry";
-type BrowKind = "raised" | "soft" | "sad" | "angry" | null;
 
 export function createClaude({ expression = "neutral" as Expression } = {}) {
   const root = new Group();
@@ -136,26 +134,11 @@ export function createClaude({ expression = "neutral" as Expression } = {}) {
   });
 
   // Satu goresan tersambung yang diekstrusi: chevron tebal tetap mulus di puncaknya (tanpa tonjolan sambungan).
+  // Garis tepinya dari `kit-face.ts` (sama dengan gambar SVG film 2,5D).
   const line = (parent: Group, name: string, points: readonly Pt[], width = 0.044, depth = 0.022) => {
     if (points.length < 2) return;
     const bevel = 0.003;
-    const half = (width - 2 * bevel) / 2;
-    const dirs = points.slice(1).map((b, i) => new Vector2(b[0] - points[i]![0], b[1] - points[i]![1]).normalize());
-    const normals = dirs.map((d) => new Vector2(-d.y, d.x));
-    const left: Vector2[] = [];
-    const right: Vector2[] = [];
-    points.forEach((point, i) => {
-      const p = new Vector2(point[0], point[1]);
-      const first = i === 0;
-      const last = i === points.length - 1;
-      if (first) p.addScaledVector(dirs[0]!, -width * 0.2 + bevel);
-      if (last) p.addScaledVector(dirs.at(-1)!, width * 0.2 - bevel);
-      const n = first ? normals[0]!.clone() : last ? normals.at(-1)!.clone() : normals[i - 1]!.clone().add(normals[i]!).normalize();
-      const offset = n.multiplyScalar(half / (first || last ? 1 : n.dot(normals[i]!)));
-      left.push(p.clone().add(offset));
-      right.push(p.clone().sub(offset));
-    });
-    const shape = new Shape([...left, ...right.reverse()]);
+    const shape = new Shape(strokeOutline(points, width, bevel).map(([x, y]) => new Vector2(x, y)));
     shape.closePath();
     const geometry = new ExtrudeGeometry(shape, { depth: depth - 2 * bevel, steps: 1, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2 });
     const mesh = new Mesh(geometry, dark);
@@ -167,92 +150,27 @@ export function createClaude({ expression = "neutral" as Expression } = {}) {
   const eye = (parent: Group, name: string, type: EyeType, sign: number) => {
     const e = new Group();
     e.name = name;
-    e.position.set(sign * 0.43, 0.2, 0.005);
+    e.position.set(sign * FACE_DIM.eyeX, FACE_DIM.eyeY, 0.005);
     parent.add(e);
     const marks = new Group();
     marks.name = name + "_Shape";
     marks.scale.set(DIMENSIONS.eyeShapeScale, DIMENSIONS.eyeShapeScale, 1);
     e.add(marks);
-    const stroke = (points: readonly Pt[], width: number) => line(marks, name, points, width * DIMENSIONS.eyeStrokeScale, DIMENSIONS.eyeLineDepth);
-    if (type === "open") box(`${name}_mark`, 0.13, 0.17, DIMENSIONS.eyeSolidDepth, 0.026, dark, marks);
-    else if (type === "round" || type === "small") {
+    const solid = EYE_BOX[type];
+    const oval = EYE_OVAL[type];
+    const stroke = EYE_STROKE[type];
+    if (solid) box(`${name}_mark`, solid.w, solid.h, DIMENSIONS.eyeSolidDepth, solid.r, dark, marks, [0, solid.y, 0]);
+    else if (oval) {
       const m = new Mesh(new SphereGeometry(1, 16, 10), dark);
       m.name = `${name}_mark`;
-      m.scale.set(type === "small" ? 0.059 : 0.078, type === "small" ? 0.076 : 0.108, DIMENSIONS.eyeRoundDepth / 2);
+      m.scale.set(oval.rx, oval.ry, DIMENSIONS.eyeRoundDepth / 2);
       marks.add(m);
-    } else if (type === "happy")
-      stroke(
-        [
-          [-0.115, -0.045],
-          [0, 0.065],
-          [0.115, -0.045],
-        ],
-        0.052,
-      );
-    else if (type === "closed")
-      stroke(
-        [
-          [-0.105, 0],
-          [0.105, 0],
-        ],
-        0.041,
-      );
-    else if (type === "sleepy")
-      stroke(
-        [
-          [-0.105, 0.025],
-          [-0.052, -0.014],
-          [0, -0.03],
-          [0.052, -0.014],
-          [0.105, 0.025],
-        ],
-        0.043,
-      );
-    else if (type === "sad")
-      stroke(
-        [
-          [-0.09, 0.025],
-          [0, -0.018],
-          [0.09, 0.025],
-        ],
-        0.045,
-      );
-    else if (type === "angry") box(`${name}_mark`, 0.13, 0.1, DIMENSIONS.eyeSolidDepth, 0.02, dark, marks, [0, -0.025, 0]);
+    } else if (stroke) line(marks, name, stroke.points, stroke.width * DIMENSIONS.eyeStrokeScale, DIMENSIONS.eyeLineDepth);
     return e;
   };
 
   const brow = (parent: Group, name: string, sign: number, kind: Exclude<BrowKind, null>) => {
-    const x = sign * 0.43;
-    let p: Pt[] = [];
-    if (kind === "raised")
-      p = [
-        [-0.11, 0.39],
-        [-0.02, 0.435],
-        [0.09, 0.4],
-      ];
-    if (kind === "soft")
-      p = [
-        [-0.1, 0.365],
-        [0, 0.39],
-        [0.1, 0.365],
-      ];
-    if (kind === "sad")
-      p = [
-        [-0.11, 0.39 + sign * 0.045],
-        [0.11, 0.39 - sign * 0.045],
-      ];
-    if (kind === "angry")
-      p = [
-        [-0.11, 0.365 - sign * 0.055],
-        [0.11, 0.365 + sign * 0.055],
-      ];
-    line(
-      parent,
-      name,
-      p.map(([a, b]) => [x + a, b + DIMENSIONS.browLift] as const),
-      DIMENSIONS.browWidth,
-      DIMENSIONS.browDepth,
-    );
+    line(parent, name, browPoints(kind, sign), DIMENSIONS.browWidth, DIMENSIONS.browDepth);
   };
 
   const features = {} as Record<Expression, { group: Group; eyes: Group[] }>;
@@ -261,19 +179,7 @@ export function createClaude({ expression = "neutral" as Expression } = {}) {
     g.name = `Expression_${ex}`;
     face.add(g);
     g.visible = false;
-    let types: [EyeType, EyeType] = ["open", "open"];
-    let bs: [BrowKind, BrowKind] = [null, null];
-    if (ex === "happy") types = ["happy", "happy"];
-    if (ex === "curious") [types, bs] = [["round", "round"], ["raised", "soft"]];
-    if (ex === "concerned") [types, bs] = [["small", "small"], ["sad", "sad"]];
-    if (ex === "sad") [types, bs] = [["sad", "sad"], ["sad", "sad"]];
-    if (ex === "surprised") [types, bs] = [["round", "round"], ["raised", "raised"]];
-    if (ex === "angry") [types, bs] = [["angry", "angry"], ["angry", "angry"]];
-    if (ex === "sleepy") types = ["sleepy", "sleepy"];
-    if (ex === "blink") types = ["closed", "closed"];
-    if (ex === "wink") types = ["open", "happy"];
-    if (ex === "embarrassed") [types, bs] = [["sad", "sad"], ["soft", "soft"]];
-    if (ex === "excited") [types, bs] = [["happy", "happy"], ["raised", "raised"]];
+    const { eyes: types, brows: bs } = expressionShape(ex);
     const es = types.map((t, i) => eye(g, `${ex}_Eye_${i ? "PosX" : "NegX"}`, t, i ? 1 : -1));
     bs.forEach((b, i) => {
       if (b) brow(g, `${ex}_Brow_${i}`, i ? 1 : -1, b);
