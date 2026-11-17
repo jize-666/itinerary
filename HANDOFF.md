@@ -189,6 +189,17 @@ Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Dri
 
 **Aturan baru host 17 Nov, kata demi kata:** "sekarang ketika kamu mengirim preview disini, kamu juga langsung kirim/up ke gdrive ya".
 Tafsir Claude: setiap pratinjau (video, foto, audio) yang dikirim ke host di chat juga langsung diunggah ke folder "previews". Dicatat di `CLAUDE.md` bagian penutup sesi. Skripnya `scripts/preview/drive-upload.py`: subfolder per jenis, nama diawali tanggal, token dari proxy, 401 = minta token baru.
+- Unggahan semua pratinjau lama selesai 17 Nov: 1.659 berkas, 0 gagal.
+  - Satu salinan rusak dipindah ke tempat sampah Drive: "t8 - dimensi-halus-hp.mp4" terpotong (13,4 dari 15,4 MB) karena rekamannya belum selesai saat unggahan mulai. Versi utuhnya sudah diunggah terpisah.
+- Host bertanya "lah? upload langsung gabisa ya? kan kalo baru cuma beberapa mb". Dijawab: connector hanya menerima isi berkas yang ditulis di perintah (base64), jadi untuk berkas beberapa MB pun tidak praktis; API dengan token membaca berkas langsung dari disk.
+
+**Aturan host 17 Nov (mengganti "langsung up"), kata demi kata:** "yauda gini saja, tandai yang sudah dikirim dan yang belum dikirim, ingatkan aku jika sudah menyentuh 1gb".
+Tafsir Claude:
+- Tiap pratinjau yang dikirim ke host di chat dicatat di buku catatan pratinjau (`docs/previews-ledger.json`): nama, ukuran, tanggal kirim ke chat, dan tanggal/ID Drive bila sudah diunggah.
+- Pratinjau tidak lagi diunggah satu per satu (token hanya ±1 jam).
+- Bila total yang belum di Drive ≥ 1 GB, host diingatkan untuk memberi token baru, lalu semuanya diunggah sekaligus.
+- Alat: `scripts/preview/drive-upload.py` (`catat`, `status`, `unggah`).
+- Titik awal: semua pratinjau sampai 17 Nov sudah di Drive.
 
 Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
 - tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
