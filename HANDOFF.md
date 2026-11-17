@@ -98,6 +98,7 @@ Hasil pengecekan 17 Nov:
 - Domain Space `resembleai-chatterbox.hf.space` ditambahkan ke jaringan lingkungan "itinerary" (disetujui host lewat layar izin), supaya potongan suara bisa diunggah langsung ke Space tanpa dijadikan file publik.
 - Potongan suara Clawd dibersihkan secara lokal (`voice/hf/clawd-ref.wav` di scratchpad): saringan frekuensi suara, peredam derau, kenyaringan disamakan.
 - Unggahannya ditolak pengaman sesi karena mengirim rekaman suara host ke server pihak luar. Menunggu persetujuan eksplisit host.
+- **Jawaban host 17 Nov atas pertanyaan "Boleh saya unggah rekaman suara Clawd itu ke Space Chatterbox?", kata demi kata:** "gas". Rekaman yang sudah dibersihkan diunggah ke penyimpanan sementara Space; contoh pendek (2 kalimat EN + 1 ID) dikirim dulu sebelum 78 klip.
 
 3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face begitu host mengizinkan unggah rekaman. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
