@@ -93,7 +93,13 @@ Tafsir Claude: cari jalan lain untuk suara Clawd selain antrean gratis ElevenLab
 4. suara bawaan browser (tidak disarankan).
 Host menunjuk connector Hugging Face: kini tersambung (akun host). Alat `dynamic_space` menjalankan Space Hugging Face dari jauh, jadi tidak perlu membuka jaringan sesi ke huggingface.co.
 
-3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+Hasil pengecekan 17 Nov:
+- Daftar Space di `dynamic_space` memuat `ResembleAI/Chatterbox`: text to speech yang meniru suara dari rekaman contoh. Rekaman contoh harus berupa URL yang terjangkau Space.
+- Domain Space `resembleai-chatterbox.hf.space` ditambahkan ke jaringan lingkungan "itinerary" (disetujui host lewat layar izin), supaya potongan suara bisa diunggah langsung ke Space tanpa dijadikan file publik.
+- Potongan suara Clawd dibersihkan secara lokal (`voice/hf/clawd-ref.wav` di scratchpad): saringan frekuensi suara, peredam derau, kenyaringan disamakan.
+- Unggahannya ditolak pengaman sesi karena mengirim rekaman suara host ke server pihak luar. Menunggu persetujuan eksplisit host.
+
+3. Berikutnya: gerbang dimensi di gallery + video contoh (sedang direkam); suara Clawd lewat Space Hugging Face begitu host mengizinkan unggah rekaman. (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
 
 ### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
