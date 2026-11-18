@@ -27,6 +27,7 @@ Tafsir Claude:
   - `jobs-en.json` (setelan per emosi) dan `daftar-klip.txt`.
 - Yang dikerjakan: periksa 39 nama dan teks cocok dengan `voiceLines()`, ukur tiap klip (lama, kenyaringan, terpotong atau tidak), olah lewat `scripts/audio/clawd-voice.ts build` ke `public/audio/clawd/en/` dan `voice-clips.json`, `check` hanya bahasa Inggris, catatan sumber suara di skrip dan `docs/design/decisions.md`, tes, e2e, video pratinjau bersuara (desktop dan HP, data April, nama Jize), lalu PR.
 - Rekaman mentah teman host tidak masuk repo; hanya klip olahan.
+- **Arahan host di tengah kerja, kata demi kata:** "kerjakan jangn lupa bagi tugas. haiku untuk task paling ringan, sonnet untuk task sedang dan kamu opus, otaknya". Dicatat sebagai aturan kerja di `CLAUDE.md`. Pembagian untuk klip ini: Haiku mengukur 39 klip dan mencocokkan teksnya; Sonnet mengubah skrip `check`, catatan sumber suara, `decisions.md`, dan tes unit; Opus memutuskan klip yang dipakai, mengolah, meninjau, menguji, merekam pratinjau, dan membuka PR.
 
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
