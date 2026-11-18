@@ -1,59 +1,155 @@
 /**
- * Debu emas di udara panggung: titik-titik yang melayang pelan, terang di dekat blencong. Seluruh geraknya
- * dihitung di vertex shader dari benih per titik (tanpa pembaruan dari JS tiap frame).
+ * Partikel panggung per fase (Tugas 8.4; jenis, kadar, dan sebaran di engine/stage/particles.ts). Satu `Points`,
+ * satu draw call, empat jenis butir:
+ * - debu lampu: debu emas di udara pendapa, terang di dekat blencong (seperti sebelumnya);
+ * - embun: melayang rendah di atas sawah dan hanyut pelan, berkilau sesekali saat cahaya kunci memantul;
+ * - debu emas siang: berputar pelan di udara, berkilau saat dipandang ke arah matahari, menjingga saat senja;
+ * - kunang-kunang: mengembara rendah dan berkedip (kilat singkat lalu meredup), bercahaya sendiri.
+ * Gerak seluruhnya dihitung di vertex shader dari benih per butir. Dari JS hanya kadar per jenis (sekali per
+ * perubahan langit) dan letak dasar butir (sekali per bentuk lanskap). Jenis yang kadarnya nol tidak dirasterisasi.
  */
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial, Vector4 } from "three";
+import { kindIndex, kindOf, type Ground, NEAR, type ParticleMix, placeParticle } from "@/engine/stage/particles";
 import { COMMON, type Shared } from "./shared";
+
+const v3 = (v: readonly number[]) => `vec3(${v.map((x) => x.toFixed(2)).join(", ")})`;
 
 const VERT = /* glsl */ `
 ${COMMON}
+/* ruang udara yang mengikuti kamera (NEAR di particles.ts): letak dunia dibungkus ke kotak berpusat di depan kamera */
+vec3 nearCenter(float ahead, float lift) {
+  vec3 fwd = -vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+  return cameraPosition + fwd * ahead + vec3(0.0, lift, 0.0);
+}
+vec3 wrapNear(vec3 p, vec3 box, vec3 center) {
+  return center + (fract((p - center) / box + 0.5) - 0.5) * box;
+}
+float edgeFade(vec3 wp, vec3 box, vec3 center) {
+  vec3 e = abs(wp - center) / (box * 0.5);
+  return 1.0 - smoothstep(${NEAR.edge.toFixed(2)}, 1.0, max(e.x, max(e.y, e.z)));
+}
 attribute vec4 aSeed;
+attribute vec3 aBase;
+attribute float aKind;
 uniform float uPixel;
-varying float vLight;
-varying float vSeed;
+uniform vec4 uMix;
+varying vec3 vColor;
+varying float vGlow;
 void main() {
-  // kotak udara di sekitar panggung; tiap titik melayang naik pelan dan berayun, lalu berulang
-  vec3 box = vec3(13.0, 5.2, 12.0);
-  float t = uTime * (0.012 + aSeed.w * 0.02);
-  vec3 p = vec3(aSeed.x, fract(aSeed.y + t), aSeed.z);
-  p.x += 0.035 * sin(uTime * 0.31 + aSeed.w * 40.0);
-  p.z += 0.03 * cos(uTime * 0.27 + aSeed.w * 23.0);
-  vec3 wp = (p - vec3(0.5, 0.0, 0.5)) * box + vec3(0.0, 0.15, 0.6);
+  float k = aKind;
+  float amount = k < 0.5 ? uMix.x : (k < 1.5 ? uMix.y : (k < 2.5 ? uMix.z : uMix.w));
+  vColor = vec3(0.0);
+  vGlow = 0.0;
+  if (amount < 0.002) {
+    // jenis ini sedang tidak tampak: di luar layar, tanpa piksel
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    gl_PointSize = 0.0;
+    return;
+  }
+  float s = aSeed.w;
+  float key = dot(uKeyColor, vec3(0.333));
+  vec3 keyTint = uKeyColor / max(key * 3.0, 1e-3);
+  vec3 wp;
+  vec3 col;
+  float size;
+  float glow = 0.0;
+  if (k < 0.5) {
+    // debu lampu: kotak udara di sekitar panggung; tiap butir naik pelan dan berayun, lalu berulang
+    vec3 box = vec3(13.0, 5.2, 12.0);
+    float t = uTime * (0.012 + s * 0.02);
+    vec3 p = vec3(aSeed.x, fract(aSeed.y + t), aSeed.z);
+    p.x += 0.035 * sin(uTime * 0.31 + s * 40.0);
+    p.z += 0.03 * cos(uTime * 0.27 + s * 23.0);
+    wp = (p - vec3(0.5, 0.0, 0.5)) * box + vec3(0.0, 0.15, 0.6);
+    vec3 dl = uLampPos - wp;
+    float lamp = dot(uLampColor, vec3(0.33)) / (1.0 + 0.5 * dot(dl, dl));
+    float life = smoothstep(0.0, 0.08, p.y) * (1.0 - smoothstep(0.86, 1.0, p.y));
+    col = mix(vec3(1.0, 0.72, 0.36), vec3(1.0, 0.9, 0.7), s) * (lamp * 0.42 + 0.014 * dot(uAmbSky, vec3(0.33)) + 0.003) * life;
+    size = 0.0022 + 0.004 * s * s;
+  } else if (k < 1.5) {
+    // embun: melayang setinggi mata kamera, hanyut pelan dan sedikit turun; berkilau sesekali memantulkan langit subuh
+    // (sebelum sarapan matahari belum tampak, jadi terangnya dari langit, bukan dari cahaya kunci)
+    vec3 box = ${v3(NEAR.dew.box)};
+    vec3 center = nearCenter(${NEAR.dew.ahead.toFixed(2)}, ${NEAR.dew.lift.toFixed(2)});
+    vec3 drift = vec3(0.18 * uTime * (0.3 + s), -0.03 * uTime, 0.12 * uTime * (0.5 - aSeed.z)) + 0.15 * vec3(sin(uTime * 0.4 + s * 20.0), sin(uTime * 0.3 + s * 9.0), cos(uTime * 0.35 + s * 31.0));
+    wp = wrapNear(aSeed.xyz * box * 3.0 + drift, box, center);
+    float glint = pow(max(0.5 + 0.5 * sin(uTime * (0.8 + 2.4 * aSeed.x) + s * 60.0), 0.0), 10.0);
+    float sky = 3.5 * dot(uSky[1], vec3(0.333)) + 0.35 * key + 0.05;
+    col = mix(vec3(0.8, 0.9, 1.0), keyTint, 0.25) * sky * (0.45 + 1.6 * glint) * edgeFade(wp, box, center);
+    size = 0.004 + 0.005 * s;
+  } else if (k < 2.5) {
+    // debu emas siang: berputar pelan di udara sekitar kamera dan naik perlahan; berkilau saat dipandang ke arah matahari
+    // (hamburan ke depan), menjingga saat senja (warna cahaya kunci)
+    vec3 box = ${v3(NEAR.motes.box)};
+    vec3 center = nearCenter(${NEAR.motes.ahead.toFixed(2)}, ${NEAR.motes.lift.toFixed(2)});
+    float t = uTime * (0.02 + 0.03 * s);
+    vec3 drift = vec3(0.6 * sin(t * 3.1 + s * 17.0), 0.06 * uTime * (0.4 + s) + 0.4 * sin(t * 1.7 + s * 9.0), 0.6 * cos(t * 2.3 + s * 29.0));
+    wp = wrapNear(aSeed.xyz * box * 3.0 + drift, box, center);
+    float fwd = pow(max(dot(safeNormalize(wp - cameraPosition), uSunDir), 0.0), 4.0);
+    col = mix(vec3(1.0, 0.86, 0.6), keyTint, 0.5) * (key * (0.12 + 1.6 * fwd) + 0.04 * dot(uAmbSky, vec3(0.33))) * edgeFade(wp, box, center);
+    size = 0.004 + 0.006 * s * s;
+  } else {
+    // kunang-kunang: mengembara rendah dan berkedip (kilat singkat lalu meredup), bercahaya sendiri
+    wp = aBase + vec3(0.6 * sin(uTime * 0.23 + s * 31.0), 0.25 * sin(uTime * 0.37 + s * 17.0), 0.6 * cos(uTime * 0.19 + s * 13.0));
+    // kedip: menyala cepat, bertahan sebentar, meredup pelan; di antara kedip tetap berpendar samar. Puncaknya melewati
+    // ambang bloom, jadi berpendar
+    float ph = fract(uTime * (0.2 + 0.16 * aSeed.x) + s * 7.0);
+    float flash = smoothstep(0.0, 0.1, ph) * (1.0 - smoothstep(0.22, 0.6, ph));
+    col = vec3(0.82, 1.0, 0.4) * (0.12 + 1.7 * flash);
+    size = 0.04 + 0.025 * aSeed.x;
+    glow = 1.0;
+  }
   vec4 mv = viewMatrix * vec4(wp, 1.0);
   gl_Position = projectionMatrix * mv;
-  float dist = -mv.z;
-  // terang oleh blencong, samar oleh cahaya sekitar; pudar di ujung daur dan terlalu dekat kamera
-  vec3 dl = uLampPos - wp;
-  float lamp = dot(uLampColor, vec3(0.33)) / (1.0 + 0.5 * dot(dl, dl));
-  float life = smoothstep(0.0, 0.08, p.y) * (1.0 - smoothstep(0.86, 1.0, p.y));
-  vLight = (lamp * 0.42 + 0.014 * dot(uAmbSky, vec3(0.33)) + 0.003) * life * smoothstep(0.35, 1.2, dist);
-  vSeed = aSeed.w;
-  // butir kecil: 1–4 px; yang lebih kecil dari satu piksel digambar satu piksel dengan terang diturunkan
-  float size = uPixel * (0.0022 + 0.004 * aSeed.w * aSeed.w) / dist;
-  vLight *= min(1.0, size * size);
-  gl_PointSize = clamp(size, 1.0, 4.0);
+  float dist = max(-mv.z, 0.05);
+  // butir kecil: yang lebih kecil dari satu piksel digambar satu piksel dengan terang diturunkan; pudar terlalu dekat
+  // kamera dan di kabut jauh
+  float px = uPixel * size / dist;
+  float fade = smoothstep(0.35, 1.2, dist) * exp(-uFogDensity * dist * 0.8);
+  // energi cahaya tetap: butir lebih kecil dari satu piksel diredupkan, butir dekat yang besar (embun, debu emas)
+  // melebar jadi cakram lembut yang lebih redup per piksel, bukan bercak terang
+  float cap = glow > 0.5 ? 16.0 : (k < 0.5 ? 4.0 : 12.0);
+  float spread = k > 0.5 && glow < 0.5 ? 9.0 / max(9.0, px * px) : 1.0;
+  vColor = col * amount * fade * min(1.0, px * px) * spread;
+  vGlow = glow;
+  gl_PointSize = clamp(px, 1.0, cap);
 }`;
 
 const FRAG = /* glsl */ `
-varying float vLight;
-varying float vSeed;
+varying vec3 vColor;
+varying float vGlow;
 void main() {
   vec2 q = gl_PointCoord - 0.5;
-  float a = (1.0 - smoothstep(0.05, 0.5, length(q)));
-  vec3 gold = mix(vec3(1.0, 0.72, 0.36), vec3(1.0, 0.9, 0.7), vSeed);
-  gl_FragColor = vec4(gold * a * vLight, 1.0);
+  float r = length(q);
+  // butir: cakram tajam; kunang-kunang: inti terang dengan pendar lembut di sekelilingnya
+  float a = mix(1.0 - smoothstep(0.05, 0.5, r), exp(-r * r * 70.0) + 0.35 * exp(-r * r * 12.0), vGlow);
+  gl_FragColor = vec4(vColor * a, 1.0);
 }`;
 
-export function createDust(shared: Shared, count: number) {
+export function createDust(shared: Shared, count: number, ground: Ground) {
   const seed = new Float32Array(count * 4);
   let s = 7;
   const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < seed.length; i++) seed[i] = rand();
+  const kinds = Array.from({ length: count }, (_, i) => kindOf(i, count));
+  const kind = new Float32Array(kinds.map(kindIndex));
+  const base = new Float32Array(count * 3);
+  const place = (g: Ground) => {
+    for (let i = 0; i < count; i++) {
+      const p = placeParticle(kinds[i]!, [seed[i * 4]!, seed[i * 4 + 1]!, seed[i * 4 + 2]!, seed[i * 4 + 3]!], g);
+      base.set(p, i * 3);
+    }
+  };
+  place(ground);
   const geo = new BufferGeometry();
   geo.setAttribute("position", new BufferAttribute(new Float32Array(count * 3), 3));
   geo.setAttribute("aSeed", new BufferAttribute(seed, 4));
+  geo.setAttribute("aKind", new BufferAttribute(kind, 1));
+  const baseAttr = new BufferAttribute(base, 3);
+  geo.setAttribute("aBase", baseAttr);
   const uPixel = { value: 800 };
-  const mat = new ShaderMaterial({ uniforms: { ...shared, uPixel }, vertexShader: VERT, fragmentShader: FRAG, blending: AdditiveBlending, depthWrite: false, transparent: true });
+  const uMix = { value: new Vector4(1, 0, 0, 0) };
+  const mat = new ShaderMaterial({ uniforms: { ...shared, uPixel, uMix }, vertexShader: VERT, fragmentShader: FRAG, blending: AdditiveBlending, depthWrite: false, transparent: true });
   const points = new Points(geo, mat);
   points.frustumCulled = false;
   points.matrixAutoUpdate = false;
@@ -63,6 +159,15 @@ export function createDust(shared: Shared, count: number) {
     /** Tinggi kanvas dalam piksel perangkat ÷ tan(fov/2): ukuran titik mengikuti lensa dan resolusi. */
     setPixel(v: number) {
       uPixel.value = v;
+    },
+    /** Kadar tampak tiap jenis (`particleMix`), sekali per perubahan langit. */
+    setMix(m: ParticleMix) {
+      uMix.value.set(m.lamp, m.dew, m.motes, m.fireflies);
+    },
+    /** Lanskap berubah bentuk (sungai bergeser mengikuti layar): embun dan kunang-kunang ikut tanah dan muka air. */
+    setGround(g: Ground) {
+      place(g);
+      baseAttr.needsUpdate = true;
     },
     dispose() {
       geo.dispose();

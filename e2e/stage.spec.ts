@@ -20,7 +20,7 @@ test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" }; grade: { phase: "night" | "dawn" | "day" | "dusk" | "gate"; sat: number } };
+type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" }; grade: { phase: "night" | "dawn" | "day" | "dusk" | "gate"; sat: number }; particles: Record<"lamp" | "dew" | "motes" | "fireflies", number> };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -1183,5 +1183,66 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
     }
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
     expect(avg(night.on)).toBeLessThan(avg(night.off) - 0.006);
+  });
+});
+
+test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut 8.4\")", () => {
+  const strongest = async (page: Page) => {
+    const m = (await stats(page))?.particles;
+    return m ? Object.entries(m).reduce((a, b) => (b[1] > a[1] ? b : a))[0] : null;
+  };
+  const particlesOff = (page: Page, off: boolean) => page.evaluate((v) => ((window as unknown as { __lakonStage: { particlesOff?: boolean } }).__lakonStage.particlesOff = v), off);
+  /** Banyak piksel pendar kunang-kunang di pita halaman dan lantai, lapisan DOM disembunyikan. */
+  async function fireflyPixels(page: Page) {
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
+    await nextFrames(page, 3);
+    const png = await page.screenshot();
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      // pita halaman dan lantai (45–90 % tinggi): di sana tidak ada bintang; pendar kunang-kunang sesudah grading malam
+      // berwarna kuning kehijauan pucat (hijau ≥ merah, hijau jauh di atas biru)
+      const y0 = Math.round(c.height * 0.45);
+      const d = g.getImageData(0, y0, c.width, Math.round(c.height * 0.9) - y0).data;
+      let n = 0;
+      for (let i = 0; i < d.length; i += 4) if (d[i + 1]! > 70 && d[i + 1]! >= d[i]! && d[i + 1]! > d[i + 2]! + 20) n++;
+      return n;
+    }, png.toString("base64"));
+  }
+
+  test("jenis butir mengikuti slide: debu lampu di judul hari, embun di pembuka hari, debu emas di gallery, kunang-kunang di gong penutup", async ({ page }) => {
+    test.slow();
+    await open3d(page, "?stage=low", "#day-1");
+    await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("lamp");
+    await step(page); // pembuka hari: subuh
+    await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("dew");
+    // gallery: maju sampai tempat singgah yang terang (debu emas)
+    for (let i = 0; i < 8 && (await strongest(page)) !== "motes"; i++) await step(page);
+    await expect(film(page)).toHaveAttribute("data-kind", "panel");
+    expect(await strongest(page)).toBe("motes");
+    await open3d(page, "?stage=low", "#day-2");
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("fireflies");
+  });
+
+  test("kunang-kunang sungguh tampak di gong penutup: titik kuning kehijauan bertambah dibanding tanpa partikel", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
+    test.slow();
+    await open3d(page, "?stage=high&clawd=0", "#day-2");
+    await step(page, "ArrowUp");
+    await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("fireflies");
+    await page.waitForTimeout(3000); // kilatan pukulan gong saat tiba sudah padam
+    const count: Record<"on" | "off", number> = { on: 0, off: 0 };
+    for (const off of [false, true, false, true]) {
+      await particlesOff(page, off);
+      count[off ? "off" : "on"] += await fireflyPixels(page);
+    }
+    expect(count.on).toBeGreaterThan(count.off + 40);
   });
 });

@@ -622,6 +622,32 @@ Warna akhir panggung 3D ikut fase waktu tiap slide, bukan hanya langit dan cahay
 - **Uji:** saklar `window.__lakonStage.gradeOff` mematikan grading untuk gambar sebelum/sesudah; `stats.grade.phase` dibaca e2e.
 - **Cakupan:** semua tier 3D (High, Medium, Low lewat pass FINAL). Film 2,5D (Static) memakai gradien CSS-nya sendiri dan tidak berubah.
 
+## Partikel per fase di panggung 3D (Tugas 8.4, 18 Nov 2026), arahan host: "dah gw merge, lanjut 8.4"
+
+Debu lampu lama diganti satu sistem butir berisi empat jenis yang kadarnya ikut fase waktu. Kodenya: `engine/stage/particles.ts` (murni) dan `stage3d/dust.ts`.
+- **Jenis butir:**
+  - debu lampu: debu emas di udara pendapa, terang di dekat blencong (seperti sebelumnya);
+  - embun: butir sejuk yang hanyut pelan setinggi mata dan berkilau sesekali memantulkan langit subuh;
+  - debu emas: butir yang berputar pelan dan naik perlahan, berkilau saat dipandang ke arah matahari, menjingga saat senja;
+  - kunang-kunang: titik kuning kehijauan yang mengembara rendah di atas sawah, tepi sungai, dan halaman pendapa, dan berkedip (menyala cepat, meredup pelan) dengan pendar bloom.
+- **Satu sumber dengan langit dan grading:** kadar tiap jenis dicampur dari bobot fase yang sama dengan grading warna (`phaseWeights`), jadi ikut jam tiap slide dan bergeser mulus mengikuti gulir. Jenis terkuat per slide:
+  - judul hari dan hero: debu lampu;
+  - pembuka hari: embun;
+  - gallery: embun di pagi, debu emas di siang dan senja, kunang-kunang sesudah gelap;
+  - gong penutup: kunang-kunang.
+- **Embun dan debu emas di ruang udara yang mengikuti kamera** (cara salju dan debu di gim). Letak tiap butir tetap di dunia, dibungkus ke kotak yang berpusat di depan kamera, dan tepi kotak memudar. Kamera yang bergeser tidak menggeser butir (parallax dan kedalaman ikut gulir tetap benar), dan di slide mana pun ada butir di depan lensa. Ukuran kotak satu sumber (`NEAR`), dimasukkan ke shader dari TypeScript.
+  - Percobaan pertama menebarnya jauh di sawah: di siang hari tertelan langit yang terang, di subuh terlalu redup.
+  - Percobaan kedua memusatkan kotak di kamera: separuh butir di belakang lensa, dan di pembuka hari (kamera mendongak) embun di bawah mata hampir tidak masuk layar.
+- **Kunang-kunang** punya letak dasar di lanskap, di atas tanah atau muka air Bengawan Solo, dan ikut bila sungai bergeser mengikuti bentuk layar. Sepertiganya di halaman pendapa supaya tampak di prolog dan gong.
+- **Hemat tanpa menurunkan kualitas:**
+  - satu `Points`, satu draw call, seperti debu lampu lama;
+  - gerak seluruhnya dihitung di vertex shader dari benih per butir;
+  - dari JS hanya kadar per jenis (sekali per perubahan langit) dan letak dasar kunang-kunang (sekali per bentuk lanskap);
+  - jenis yang kadarnya nol tidak dirasterisasi;
+  - jumlah butir per tier tetap seperti sebelumnya (3.600 di desktop High, 2.000 di HP; Medium separuh, Low 15 %).
+- **Energi cahaya tetap:** butir yang lebih kecil dari satu piksel diredupkan; butir dekat yang besar melebar jadi cakram lembut yang lebih redup per piksel, bukan bercak terang.
+- **Uji:** tes unit (kadar per fase, mulus per menit, pembagian jenis termasuk tier Low, sebaran kunang-kunang, ruang udara `NEAR`). E2e membaca jenis terkuat per slide (`stats.particles`) dan menghitung piksel kunang-kunang di slide gong. Saklar `window.__lakonStage.particlesOff` mematikan butir untuk gambar sebelum/sesudah.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

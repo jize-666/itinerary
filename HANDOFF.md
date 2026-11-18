@@ -1,11 +1,143 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`f873e59`) · **PR #14 (Tugas 8.1 Bengawan Solo dan larung, gerbang dimensi, gelembung dan emosi suara Clawd) di-merge host 18 Nov** · rencana berikutnya di bagian 0, "Sesudah PR #14 di-merge" · suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`07f7edc`) · **Tugas 8.4 (partikel per fase) selesai, PR #16 menunggu merge host; Tugas 8 selesai** · contoh suara Clawd dari suara host dan suara teman host menunggu pilihan host · PRD Jize Zone bergaya montage untuk Codex sedang dikerjakan · sebelumnya: PR #15 (Tugas 8.2 + 8.3, grading warna per fase) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR #15 menunggu merge host
+Menunggu host:
+- merge PR #16 (Tugas 8.4, partikel per fase)
+- empat keputusan PRD Jize Zone v2 (backend, hosting, isi pesan host di log live, nasib artifact lama)
+- izin untuk Fable (pembantu yang hanya bekerja atas izin host)
+- penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
+- jawaban soal kaki Clawd 3D yang tertutup kartu gallery
+- uji di iPhone produksi (`/film/?fps`)
+
+### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
+
+**Kata host:** "update handoff. gw pilih suara temen gw yang en. gausa kasih indo."
+Tafsir Claude:
+- Suara Clawd memakai rekaman teman host (`clawd-ref2-jernih.wav` di scratchpad `clawd-voice2/`, model Inggris Chatterbox), seperti contoh "tenang EN" dan "marah EN" yang dikirim 17–18 Nov.
+- Hanya klip bahasa Inggris: 39 klip, bukan 78. Saat film berbahasa Indonesia, Clawd tampil tanpa suara; pemutar sudah begitu untuk kalimat tanpa klip.
+- Suara host sendiri tidak dipakai; contohnya tetap di scratchpad `suara-host/`, tidak masuk repo.
+- Emosi tiap klip ikut `moodOf` (tenang 27, senang 5, terkejut 3, marah 2, mengantuk 2): `exaggeration` dan `cfg_weight` Chatterbox disetel per emosi; marah memakai setelan contoh marah EN yang dikirim (1,1 / 0,4).
+- Rekaman mentah dibuat di container (CPU) dan disimpan di scratchpad. Klip olahan (MP3 48 kbps, −16 LUFS) masuk repo lewat `scripts/audio/clawd-voice.ts build`.
+- PR klip terpisah dari PR #16: dibuka dari `main` terbaru sesudah PR #16 di-merge, atau ditumpuk di PR #16 bila host minta.
+- Sisa kerja kode untuk PR itu:
+  - `scripts/audio/clawd-voice.ts` hanya memeriksa bahasa Inggris, dan catatan sumber suaranya diganti dari ElevenLabs ke suara teman host + Chatterbox;
+  - `docs/design/decisions.md` bagian "Suara Clawd" diperbarui;
+  - tes unit klip;
+  - video pratinjau Clawd bersuara.
+
+### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — PRD DAN KIT DIKIRIM, MENUNGGU KEPUTUSAN HOST
+
+**Kata host:** "buatin gw promt / prd web seperti ini 90-95% mirip, untuk update artifacts mu. agent yang akan mengerjakan adalah codex/gpt astra." dan "di artifacts, pembantu baru si sonnet, haiku dan fabble masih nganggur. suruh mereka kerja (catatan, fable hanya bisa kerja atas izin dariku)". Lampiran: `larp.zip` (21 frame 512×682 dari video montage 9,9 dtk berisi dasbor agen AI bergaya terminal dengan visual 3D; disimpan di scratchpad, tidak masuk repo).
+Tafsir Claude:
+- Buat PRD + prompt untuk Codex/GPT: desain ulang artifact **Jize Zone** supaya 90–95% mirip gaya montage itu, dengan isi Jize Zone sendiri (tugas, menunggu host, kru, ringkasan). Merek dan nama produk dari video tidak disalin.
+- Batas teknis ikut tipe Dashboard artifact (berkas di store, tanpa modul, tanpa host luar, `dash.data`), supaya hasil Codex bisa dipasang ke artifact yang sama.
+- Pembantu: Sonnet dan Haiku dipakai sebagai subagen untuk pekerjaan ini (inventaris frame, tinjauan PRD). Fable tidak dijalankan tanpa izin host; Claude mengusulkan pekerjaannya dan menunggu izin.
+- Kartu "Sesi & agen" di Jize Zone diperbarui supaya Sonnet, Haiku, dan Fable (menunggu izin) tampak.
+- **Tambahan host (18 Nov, di tengah pekerjaan):** "tambahan: jizone = live website. gw pengen mantau kerjaanlu pada secara live. bukan update per task."
+  - Tafsir Claude: Jize Zone v2 = website live, bukan artifact yang diisi berkas per tugas.
+  - Tiap langkah kerja Claude (pesan host masuk, tiap alat dipakai, agen pembantu mulai/selesai, giliran selesai) dikirim otomatis oleh hook Claude Code ke basis data realtime. Website menampilkannya seketika.
+  - PRD ditulis ulang untuk itu: website (dibangun Codex), kontrak kejadian, dan sisi pengirim (hook di container, dipasang Claude sesudah host menyetujui backend).
+  - Simulator runtime artifact untuk Codex dihentikan; Sonnet dialihkan membuat rekaman kejadian (replay) dari sesi ini, sudah disaring tanpa data pribadi.
+
+1. **Selesai (18 Nov):**
+   - Dokumen "PRD Jize Zone v2 untuk Codex" (Claude Docs, milik host) berisi:
+     - prompt untuk Codex (bahasa Inggris, siap tempel) dan target kemiripan per potongan referensi;
+     - arsitektur live: hook Claude Code → `jz-emit.mjs` → Edge Function `jz-ingest` → Supabase Realtime → website Vercel;
+     - kontrak data (whitelist kolom kejadian), tata letak, token desain, lima adegan hero, delapan panel, gerak;
+     - 20 butir kemiripan (lulus ≥ 18) dan 7 syarat fungsi;
+     - serah terima dan empat keputusan host.
+   - `codex-kit.zip` (18 MB) dikirim ke host:
+     - PRD dalam Markdown (tanpa nama host);
+     - referensi: 21 frame dan 14 potongan berlabel;
+     - fixtures nyata: 297 berkas repo, 727 tautan, commit 21 hari, tugas, menunggu, kru, ringkasan, dan 802 kejadian kerja 18 Nov yang sudah disaring;
+     - pemutar replay dengan uji asap lulus;
+     - generator `gen_graf.py`, `gen.py`, `buat-replay.py`, dan pemindai bocor.
+     - Kit ada di scratchpad (tidak masuk repo).
+   - Pembantu yang bekerja:
+     - Haiku: inventaris frame 1–10 (87 dtk, 123 rb token) dan papan referensi (23 dtk, 104 rb token);
+     - Sonnet: inventaris frame 11–21 + token desain (80 dtk, 114 rb token), dan rekaman kejadian (334 dtk, 143 rb token);
+     - Fable: tidak dijalankan (menunggu izin host).
+   - Artifact Jize Zone: kartu "Sesi & agen" dan semua data diperbarui; "Menunggu host" kini dibaca dari daftar baru di awal bagian 0.
+2. **Tes dan kendala:**
+   - Pindai bocor 0 temuan (e-mail, URL, `/root/`, token, angka ≥ 10 digit, nama host); uji asap replay lulus (52 baris, 0 galat).
+   - Nama model di kit diseragamkan ke nama keluarga (Opus, Sonnet, Haiku, Fable), tanpa id versi, karena Codex akan memasukkannya ke repo.
+   - Simulator runtime artifact (Sonnet) dihentikan di tengah jalan karena arah berubah ke website live.
+3. **Langkah berikutnya:**
+   - Host memilih empat keputusan di PRD: proyek Supabase baru atau skema `jz`, Vercel, isi pesan host di LIVE LOG, dan nasib artifact lama.
+   - Host memberikan PRD dan kit ke Codex.
+   - Sesudah repo Codex ada:
+     - Claude meninjaunya;
+     - meminta kunci ingest lewat formulir aman;
+     - memasang hook lewat PR di repo itinerary;
+     - menguji ujung ke ujung.
+
+### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — CONTOH DIKIRIM, MENUNGGU PILIHAN HOST
+
+**Kata host:** "coba suara gw", dengan tiga rekaman suara host (7, 5, dan 11 detik; m4a 48 kHz mono).
+Tafsir Claude:
+- Buat contoh suara Clawd dari suara host sendiri, dengan cara yang sama seperti contoh suara teman host:
+  - rekaman dijernihkan tanpa merusak warna suara;
+  - ditiru dengan Chatterbox di CPU container (lokal, tidak dikirim ke layanan luar);
+  - contoh dikirim: tenang EN, marah EN, tenang ID (setelan Melayu), tenang ID (model Inggris).
+- Host yang memilih: suara host atau suara teman host. Sesudah itu baru 78 klip.
+- Rekaman dan contoh tidak masuk repo.
+- Chatterbox dijalankan sesudah rekaman video HP Tugas 8.4 selesai, supaya video tidak patah-patah.
+
+1. **Selesai (18 Nov):**
+   - Rekaman dijernihkan: hanya dengung di bawah 60 Hz yang dibuang (high-pass 60 Hz, 4 kutub).
+     - Rekaman bersih: desis dan dengung 22–33 dB di bawah suara di pita 65 Hz–5 kHz.
+     - Pita suara di atas 150 Hz berubah ≤ 0,1 dB.
+     - Desis nada tinggi tidak dibuang: `afftdn` ikut menurunkan pita 5–20 kHz saat bersuara −2 sampai −5 dB.
+   - Rekaman acuan: tiga rekaman disamakan kerasnya (−20 LUFS, penguatan linear), lalu digabung jadi 24 dtk. Yang terbaik ditaruh di depan, karena Chatterbox memakai ±10 dtk pertama.
+   - Empat contoh dikirim ke host dan dicatat di ledger: tenang EN, marah EN, tenang ID (setelan Melayu, benih 11), tenang ID (model Inggris).
+     - Nada dasar contoh 124–126 Hz, sama dengan rekaman host (124 Hz). Contoh marah 143 Hz.
+2. **Kendala:**
+   - Contoh tenang ID setelan Melayu terpotong di benih 7, karena model menghentikan kalimat lebih awal. Dibuat ulang dengan benih 11, 3, dan 21. Benih 11 utuh dan meredup wajar di ujung; benih 21 kepanjangan (9,6 dtk).
+   - Berkas kerja ada di scratchpad `suara-host/` (tidak masuk repo).
+3. **Langkah berikutnya:**
+   - Host memilih suara Clawd (suara host atau suara teman host) dan cara bahasa Indonesianya (setelan Melayu atau model Inggris).
+   - Lalu 78 klip dengan suara itu, di PR terpisah.
+
+### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR menunggu host
+
+**Arahan host 18 Nov, kata demi kata:** "dah gw merge, lanjut 8.4".
+Tafsir Claude:
+- PR #15 (8.2 + 8.3) di-merge 18 Nov (squash `07f7edc`); branch kerja dimulai ulang dari `main`.
+- 8.4 dikerjakan: partikel per fase (rencana awal: embun subuh, debu emas siang, kunang-kunang malam).
+  - Sumbernya `SkyState` yang sama dengan langit dan grading, jadi partikel ikut jam tiap slide dan bergeser mulus mengikuti gulir.
+  - Partikel adalah titik 3D di dunia, jadi kamera parallax, perspective shift, dan kedalaman ikut gulir berlaku otomatis.
+  - Hemat: dibangun di atas sistem titik yang sudah ada bila bisa, mengikuti tier (`particles`).
+- Masih dilewati: 78 klip suara Clawd (menunggu host memilih contoh).
+
+1. **Selesai (18 Nov):**
+   - `engine/stage/particles.ts` (murni): empat jenis butir (debu lampu, embun, debu emas, kunang-kunang), kadar per fase dari `phaseWeights` yang sama dengan grading, pembagian butir per jenis, sebaran kunang-kunang di atas tanah atau muka air (sepertiga di halaman pendapa), dan ruang udara `NEAR`.
+   - `stage3d/dust.ts`: debu lampu lama diganti satu `Points` berisi empat jenis (satu draw call). Gerak dihitung di vertex shader; jenis yang kadarnya nol tidak dirasterisasi; kunang-kunang berkedip dengan pendar bloom.
+   - Embun dan debu emas mengisi kotak udara yang berpusat di depan kamera (letak dunia dibungkus ke kotak, tepinya memudar), jadi di slide mana pun ada butir di depan lensa.
+   - Runtime: kadar dihitung saat langit berubah; kunang-kunang ikut tanah dan muka air saat lanskap berubah bentuk. Statistik `particles`; saklar uji `particlesOff`.
+   - Rincian: `docs/design/decisions.md` bagian "Partikel per fase di panggung 3D".
+2. **Tes dan kendala:**
+   - Unit: 6 tes baru (kadar per fase, ikut jam, mulus per menit, pembagian jenis termasuk tier Low, sebaran kunang-kunang, ruang udara `NEAR`); total 461/461; lint dan typecheck bersih; content:check lulus.
+   - E2e baru (2): jenis terkuat per slide (judul → pembuka hari → gallery → gong); piksel kunang-kunang di slide gong lebih banyak dibanding tanpa partikel.
+   - Kendala yang dibereskan, dari gambar diam sebelum/sesudah (data April Hari 1):
+     - Kunang-kunang terlalu kecil dan redup: diperbesar, kedip lebih terang dan lebih lama, inti dan pendar.
+     - Embun dan debu emas hampir tak terlihat saat ditebar jauh di sawah (tertelan langit siang yang terang, terlalu redup di subuh). Dipindah ke ruang udara yang mengikuti kamera.
+     - Kotak yang berpusat di kamera menaruh separuh butir di belakang lensa, dan di pembuka hari (kamera mendongak) embun di bawah mata tidak masuk layar. Kotak digeser ke depan kamera dan embun dinaikkan setinggi mata.
+   - Tes penuh 18 Nov: lint, typecheck, unit 461/461, content:check, build lulus; e2e 292 lulus, 32 dilewati sesuai proyeknya, 0 gagal (15,9 menit).
+   - Video pratinjau dikirim ke host dan dicatat di ledger: gallery Hari 1 (judul → pembuka hari → pagi → siang → senja → malam → gong).
+     - desktop 1080p 37,5 dtk;
+     - HP 9:16 41,9 dtk, dengan satu geser jari ditahan di tengah.
+     - Ledger: belum di Drive 14 berkas, 101 MB.
+3. **Langkah berikutnya:**
+   - host meninjau video dan merge PR 8.4;
+   - sesudah 8.4, Tugas 8 tinggal sisa yang menunggu host (video gerbang dimensi versi halus, kaki Clawd di gallery, uji iPhone);
+   - 78 klip suara Clawd sesudah host memilih contoh;
+   - lalu Tugas 9 (Diorama Solo), dengan arahan host.
+
+### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR #15 di-merge host 18 Nov
 
 **Arahan host 18 Nov, kata demi kata:** "kerjakan tugas 8.2 + 8.3 dulu. tandain yang di lewati."
 Tafsir Claude:

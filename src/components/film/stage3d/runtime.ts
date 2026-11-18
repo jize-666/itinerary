@@ -7,7 +7,7 @@
  */
 import { type PerspectiveCamera, type Scene, Vector2, Vector3, type WebGLRenderer } from "three";
 import type { Film } from "@/engine/slides/build-slides";
-import type { SkyState } from "@/engine/slides/sky";
+import { type SkyState, STILL } from "@/engine/slides/sky";
 import { type GongPlace, stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
@@ -18,8 +18,9 @@ import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { type Grade, gradeOf, type GradePhase, phaseOf } from "@/engine/stage/grade";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
-import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
-import { RIVER, riverLine } from "@/engine/stage/river";
+import { terrainHeight, TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
+import { type ParticleMix, particleMix } from "@/engine/stage/particles";
+import { RIVER, riverLine, waterLevel } from "@/engine/stage/river";
 import { drawnAt, filmPosition, larungRoutes, pointAt, type Route, riverRing, shownAt } from "@/engine/stage/route";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
@@ -75,10 +76,14 @@ export type StageStats = {
   portal: number;
   /** Grading warna per fase (Tugas 8.2 + 8.3): fase terkuat dan saturasinya. */
   grade: { phase: GradePhase; sat: number };
+  /** Partikel per fase (Tugas 8.4): kadar tampak tiap jenis butir. */
+  particles: ParticleMix;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
   /** Hanya untuk pratinjau dan uji: grading warna dimatikan (gambar sebelum/sesudah Tugas 8.2 + 8.3). */
   gradeOff?: boolean;
+  /** Hanya untuk pratinjau dan uji: partikel disembunyikan (gambar sebelum/sesudah Tugas 8.4). */
+  particlesOff?: boolean;
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
   sweepAt?: readonly number[];
   /**
@@ -145,7 +150,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let clock = 0;
   // tombol pukul di lapisan DOM memicu gong lewat bus
   const unbindGong = stageBus.bindGong((kick) => gong.strike(clock, kick));
-  const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles));
+  // partikel per fase (Tugas 8.4): embun dan kunang-kunang melayang di atas tanah atau muka Bengawan Solo
+  const groundOf = (sh: TerrainShape) => {
+    const line = riverLine(sh.river ?? RIVER.ring);
+    return (x: number, z: number) => Math.max(terrainHeight(x, z, sh), waterLevel(x, z, line) ?? -Infinity);
+  };
+  const dust = createDust(shared, Math.round((isMobile() ? 2000 : 3600) * spec.particles), groundOf(TERRAIN_DEFAULT));
+  let mix: ParticleMix = particleMix(STILL.gate);
   // Clawd, maskot pemandu (M3): menyapa, memperkenalkan diri, dan menjelaskan fitur 3D di dekat objeknya
   // `?clawd=0`: tanpa Clawd (pengukuran beban, seperti `?fps` dan `?stage=`)
   const clawd = new URLSearchParams(window.location.search).get("clawd") === "0" ? null : createStageGuide({ shared, scene, host: root, touch: isMobile() });
@@ -232,6 +243,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       shape = next;
       terrain.reshape(shape);
       if (moved) river.setLine(riverLine(ring));
+      dust.setGround(groundOf(shape));
     }
     routes = larungRoutes(film, frame, shape.river ?? RIVER.ring);
     larung.setRoutes(routes);
@@ -262,6 +274,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       mood = moodOf(s);
       grade = gradeOf(s);
       phase = phaseOf(s);
+      mix = particleMix(s);
+      dust.setMix(mix);
       const d = sunDirection(s.sun.u, s.sun.v, track, frame.aspect);
       sunDir.set(d[0], d[1], d[2]);
       // arah cahaya: azimut matahari di layar, tetapi tingginya mengikuti jam (lihat lightElevation)
@@ -418,6 +432,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       worldHidden = hide;
       for (const n of world) n.visible = !hide;
     }
+    dust.points.visible = !hide && !stats.particlesOff;
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
@@ -484,6 +499,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.dof = { amount: dofAmount, focus: dofAt, drawn: post.dofDrawn };
     stats.portal = portal;
     stats.grade = { phase, sat: grade?.sat ?? 1 };
+    stats.particles = mix;
   };
   layout();
   resize();

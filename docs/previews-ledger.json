@@ -142,6 +142,54 @@
       "sent": "2026-11-18",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "t84-partikel-gallery-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/grade/t84-partikel-gallery-desktop.mp4",
+      "size": 26296001,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "t84-partikel-gallery-hp.mp4",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/grade/t84-partikel-gallery-hp.mp4",
+      "size": 25629181,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-suara-host-marah-en.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/suara-host/contoh/clawd-suara-host-marah-en.mp3",
+      "size": 17157,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-suara-host-tenang-en.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/suara-host/contoh/clawd-suara-host-tenang-en.mp3",
+      "size": 48309,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-suara-host-tenang-id-model-inggris.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/suara-host/contoh/clawd-suara-host-tenang-id-model-inggris.mp3",
+      "size": 49677,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-suara-host-tenang-id.mp3",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/suara-host/contoh/clawd-suara-host-tenang-id.mp3",
+      "size": 46365,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
