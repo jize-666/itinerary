@@ -174,7 +174,9 @@ const fs = require('fs');
   if (VOICE) {
     // bersuara: mulai dari beranda dan tekan "Begin the lakon" seperti tamu (itu yang menyalakan suara). Navigasi
     // klien ke /film/ membuang query dan hash, jadi pushState/replaceState menambahkannya kembali.
-    await p.goto(`${BASE}/`, { waitUntil: 'commit' });
+    // query (mis. ?stage=high) sudah ada di beranda: StageMount membaca location.search saat film dipasang, sebelum
+    // router memanggil pushState, jadi query yang baru ditambahkan bungkus pushState di bawah terlambat terbaca
+    await p.goto(`${BASE}/${query ? `?${query}` : ''}${hash}`, { waitUntil: 'commit' });
     await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
     await p.evaluate((target) => {
       const [path, rest] = [target.split(/[?#]/)[0], target.slice(target.split(/[?#]/)[0].length)];
