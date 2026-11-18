@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SEDANG DIKERJAKAN
+### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR menunggu merge host
 
 **Arahan host 18 Nov, kata demi kata:** "kerjakan tugas 8.2 + 8.3 dulu. tandain yang di lewati."
 Tafsir Claude:
@@ -31,10 +31,15 @@ Tafsir Claude:
      - Percobaan pertama memasang grading sebelum encode sRGB. Rona bayangan dibesarkan kurva gamma: malam −0,20 (terlalu biru) dan gerbang ikut kebiruan. Grading dipindah ke sesudah encode, rona bayangan gerbang diganti hangat netral, dan rona bayangan malam/subuh/senja dikecilkan. Tes unit "nada gelap" mengunci ini.
      - Pengukuran malam di slide gong goyah karena bara gong masih berubah, jadi dipindah ke intro prolog (tanpa gong) dan dirata-rata.
    - Pratinjau dikirim ke host dan dicatat di ledger: lembar sebelum/sesudah per fase, desktop dan HP, data April Hari 1 (gerbang, subuh, pagi, siang, senja, malam).
+   - Tes penuh 18 Nov: content:check dan build lulus; e2e 289 lulus, 31 dilewati sesuai proyeknya, 0 gagal (14,8 menit).
+   - Video pratinjau dikirim ke host dan dicatat di ledger: gallery Hari 1 (judul → pagi → siang → senja → malam → gong).
+     - desktop 1080p 37,5 dtk;
+     - HP 9:16 41,9 dtk, dengan satu geser jari ditahan di tengah.
+     - Ledger: belum di Drive 12 berkas, 51 MB.
 3. **Langkah berikutnya:**
-   - e2e penuh, content:check, dan build (sedang berjalan);
-   - video pratinjau gallery Hari 1 (subuh → siang → senja, grading bergeser mengikuti gulir), desktop dan HP;
-   - PR; host menilai kekuatan grading (`GRADE_STRENGTH`).
+   - host merge PR 8.2 + 8.3, dan menilai kekuatan grading (`GRADE_STRENGTH`);
+   - lalu 8.4 partikel per fase, dengan arahan host;
+   - 78 klip suara Clawd sesudah host memilih contoh.
 
 ### Sesudah PR #14 di-merge (18 Nov): rencana berikutnya
 
