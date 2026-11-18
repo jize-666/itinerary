@@ -1,14 +1,12 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): kejadian kerja Claude sudah mengalir live ke `jz.kejadian`; snapshot, login, dan Vercel menunggu host** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): backend Supabase lengkap (kejadian live, snapshot, login host); website Vercel menunggu izin akses tim** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
 Menunggu host:
-- Jize Zone: setujui migrasi `snapshot_safeupdate` di Supabase (permintaan konfirmasi tidak terjawab); sesudah itu snapshot repo masuk
-- Jize Zone: buat pengguna host, pasang hook Custom Access Token, matikan pendaftaran pengguna baru
-- Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy)
+- Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy; backend Supabase sudah lengkap)
 - merge PR `second-brain` (pemasang hook dan perbaikan jalur produksi)
 - rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
@@ -17,7 +15,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — KEJADIAN SUDAH MENGALIR LIVE; SNAPSHOT, LOGIN, DAN VERCEL MENUNGGU HOST
+### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — BACKEND SUPABASE LENGKAP; WEBSITE (VERCEL) MENUNGGU IZIN HOST
 
 **Kata host, kata demi kata:** "lanjut tugas, baca isi claude.md", lalu di tengah kerja: "bukan suara. supabase, connect in".
 Tafsir Claude:
@@ -78,6 +76,22 @@ Tafsir Claude:
    - Host: pengguna Auth, hook Custom Access Token, pendaftaran mati; Claude memasukkan UUID host ke `jz_private.host`.
    - Vercel: izin akses tim, lalu impor repo `second-brain` dan Site URL.
    - Hapus berkas kunci di scratchpad bila host setuju.
+
+**Lanjutan 18 Nov malam (2).** Host membuat pengguna Auth, memasang hook Custom Access Token, mematikan pendaftaran, dan menjalankan migrasi `snapshot_safeupdate` sendiri di SQL Editor (kartu konfirmasi konektor Supabase tidak tampil di aplikasi HP host; dua kali habis waktu).
+1. **Selesai:**
+   - Pengguna host didaftarkan Claude di `jz_private.host` (satu-satunya pengguna, dibuat host 16.28 UTC), sebelum hook token dipasang. `jz_private.owner_token` dicoba langsung: token host lolos, akun lain ditolak.
+   - Migrasi terpasang (badan `jz.ganti_snapshot` dicek). Antrean kosong: dua snapshot terkirim, tidak ada yang ditolak.
+   - Isi database: 298 berkas, 727 tautan, 21 hari commit, 16 tugas, 10 butir menunggu, ringkasan; 104+ kejadian live.
+   - RLS dicek sebagai `authenticated`: host membaca 106 kejadian lewat `jz.awal()`, akun lain 0.
+   - Auth: pendaftaran mati, login anonim mati, e-mail aktif.
+2. **Tes dan kendala:**
+   - Pemeriksa keamanan Supabase: satu peringatan, "Leaked Password Protection Disabled" (Auth). Website memakai magic link, jadi dampaknya kecil; bisa dinyalakan host di Authentication bila paketnya mendukung.
+   - Catatan migrasi: karena dijalankan lewat SQL Editor, `snapshot_safeupdate` tidak tercatat di riwayat migrasi Supabase (`list_migrations` hanya `observatorium`). `supabase db push` nanti akan mencoba menjalankannya lagi; aman karena `create or replace`.
+   - E2E itinerary: 290 lulus, 32 dilewati sesuai proyeknya, 2 gagal batas waktu 30 dtk (desktop: sapuan bab gunungan, zoom gong judul hari; 30,5–31,3 dtk), juga 4/4 gagal saat diulang sendiri. Kode aplikasi sama dengan `main` (e2e penuh terakhir 18 Nov lulus semua). Dugaan: container ini lebih lambat (4 inti, beban 4,7–5,3); belum dibuktikan. Tes tidak diubah.
+3. **Langkah berikutnya:**
+   - Vercel: host mengizinkan akses tim, lalu Claude mengimpor repo `second-brain` (env `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`), mengatur Site URL dan redirect Supabase ke alamat Vercel, dan menguji login magic link.
+   - PR `second-brain` (pemasang hook + perbaikan produksi) dan PR itinerary (hook + dokumen), siap Squash and merge.
+   - Bersih-bersih: `quick-processor` dan `jz-diag` boleh dihapus host; berkas kunci di scratchpad dihapus bila host setuju.
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
 
