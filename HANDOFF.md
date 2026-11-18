@@ -28,6 +28,21 @@ Tafsir Claude:
     - host merge PR #14;
     - host memilih contoh suara Clawd, lalu 78 klip (PR terpisah dari `main` terbaru);
     - Tugas 8.2–8.4 dengan arahan host.
+- **Pertanyaan host 18 Nov, dengan tangkapan layar PR #14 di GitHub HP ("CI / check (push)" gagal di e2e; "pull_request" lulus), kata demi kata:** "perlu perbaikan?"
+  - Temuan: dua tes e2e di run push.
+    - **[desktop] gunungan "mundur di slide pertama menancapkannya lagi"**: gagal dua kali, termasuk retry.
+      - Tes ini juga gagal berselang di run #275, #314, #319, #320, dan #326.
+      - Run #275 adalah commit dokumen tepat sesudah PR #13, kodenya sama dengan `main`. Jadi ketidakstabilannya sudah ada sebelum PR ini.
+    - **[iphone] "tanpa ?fps tidak ada overlay"**: lulus di retry; `main.film` belum tampil dalam 5 dtk.
+  - Akar masalah: main thread penuh oleh 3D yang digambar CPU di runner CI. Akibatnya transisi opacity CSS (0,5 dtk) bisa belum bergerak dalam 5 dtk bawaan `expect.poll`.
+    - Bukti: diulang dengan CPU diperlambat 4×; saat gagal, transisi opacity sedang berjalan tapi masih di 0.
+    - Berkas `stage.spec.ts` sudah punya `WAIT` (CI 45 dtk) untuk keadaan ini, tetapi 8 penantian opacity gunungan/credits dan `toBeVisible` di `open()` belum memakainya.
+  - Perbaikan (commit `0069e80`): semua penantian itu memakai `WAIT`. Nilai yang diperiksa tetap: opacity tepat 0 dan 1.
+  - Hasil:
+    - dengan CPU diperlambat 4×: 6/6 lulus (sebelumnya ±separuh gagal);
+    - semua tes gunungan dan overlay di desktop + iPhone: 15 lulus, 1 dilewati sesuai proyeknya;
+    - lint dan typecheck bersih.
+  - Langkah berikutnya: tunggu CI dari push ini hijau, lalu host merge.
 
 **Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
 
