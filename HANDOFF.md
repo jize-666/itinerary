@@ -14,6 +14,28 @@ Tafsir Claude:
   - 78 klip suara Clawd (langkah 1 rencana): tetap menunggu host memilih contoh suara, lalu dikerjakan sesudah 8.2 + 8.3;
   - 8.4 partikel per fase tetap sesudahnya, sesuai urutan.
 
+1. **Selesai (18 Nov):**
+   - `engine/stage/grade.ts` (murni): rupa per fase (malam, subuh, siang, senja, gerbang).
+     - Ditumpuk dari `SkyState` yang sama dengan langit dan cahaya (urutan `moodOf`), jadi grading ikut jam tiap slide dan bergeser mulus mengikuti gulir.
+     - Sorotan menghangat saat matahari rendah.
+     - `GRADE_STRENGTH` = satu angka untuk menyetel kekuatannya.
+   - Pass FINAL `post.ts`: CDL per kanal, saturasi, dan split toning pada nilai tampilan sesudah encode sRGB, tanpa pass baru.
+   - Runtime: grading dihitung saat langit berubah dan dikirim ke post. Statistik `grade.phase`; saklar uji `gradeOff` untuk gambar sebelum/sesudah.
+   - Rincian: `docs/design/decisions.md` bagian "Grading warna per fase di semua slide 3D".
+2. **Tes dan kendala:**
+   - Unit:
+     - 10 tes baru: fase, bobot, mulus per menit dan per 1 % gulir, arah warna, abu tengah ±12 %, nada gelap;
+     - total 455/455; lint dan typecheck bersih.
+   - E2e baru (2): fase per slide (desktop + iPhone); gambar gerbang lebih hangat dan malam lebih biru dibanding tanpa grading (diulang 4×: 4/4).
+   - Kendala yang dibereskan:
+     - Percobaan pertama memasang grading sebelum encode sRGB. Rona bayangan dibesarkan kurva gamma: malam −0,20 (terlalu biru) dan gerbang ikut kebiruan. Grading dipindah ke sesudah encode, rona bayangan gerbang diganti hangat netral, dan rona bayangan malam/subuh/senja dikecilkan. Tes unit "nada gelap" mengunci ini.
+     - Pengukuran malam di slide gong goyah karena bara gong masih berubah, jadi dipindah ke intro prolog (tanpa gong) dan dirata-rata.
+   - Pratinjau dikirim ke host dan dicatat di ledger: lembar sebelum/sesudah per fase, desktop dan HP, data April Hari 1 (gerbang, subuh, pagi, siang, senja, malam).
+3. **Langkah berikutnya:**
+   - e2e penuh, content:check, dan build (sedang berjalan);
+   - video pratinjau gallery Hari 1 (subuh → siang → senja, grading bergeser mengikuti gulir), desktop dan HP;
+   - PR; host menilai kekuatan grading (`GRADE_STRENGTH`).
+
 ### Sesudah PR #14 di-merge (18 Nov): rencana berikutnya
 
 **Kata host, kata demi kata:** "sudah ku merge, lalu apa planningmu? update sekalian handofff".
