@@ -42,7 +42,10 @@ Tafsir Claude:
      - Embun dan debu emas hampir tak terlihat saat ditebar jauh di sawah (tertelan langit siang yang terang, terlalu redup di subuh). Dipindah ke ruang udara yang mengikuti kamera.
      - Kotak yang berpusat di kamera menaruh separuh butir di belakang lensa, dan di pembuka hari (kamera mendongak) embun di bawah mata tidak masuk layar. Kotak digeser ke depan kamera dan embun dinaikkan setinggi mata.
    - Tes penuh 18 Nov: lint, typecheck, unit 461/461, content:check, build lulus; e2e 292 lulus, 32 dilewati sesuai proyeknya, 0 gagal (15,9 menit).
-   - Video pratinjau: gallery Hari 1 desktop dan HP 9:16 (sedang direkam saat catatan ini ditulis).
+   - Video pratinjau dikirim ke host dan dicatat di ledger: gallery Hari 1 (judul → pembuka hari → pagi → siang → senja → malam → gong).
+     - desktop 1080p 37,5 dtk;
+     - HP 9:16 41,9 dtk, dengan satu geser jari ditahan di tengah.
+     - Ledger: belum di Drive 14 berkas, 101 MB.
 3. **Langkah berikutnya:**
    - host meninjau video dan merge PR 8.4;
    - sesudah 8.4, Tugas 8 tinggal sisa yang menunggu host (video gerbang dimensi versi halus, kaki Clawd di gallery, uji iPhone);
