@@ -187,10 +187,11 @@ const fs = require('fs');
         };
       }
     }, filmUrl);
-    await p.waitForSelector('.hm-begin', { timeout: 60000 });
+    // batas tunggu ikut diperlambat K (film 3D: K = 0,02, transisi beranda → film memakan puluhan detik nyata)
+    await p.waitForSelector('.hm-begin', { timeout: 60000 / K });
     await w(2500); // sambutan tampil dulu
     await tap(p.locator('.hm-begin'), 0);
-    await p.waitForURL(/\/film\//, { timeout: 60000 });
+    await p.waitForURL(/\/film\//, { timeout: 60000 / K, waitUntil: 'commit' });
   } else {
     await p.goto(`${BASE}${filmUrl}`, { waitUntil: 'commit' });
     await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
