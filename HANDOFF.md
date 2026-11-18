@@ -1,15 +1,15 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): sisi Claude selesai, menunggu kunci ingest dan langkah dasbor host** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): kejadian kerja Claude sudah mengalir live ke `jz.kejadian`; snapshot, login, dan Vercel menunggu host** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
 Menunggu host:
-- Jize Zone: isi `JZ_INGEST_KEY` di Supabase "live-second-brain" sama dengan network secret `X-JZ-Ingest-Key` (formulir Supabase belum terjawab)
-- Jize Zone: buka skema `jz` di Data API, buat pengguna host, pasang hook Custom Access Token, matikan pendaftaran pengguna baru
+- Jize Zone: setujui migrasi `snapshot_safeupdate` di Supabase (permintaan konfirmasi tidak terjawab); sesudah itu snapshot repo masuk
+- Jize Zone: buat pengguna host, pasang hook Custom Access Token, matikan pendaftaran pengguna baru
 - Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy)
-- merge PR `second-brain` (pemasang hook)
+- merge PR `second-brain` (pemasang hook dan perbaikan jalur produksi)
 - rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
@@ -17,7 +17,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — SISI CLAUDE SELESAI, MENUNGGU LANGKAH DASBOR HOST
+### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — KEJADIAN SUDAH MENGALIR LIVE; SNAPSHOT, LOGIN, DAN VERCEL MENUNGGU HOST
 
 **Kata host, kata demi kata:** "lanjut tugas, baca isi claude.md", lalu di tengah kerja: "bukan suara. supabase, connect in".
 Tafsir Claude:
@@ -58,6 +58,26 @@ Tafsir Claude:
    6. Izinkan akses Vercel ke tim host (tautan dari Claude), lalu Claude mengimpor repo `second-brain` dengan `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY`, dan mengatur Site URL Supabase ke alamat Vercel.
    - Sesudah 1–2: Claude menguji kirim kejadian ujung ke ujung (baris di `jz.kejadian` dan `jz_private.kursor`), lalu snapshot pertama.
    - Container baru: hook pengguna perlu dipasang ulang (`node second-brain/emitter/install-hooks.mjs --url … --repo /home/user/itinerary`), atau dijadikan setup script lingkungan bila host mau.
+
+**Lanjutan 18 Nov malam.** Kata host, kata demi kata: "lupa gw, buatin sekalian lu lah, tar tinggal gw ganti" (kunci ingest), "2. jz ke eksposed bagian mana / 3. lu pasanglah" (izin memasang hook), lalu "dah".
+1. **Selesai:**
+   - Kunci ingest baru dibuat Claude langsung ke berkas di scratchpad (`rahasia/jz-ingest-key.txt`, hanya root) tanpa dibaca atau ditulis di chat, dikirim ke host sebagai berkas. Host mengisinya di secret Supabase; network secret diisi lewat formulir aman.
+   - Host membuka skema `jz` di Data API.
+   - Hook dipasang atas izin host (lihat butir di atas), dan `.claude/settings.json` di-commit.
+   - Kejadian kerja sesi ini mengalir live ke `jz.kejadian`: 62 kejadian sejak hook dipasang 16.12 UTC (alat, pesan host, giliran, pemberitahuan), kursor ikut terisi. Pesan host tersimpan tersaring 120 karakter.
+   - Perbaikan di repo `second-brain` (branch `claude/admiring-noether-tbqvap`), `npm test` 10/10:
+     - `jz-ingest` membuang spasi di ujung `JZ_INGEST_KEY`. Secret dari dasbor 66 karakter (ada baris baru), header proxy 64, sehingga semua kiriman 401. Diketahui lewat fungsi diagnosis sementara `jz-diag` yang hanya melaporkan ada/tidak, panjang, dan sama/tidak; sesudahnya `jz-diag` diganti stub 410.
+     - Migrasi `snapshot_safeupdate`: Supabase memuat `pg-safeupdate` untuk koneksi Data API, jadi `delete from jz.tautan;` di `jz.ganti_snapshot` ditolak ("DELETE requires a WHERE clause", log Postgres) dan snapshot selalu 503. Tiap `DELETE` diberi `where true`. Tes penjaga baru gagal tanpa perbaikan dan lulus dengannya.
+     - Snapshot yang gagal disimpan tidak lagi menahan kejadian di belakangnya di antrean (sebelumnya 30 butir tertahan di belakang snapshot). Batas kirim snapshot 20 dtk, kejadian tetap 1,5 dtk.
+2. **Kendala:**
+   - `apply_migration` meminta konfirmasi host di Supabase dan tidak terjawab dalam 60 dtk, jadi migrasi belum terpasang. Dua snapshot menunggu di `~/.jz/spool.jsonl`. Tidak dipakai jalan lain untuk melewati konfirmasi.
+   - Proxy membuang header `Authorization` buatan klien ke host proyek ini (karena ada network secret di host itu), jadi fungsi dengan `verify_jwt` tidak bisa dipanggil dari sesi.
+   - Fungsi `quick-processor` dan `jz-diag` masih ada; boleh dihapus host dari dasbor.
+3. **Langkah berikutnya:**
+   - Host menyetujui migrasi (Claude memanggil `apply_migration` lagi), lalu Claude memastikan snapshot masuk (`jz.berkas`, `jz.ringkasan`).
+   - Host: pengguna Auth, hook Custom Access Token, pendaftaran mati; Claude memasukkan UUID host ke `jz_private.host`.
+   - Vercel: izin akses tim, lalu impor repo `second-brain` dan Site URL.
+   - Hapus berkas kunci di scratchpad bila host setuju.
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
 
