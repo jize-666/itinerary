@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`07f7edc`) · **Tugas 8.4 (partikel per fase) selesai, PR #16 menunggu merge host; Tugas 8 selesai** · contoh suara Clawd dari suara host dan suara teman host menunggu pilihan host · PRD Jize Zone bergaya montage untuk Codex sedang dikerjakan · sebelumnya: PR #15 (Tugas 8.2 + 8.3, grading warna per fase) di-merge host 18 Nov.
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **sedang dikerjakan: menyambungkan Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam)** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -12,6 +12,19 @@ Menunggu host:
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
+
+### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "lanjut tugas, baca isi claude.md", lalu di tengah kerja: "bukan suara. supabase, connect in".
+Tafsir Claude:
+- Yang dikerjakan sekarang bukan 39 klip suara Clawd, tetapi menyambungkan Jize Zone v2 (website live hasil Codex, sudah di-merge ke repo `second-brain` lewat PR #1) ke proyek Supabase baru milik host, **"live-second-brain"** (`fclylvesjdbbimefyfaw`, dibuat host 18 Nov 14.29 UTC).
+- Keadaan awal yang ditemukan:
+  - migrasi `observatorium` (skema `jz` dan `jz_private`) sudah terpasang;
+  - fungsi Edge ingest sudah ada, tetapi bernama `quick-processor` (versi satu berkas dari editor dasbor), bukan `jz-ingest`;
+  - kunci ingest sudah disimpan host sebagai network secret lingkungan "itinerary" (header `X-JZ-Ingest-Key` ke host proyek itu);
+  - belum ada pengguna Auth untuk host.
+- Langkah: periksa kunci ingest di sisi Supabase, deploy `jz-ingest` dari repo, buka skema `jz` di Data API, uji kirim kejadian ujung ke ujung, lalu pasang hook emitter di sesi Claude. Pengaturan yang hanya bisa di dasbor (pengguna host, hook Custom Access Token, pendaftaran mati, Site URL) diserahkan ke host dengan langkah yang jelas.
+- Klip suara Clawd tertunda: container sesi diganti, scratchpad kosong, jadi rekaman teman host (`AUDIO-2026-11-17-23-12-25.m4a`) dan venv Chatterbox hilang. Rekaman itu juga tidak ada di Drive (unggahan terakhir 17 Nov 15.49 UTC, sebelum rekaman dikirim). Host perlu mengirim ulang rekamannya saat klip dikerjakan.
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
 
