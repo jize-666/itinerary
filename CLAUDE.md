@@ -23,7 +23,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 18 Nov 2026 (PR #12, #13, dan #14 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14; 8.2 + 8.3 selesai 18 Nov di PR #15, menunggu merge host; berikutnya 8.4, dan 78 klip suara Clawd sesudah host memilih contoh; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
+Diperbarui 18 Nov 2026 (PR #12, #13, dan #14 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14; 8.2 + 8.3 selesai 18 Nov di PR #15 (di-merge); 8.4 sedang dikerjakan; berikutnya 8.4, dan 78 klip suara Clawd sesudah host memilih contoh; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -105,7 +105,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Grading warna di pass FINAL: CDL, saturasi, dan split toning sesudah encode sRGB, tanpa pass baru.
     - Kekuatannya satu angka (`GRADE_STRENGTH`), menunggu penilaian host.
     - Rinciannya: `docs/design/decisions.md` bagian "Grading warna per fase di semua slide 3D".
-  - [ ] **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam.
+  - [ ] **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam. Sedang dikerjakan sejak 18 Nov (host: "dah gw merge, lanjut 8.4").
   - Sisa pekerjaan, menunggu host:
     - tinjauan video gerbang dimensi versi halus;
     - jawaban soal kaki Clawd 3D yang tertutup kartu gallery;
