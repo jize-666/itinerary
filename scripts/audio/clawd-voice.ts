@@ -1,6 +1,8 @@
 /**
- * Klip suara Clawd (`src/engine/mascot/voice.ts`). Suaranya "Clawd" di akun ElevenLabs host (Voice Design
- * "clawd-deep-6", voice_id `4gpmKMMFEuQLCXLQGo99`); audio paket gratis ElevenLabs, lihat catatan lisensi di HANDOFF.md.
+ * Klip suara Clawd (`src/engine/mascot/voice.ts`). Sumber suara: rekaman pesan suara teman host (sudah setuju
+ * suaranya dipakai untuk proyek ini), ditiru dengan Chatterbox (model TTS open source Resemble AI, lisensi MIT) yang
+ * dijalankan di CPU container. Rekaman mentah dan WAV hasil Chatterbox disimpan di luar repo; hanya MP3 olahan yang
+ * masuk. Hanya bahasa Inggris (pilihan host 18 Nov); suara ElevenLabs "clawd-deep-6" yang lama tidak dipakai lagi.
  *
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts list [en|id]   kalimat yang perlu direkam (nama<TAB>emosi<TAB>teks)
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts build <mentah>  olah <mentah>/<lang>/<nama>.(mp3|wav) ke public/
@@ -15,7 +17,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { join } from "node:path";
 import { voiceLines } from "../../src/engine/mascot/voice";
 
-const LANGS = ["en", "id"] as const;
+// Hanya EN: pilihan host 18 Nov ("gausa kasih indo"). Saat film berbahasa Indonesia, Clawd tampil tanpa suara.
+const LANGS = ["en"] as const;
 const OUT = "public/audio/clawd";
 const MANIFEST = "src/engine/mascot/voice-clips.json";
 const TARGET_LUFS = -16;

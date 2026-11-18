@@ -543,9 +543,23 @@ Belum disambungkan ke film (itu M3).
 
 ## Suara Clawd (17 Nov 2026), arahan host: "ini ada 2 suara, yang suara perempuan adalah suara yang pernah ku buat untuk clawd. bisa pakai suara ini?", "oke i choose clawd-deep-6"
 
-- **Suara:** "Clawd" di akun ElevenLabs host (Voice Design "clawd-deep-6", voice_id `4gpmKMMFEuQLCXLQGo99`), dibuat ulang dari deskripsi karena suara asli host hilang bersama akun lamanya dan clone tidak tersedia di paket gratis.
-- **Rekaman sekali, bukan TTS langsung:** semua kalimat Clawd tetap (tanpa nama tamu), jadi tiap kalimat direkam sekali per bahasa: 39 klip EN + 39 ID, termasuk varian layar sentuh ("ketuk", "geser"). Tidak ada kunci API atau panggilan ke ElevenLabs dari situs.
+Sumber suara diganti 17–18 Nov (host: "suara clawd, ganti dengan ini"; pilihan host 18 Nov: "gw pilih suara temen gw yang en. gausa kasih indo."). Suara ElevenLabs "clawd-deep-6" di atas tidak dipakai lagi; butir di bawah sudah sesuai keadaan baru.
+
+- **Suara:** rekaman pesan suara teman host, yang sudah setuju suaranya dipakai untuk proyek ini, ditiru dengan Chatterbox (model TTS open source Resemble AI) yang dijalankan di CPU container, karena kuota ZeroGPU Hugging Face habis. Rekaman dijernihkan seperlunya (warna suara berubah ±1 dB). Rekaman mentah dan WAV hasil Chatterbox disimpan di luar repo.
+- **Rekaman sekali, bukan TTS langsung:** semua kalimat Clawd tetap (tanpa nama tamu), jadi tiap kalimat dibuat sekali: 39 klip EN, termasuk varian layar sentuh ("ketuk", "geser"). Tanpa klip ID: film berbahasa Indonesia, Clawd tampil tanpa suara (pemutar memang begitu untuk kalimat tanpa klip). Tidak ada kunci API atau panggilan ke layanan TTS dari situs.
 - **Nama klip = kunci kalimat di gelembung** (`intro.0`, `tip.gong.0`, `angry.1`, ditambah `.touch` untuk varian sentuh); berkas `public/audio/clawd/<lang>/<nama>.mp3`. Daftar dan pengolahnya: `scripts/audio/clawd-voice.ts` (`list`, `build`, `check`).
+- **Emosi:** dasarnya tenang, reaksi mengikuti suasana hati Clawd (`moodOf`). Setelan Chatterbox per emosi (`exaggeration` / `cfg_weight`; temperature 0,8 kecuali mengantuk 0,7; seed dasar 7, beberapa klip memakai take dengan seed lain yang lebih baik):
+  - tenang 0,45 / 0,5;
+  - senang 0,75 / 0,45;
+  - terkejut 0,85 / 0,45;
+  - marah 1,1 / 0,4;
+  - mengantuk 0,3 / 0,6 (temperature 0,7).
+  - Exaggeration lebih tinggi dan cfg lebih rendah = lebih ekspresif dan cepat; kebalikannya lebih tenang dan lambat.
+- **Ucapan:** empat kalimat diucapkan berbeda dari teks gelembung (catatan `ucap.json` di luar repo), karena model berbahasa Inggris salah membaca teks aslinya:
+  - "wah-yang" untuk "wayang" (`tip.kayon.0`): kata Jawa itu dibaca "way-ang";
+  - "Haaah..." untuk "Yawn..." (`rest.0`, `wake.1`): "Yawn" dibaca sebagai kata, bukan bunyi menguap;
+  - "Control plus scroll, or the plus and minus keys" untuk "Ctrl + scroll or the + and - keys" (`tip.zoom.0`): singkatan dan simbol tombol tidak dibaca utuh.
+  - Teks gelembung tetap seperti di `lines.ts`.
 - **Olahan klip:** mono, hening di awal dan akhir dipangkas, kenyaringan −16 LUFS seperti gendhing dan efek lainnya, MP3 48 kbps.
 - **Gelembung menunggu klip:** lama tiap klip ada di `engine/mascot/voice-clips.json`. Kalimat bersuara ditahan sampai klipnya selesai (+0,45 dtk), walau teksnya sudah lengkap. Otak Clawd tetap murni (tanpa menunggu peristiwa audio), jadi bisa dites.
 - **Ketukan:** ketukan pertama melengkapi teks dan suara jalan terus; ketukan berikutnya melewati kalimat dan suaranya berhenti.
@@ -553,7 +567,7 @@ Belum disambungkan ke film (itu M3).
 - **Ikut sakelar suara situs:** hanya berbunyi sesudah "Begin the lakon" dan selama suara menyala. Bila suara mati, tidak ada klip yang diunduh dan waktu gelembung seperti biasa. Selama Clawd bicara gendhing direndahkan (0,30, sepanjang klip).
 - **Dimuat seperlunya:** klip kalimat diunduh saat kalimatnya diantrekan (perkenalan sejak Clawd muncul, petunjuk sejak tamu tiba di tempatnya). Kalimat tanpa klip tetap tampil tanpa suara.
 - **Gerak:** selama suaranya berbunyi Clawd tetap bergerak "bicara" (lengan menjelaskan), tidak hanya selama teks diketik.
-- **Lisensi:** audio paket gratis ElevenLabs setahu Claude tanpa lisensi komersial dan wajib atribusi; perlu dicek host sebelum dipakai untuk klien berbayar.
+- **Lisensi:** Chatterbox berlisensi MIT. Suaranya milik teman host, yang sudah setuju dipakai untuk proyek ini. Tidak ada panggilan ke layanan TTS dari situs; yang dikirim hanya MP3 statis.
 
 ## Bengawan Solo dan larung lampion di gallery 3D (Tugas 8.1, 17 Nov 2026), pilihan host: "b aja coba"
 

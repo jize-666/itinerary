@@ -5,8 +5,9 @@ import { INTRO, SAY, TIPS, WELCOME_BACK } from "@/engine/mascot/lines";
 import { clipMs, clipName, clipUrl, moodOf, VOICE, voiceLines } from "@/engine/mascot/voice";
 
 /**
- * Suara Clawd (arahan host 17 Nov: suara "Clawd" buatan host di ElevenLabs). Lama klip di sini tiruan supaya tes tidak
- * bergantung pada rekaman; berkas aslinya dicek `scripts/audio/clawd-voice.sh`.
+ * Suara Clawd (suara teman host, ditiru dengan Chatterbox; hanya bahasa Inggris). Lama klip di sini tiruan supaya tes
+ * tidak bergantung pada rekaman; manifest dan berkas aslinya dicek `voice-clips.test.ts` dan
+ * `scripts/audio/clawd-voice.ts check`.
  */
 vi.mock("@/engine/mascot/voice-clips.json", () => ({
   default: {
