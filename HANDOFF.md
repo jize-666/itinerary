@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 dan **PR #13 (pemutar suara Clawd + Next.js 16.4.6) di-merge 17 Nov**; klip suara Clawd menunggu antrean gratis ElevenLabs · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · **PR #14 (Tugas 8.1 Bengawan Solo dan larung, gerbang dimensi, gelembung dan emosi suara Clawd) dibuka 18 Nov, menunggu merge host** · PR #12 dan #13 di-merge 17 Nov; suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -13,6 +13,21 @@ Tafsir Claude:
   - Tugas 8 belum selesai: 8.1 selesai (Bengawan Solo dan larung, plus gerbang dimensi); 8.2 dan 8.4 belum; 8.3 sebagian;
   - suara Clawd: acuan baru dan contoh dikirim, 78 klip menunggu pilihan host.
 - Sesudah semua tes (lint, typecheck, unit, content:check, build, e2e) dijalankan, PR dibuka dari branch ini untuk Squash and merge. Isinya semua kerja sejak PR #13. Host sendiri yang merge.
+- **Hasil 18 Nov: PR #14** (https://github.com/jize-666/itinerary/pull/14), siap Squash and merge, tanpa konflik dengan `main`.
+  - Tes:
+    - lint, typecheck, content:check, build: lulus;
+    - unit 445/445;
+    - e2e 285 lulus, 30 dilewati sesuai proyeknya, 1 gagal karena batas waktu.
+  - Yang gagal: tes zoom gong desktop, gagal 2 dari 3 saat diulang sendiri. Tiap putaran ±32 dtk, sedangkan batasnya 30 dtk, karena adegan lebih berat di renderer tanpa GPU sejak sungai dan larung.
+  - Perbaikan: diberi `test.slow()`, seperti tes di sebelahnya. Sesudahnya 4/4 lulus. Perilaku zoom tidak berubah.
+  - Di luar PR (tidak di repo):
+    - mod Lakon di container sesi;
+    - Artifact Jize Zone;
+    - rekaman dan contoh suara teman host.
+  - Langkah berikutnya:
+    - host merge PR #14;
+    - host memilih contoh suara Clawd, lalu 78 klip (PR terpisah dari `main` terbaru);
+    - Tugas 8.2–8.4 dengan arahan host.
 
 **Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
 
