@@ -681,3 +681,18 @@ Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? per
 
 ## Cara menjalankan preview secara lokal
 Skrip prototipe memakai global yang sama dengan Three.js Viewer: `THREE`, `OrbitControls`, `EffectComposer`, `RenderPass`, `UnrealBloomPass`, `canvas`, `width`, `height`. Untuk uji tangkapan layar, `window.__fixedT` bisa diisi untuk mengunci waktu animasi. Gunungan v3 juga punya `window.__flipGunungan(true)` (langsung ke sisi geni tanpa animasi) dan `window.__gunungan` (kanvas tekstur untuk dicek datar).
+
+## Gong datar di film 2,5D diperjelas (18 Nov 2026)
+
+Pertanyaan host setelah menonton video pratinjau: "itu di previews, gada gong tapi bilang \"see the gong\" emang gitu?". Clawd mengucapkan "See the gong? Scroll once more: the letters fly into it and it rings." Host memilih usul A: gong datar diperjelas supaya langsung terbaca sebagai gong.
+
+- **Masalah:** di film 2,5D (mode Calm, reduced motion, atau tanpa WebGL) gong di belakang judul hero dan judul hari hanya gradien radial beropasitas 0,16 sampai 0,3, sehingga tampak seperti dua cincin garis tipis. Clawd menunjuk sesuatu yang tidak terlihat sebagai gong.
+- **Rancangan:** `.fs-gong` digambar sebagai benda perunggu, dengan cahaya dari kiri atas. Semua lapisan memakai persentase supaya varian kecil `.fs-gong--small` (tombol gong penutup hari) ikut skala.
+  - Bibir (rim) 91 sampai 100 % jari-jari: perunggu terang dengan kilap logam memutar (`conic-gradient`) dan garis tepi luar gelap.
+  - Rai (permukaan): perunggu gelap hangat, sedikit lebih terang di kiri atas, dengan dua alur cincin tipis.
+  - Pencu (`::before`): kubah ±20 % diameter dengan sorot kiri atas dan bayangan kanan bawah, diredam (opasitas 0,6) karena tepat di belakang huruf tengah judul; cincin dasar pencu digambar di lapisan rai.
+  - Bayangan jatuh ke bawah dan pendar hangat tipis, supaya gong tampak menggantung.
+  - Riak `<i>` sedikit lebih jelas (garis 1,5 px, opasitas 0,62).
+- **Keterbacaan judul:** rai sengaja gelap sehingga kontras judul krem terhadap rai ±7 sampai 12:1; di titik terang pencu ±4,8:1. Kecerahan latar keseluruhan tidak dinaikkan.
+- **Getaran pukulan:** gong bergetar singkat saat hantaman (mulai 0,52 dtk, rotasi ≤ 0,9°, ±0,5 dtk, mereda; di tombol kecil mulai seketika). Hanya properti `rotate`, jadi tidak bentrok dengan `translate` dan animasi datang. Tidak aktif di `.film[data-calm]` dan `prefers-reduced-motion: reduce`.
+- **Tidak berubah:** kalimat dan suara Clawd; film 3D (gong CSS tetap disembunyikan di `.film[data-stage]`, yang dipukul gong ageng di panggung); ukuran, letak, `z-index`, animasi `gong-arrive`, kilatan `::after`, dan aturan Calm.
