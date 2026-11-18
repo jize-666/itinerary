@@ -5,6 +5,18 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host:** "coba suara gw", dengan tiga rekaman suara host (7, 5, dan 11 detik; m4a 48 kHz mono).
+Tafsir Claude:
+- Buat contoh suara Clawd dari suara host sendiri, dengan cara yang sama seperti contoh suara teman host:
+  - rekaman dijernihkan tanpa merusak warna suara;
+  - ditiru dengan Chatterbox di CPU container (lokal, tidak dikirim ke layanan luar);
+  - contoh dikirim: tenang EN, marah EN, tenang ID (setelan Melayu), tenang ID (model Inggris).
+- Host yang memilih: suara host atau suara teman host. Sesudah itu baru 78 klip.
+- Rekaman dan contoh tidak masuk repo.
+- Chatterbox dijalankan sesudah rekaman video HP Tugas 8.4 selesai, supaya video tidak patah-patah.
+
 ### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR menunggu host
 
 **Arahan host 18 Nov, kata demi kata:** "dah gw merge, lanjut 8.4".
