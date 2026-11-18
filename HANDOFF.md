@@ -15,7 +15,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Kiriman host 18 Nov malam: 39 klip suara Clawd — SEDANG DIKERJAKAN
+### Kiriman host 18 Nov malam: 39 klip suara Clawd — KLIP MASUK REPO; VIDEO PRATINJAU BERSUARA SEDANG DIREKAM
 
 **Kata host, kata demi kata:** "udah gw merge. ini suara clawd", dengan lampiran `clawd-klip-final.zip` (13 MB).
 Tafsir Claude:
@@ -28,6 +28,19 @@ Tafsir Claude:
 - Yang dikerjakan: periksa 39 nama dan teks cocok dengan `voiceLines()`, ukur tiap klip (lama, kenyaringan, terpotong atau tidak), olah lewat `scripts/audio/clawd-voice.ts build` ke `public/audio/clawd/en/` dan `voice-clips.json`, `check` hanya bahasa Inggris, catatan sumber suara di skrip dan `docs/design/decisions.md`, tes, e2e, video pratinjau bersuara (desktop dan HP, data April, nama Jize), lalu PR.
 - Rekaman mentah teman host tidak masuk repo; hanya klip olahan.
 - **Arahan host di tengah kerja, kata demi kata:** "kerjakan jangn lupa bagi tugas. haiku untuk task paling ringan, sonnet untuk task sedang dan kamu opus, otaknya". Dicatat sebagai aturan kerja di `CLAUDE.md`. Pembagian untuk klip ini: Haiku mengukur 39 klip dan mencocokkan teksnya; Sonnet mengubah skrip `check`, catatan sumber suara, `decisions.md`, dan tes unit; Opus memutuskan klip yang dipakai, mengolah, meninjau, menguji, merekam pratinjau, dan membuka PR.
+
+1. **Selesai:**
+   - Haiku: 39 nama dan teks cocok persis dengan `voiceLines()`; tidak ada hening berlebih atau potongan; WAV float 32-bit (puncak > 0 dBTP di 18 klip, tetapi tanpa clipping, flat factor 0).
+   - Sonnet: transkripsi lokal Whisper `small.en` (audio tidak dikirim ke luar): 28/39 cocok persis, sisanya hanya interjeksi pendek yang salah dengar ("Hehe", "Hmph", "Aww", "Huh", "Ow") dan "Clawd" tertulis "Claude"/"Claw". Tidak ada kata tambahan, ulangan, atau potongan.
+   - Opus: klip diolah lewat `clawd-voice.ts build` (−16,4 LUFS, puncak ≤ −2,8 dBFS, 876 KB). Aturan baru di build: jeda hening di tengah klip paling lama ±0,6 dtk (Chatterbox memberi jeda 1–1,5 dtk di `welcome.0`, `intro.2`, `tip.gallery.0.touch`, `angry.1`).
+   - Sonnet: `check` dan `LANGS` hanya EN, catatan sumber suara di skrip dan `voice.ts`, `decisions.md` bagian "Suara Clawd" (sumber, emosi, ucapan khusus, lisensi), tes baru `voice-clips.test.ts` (4 tes, berkas asli). Opus meninjau, mempertegas tes folder `id`, dan membetulkan alasan butir "Ucapan".
+   - Perekam bersuara (Sonnet, ditinjau Opus): `VOICE=<berkas.json>` di `record-film.cjs` mulai dari beranda dan menekan "Begin the lakon" seperti tamu (itu yang menyalakan suara), bahasa EN, lalu mencatat mulai/berhenti klip dalam waktu video lewat bungkus `fetch`/`decodeAudioData`/`AudioBufferSourceNode`. `scripts/preview/mix-voice.py` menaruh klip di video (−16 LUFS, AAC). Opus menambah peristiwa `hush` (gelembung mulai memudar = suara berhenti), karena Web Audio halaman berjalan dengan jam nyata dan `stop` jarang terpanggil.
+2. **Tes dan kendala:**
+   - lint, typecheck, unit 465/465, content:check lulus; `clawd-voice.ts check` lulus.
+   - Agen Sonnet perekam sempat terhenti karena batas pemakaian 5 jam Sonnet, lalu dilanjutkan sesudah pulih.
+   - Log suara uji pertama kosong karena `out/` basi (dibangun sebelum klip ada); sesudah `pnpm build`, 12 klip tercatat dan waktunya cocok dengan gelembung (dicek dari frame).
+   - Klip yang perlu didengar host (tidak bisa dinilai lewat transkripsi): `intro.0` ("Claw"), `gong.1` (ditranskripsi "song"), `tip.kayon.0` ("gunungang").
+3. **Langkah berikutnya:** uji `hush` di film 2,5D, lalu video Clawd bersuara 3D desktop dan HP (data April, Jize), e2e, ledger, PR.
 
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
