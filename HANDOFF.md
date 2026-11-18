@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — DICATAT, SEDANG DIKERJAKAN
+### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — CONTOH DIKIRIM, MENUNGGU PILIHAN HOST
 
 **Kata host:** "coba suara gw", dengan tiga rekaman suara host (7, 5, dan 11 detik; m4a 48 kHz mono).
 Tafsir Claude:
@@ -16,6 +16,21 @@ Tafsir Claude:
 - Host yang memilih: suara host atau suara teman host. Sesudah itu baru 78 klip.
 - Rekaman dan contoh tidak masuk repo.
 - Chatterbox dijalankan sesudah rekaman video HP Tugas 8.4 selesai, supaya video tidak patah-patah.
+
+1. **Selesai (18 Nov):**
+   - Rekaman dijernihkan: hanya dengung di bawah 60 Hz yang dibuang (high-pass 60 Hz, 4 kutub).
+     - Rekaman bersih: desis dan dengung 22–33 dB di bawah suara di pita 65 Hz–5 kHz.
+     - Pita suara di atas 150 Hz berubah ≤ 0,1 dB.
+     - Desis nada tinggi tidak dibuang: `afftdn` ikut menurunkan pita 5–20 kHz saat bersuara −2 sampai −5 dB.
+   - Rekaman acuan: tiga rekaman disamakan kerasnya (−20 LUFS, penguatan linear), lalu digabung jadi 24 dtk. Yang terbaik ditaruh di depan, karena Chatterbox memakai ±10 dtk pertama.
+   - Empat contoh dikirim ke host dan dicatat di ledger: tenang EN, marah EN, tenang ID (setelan Melayu, benih 11), tenang ID (model Inggris).
+     - Nada dasar contoh 124–126 Hz, sama dengan rekaman host (124 Hz). Contoh marah 143 Hz.
+2. **Kendala:**
+   - Contoh tenang ID setelan Melayu terpotong di benih 7, karena model menghentikan kalimat lebih awal. Dibuat ulang dengan benih 11, 3, dan 21. Benih 11 utuh dan meredup wajar di ujung; benih 21 kepanjangan (9,6 dtk).
+   - Berkas kerja ada di scratchpad `suara-host/` (tidak masuk repo).
+3. **Langkah berikutnya:**
+   - Host memilih suara Clawd (suara host atau suara teman host) dan cara bahasa Indonesianya (setelan Melayu atau model Inggris).
+   - Lalu 78 klip dengan suara itu, di PR terpisah.
 
 ### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR menunggu host
 
