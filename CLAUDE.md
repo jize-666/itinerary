@@ -23,7 +23,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 18 Nov 2026 (PR #12 dan #13 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14, menunggu merge host; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
+Diperbarui 18 Nov 2026 (PR #12, #13, dan #14 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14; berikutnya 78 klip suara Clawd, lalu 8.2–8.4; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
