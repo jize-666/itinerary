@@ -9,7 +9,6 @@ Menunggu host:
 - Jize Zone: isi `JZ_INGEST_KEY` di Supabase "live-second-brain" sama dengan network secret `X-JZ-Ingest-Key` (formulir Supabase belum terjawab)
 - Jize Zone: buka skema `jz` di Data API, buat pengguna host, pasang hook Custom Access Token, matikan pendaftaran pengguna baru
 - Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy)
-- izin memasang hook Jize Zone: di `.claude/settings.json` repo itinerary dan di pengaturan pengguna Claude Code untuk sesi dua repo (keduanya ditolak pengaman mode otomatis bila Claude sendiri yang memasang atau meng-commit)
 - merge PR `second-brain` (pemasang hook)
 - rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
@@ -36,7 +35,8 @@ Tafsir Claude:
      - Versi 1 sempat ter-deploy dengan isi `_shared/contract.mjs` yang salah (kekeliruan Claude), lalu langsung diganti versi 2. Versi 1 tidak pernah menerima kejadian karena kunci masih ditolak.
      - `quick-processor` (salinan satu berkas dari dasbor) dibiarkan; boleh dihapus host sesudah `jz-ingest` terbukti jalan.
    - Repo `second-brain`, branch `claude/admiring-noether-tbqvap`: `emitter/install-hooks.mjs` (pemasang hook ke pengaturan pengguna Claude Code, aman diulang, `--uninstall`), tesnya, dan bagian README "dua cara sesi Claude membaca hook".
-   - Repo itinerary: `.claude/settings.json` berisi hook Jize Zone untuk 9 kejadian dan `JZ_INGEST_URL` disiapkan, **tetapi tidak di-commit** (drafnya disimpan di scratchpad `jz-draft/itinerary-.claude/settings.json`, hilang bila container diganti; bisa dibuat ulang dari `emitter/hooks.json` `second-brain`): pengaman mode otomatis menolak commit hook yang mengirim langkah kerja Claude keluar. Menunggu izin host. Emitter dicari di checkout `second-brain` di sebelah repo itinerary; bila tidak ada, hook diam.
+   - Repo itinerary: `.claude/settings.json` berisi hook Jize Zone untuk 9 kejadian dan `JZ_INGEST_URL`. Emitter dicari di checkout `second-brain` di sebelah repo itinerary; bila tidak ada, hook diam. Di-commit sesudah izin host ("lu pasanglah").
+   - Hook juga dipasang di pengaturan pengguna container ini (`~/.claude/settings.json`, lewat `install-hooks.mjs`) atas izin host, untuk sesi dua repo. Langsung aktif tanpa sesi baru: kejadian sesi ini masuk antrean `~/.jz/spool.jsonl` dan terkirim begitu kunci cocok. Hilang bila container diganti.
 2. **Tes dan kendala:**
    - `second-brain`: `npm test` 8/8 (3 tes baru untuk pemasang).
    - Perintah hook dicoba sekali dengan satu kejadian tiruan dan folder antrean di scratchpad: kejadian dirapikan sesuai kontrak, ditolak 401, masuk `spool.jsonl`.
@@ -46,7 +46,7 @@ Tafsir Claude:
      - **Skema `jz` belum dibuka di Data API** (PostgREST: "Only the following schemas are exposed: public, graphql_public"). Tanpa ini, simpan kejadian gagal 503 walau kunci sudah cocok.
      - **Auth:** belum ada pengguna; pendaftaran pengguna baru masih terbuka (`disable_signup: false`); hook Custom Access Token belum dipasang. Login anonim sudah mati.
      - **Vercel:** akses MCP ke tim host ditolak (403, perlu izin akses tim), jadi website belum di-deploy.
-     - **Hook di sesi ini:** memasang hook ke `~/.claude/settings.json` ditolak pengaman mode otomatis ("Undermining Oversight"), karena hook itu mengirim langkah kerja Claude keluar. Tidak dicari jalan memutar; keputusannya di host.
+     - **Hook di sesi ini:** memasang hook ke `~/.claude/settings.json` dan meng-commit `.claude/settings.json` mula-mula ditolak pengaman mode otomatis ("Undermining Oversight"), karena hook itu mengirim langkah kerja Claude keluar. Tidak dicari jalan memutar; dikerjakan sesudah host mengizinkan ("lu pasanglah").
      - Sesi dua repo seperti ini dibuka dari `/home/user`, jadi `.claude/settings.json` di dalam repo itinerary tidak terbaca. Hook proyek hanya berlaku untuk sesi yang dibuka dari repo itinerary (dan butuh checkout `second-brain` di sebelahnya).
    - Repo itinerary: lint, typecheck, unit 461/461, content:check, build lulus (tidak ada kode aplikasi yang berubah).
 3. **Langkah berikutnya (host, di dasbor Supabase "live-second-brain"):**
@@ -57,7 +57,7 @@ Tafsir Claude:
    5. Authentication → Hooks → Custom Access Token: fungsi PostgreSQL `jz_private.owner_token`.
    6. Izinkan akses Vercel ke tim host (tautan dari Claude), lalu Claude mengimpor repo `second-brain` dengan `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY`, dan mengatur Site URL Supabase ke alamat Vercel.
    - Sesudah 1–2: Claude menguji kirim kejadian ujung ke ujung (baris di `jz.kejadian` dan `jz_private.kursor`), lalu snapshot pertama.
-   - Untuk sesi dua repo: host memilih cara memasang hook (host menjalankan `install-hooks.mjs` sendiri, mengizinkan Claude, atau lewat setup script lingkungan).
+   - Container baru: hook pengguna perlu dipasang ulang (`node second-brain/emitter/install-hooks.mjs --url … --repo /home/user/itinerary`), atau dijadikan setup script lingkungan bila host mau.
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
 
