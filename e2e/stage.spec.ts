@@ -456,6 +456,9 @@ test.describe("gong ageng 3D", () => {
 
   test("zoom gong: tombol + dan −, dan Ctrl+roda; bidang sentuh tombol pukul ikut membesar", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    // lima penantian zoom, masing-masing menunggu kamera 3D yang digambar tanpa GPU; sejak sungai dan larung
+    // (Tugas 8.1) adegannya lebih berat di renderer perangkat lunak, jadi 30 dtk bawaan kadang habis saat zoom keluar
+    test.slow();
     const strike = await toGong(page, "?stage=low");
     const w0 = (await strike.boundingBox())!.width;
     await page.keyboard.press("+");
