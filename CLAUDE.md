@@ -23,7 +23,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 18 Nov 2026 (PR #12 dan #13 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14, menunggu merge host; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
+Diperbarui 18 Nov 2026 (PR #12, #13, dan #14 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR #14; 8.2 + 8.3 selesai 18 Nov di PR #15, menunggu merge host; berikutnya 8.4, dan 78 klip suara Clawd sesudah host memilih contoh; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -84,7 +84,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Rekaman dijernihkan (warna suara berubah ±1 dB; host: "jangan sampai rusak suaranya").
     - Ditiru dengan Chatterbox di CPU container, karena kuota ZeroGPU Hugging Face habis.
     - Empat contoh sudah dikirim ke host: tenang EN, marah EN, tenang ID dengan setelan Melayu, dan tenang ID dengan model Inggris.
-    - ⬜ 78 klip, sesudah host memilih. Rekaman tidak masuk repo.
+    - ⏭️ 78 klip: dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu"). Dikerjakan sesudah host memilih contoh. Rekaman tidak masuk repo.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel. Dimulai 17 Nov atas arahan host ("mulai saja tugas 8"). Rincian dan status: `HANDOFF.md` bagian 0.
   - [x] **8.1 Desain ulang benang emas.** ✅ 17 Nov 2026.
     - Dua versi benang emas tidak memuaskan host ("upgrade lah, keliatan basic banget"), jadi konsepnya diganti atas pilihan host ("b aja coba").
@@ -97,10 +97,14 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Tiap geser panel, kamera menukik menembus kartu: lensa melebar, garis cahaya, riak, dan warna terpecah di tepi.
     - Dihaluskan atas arahan host ("bikin lebih smooth"; "kurangi dikit"): dorongan 2,3 m, lensa +20°.
     - Rinciannya: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
-  - [ ] **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery.
-  - [ ] **8.3 Post-FX:** sebagian.
-    - Sudah: DOF gallery dari 7b, dan efek gerbang dimensi (zoom blur, warna terpecah, riak, kilatan).
-    - Belum: grading warna.
+  - [x] **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery. ✅ 18 Nov 2026 (host: "kerjakan tugas 8.2 + 8.3 dulu").
+    - Grading dihitung dari keadaan langit yang sama dengan langit dan cahaya, jadi ikut jam tiap slide dan bergeser mulus mengikuti gulir.
+    - Fase: gerbang (hero, judul, credits), malam (intro, gong penutup), subuh (pembuka hari), dan gallery mengikuti jam tempat singgah.
+  - [x] **8.3 Post-FX.** ✅ 18 Nov 2026.
+    - DOF gallery (dari 7b) dan efek gerbang dimensi sudah ada sebelumnya.
+    - Grading warna di pass FINAL: CDL, saturasi, dan split toning sesudah encode sRGB, tanpa pass baru.
+    - Kekuatannya satu angka (`GRADE_STRENGTH`), menunggu penilaian host.
+    - Rinciannya: `docs/design/decisions.md` bagian "Grading warna per fase di semua slide 3D".
   - [ ] **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam.
   - Sisa pekerjaan, menunggu host:
     - tinjauan video gerbang dimensi versi halus;

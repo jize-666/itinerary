@@ -15,6 +15,7 @@ import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, PORTAL, portalRing, portalWa
 import { lookMoving, startLook, stepLook } from "../look";
 import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
 import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
+import { type Grade, gradeOf, type GradePhase, phaseOf } from "@/engine/stage/grade";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
@@ -72,8 +73,12 @@ export type StageStats = {
   dof: { amount: number; focus: number; drawn: boolean };
   /** Gerbang dimensi di gallery pada frame terakhir: kadar 0–1 (0 = tidak sedang menembus gerbang). */
   portal: number;
+  /** Grading warna per fase (Tugas 8.2 + 8.3): fase terkuat dan saturasinya. */
+  grade: { phase: GradePhase; sat: number };
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
+  /** Hanya untuk pratinjau dan uji: grading warna dimatikan (gambar sebelum/sesudah Tugas 8.2 + 8.3). */
+  gradeOff?: boolean;
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
   sweepAt?: readonly number[];
   /**
@@ -183,6 +188,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let kayonAt = kayonShot(frame);
   let lastSky: SkyState | null = null;
   let mood: Mood | null = null;
+  let grade: Grade | null = null;
+  let phase: GradePhase = "gate";
   const sunDir = new Vector3();
   const sunLight = new Vector3();
   const buf = new Vector2();
@@ -253,6 +260,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     if (s !== lastSky || !mood) {
       lastSky = s;
       mood = moodOf(s);
+      grade = gradeOf(s);
+      phase = phaseOf(s);
       const d = sunDirection(s.sun.u, s.sun.v, track, frame.aspect);
       sunDir.set(d[0], d[1], d[2]);
       // arah cahaya: azimut matahari di layar, tetapi tingginya mengikuti jam (lihat lightElevation)
@@ -455,6 +464,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       time: t,
       dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },
       portal: { amount: portal, ring: portalRing(cursor.p, portalDir) },
+      grade: stats.gradeOff ? undefined : (grade ?? undefined),
     });
 
     stats.frames++;
@@ -473,6 +483,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.time = t;
     stats.dof = { amount: dofAmount, focus: dofAt, drawn: post.dofDrawn };
     stats.portal = portal;
+    stats.grade = { phase, sat: grade?.sat ?? 1 };
   };
   layout();
   resize();

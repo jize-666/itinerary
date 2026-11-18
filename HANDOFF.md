@@ -1,9 +1,96 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · **PR #14 (Tugas 8.1 Bengawan Solo dan larung, gerbang dimensi, gelembung dan emosi suara Clawd) dibuka 18 Nov, menunggu merge host** · PR #12 dan #13 di-merge 17 Nov; suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`f873e59`) · **PR #14 (Tugas 8.1 Bengawan Solo dan larung, gerbang dimensi, gelembung dan emosi suara Clawd) di-merge host 18 Nov** · rencana berikutnya di bagian 0, "Sesudah PR #14 di-merge" · suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR #15 menunggu merge host
+
+**Arahan host 18 Nov, kata demi kata:** "kerjakan tugas 8.2 + 8.3 dulu. tandain yang di lewati."
+Tafsir Claude:
+- Dikerjakan sekarang: 8.2 (grading per fase subuh/pagi/siang/senja/malam di semua slide 3D) dan 8.3 (grading warna di post-FX).
+- **Dilewati dulu**, ditandai ⏭️ di `CLAUDE.md` dan di rencana di bawah:
+  - 78 klip suara Clawd (langkah 1 rencana): tetap menunggu host memilih contoh suara, lalu dikerjakan sesudah 8.2 + 8.3;
+  - 8.4 partikel per fase tetap sesudahnya, sesuai urutan.
+
+1. **Selesai (18 Nov):**
+   - `engine/stage/grade.ts` (murni): rupa per fase (malam, subuh, siang, senja, gerbang).
+     - Ditumpuk dari `SkyState` yang sama dengan langit dan cahaya (urutan `moodOf`), jadi grading ikut jam tiap slide dan bergeser mulus mengikuti gulir.
+     - Sorotan menghangat saat matahari rendah.
+     - `GRADE_STRENGTH` = satu angka untuk menyetel kekuatannya.
+   - Pass FINAL `post.ts`: CDL per kanal, saturasi, dan split toning pada nilai tampilan sesudah encode sRGB, tanpa pass baru.
+   - Runtime: grading dihitung saat langit berubah dan dikirim ke post. Statistik `grade.phase`; saklar uji `gradeOff` untuk gambar sebelum/sesudah.
+   - Rincian: `docs/design/decisions.md` bagian "Grading warna per fase di semua slide 3D".
+2. **Tes dan kendala:**
+   - Unit:
+     - 10 tes baru: fase, bobot, mulus per menit dan per 1 % gulir, arah warna, abu tengah ±12 %, nada gelap;
+     - total 455/455; lint dan typecheck bersih.
+   - E2e baru (2): fase per slide (desktop + iPhone); gambar gerbang lebih hangat dan malam lebih biru dibanding tanpa grading (diulang 4×: 4/4).
+   - Kendala yang dibereskan:
+     - Percobaan pertama memasang grading sebelum encode sRGB. Rona bayangan dibesarkan kurva gamma: malam −0,20 (terlalu biru) dan gerbang ikut kebiruan. Grading dipindah ke sesudah encode, rona bayangan gerbang diganti hangat netral, dan rona bayangan malam/subuh/senja dikecilkan. Tes unit "nada gelap" mengunci ini.
+     - Pengukuran malam di slide gong goyah karena bara gong masih berubah, jadi dipindah ke intro prolog (tanpa gong) dan dirata-rata.
+   - Pratinjau dikirim ke host dan dicatat di ledger: lembar sebelum/sesudah per fase, desktop dan HP, data April Hari 1 (gerbang, subuh, pagi, siang, senja, malam).
+   - Tes penuh 18 Nov: content:check dan build lulus; e2e 289 lulus, 31 dilewati sesuai proyeknya, 0 gagal (14,8 menit).
+   - Video pratinjau dikirim ke host dan dicatat di ledger: gallery Hari 1 (judul → pagi → siang → senja → malam → gong).
+     - desktop 1080p 37,5 dtk;
+     - HP 9:16 41,9 dtk, dengan satu geser jari ditahan di tengah.
+     - Ledger: belum di Drive 12 berkas, 51 MB.
+3. **Langkah berikutnya:**
+   - host merge PR 8.2 + 8.3, dan menilai kekuatan grading (`GRADE_STRENGTH`);
+   - lalu 8.4 partikel per fase, dengan arahan host;
+   - 78 klip suara Clawd sesudah host memilih contoh.
+
+### Sesudah PR #14 di-merge (18 Nov): rencana berikutnya
+
+**Kata host, kata demi kata:** "sudah ku merge, lalu apa planningmu? update sekalian handofff".
+
+1. **Selesai:**
+   - PR #14 di-merge 18 Nov (squash `f873e59`). Isinya:
+     - Tugas 8.1 Bengawan Solo dan larung lampion;
+     - gerbang dimensi gallery;
+     - gelembung Clawd yang tidak menutupi badan;
+     - emosi suara per kalimat;
+     - buku catatan pratinjau Drive;
+     - perbaikan e2e yang tidak stabil di CI.
+   - CI terakhir: empat run hijau (#328–#331).
+   - Branch kerja dimulai ulang dari `main` terbaru.
+2. **Menunggu host:**
+   - suara Clawd: suara teman host sudah cocok atau belum, dan untuk bahasa Indonesia pilih contoh 3 (setelan Melayu) atau contoh 4 (model Inggris);
+   - tinjauan video gerbang dimensi versi halus;
+   - kaki Clawd 3D yang tertutup kartu gallery: perlu dibetulkan atau dibiarkan;
+   - uji di iPhone produksi (`/film/?fps`): sungai, gerbang, dan Clawd di `high ×1 (paksa)`.
+3. **Rencana, urutan usulan:**
+   1. ⏭️ **Dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu").** **Suara Clawd, 78 klip** (PR terpisah), begitu host memilih contoh.
+      - 39 kalimat EN dan 39 ID dibuat Chatterbox di CPU container, ±1 jam (13–39 dtk per kalimat), dengan setelan per emosi (`moodOf`):
+        - tenang: ekspresi 0,45 / cfg 0,5;
+        - senang: 0,85 / 0,45;
+        - terkejut: 0,95 / 0,4;
+        - marah: 1,1 / 0,4;
+        - mengantuk: lebih rendah dan pelan.
+      - Tiap kalimat dua take; yang lolos ukur (lama, nada, tanpa potongan) yang dipakai.
+      - Lalu `scripts/audio/clawd-voice.ts build` → `public/audio/clawd/` + `voice-clips.json`, dan `check`.
+      - Penutup: e2e, lalu video pratinjau bersuara (desktop dan HP, data April, nama Jize).
+      - Rekaman mentah teman host tidak masuk repo; hanya klip hasil olahan yang masuk.
+   2. **Tugas 8.2 + 8.3: grading per fase dan grading warna**, di semua slide 3D, bukan hanya gallery.
+      - Satu kurva warna per fase di pass FINAL post yang sudah ada, tanpa pass baru:
+        - subuh biru-ungu;
+        - pagi hangat;
+        - siang netral cerah;
+        - senja jingga-emas;
+        - malam biru tua.
+      - Kurva mengikuti jam slide dan bergeser halus mengikuti gulir.
+      - Gambar diam per fase dikirim dulu untuk disetujui, baru video.
+   3. **Tugas 8.4: partikel per fase**: embun subuh, debu emas siang, kunang-kunang malam.
+      - Satu sistem titik dengan uniform fase, mengikuti tier, dan tetap memenuhi aturan gerak kamera (parallax, perspective shift, kedalaman ikut gulir).
+      - Video pratinjau.
+   4. Sesudah Tugas 8 selesai: Tugas 9 (Diorama Solo), dengan arahan host lebih dulu.
+- **Di luar repo** (tidak masuk PR):
+  - mod Lakon di container sesi;
+  - Artifact Jize Zone: datanya diperbarui dengan `scratchpad/jize-zone/gen.py`, lalu unggah ulang;
+  - venv Chatterbox `scratchpad/cbenv` (±6 GB) dan contoh suara di `scratchpad/clawd-voice2/`.
+  - Semua di atas hilang bila container sesi diganti. Venv bisa dipasang ulang ±10 menit.
+- **Pratinjau Drive:** belum diunggah 8 berkas, ±1 MB (jauh dari pengingat 1 GB).
 
 ### Sesudah PR #13 di-merge (17 Nov): Tugas 8 — SEDANG DIKERJAKAN; klip suara Clawd menunggu antrean ElevenLabs
 

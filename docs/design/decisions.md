@@ -594,6 +594,34 @@ Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya. Semua me
   - Keadaan akhir sama dengan sebelumnya. Mode Calm tetap crossfade datar.
 - **Lompat waktu:** langit dan matahari di gallery berpindah ke jam tempat berikutnya selama tengah geseran (`SKY_WINDOW.inner` 0,25–0,75, sebelumnya 0–1). Tetap bergerak mulus tanpa lompatan.
 
+## Grading warna per fase di semua slide 3D (Tugas 8.2 + 8.3, 18 Nov 2026), arahan host: "kerjakan tugas 8.2 + 8.3 dulu"
+
+Warna akhir panggung 3D ikut fase waktu tiap slide, bukan hanya langit dan cahayanya. Kodenya: `engine/stage/grade.ts` (murni) dan pass FINAL di `stage3d/post.ts`.
+- **Satu sumber dengan langit:** grading dihitung dari `SkyState` yang sama dengan langit dan cahaya (`moodOf`), dengan urutan tumpukan yang sama: malam di dasar, lalu subuh, siang, senja, dan gerbang. `SkyState` sudah dicampur sepanjang transisi (`skyAlong`), jadi grading bergeser mulus mengikuti gulir dan jari, tanpa lompatan.
+- **Fase per slide:**
+  - gerbang: hero, headline, judul hari, pass, credits;
+  - malam: intro, fakta, rute, gong penutup, epilog;
+  - subuh: pembuka hari;
+  - gallery: mengikuti jam tiap tempat singgah (pagi, siang, senja).
+- **Rupa tiap fase**, arahnya mengikuti langit film:
+  - malam: bayangan biru tua, warna agak redup;
+  - subuh: bayangan ungu kemerahan, sorotan persik;
+  - siang: netral cerah, sedikit lebih kontras dan jenuh;
+  - senja: sorotan jingga keemasan, bayangan ungu, lebih jenuh;
+  - gerbang: hangat lampu minyak, bayangan dalam.
+  - Sorotan menghangat lagi saat matahari rendah (pagi dan sore).
+- **Rumus**, di pass FINAL yang sudah ada (tanpa pass atau target baru):
+  - CDL per kanal (slope, offset, power);
+  - saturasi di sekitar luma Rec.709;
+  - split toning bayangan dan sorotan.
+- **Diterapkan pada nilai tampilan sesudah encode sRGB.** Percobaan pertama memasangnya sebelum encode, dan rona bayangan kecil dibesarkan kurva gamma (+0,018 menjadi ±45/255): malam terlalu biru, dan gerbang ikut kebiruan.
+- **Tidak menggencet gambar** (aturan host "jangan turunkan kualitas"), dijaga tes unit:
+  - abu tengah tampilan tiap fase tetap dalam ±12 %;
+  - nada gelap bergeser paling banyak 0,04.
+- **Kekuatan:** satu angka, `GRADE_STRENGTH` (1 = rupa di atas), untuk disetel sesudah tinjauan host.
+- **Uji:** saklar `window.__lakonStage.gradeOff` mematikan grading untuk gambar sebelum/sesudah; `stats.grade.phase` dibaca e2e.
+- **Cakupan:** semua tier 3D (High, Medium, Low lewat pass FINAL). Film 2,5D (Static) memakai gradien CSS-nya sendiri dan tidak berubah.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).
