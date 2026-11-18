@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 8.4: partikel per fase — SEDANG DIKERJAKAN
+### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR menunggu host
 
 **Arahan host 18 Nov, kata demi kata:** "dah gw merge, lanjut 8.4".
 Tafsir Claude:
@@ -15,6 +15,26 @@ Tafsir Claude:
   - Partikel adalah titik 3D di dunia, jadi kamera parallax, perspective shift, dan kedalaman ikut gulir berlaku otomatis.
   - Hemat: dibangun di atas sistem titik yang sudah ada bila bisa, mengikuti tier (`particles`).
 - Masih dilewati: 78 klip suara Clawd (menunggu host memilih contoh).
+
+1. **Selesai (18 Nov):**
+   - `engine/stage/particles.ts` (murni): empat jenis butir (debu lampu, embun, debu emas, kunang-kunang), kadar per fase dari `phaseWeights` yang sama dengan grading, pembagian butir per jenis, sebaran kunang-kunang di atas tanah atau muka air (sepertiga di halaman pendapa), dan ruang udara `NEAR`.
+   - `stage3d/dust.ts`: debu lampu lama diganti satu `Points` berisi empat jenis (satu draw call). Gerak dihitung di vertex shader; jenis yang kadarnya nol tidak dirasterisasi; kunang-kunang berkedip dengan pendar bloom.
+   - Embun dan debu emas mengisi kotak udara yang berpusat di depan kamera (letak dunia dibungkus ke kotak, tepinya memudar), jadi di slide mana pun ada butir di depan lensa.
+   - Runtime: kadar dihitung saat langit berubah; kunang-kunang ikut tanah dan muka air saat lanskap berubah bentuk. Statistik `particles`; saklar uji `particlesOff`.
+   - Rincian: `docs/design/decisions.md` bagian "Partikel per fase di panggung 3D".
+2. **Tes dan kendala:**
+   - Unit: 6 tes baru (kadar per fase, ikut jam, mulus per menit, pembagian jenis termasuk tier Low, sebaran kunang-kunang, ruang udara `NEAR`); total 461/461; lint dan typecheck bersih; content:check lulus.
+   - E2e baru (2): jenis terkuat per slide (judul → pembuka hari → gallery → gong); piksel kunang-kunang di slide gong lebih banyak dibanding tanpa partikel.
+   - Kendala yang dibereskan, dari gambar diam sebelum/sesudah (data April Hari 1):
+     - Kunang-kunang terlalu kecil dan redup: diperbesar, kedip lebih terang dan lebih lama, inti dan pendar.
+     - Embun dan debu emas hampir tak terlihat saat ditebar jauh di sawah (tertelan langit siang yang terang, terlalu redup di subuh). Dipindah ke ruang udara yang mengikuti kamera.
+     - Kotak yang berpusat di kamera menaruh separuh butir di belakang lensa, dan di pembuka hari (kamera mendongak) embun di bawah mata tidak masuk layar. Kotak digeser ke depan kamera dan embun dinaikkan setinggi mata.
+   - Tes penuh dan video: lihat poin di bawah, diisi sesudah dijalankan.
+3. **Langkah berikutnya:**
+   - host meninjau video dan merge PR 8.4;
+   - sesudah 8.4, Tugas 8 tinggal sisa yang menunggu host (video gerbang dimensi versi halus, kaki Clawd di gallery, uji iPhone);
+   - 78 klip suara Clawd sesudah host memilih contoh;
+   - lalu Tugas 9 (Diorama Solo), dengan arahan host.
 
 ### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR #15 di-merge host 18 Nov
 
