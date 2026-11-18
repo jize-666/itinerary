@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR menunggu merge host
+### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SELESAI 18 Nov, PR #15 menunggu merge host
 
 **Arahan host 18 Nov, kata demi kata:** "kerjakan tugas 8.2 + 8.3 dulu. tandain yang di lewati."
 Tafsir Claude:
