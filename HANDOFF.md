@@ -13,7 +13,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — DICATAT, SEDANG DIKERJAKAN
+### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — PRD DAN KIT DIKIRIM, MENUNGGU KEPUTUSAN HOST
 
 **Kata host:** "buatin gw promt / prd web seperti ini 90-95% mirip, untuk update artifacts mu. agent yang akan mengerjakan adalah codex/gpt astra." dan "di artifacts, pembantu baru si sonnet, haiku dan fabble masih nganggur. suruh mereka kerja (catatan, fable hanya bisa kerja atas izin dariku)". Lampiran: `larp.zip` (21 frame 512×682 dari video montage 9,9 dtk berisi dasbor agen AI bergaya terminal dengan visual 3D; disimpan di scratchpad, tidak masuk repo).
 Tafsir Claude:
@@ -26,6 +26,38 @@ Tafsir Claude:
   - Tiap langkah kerja Claude (pesan host masuk, tiap alat dipakai, agen pembantu mulai/selesai, giliran selesai) dikirim otomatis oleh hook Claude Code ke basis data realtime. Website menampilkannya seketika.
   - PRD ditulis ulang untuk itu: website (dibangun Codex), kontrak kejadian, dan sisi pengirim (hook di container, dipasang Claude sesudah host menyetujui backend).
   - Simulator runtime artifact untuk Codex dihentikan; Sonnet dialihkan membuat rekaman kejadian (replay) dari sesi ini, sudah disaring tanpa data pribadi.
+
+1. **Selesai (18 Nov):**
+   - Dokumen "PRD Jize Zone v2 untuk Codex" (Claude Docs, milik host) berisi:
+     - prompt untuk Codex (bahasa Inggris, siap tempel) dan target kemiripan per potongan referensi;
+     - arsitektur live: hook Claude Code → `jz-emit.mjs` → Edge Function `jz-ingest` → Supabase Realtime → website Vercel;
+     - kontrak data (whitelist kolom kejadian), tata letak, token desain, lima adegan hero, delapan panel, gerak;
+     - 20 butir kemiripan (lulus ≥ 18) dan 7 syarat fungsi;
+     - serah terima dan empat keputusan host.
+   - `codex-kit.zip` (18 MB) dikirim ke host:
+     - PRD dalam Markdown (tanpa nama host);
+     - referensi: 21 frame dan 14 potongan berlabel;
+     - fixtures nyata: 297 berkas repo, 727 tautan, commit 21 hari, tugas, menunggu, kru, ringkasan, dan 802 kejadian kerja 18 Nov yang sudah disaring;
+     - pemutar replay dengan uji asap lulus;
+     - generator `gen_graf.py`, `gen.py`, `buat-replay.py`, dan pemindai bocor.
+     - Kit ada di scratchpad (tidak masuk repo).
+   - Pembantu yang bekerja:
+     - Haiku: inventaris frame 1–10 (87 dtk, 123 rb token) dan papan referensi (23 dtk, 104 rb token);
+     - Sonnet: inventaris frame 11–21 + token desain (80 dtk, 114 rb token), dan rekaman kejadian (334 dtk, 143 rb token);
+     - Fable: tidak dijalankan (menunggu izin host).
+   - Artifact Jize Zone: kartu "Sesi & agen" dan semua data diperbarui; "Menunggu host" kini dibaca dari daftar baru di awal bagian 0.
+2. **Tes dan kendala:**
+   - Pindai bocor 0 temuan (e-mail, URL, `/root/`, token, angka ≥ 10 digit, nama host); uji asap replay lulus (52 baris, 0 galat).
+   - Nama model di kit diseragamkan ke nama keluarga (Opus, Sonnet, Haiku, Fable), tanpa id versi, karena Codex akan memasukkannya ke repo.
+   - Simulator runtime artifact (Sonnet) dihentikan di tengah jalan karena arah berubah ke website live.
+3. **Langkah berikutnya:**
+   - Host memilih empat keputusan di PRD: proyek Supabase baru atau skema `jz`, Vercel, isi pesan host di LIVE LOG, dan nasib artifact lama.
+   - Host memberikan PRD dan kit ke Codex.
+   - Sesudah repo Codex ada:
+     - Claude meninjaunya;
+     - meminta kunci ingest lewat formulir aman;
+     - memasang hook lewat PR di repo itinerary;
+     - menguji ujung ke ujung.
 
 ### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — CONTOH DIKIRIM, MENUNGGU PILIHAN HOST
 
