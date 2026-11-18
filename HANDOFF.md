@@ -1,12 +1,12 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): backend Supabase lengkap (kejadian live, snapshot, login host); website Vercel menunggu izin akses tim** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): website tayang di https://jize-zone.vercel.app, backend lengkap; tinggal URL login di Supabase** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
 Menunggu host:
-- Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy; backend Supabase sudah lengkap)
+- Jize Zone: di Supabase Authentication → URL Configuration, Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**`, lalu coba login magic link
 - merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi) dan PR itinerary #17 (hook dan dokumen)
 - rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
@@ -15,7 +15,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — BACKEND SUPABASE LENGKAP; WEBSITE (VERCEL) MENUNGGU IZIN HOST
+### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
 **Kata host, kata demi kata:** "lanjut tugas, baca isi claude.md", lalu di tengah kerja: "bukan suara. supabase, connect in".
 Tafsir Claude:
@@ -92,6 +92,17 @@ Tafsir Claude:
    - Vercel: host mengizinkan akses tim, lalu Claude mengimpor repo `second-brain` (env `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`), mengatur Site URL dan redirect Supabase ke alamat Vercel, dan menguji login magic link.
    - PR dibuka, siap Squash and merge: `second-brain` #2 (pemasang hook + perbaikan produksi) dan itinerary #17 (hook + dokumen). Host yang merge.
    - Bersih-bersih: `quick-processor` dan `jz-diag` boleh dihapus host; berkas kunci di scratchpad dihapus bila host setuju.
+
+**Lanjutan 18 Nov malam (3): Vercel.** Kata host: "vercel belum, mana link", lalu "udah vercel" (izin akses tim Vercel diberikan lewat tautan sekali pakai).
+1. **Selesai:**
+   - Proyek Vercel `jize-zone` (tim host), tersambung ke repo `second-brain`, cabang produksi `main`. Push ke `main` men-deploy otomatis.
+   - Env `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY` (nilai publik; data dilindungi RLS) untuk production, preview, development.
+   - Deploy produksi dari `main` (`cf78a8a`): READY, alamat **https://jize-zone.vercel.app**. Halaman 200 dengan bundle yang sama dengan build live lokal (`index-D3CbH4mP.js`, 820 KB, tanpa data rekaman replay).
+2. **Kendala:** container tidak bisa membuka `vercel.app` (diblokir jaringan), jadi halaman dicek lewat alat Vercel; login belum diuji ujung ke ujung.
+3. **Langkah berikutnya:**
+   - Host: Supabase → Authentication → URL Configuration: Site URL `https://jize-zone.vercel.app`, Redirect URLs tambah `https://jize-zone.vercel.app/**` (magic link kembali ke `location.origin + location.pathname`).
+   - Host mencoba login magic link dengan e-mailnya. SMTP bawaan Supabase dibatasi beberapa e-mail per jam.
+   - Sesudah PR `second-brain` #2 di-merge, Vercel men-deploy ulang otomatis (isi web tidak berubah).
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
 
