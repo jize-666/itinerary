@@ -1,9 +1,17 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`07f7edc`) · **PR #15 (Tugas 8.2 + 8.3, grading warna per fase) di-merge host 18 Nov; Tugas 8.4 (partikel per fase) sedang dikerjakan** · rencana berikutnya di bagian 0, "Sesudah PR #14 di-merge" · suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`07f7edc`) · **Tugas 8.4 (partikel per fase) selesai, PR #16 menunggu merge host; Tugas 8 selesai** · contoh suara Clawd dari suara host dan suara teman host menunggu pilihan host · PRD Jize Zone bergaya montage untuk Codex sedang dikerjakan · sebelumnya: PR #15 (Tugas 8.2 + 8.3, grading warna per fase) di-merge host 18 Nov.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+Menunggu host:
+- merge PR #16 (Tugas 8.4, partikel per fase)
+- pilihan suara Clawd: suara host atau suara teman host, dan bahasa Indonesia setelan Melayu atau model Inggris
+- izin untuk Fable (pembantu yang hanya bekerja atas izin host)
+- penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
+- jawaban soal kaki Clawd 3D yang tertutup kartu gallery
+- uji di iPhone produksi (`/film/?fps`)
 
 ### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — DICATAT, SEDANG DIKERJAKAN
 
@@ -13,6 +21,11 @@ Tafsir Claude:
 - Batas teknis ikut tipe Dashboard artifact (berkas di store, tanpa modul, tanpa host luar, `dash.data`), supaya hasil Codex bisa dipasang ke artifact yang sama.
 - Pembantu: Sonnet dan Haiku dipakai sebagai subagen untuk pekerjaan ini (inventaris frame, tinjauan PRD). Fable tidak dijalankan tanpa izin host; Claude mengusulkan pekerjaannya dan menunggu izin.
 - Kartu "Sesi & agen" di Jize Zone diperbarui supaya Sonnet, Haiku, dan Fable (menunggu izin) tampak.
+- **Tambahan host (18 Nov, di tengah pekerjaan):** "tambahan: jizone = live website. gw pengen mantau kerjaanlu pada secara live. bukan update per task."
+  - Tafsir Claude: Jize Zone v2 = website live, bukan artifact yang diisi berkas per tugas.
+  - Tiap langkah kerja Claude (pesan host masuk, tiap alat dipakai, agen pembantu mulai/selesai, giliran selesai) dikirim otomatis oleh hook Claude Code ke basis data realtime. Website menampilkannya seketika.
+  - PRD ditulis ulang untuk itu: website (dibangun Codex), kontrak kejadian, dan sisi pengirim (hook di container, dipasang Claude sesudah host menyetujui backend).
+  - Simulator runtime artifact untuk Codex dihentikan; Sonnet dialihkan membuat rekaman kejadian (replay) dari sesi ini, sudah disaring tanpa data pribadi.
 
 ### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — CONTOH DIKIRIM, MENUNGGU PILIHAN HOST
 
