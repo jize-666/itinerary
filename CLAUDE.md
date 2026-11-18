@@ -23,7 +23,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 18 Nov 2026 malam (PR #12–#16 di-merge; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 disambungkan ke Supabase "live-second-brain"; sisi Claude selesai, menunggu kunci ingest dan langkah dasbor host (`HANDOFF.md` bagian 0). Berikutnya: 39 klip suara Clawd bahasa Inggris dengan suara teman host (tertunda: rekamannya hilang bersama container lama, host perlu mengirim ulang), lalu Tugas 9 dengan arahan host.
+Diperbarui 19 Nov 2026 pagi (PR #12–#17 di-merge, tidak ada PR terbuka; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 disambungkan ke Supabase "live-second-brain" dan tayang di jize-zone.vercel.app; tinggal URL login di Supabase dan PR `second-brain` #2 (`HANDOFF.md` bagian 0). Berikutnya: PR 39 klip suara Clawd bahasa Inggris dengan suara teman host (klipnya sudah jadi dan masih ada di container sesi 19 Nov; letaknya di `HANDOFF.md` bagian 0, "MULAI DI SINI"), lalu Tugas 9 dengan arahan host.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -85,7 +85,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Ditiru dengan Chatterbox di CPU container, karena kuota ZeroGPU Hugging Face habis.
     - Empat contoh sudah dikirim ke host: tenang EN, marah EN, tenang ID dengan setelan Melayu, dan tenang ID dengan model Inggris.
     - ⏭️ 78 klip: dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu"). Dikerjakan sesudah host memilih contoh. Rekaman tidak masuk repo.
-    - Pilihan host 18 Nov ("gw pilih suara temen gw yang en. gausa kasih indo."): suara teman host, bahasa Inggris saja. Jadi 39 klip EN, tanpa klip ID (film berbahasa Indonesia: Clawd tanpa suara). Tertunda sejak 18 Nov malam: rekaman teman host dan venv Chatterbox hilang bersama container lama, dan rekaman itu tidak ada di Drive. Dikerjakan lagi begitu host mengirim ulang rekamannya; masuk PR terpisah.
+    - Pilihan host 18 Nov ("gw pilih suara temen gw yang en. gausa kasih indo."): suara teman host, bahasa Inggris saja. Jadi 39 klip EN, tanpa klip ID (film berbahasa Indonesia: Clawd tanpa suara). 39 klip sudah jadi 18 Nov (pratinjau dan cadangan `clawd-klip-final.zip` dikirim ke host). Sesi Jize Zone mengira rekamannya hilang, tetapi berkasnya masih ada di container sesi 19 Nov. Masuk PR suara terpisah dari `main` terbaru.
 - [x] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel. ✅ 18 Nov 2026 (8.1–8.4). Dimulai 17 Nov atas arahan host ("mulai saja tugas 8"). Rincian dan status: `HANDOFF.md` bagian 0.
   - [x] **8.1 Desain ulang benang emas.** ✅ 17 Nov 2026.
     - Dua versi benang emas tidak memuaskan host ("upgrade lah, keliatan basic banget"), jadi konsepnya diganti atas pilihan host ("b aja coba").

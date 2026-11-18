@@ -1,19 +1,42 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): website tayang di https://jize-zone.vercel.app, backend lengkap; tinggal URL login di Supabase** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`f32a1e9`; PR #16 dan #17 sudah di-merge) · **tidak ada PR terbuka; catatan 18 Nov yang belum masuk `main` dibawa ke branch ini** · berikutnya: PR suara Clawd 39 klip EN (berkas masih ada di container ini) · Jize Zone tinggal URL login di Supabase · sebelumnya: PR #17 (hook Jize Zone) di-merge host 18 Nov 23.52 WIB, PR #16 (Tugas 8.4) 21.11 WIB.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### MULAI DI SINI (19 Nov pagi)
+
+- Tidak ada PR terbuka. PR #16 (Tugas 8.4) di-merge host 18 Nov 21.11 WIB, PR #17 (hook Jize Zone dan dokumen) 23.52 WIB.
+- Berikutnya: **PR suara Clawd, 39 klip EN** (isi PR di bagian "Keputusan host 18 Nov: suara Clawd…", butir 3), lalu Tugas 9 dengan arahan host.
+  - Berkasnya masih ada di container ini (dicek 19 Nov), jadi host tidak perlu mengirim ulang rekaman. Catatan PR #17 bahwa rekaman hilang hanya berlaku untuk container sesi Jize Zone.
+  - Letaknya di `/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/`:
+    - `clawd-klip/final/en/` (39 WAV terpilih, float 32-bit) dan `clawd-klip/final/sumber.json`;
+    - `clawd-klip/olah/` (MP3 olahan), `clawd-klip/ucap.json`, `jobs-en.json`, `daftar-klip.txt`;
+    - `clawd-voice2/clawd-ref2-jernih.wav` (rekaman teman host yang dijernihkan) dan `cbenv/` (venv Chatterbox);
+    - cadangan `clawd-klip-final.zip` (13 MB), sudah dikirim ke host 18 Nov.
+  - Di container baru berkas itu tidak ada: minta host mengunggah `clawd-klip-final.zip` lagi.
+- Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
+
 Menunggu host:
 - Jize Zone: di Supabase Authentication → URL Configuration, Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**`, lalu coba login magic link
-- merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi) dan PR itinerary #17 (hook dan dokumen)
-- rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
+- merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi); PR itinerary #17 sudah di-merge 18 Nov 23.52 WIB
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
+
+### Permintaan host 19 Nov pagi: rapikan branch kerja sesudah PR #16 — SELESAI
+
+**Kata host:** "apaplah PR #16 (Tugas 8.4), sudah ada? atau malah sudah di merge?", lalu "yo lakukan" atas usul Claude: mulai ulang branch dari `main` terbaru, bawa catatan yang belum masuk `main`, perbarui `CLAUDE.md` dan `HANDOFF.md`.
+1. **Selesai (19 Nov):**
+   - Dicek: PR #16 di-merge 18 Nov 21.11 WIB (isi `main` sama persis dengan kepala PR, `4206664`), PR #17 23.52 WIB.
+   - Branch `claude/gallant-hopper-1jlpo0` dimulai ulang dari `main` (`f32a1e9`). Sesudah PR #16 branch ini masih punya 8 commit catatan yang belum masuk `main` (Codex Jize Zone v2, 39 klip suara Clawd jadi, cadangan klip, dua entri ledger). Isinya dibawa ke sini dalam satu commit; riwayat lamanya disimpan di branch lokal `cadangan-gallant-sebelum-reset`.
+   - Dua sesi menulis `HANDOFF.md` bersamaan 18 Nov malam (sesi ini dan sesi Jize Zone, PR #17). Keduanya digabung tanpa membuang isi, kecuali "MULAI DI SINI" lama (kunci ingest belum cocok), yang sudah selesai di PR #17.
+   - `CLAUDE.md`: PR #12–#17 di-merge; klip suara Clawd tidak tertunda lagi.
+2. **Tes dan kendala:** hanya dokumen yang berubah (`HANDOFF.md`, `CLAUDE.md`, `docs/previews-ledger.json`). `pnpm lint`, `typecheck`, `content:check` lulus; unit 461/461. `build` dan `test:e2e` tidak dijalankan karena tidak ada kode yang berubah. Tanpa pratinjau, karena tidak ada tampilan yang berubah. Ledger JSON tetap sah (dua entri 18 Nov ditambahkan).
+3. **Langkah berikutnya:** host merge PR catatan ini, lalu Claude mengerjakan PR suara Clawd 39 klip EN dari `main` terbaru.
 
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
@@ -27,6 +50,7 @@ Tafsir Claude:
   - belum ada pengguna Auth untuk host.
 - Langkah: periksa kunci ingest di sisi Supabase, deploy `jz-ingest` dari repo, buka skema `jz` di Data API, uji kirim kejadian ujung ke ujung, lalu pasang hook emitter di sesi Claude. Pengaturan yang hanya bisa di dasbor (pengguna host, hook Custom Access Token, pendaftaran mati, Site URL) diserahkan ke host dengan langkah yang jelas.
 - Klip suara Clawd tertunda: container sesi diganti, scratchpad kosong, jadi rekaman teman host (`AUDIO-2026-11-17-23-12-25.m4a`) dan venv Chatterbox hilang. Rekaman itu juga tidak ada di Drive (unggahan terakhir 17 Nov 15.49 UTC, sebelum rekaman dikirim). Host perlu mengirim ulang rekamannya saat klip dikerjakan.
+  - Koreksi 19 Nov: yang hilang hanya di container sesi itu. Di container sesi 19 Nov klip, rekaman yang dijernihkan, dan venv Chatterbox masih ada (lihat "MULAI DI SINI"), dan host juga memegang cadangan `clawd-klip-final.zip`.
 
 1. **Selesai (18 Nov):**
    - `jz-ingest` di-deploy dari kode repo `second-brain` (versi 2; `verify_jwt` mati karena fungsi memeriksa kunci ingest sendiri). Isi yang terpasang sama dengan repo.
@@ -104,7 +128,63 @@ Tafsir Claude:
    - Host mencoba login magic link dengan e-mailnya. SMTP bawaan Supabase dibatasi beberapa e-mail per jam.
    - Sesudah PR `second-brain` #2 di-merge, Vercel men-deploy ulang otomatis (isi web tidak berubah).
 
-### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
+### Permintaan host 18 Nov malam: hasil Codex untuk Jize Zone v2, "tutor dek?" — DITINJAU, TUTORIAL DIKIRIM, MENUNGGU HOST
+
+**Kata host:** "dah jadi, pesan dari codex; tutor dek?", dengan `Jize-Zone-v2.zip` (repo git Codex: `web/`, `supabase/`, `emitter/`, `qa/`, `replay/`, audit PDF) dan `Jize-Zone-Replay.html` (versi replay satu berkas).
+Tafsir Claude:
+- Host minta tutorial cara memasang dan memakai hasil Codex.
+- Langkahnya:
+  - Claude meninjau repo Codex lebih dulu (emitter akan jalan di container Claude, jadi kodenya dibaca utuh sebelum dijalankan);
+  - Claude menjalankan QA-nya;
+  - Claude menulis tutorial langkah demi langkah: bagian host (Supabase, Vercel, login) dan bagian Claude (kunci ingest lewat formulir aman, hook lewat PR di repo itinerary).
+- Berkas Codex disimpan di scratchpad `codex-hasil/` (tidak masuk repo itinerary).
+
+1. **Tinjauan Claude (18 Nov):**
+   - Kode emitter dibaca utuh:
+     - hanya POST ke satu URL HTTPS berjalur `/functions/v1/jz-ingest` lewat curl dan proxy;
+     - kolom whitelist + penyaringan;
+     - dari transkrip hanya keluarga model dan jumlah token;
+     - hook diam bila `JZ_EMITTER` kosong.
+   - Migrasi `jz`:
+     - RLS di tujuh tabel, hanya host yang membaca;
+     - Custom Access Token hook menolak pengguna lain;
+     - realtime untuk `kejadian` dan `ringkasan`.
+   - Ingest: kunci diperiksa sebelum body dibaca, `verify_jwt = false`, disaring ulang sebelum INSERT.
+   - Tes di container Claude: `npm test` 5/5; `build:offline`; `test:visual` lulus (5 adegan, 390/512/1440 px, reduced motion).
+   - `test:stream` lulus: hook p95 4,3 ms (maks. 17,9), render p95 130 ms, pulih dari offline dan putusnya WebSocket.
+   - Penilaian Codex 90/100. Butir 11 (pita PIPELINE) dan 13 (busur COST LAB) masih 0.
+2. **Kendala:**
+   - Header kunci Codex `X-JZ-Ingest` tidak bisa disimpan lewat formulir network secret, yang hanya menerima nama berakhiran key/token/…; harus diubah ke `X-JZ-Ingest-Key` di `handler.mjs` dan README.
+   - Emitter perlu ada di setiap sesi. Usul Claude: salin `emitter/`, `contract.mjs`, dan generator ke repo itinerary (`tools/jize-zone/`), hook memakai `$CLAUDE_PROJECT_DIR`, supaya tidak perlu repo kedua di tiap sesi.
+   - Akun host: Supabase org "dashboard" berisi `itinerary-solo` (aktif) dan `dashboard-kebun` (dijeda), jadi proyek gratis ketiga `jize-zone` masih muat sebagai proyek aktif kedua. Vercel: akun pribadi, tanpa tim.
+3. **Langkah berikutnya:** tutorial di chat 18 Nov. Host membuat repo GitHub privat kosong dan menjalankan bagian dasbor (Auth, kunci); Claude mengerjakan sisanya lewat konektor sesudah host setuju.
+4. **Lanjutan 18 Nov malam** (host: "lah udah gw buat cok, repo github: second brain, dah gw sambungin ke supa juga"; lalu "udah gw buat, namanya second brain juga"):
+   - Repo `jize-666/second-brain` (privat) sudah ditambahkan ke sesi. Isinya baru README.
+   - Branch `claude/jize-zone-v2` sudah di-push, berisi:
+     - riwayat Codex (2 commit) digabung dengan `--allow-unrelated-histories`, README dari Codex;
+     - commit perbaikan header `X-JZ-Ingest` → `X-JZ-Ingest-Key` (handler, dua tes, README);
+     - `npm test` 5/5 dan `test:stream` lulus (hook p95 2,3 ms, render p95 153 ms).
+   - Proyek Supabase "second brain" tidak terlihat dari konektor Supabase Claude, yang hanya bisa membuka org "dashboard". Jadi proyek itu ada di org lain.
+   - Pilihan untuk host:
+     - (A) sambungkan ulang konektor Supabase di claude.ai/customize/connectors dengan org itu, lalu mulai sesi baru;
+     - (B) tetap di sesi ini: merge PR → integrasi GitHub Supabase menjalankan migrasi dan fungsi (bila "Deploy to production" menyala); sisanya klik dasbor; host mengirim Project URL + publishable key (publik) untuk Vercel.
+   - Host memilih B. PR `jize-666/second-brain#1` (`claude/jize-zone-v2` → `main`) dibuka 18 Nov; menunggu host merge, klik dasbor Supabase, lalu Project URL + publishable key untuk Vercel.
+   - PR #1 di-merge host 18 Nov 14:53 UTC. Integrasi GitHub Supabase tidak men-deploy apa pun (fungsi 404).
+   - Proyek Supabase: nama `live-second-brain`, ref `fclylvesjdbbimefyfaw` (Tokyo), di org lain yang tidak terlihat konektor Claude.
+   - Network secret `X-JZ-Ingest-Key` untuk `fclylvesjdbbimefyfaw.supabase.co` tersimpan di lingkungan "itinerary" (host mengisi formulir aman). Permintaan token Management API Supabase ditolak host; tidak diminta lagi.
+   - Host menjalankan migrasi lewat SQL Editor (`jz-setup/1-migrasi-jz.sql`; mencatat versi `20261118134909` di `supabase_migrations`) dan men-deploy fungsi lewat editor dasbor (`jz-setup/2-jz-ingest.ts`, satu berkas). Nama otomatisnya `quick-processor`.
+   - Uji dari container:
+     - GET → 405: kode kita jalan, Verify JWT mati;
+     - POST → 401 terus, juga sesudah diam 3 menit: nilai `JZ_INGEST_KEY` di Supabase berbeda dengan network secret.
+     - Formulir ulang untuk kunci ditolak host; tidak diminta lagi.
+   - Branch `claude/jz-nama-fungsi` (second-brain) sudah di-push: emitter menerima nama fungsi apa pun di `/functions/v1/`, README ikut. `npm test` 5/5. Belum ada PR.
+   - Menunggu host:
+     - menyamakan kunci, lewat pengaturan lingkungan (Network secrets) atau `JZ_INGEST_KEY` di Supabase;
+     - publishable key;
+     - akun host (Add user) dan hook Custom Access Token.
+
+
+### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — 39 KLIP JADI, PRATINJAU DIKIRIM; PR SUARA BERIKUTNYA
 
 **Kata host:** "update handoff. gw pilih suara temen gw yang en. gausa kasih indo."
 Tafsir Claude:
@@ -119,6 +199,35 @@ Tafsir Claude:
   - `docs/design/decisions.md` bagian "Suara Clawd" diperbarui;
   - tes unit klip;
   - video pratinjau Clawd bersuara.
+
+1. **Selesai (18 Nov):**
+   - 39 klip EN dibuat dengan Chatterbox (model Inggris) dari `clawd-ref2-jernih.wav`, benih 7. Setelan per emosi (`exaggeration` / `cfg_weight` / suhu):
+     - tenang 0,45 / 0,5 / 0,8;
+     - senang 0,75 / 0,45 / 0,8;
+     - terkejut 0,85 / 0,45 / 0,8;
+     - marah 1,1 / 0,4 / 0,8;
+     - mengantuk 0,3 / 0,6 / 0,7.
+   - Tiap klip dicocokkan dengan teksnya memakai Whisper (faster-whisper base.en, CPU). 10 kalimat diambil ulang dengan benih 11, 23, dan 31, lalu dipilih yang paling cocok: intro.3.touch, tip.kayon.0, tip.beat.0, tip.beat.0.touch, tip.zoom.0, tip.phrases.0.touch, love.1, calm.0, rest.0, wake.1.
+   - Teks yang dibacakan berbeda dari tulisan gelembung untuk empat kalimat. Daftarnya di `clawd-klip/ucap.json`, perlu masuk skrip repo:
+     - tip.zoom.0: "Control plus scroll, or the plus and minus keys", karena tanda "−" tidak diucapkan;
+     - rest.0 dan wake.1: "Haaah…" menggantikan "Yawn…";
+     - tip.kayon.0: "wah-yang" supaya "wayang" terucap benar.
+   - Pratinjau gabungan 39 klip (2:43) dan daftar detiknya dikirim ke host dan dicatat di ledger.
+   - Berkas kerja ada di scratchpad `clawd-klip/`:
+     - `final/en/*.wav`: mentah terpilih, `sumber.json` mencatat asal tiap klip;
+     - `olah/*.mp3`: sudah diolah.
+2. **Kendala:**
+   - WAV 16-bit dari Chatterbox memotong puncak di atas 1,0: 18 klip pecah, terparah di klip marah. Disimpan ulang sebagai float 32-bit dengan benih yang sama.
+   - `scripts/audio/clawd-voice.ts build` juga menyimpan tahap tengahnya 16-bit, jadi perlu `-c:a pcm_f32le` di PR suara.
+   - Sisa salah dengar Whisper hanya pada nama dan seruan ("Clawd" terdengar "Claude", "Hehe", "Aww", "Ow", "Hmph"); dianggap wajar.
+3. **Langkah berikutnya:**
+   - PR #16 sudah di-merge (18 Nov), jadi klip masuk PR suara baru dari `main` terbaru.
+   - Isi PR suara:
+     - `build` dengan `final/` (MP3 ke `public/audio/clawd/en/`, `voice-clips.json` hanya `en`);
+     - skrip hanya memeriksa EN, plus daftar teks yang dibacakan;
+     - catatan sumber suara di `voice.ts` dan `docs/design/decisions.md` diperbarui;
+     - tes unit;
+     - video pratinjau Clawd bersuara, desktop dan HP.
 
 ### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — PRD DAN KIT DIKIRIM, MENUNGGU KEPUTUSAN HOST
 
@@ -193,7 +302,7 @@ Tafsir Claude:
    - Host memilih suara Clawd (suara host atau suara teman host) dan cara bahasa Indonesianya (setelan Melayu atau model Inggris).
    - Lalu 78 klip dengan suara itu, di PR terpisah.
 
-### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR menunggu host
+### Tugas 8.4: partikel per fase — SELESAI 18 Nov, PR #16 di-merge host 18 Nov 21.11 WIB
 
 **Arahan host 18 Nov, kata demi kata:** "dah gw merge, lanjut 8.4".
 Tafsir Claude:
