@@ -30,10 +30,12 @@ import {
   UnsignedByteType,
   UnsignedInt101111Type,
   Vector2,
+  Vector3,
   type WebGLRenderer,
   WebGLRenderTarget,
 } from "three";
 import { PORTAL } from "@/engine/motion/view";
+import { type Grade, NEUTRAL } from "@/engine/stage/grade";
 import type { TierSpec } from "@/engine/stage/tier";
 
 const VERT = /* glsl */ `
@@ -131,6 +133,12 @@ uniform float uTime;
 uniform float uWarp;
 uniform float uRing;
 uniform float uAspect;
+uniform vec3 uSlope;
+uniform vec3 uOffset;
+uniform vec3 uPower;
+uniform float uSat;
+uniform vec3 uShadow;
+uniform vec3 uHigh;
 varying vec2 vUv;
 ${FINITE}
 float sq(float x) { return x * x; }
@@ -188,6 +196,14 @@ void main() {
   c *= uExposure * vig * (1.0 - uDim);
   c = aces(c);
   c = mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+  // grading per fase (Tugas 8.2 + 8.3, grade.ts): CDL per kanal, saturasi di sekitar luma, lalu split toning, pada
+  // nilai yang tampak di layar (sesudah encode sRGB; sebelum encode, geseran kecil di nada gelap ikut dibesarkan
+  // kurva gamma). Satu sumber dengan langit, jadi ikut bergeser mengikuti gulir.
+  c = pow(max(c * uSlope + uOffset, vec3(0.0)), uPower);
+  float y = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  c = vec3(y) + (c - vec3(y)) * uSat;
+  c += uShadow * (1.0 - smoothstep(0.0, 0.5, y)) + uHigh * smoothstep(0.5, 1.0, y);
+  c = clamp(c, 0.0, 1.0);
   c += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
   gl_FragColor = vec4(c, 1.0);
 }`;
@@ -200,6 +216,8 @@ export type PostParams = {
   dof?: { amount: number; focus: number; aperture: number };
   /** Gerbang dimensi di gallery: kadar 0–1 (`portalWarp`) dan jari-jari cincin riak 0–1 (`portalRing`). */
   portal?: { amount: number; ring: number };
+  /** Grading warna per fase (`gradeOf` di grade.ts); tanpa ini netral. */
+  grade?: Grade;
 };
 
 /**
@@ -295,6 +313,12 @@ export class StagePost {
       uWarp: { value: 0 },
       uRing: { value: 0 },
       uAspect: { value: 1 },
+      uSlope: { value: new Vector3(1, 1, 1) },
+      uOffset: { value: new Vector3() },
+      uPower: { value: new Vector3(1, 1, 1) },
+      uSat: { value: 1 },
+      uShadow: { value: new Vector3() },
+      uHigh: { value: new Vector3() },
     });
     this.tri = new Mesh(geo, this.down);
     this.tri.frustumCulled = false;
@@ -462,6 +486,13 @@ export class StagePost {
     f.uWarp!.value = p.portal ? Math.max(0, Math.min(1, p.portal.amount)) : 0;
     f.uRing!.value = p.portal?.ring ?? 0;
     f.uAspect!.value = this.scene.width / Math.max(1, this.scene.height);
+    const g = p.grade ?? NEUTRAL;
+    (f.uSlope!.value as Vector3).set(g.slope[0], g.slope[1], g.slope[2]);
+    (f.uOffset!.value as Vector3).set(g.offset[0], g.offset[1], g.offset[2]);
+    (f.uPower!.value as Vector3).set(g.power[0], g.power[1], g.power[2]);
+    f.uSat!.value = g.sat;
+    (f.uShadow!.value as Vector3).set(g.shadow[0], g.shadow[1], g.shadow[2]);
+    (f.uHigh!.value as Vector3).set(g.high[0], g.high[1], g.high[2]);
     this.pass(this.final, null);
     gl.autoClear = auto;
   }

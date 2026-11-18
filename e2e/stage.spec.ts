@@ -20,7 +20,7 @@ test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
 const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
-type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" } };
+type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" }; grade: { phase: "night" | "dawn" | "day" | "dusk" | "gate"; sat: number } };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
 async function nextFrames(page: Page, more = 3) {
@@ -1110,5 +1110,78 @@ test.describe("bundle 3D hanya dimuat saat dipakai", () => {
     expect(await loadsThree(page, () => open(page))).toBe(false);
     const second = await context.newPage();
     expect(await loadsThree(second, () => open3d(second))).toBe(true);
+  });
+});
+
+test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan tugas 8.2 + 8.3 dulu\")", () => {
+  const phase = async (page: Page) => (await stats(page))?.grade.phase ?? null;
+  const gradeOff = (page: Page, off: boolean) => page.evaluate((v) => ((window as unknown as { __lakonStage: { gradeOff?: boolean } }).__lakonStage.gradeOff = v), off);
+  /** Rona hangat ternormalisasi: (merah − biru) / terang. Positif = hangat; tidak terpengaruh gambar lebih gelap/terang. */
+  const tone = ([r, g, b]: [number, number, number]) => (r - b) / Math.max(1e-3, r + g + b);
+  /** Rata-rata warna gambar panggung (R, G, B, 0–1), dengan lapisan DOM disembunyikan. */
+  async function meanRgb(page: Page): Promise<[number, number, number]> {
+    await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
+    await nextFrames(page, 3);
+    const png = await page.screenshot();
+    return page.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let [r, g2, b] = [0, 0, 0];
+      let n = 0;
+      for (let i = 0; i < d.length; i += 16) {
+        r += d[i]!;
+        g2 += d[i + 1]!;
+        b += d[i + 2]!;
+        n++;
+      }
+      return [r / n / 255, g2 / n / 255, b / n / 255] as [number, number, number];
+    }, png.toString("base64"));
+  }
+
+  test("fase mengikuti slide: gerbang di judul hari, subuh di pembuka hari, jam tempat singgah di gallery, malam di gong penutup", async ({ page }) => {
+    test.slow();
+    await open3d(page, "?stage=low", "#day-1");
+    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
+    await step(page); // pembuka hari: langit subuh sebelum tempat singgah pertama
+    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("dawn");
+    await step(page); // panel pertama: mengikuti jam tempat singgah (fase terang)
+    await expect(film(page)).toHaveAttribute("data-kind", "panel");
+    await expect.poll(async () => ["dawn", "day", "dusk"].includes((await phase(page)) ?? ""), { timeout: WAIT }).toBe(true);
+    await open3d(page, "?stage=low", "#day-2");
+    await step(page, "ArrowUp");
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
+    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("night");
+  });
+
+  test("grading sungguh mengubah gambar: judul hari (gerbang) lebih hangat, intro prolog (malam) lebih biru, dibanding tanpa grading", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar");
+    test.slow();
+    await open3d(page, "?stage=low&clawd=0", "#day-1");
+    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
+    const gateOn = tone(await meanRgb(page));
+    await gradeOff(page, true);
+    const gateOff = tone(await meanRgb(page));
+    expect(gateOn).toBeGreaterThan(gateOff + 0.03);
+
+    // malam diukur di slide intro prolog (tanpa gong yang baranya masih berubah), bergantian dua kali lalu dirata-rata
+    await open3d(page, "?stage=low&clawd=0");
+    await step(page); // headline
+    await step(page); // intro: langit malam
+    await expect(film(page)).toHaveAttribute("data-kind", "intro");
+    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("night");
+    await page.waitForTimeout(1500);
+    const night: Record<"on" | "off", number[]> = { on: [], off: [] };
+    for (const off of [false, true, false, true]) {
+      await gradeOff(page, off);
+      night[off ? "off" : "on"].push(tone(await meanRgb(page)));
+    }
+    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    expect(avg(night.on)).toBeLessThan(avg(night.off) - 0.006);
   });
 });

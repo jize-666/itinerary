@@ -110,6 +110,22 @@
       "sent": "2026-11-17",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "grading-desktop.jpg",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/grade/grading-desktop.jpg",
+      "size": 827635,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "grading-hp.jpg",
+      "path": "/tmp/claude-0/-home-user-itinerary/5949301a-b085-51fa-a967-7f4ad5b20d90/scratchpad/grade/grading-hp.jpg",
+      "size": 538860,
+      "sent": "2026-11-18",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
