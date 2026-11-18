@@ -7,6 +7,13 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ### Sesudah PR #13 di-merge (17 Nov): Tugas 8 — SEDANG DIKERJAKAN; klip suara Clawd menunggu antrean ElevenLabs
 
+**Permintaan host 18 Nov, kata demi kata:** "ceklis tugas yang sudah dan belum, lanjut buat pr."
+Tafsir Claude:
+- Daftar tugas di `CLAUDE.md` dicentang sesuai keadaan:
+  - Tugas 8 belum selesai: 8.1 selesai (Bengawan Solo dan larung, plus gerbang dimensi); 8.2 dan 8.4 belum; 8.3 sebagian;
+  - suara Clawd: acuan baru dan contoh dikirim, 78 klip menunggu pilihan host.
+- Sesudah semua tes (lint, typecheck, unit, content:check, build, e2e) dijalankan, PR dibuka dari branch ini untuk Squash and merge. Isinya semua kerja sejak PR #13. Host sendiri yang merge.
+
 **Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
 
 Tafsir Claude:

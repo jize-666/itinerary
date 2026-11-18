@@ -23,7 +23,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 17 Nov 2026 (PR #12 dan #13 di-merge; klip suara Clawd menyusul sesudah host menyetujui contohnya, yang tertunda antrean gratis ElevenLabs; lalu Tugas 8 menunggu arahan host).
+Diperbarui 18 Nov 2026 (PR #12 dan #13 di-merge; Tugas 8.1 dan gerbang dimensi gallery selesai di PR berikutnya; suara Clawd kini memakai suara teman host, 78 klip menunggu pilihan host atas contohnya).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -78,7 +78,34 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 - [x] **Maskot Clawd (permintaan host 15 Nov, di luar urutan; dikerjakan atas arahan host).** Pemandu 3D di film: rupa dari `claude-3d-reference-kit` v4 milik host (M1, "update maskot"), gerak lentur (arahan host "ganti aturan tanpa stretch itu"), gelembung ucapan piksel dengan perkenalan dan reaksi klik (M2, "nama dia clawd", "gas m2"), memandu di film 3D dan menggantikan teks petunjuk lama (M3, 16 Nov: "jangan lupa untuk menghapus semua text pemandu yang lama"). ✅ M1–M3 16 Nov 2026, M4 17 Nov 2026 (host: "selesain project clawd dulu, baru aku merge ketika sudah selesai"): Clawd juga di film 2,5D (balok CSS 3D), teks petunjuk lama dihapus seluruhnya, gerak pandang Clawd di kedua film. Rinciannya: `docs/design/decisions.md` bagian "Maskot pemandu…", "Clawd: gelembung…", "Clawd memandu di film 3D", "Clawd di film 2,5D…", dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
   - Uji di iPhone produksi (`/film/?fps`): fps dengan Clawd di `high ×1 (paksa)`, ketukan pada Clawd, letaknya di gallery, dan Clawd 2,5D (Calm).
   - Suara Clawd (17 Nov): host memilih suara perempuan buatan host sendiri. Clone tidak bisa (konektor ElevenLabs tanpa alat clone, paket berbayar host habis), jadi dibuat lewat Voice Design. Pilihan host "clawd-deep-6" tersimpan sebagai suara "Clawd" di akun ElevenLabs host. Pemutar suaranya sudah dipasang 17 Nov (klip diputar saat gelembung muncul, gelembung menunggu klip, ikut sakelar suara; `docs/design/decisions.md` bagian "Suara Clawd"), di PR #13 (di-merge 17 Nov) bersama kenaikan Next.js 16.4.3 → 16.4.6 untuk GHSA-mfr8-8qww-v76h (host: "bebas, asal hasil yang terbaik"). Rekaman 78 klip menyusul di PR berikutnya; contoh EN/ID tertunda antrean gratis ElevenLabs. Rencana: `HANDOFF.md` bagian 0, "Rencana PR suara Clawd".
-- [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel.
+  - ✅ 17 Nov: emosi suara per kalimat. Dasarnya tenang; marah, senang, terkejut, dan mengantuk mengikuti reaksi Clawd (host: "kalo marah ya nada merah/tinggi, seneng/happy ya ekspresif").
+  - ✅ 17 Nov: gelembung ucapan tidak pernah menutupi badan Clawd. Gelembung menyempit, pindah sisi, atau hurufnya diperkecil (host: "jangan sampai clawd terpotong bubble chat").
+  - Suara baru (17–18 Nov, host: "suara clawd, ganti dengan ini"): rekaman pesan suara teman host, yang sudah setuju suaranya dipakai.
+    - Rekaman dijernihkan (warna suara berubah ±1 dB; host: "jangan sampai rusak suaranya").
+    - Ditiru dengan Chatterbox di CPU container, karena kuota ZeroGPU Hugging Face habis.
+    - Empat contoh sudah dikirim ke host: tenang EN, marah EN, tenang ID dengan setelan Melayu, dan tenang ID dengan model Inggris.
+    - ⬜ 78 klip, sesudah host memilih. Rekaman tidak masuk repo.
+- [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel. Dimulai 17 Nov atas arahan host ("mulai saja tugas 8"). Rincian dan status: `HANDOFF.md` bagian 0.
+  - [x] **8.1 Desain ulang benang emas.** ✅ 17 Nov 2026.
+    - Dua versi benang emas tidak memuaskan host ("upgrade lah, keliatan basic banget"), jadi konsepnya diganti atas pilihan host ("b aja coba").
+    - Konsep baru, **Bengawan Solo dan larung lampion**:
+      - sungai berkelok di pita bawah kartu gallery, memantulkan langit menurut jam;
+      - satu lampion per tempat singgah;
+      - perahu lampion hanyut mengikuti gulir dan menyalakan lampion yang dilewati.
+    - Rinciannya: `docs/design/decisions.md` bagian "Bengawan Solo dan larung lampion".
+  - [x] **Gerbang dimensi di gallery** (permintaan host 17 Nov, di luar rencana awal: "kayak ada vibes masuk atau keluar dimensi"). ✅ 17 Nov 2026.
+    - Tiap geser panel, kamera menukik menembus kartu: lensa melebar, garis cahaya, riak, dan warna terpecah di tepi.
+    - Dihaluskan atas arahan host ("bikin lebih smooth"; "kurangi dikit"): dorongan 2,3 m, lensa +20°.
+    - Rinciannya: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
+  - [ ] **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery.
+  - [ ] **8.3 Post-FX:** sebagian.
+    - Sudah: DOF gallery dari 7b, dan efek gerbang dimensi (zoom blur, warna terpecah, riak, kilatan).
+    - Belum: grading warna.
+  - [ ] **8.4 Partikel per fase:** misalnya embun subuh, debu siang, kunang-kunang malam.
+  - Sisa pekerjaan, menunggu host:
+    - tinjauan video gerbang dimensi versi halus;
+    - jawaban soal kaki Clawd 3D yang tertutup kartu gallery;
+    - uji di iPhone produksi (`/film/?fps`), termasuk sungai dan gerbang di `high ×1 (paksa)`.
 - [ ] **9. Diorama Solo.**
 - [ ] **10. Lereng Lawu.**
 - [ ] **11. Canting dan kain mori.**
