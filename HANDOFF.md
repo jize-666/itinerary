@@ -7,11 +7,27 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 Menunggu host:
 - merge PR #16 (Tugas 8.4, partikel per fase)
-- pilihan suara Clawd: suara host atau suara teman host, dan bahasa Indonesia setelan Melayu atau model Inggris
+- empat keputusan PRD Jize Zone v2 (backend, hosting, isi pesan host di log live, nasib artifact lama)
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
+
+### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
+
+**Kata host:** "update handoff. gw pilih suara temen gw yang en. gausa kasih indo."
+Tafsir Claude:
+- Suara Clawd memakai rekaman teman host (`clawd-ref2-jernih.wav` di scratchpad `clawd-voice2/`, model Inggris Chatterbox), seperti contoh "tenang EN" dan "marah EN" yang dikirim 17–18 Nov.
+- Hanya klip bahasa Inggris: 39 klip, bukan 78. Saat film berbahasa Indonesia, Clawd tampil tanpa suara; pemutar sudah begitu untuk kalimat tanpa klip.
+- Suara host sendiri tidak dipakai; contohnya tetap di scratchpad `suara-host/`, tidak masuk repo.
+- Emosi tiap klip ikut `moodOf` (tenang 27, senang 5, terkejut 3, marah 2, mengantuk 2): `exaggeration` dan `cfg_weight` Chatterbox disetel per emosi; marah memakai setelan contoh marah EN yang dikirim (1,1 / 0,4).
+- Rekaman mentah dibuat di container (CPU) dan disimpan di scratchpad. Klip olahan (MP3 48 kbps, −16 LUFS) masuk repo lewat `scripts/audio/clawd-voice.ts build`.
+- PR klip terpisah dari PR #16: dibuka dari `main` terbaru sesudah PR #16 di-merge, atau ditumpuk di PR #16 bila host minta.
+- Sisa kerja kode untuk PR itu:
+  - `scripts/audio/clawd-voice.ts` hanya memeriksa bahasa Inggris, dan catatan sumber suaranya diganti dari ElevenLabs ke suara teman host + Chatterbox;
+  - `docs/design/decisions.md` bagian "Suara Clawd" diperbarui;
+  - tes unit klip;
+  - video pratinjau Clawd bersuara.
 
 ### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — PRD DAN KIT DIKIRIM, MENUNGGU KEPUTUSAN HOST
 
