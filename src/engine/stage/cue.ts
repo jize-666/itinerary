@@ -15,7 +15,9 @@ export type Cursor = Readonly<{ from: number; to: number; p: number }>;
  */
 export const SKY_WINDOW: Readonly<Record<TransitionKind | "fade", readonly [number, number]>> = {
   slide: [0.08, 0.86],
-  inner: [0, 1],
+  // gallery: langit dan matahari berpindah ke jam tempat berikutnya selama menembus gerbang dimensi ("lompat
+  // waktu", PORTAL di view.ts): tetap bergerak mulus, dipadatkan ke tengah geseran
+  inner: [0.25, 0.75],
   wipe: [0.44, 0.56],
   fade: [0, 1],
 };

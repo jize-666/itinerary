@@ -11,13 +11,15 @@ import type { SkyState } from "@/engine/slides/sky";
 import { type GongPlace, stageBus } from "@/engine/stage/bus";
 import { createCues, type Cursor } from "@/engine/stage/cue";
 import { GONG, GONG_SCALE, heartbeat, kickSize, strikeLight } from "@/engine/stage/gong";
-import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, scrollDepth, VIEW } from "@/engine/motion/view";
+import { approach, DOF, dofFocus, GONG_ZOOM, ORBIT, PORTAL, portalRing, portalWarp, scrollDepth, VIEW } from "@/engine/motion/view";
 import { lookMoving, startLook, stepLook } from "../look";
 import { gateCamera, gatePose, type KayonPose } from "@/engine/stage/gate";
 import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
 import { TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
+import { RIVER, riverLine } from "@/engine/stage/river";
+import { drawnAt, filmPosition, larungRoutes, pointAt, type Route, riverRing, shownAt } from "@/engine/stage/route";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
@@ -28,6 +30,8 @@ import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
 import { createShared } from "./shared";
 import { createSky, MOON_DIR } from "./sky";
+import { createLarung } from "./larung";
+import { createRiver } from "./river";
 import { createTerrain } from "./terrain";
 import { createVillage } from "./village";
 
@@ -66,6 +70,8 @@ export type StageStats = {
   time: number;
   /** Depth of field pada frame terakhir (tier High, gallery): kadar 0–1, jarak fokus (m), dan apakah digambar. */
   dof: { amount: number; focus: number; drawn: boolean };
+  /** Gerbang dimensi di gallery pada frame terakhir: kadar 0–1 (0 = tidak sedang menembus gerbang). */
+  portal: number;
   /** Hanya untuk pratinjau dan uji: kamera dipaksa ke [x, y, z, lihatX, lihatY, lihatZ, fov] (ditulis dari konsol atau skrip). */
   cam?: readonly number[];
   /** Hanya untuk pratinjau dan uji: gunungan ditahan di [kemajuan sapuan 0–1, arah (1 maju, −1 mundur), kadar geni 0–1]. */
@@ -139,6 +145,11 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   // `?clawd=0`: tanpa Clawd (pengukuran beban, seperti `?fps` dan `?stage=`)
   const clawd = new URLSearchParams(window.location.search).get("clawd") === "0" ? null : createStageGuide({ shared, scene, host: root, touch: isMobile() });
   const village = createVillage(shared, Math.round(1500 * Math.max(0.4, spec.particles)));
+  // Bengawan Solo dan larung lampion (Tugas 8.1, pengganti benang emas): sungai tetap di dunia; lampion tiap tempat
+  // singgah dan jalur perahu dihitung ulang saat bentuk layar berubah (lampion selalu tepat di bawah kartunya)
+  const river = createRiver(shared);
+  const larung = createLarung(shared);
+  let routes: Route[] = [];
   // gunungan pembuka dan penutup: tekstur dimuat di latar (sudah diunduh lebih dulu oleh StageMount); begitu siap,
   // gerbang boleh tampil dan memudar masuk
   let kayonFade = 0;
@@ -154,7 +165,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     },
   });
   /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
-  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, dust.points, sky.mesh];
+  const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, river.mesh, larung.group, dust.points, sky.mesh];
   let worldHidden = false;
   const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
@@ -206,11 +217,17 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // lanskap mengikuti lebar dan tinggi lintasan matahari di layar ini
     const end = sunDirection(1, 1, track, frame.aspect);
     const top = sunDirection(0.5, 0, track, frame.aspect);
-    const next: TerrainShape = { trackHalf: Math.abs(Math.atan2(end[0], -end[2])), trackTop: Math.asin(Math.max(0, Math.min(1, top[1]))) };
-    if (Math.abs(next.trackHalf - shape.trackHalf) > 0.02 || Math.abs(next.trackTop - shape.trackTop) > 0.01) {
+    // Bengawan Solo mengikuti baris lampion di layar ini (di bawah kartu): tanah dan air dibangun ulang bila bergeser
+    const ring = riverRing(frame);
+    const next: TerrainShape = { trackHalf: Math.abs(Math.atan2(end[0], -end[2])), trackTop: Math.asin(Math.max(0, Math.min(1, top[1]))), river: ring };
+    const moved = Math.abs(ring - (shape.river ?? RIVER.ring)) > 0.15;
+    if (Math.abs(next.trackHalf - shape.trackHalf) > 0.02 || Math.abs(next.trackTop - shape.trackTop) > 0.01 || moved) {
       shape = next;
       terrain.reshape(shape);
+      if (moved) river.setLine(riverLine(ring));
     }
+    routes = larungRoutes(film, frame, shape.river ?? RIVER.ring);
+    larung.setRoutes(routes);
   };
   /** Kanvas baru saja berganti ukuran (isinya terhapus): frame berikutnya wajib digambar walau sedang diam. */
   let stale = true;
@@ -288,8 +305,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const leaving = cue.moving ? 1 - cursor.p : 1;
     const zoomed = spot ? zoomNow * leaving : 0;
     const orbited = spot ? orbitNow * leaving : 0;
-    if (camera.fov !== shot.fov) {
-      camera.fov = shot.fov;
+    // gerbang dimensi (geseran di gallery): kamera menukik maju (mundur: ditarik keluar) dan lensa melebar,
+    // mengikuti kemajuan geseran; post-FX menambahkan riak, garis cahaya, dan warna terpecah
+    const portal = cue.moving && cue.kind === "inner" && planted === 0 ? portalWarp(cursor.p) : 0;
+    const portalDir: 1 | -1 = cursor.to >= cursor.from ? 1 : -1;
+    const fov = shot.fov + PORTAL.fov * portal;
+    if (camera.fov !== fov) {
+      camera.fov = fov;
       camera.updateProjectionMatrix();
     }
     // kitar: letak kamera dan titik pandangnya diputar mengelilingi sumbu tegak yang melewati pusat gong
@@ -310,6 +332,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     camera.translateX((Math.sin(t * 0.21) * 0.035 + lk.x * VIEW.shiftX) * reach);
     camera.translateY((Math.sin(t * 0.17 + 1.3) * 0.022 - lk.y * VIEW.shiftY) * reach);
     camera.translateZ(-Math.min(0.9, (cue.moving ? scrollDepth(cursor.p) : 0) + zoomed * GONG_ZOOM.close) * dist);
+    if (portal > 0) camera.translateZ(-PORTAL.push * portal * portalDir);
     aim.set(lk.x * VIEW.shiftX * reach * VIEW.aim, -lk.y * VIEW.shiftY * reach * VIEW.aim, 0).applyQuaternion(camera.quaternion).add(look);
     camera.lookAt(aim);
     // gong kena: kamera terhentak mundur dan bergetar pelan (simpangan getar dalam ukuran layar, jadi sama di lensa mana pun)
@@ -389,6 +412,32 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
+    // larung: perahu hanyut sejauh letak film (pecahan selama geseran) dan menyalakan lampion yang disinggahi;
+    // lampion yang menyala dan lampion perahu memantul di air
+    const at = filmPosition(cursor);
+    const draws = routes.map((r) => drawnAt(r, at));
+    const shows = routes.map((r) => shownAt(r, at));
+    let live = -1;
+    shows.forEach((v, i) => (live = v > 0.002 && (live < 0 || v > shows[live]!) ? i : live));
+    const route = routes[live];
+    let boatAt: [number, number, number] | null = null;
+    let boatDir: [number, number] = [1, 0];
+    if (route) {
+      const d = draws[live]!;
+      const [a, b] = [pointAt(route, Math.max(0, d - 0.004)), pointAt(route, Math.min(1, d + 0.004))];
+      const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1;
+      boatDir = [(b[0] - a[0]) / l, (b[2] - a[2]) / l];
+      boatAt = pointAt(route, d) as [number, number, number];
+    }
+    const activity = cue.moving ? 1 : 0;
+    const glow = larung.update(t, draws, shows, boatAt, boatDir, activity);
+    if (boatAt) {
+      // lampion perahu (di buritan, ±0,47 m di atas air) ikut memantul
+      const s = shows[live]!;
+      glow.push([boatAt[0] - boatDir[0] * 0.24, boatAt[1], boatAt[2] - boatDir[1] * 0.24, s]);
+    }
+    river.update(glow, boatAt ? [boatAt[0], boatAt[1], boatAt[2], shows[live]!] : [0, 0, 0, 0], boatDir, activity);
+    larung.setPixel(pixel);
     dust.setPixel(pixel);
     village.setPixel(pixel);
     gong.setPixel(pixel);
@@ -400,7 +449,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const dofHeld = stats.dofAt && stats.dofAt.length >= 2 ? stats.dofAt : null;
     const dofAmount = spec.dof ? (dofHeld ? dofHeld[0]! : shot.dof) : 0;
     const dofAt = dofHeld ? dofHeld[1]! : dofFocus(cursor.p, inner);
-    post.render(scene, camera, { exposure: mood.exposure, dim: shot.dim, time: t, dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture } });
+    post.render(scene, camera, {
+      exposure: mood.exposure,
+      dim: shot.dim,
+      time: t,
+      dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },
+      portal: { amount: portal, ring: portalRing(cursor.p, portalDir) },
+    });
 
     stats.frames++;
     stats.bloom = post.format;
@@ -417,6 +472,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.gate = { end: planted > 0 ? gateEnd : null, planted, face: pose && "turn" in pose ? pose.face : "agung" };
     stats.time = t;
     stats.dof = { amount: dofAmount, focus: dofAt, drawn: post.dofDrawn };
+    stats.portal = portal;
   };
   layout();
   resize();
@@ -514,6 +570,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     gunungan.dispose();
     clawd?.dispose();
     dust.dispose();
+    river.dispose();
+    larung.dispose();
     village.dispose();
     post.dispose();
   };

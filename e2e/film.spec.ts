@@ -463,8 +463,10 @@ test.describe("siklus waktu di gallery: matahari mengikuti jam dan slide", () =>
     const cdp = await page.context().newCDPSession(page);
     const touch = (type: "touchStart" | "touchMove" | "touchEnd", x = 0) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y: 420 }] });
     await touch("touchStart", 320);
-    for (let i = 1; i <= 10; i++) {
-      await touch("touchMove", 320 - i * 9); // 90 px ≈ seperempat jarak antar kartu: di bawah ambang 35%
+    // 112 px ≈ 31% jarak antar kartu: di bawah ambang 35%, dan sudah melewati awal jendela langit gallery (25%,
+    // SKY_WINDOW.inner: jam berganti selama menembus gerbang dimensi)
+    for (let i = 1; i <= 14; i++) {
+      await touch("touchMove", 320 - i * 8);
       await page.waitForTimeout(16);
     }
     await page.waitForTimeout(120);

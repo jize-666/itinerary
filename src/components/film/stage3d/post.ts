@@ -5,7 +5,9 @@
  *   dof    : (tier High, gallery) depth of field: gambar adegan dikaburkan di setengah/seperempat resolusi, lalu
  *            dicampur per piksel menurut jarak dari bidang fokus. Jaraknya dari pass kedalaman kecil (seperempat
  *            lebar dan tinggi) yang hanya menggambar tanah lanskap, jadi depth MSAA tetap tidak di-resolve.
- *   gabung : + bloom, eksposur, vinyet, tone mapping ACES, sRGB, dither (langit malam tidak bergaris)
+ *   gabung : + bloom, eksposur, vinyet, tone mapping ACES, sRGB, dither (langit malam tidak bergaris); selama
+ *            menembus gerbang dimensi di gallery (PORTAL di view.ts): cincin riak, warna terpecah di tepi, garis
+ *            cahaya memanjang ke luar (zoom blur pada adegan dan bloom), kilau. Nol di luar geseran: tanpa biaya.
  * Tanpa pustaka post: beberapa shader pendek, satu segitiga selayar.
  */
 import {
@@ -31,6 +33,7 @@ import {
   type WebGLRenderer,
   WebGLRenderTarget,
 } from "three";
+import { PORTAL } from "@/engine/motion/view";
 import type { TierSpec } from "@/engine/stage/tier";
 
 const VERT = /* glsl */ `
@@ -125,8 +128,12 @@ uniform float uBloom;
 uniform float uExposure;
 uniform float uDim;
 uniform float uTime;
+uniform float uWarp;
+uniform float uRing;
+uniform float uAspect;
 varying vec2 vUv;
 ${FINITE}
+float sq(float x) { return x * x; }
 vec3 aces(vec3 x) {
   // ACES (Narkowicz) dengan sedikit pra-eksposur, seperti ACESFilmic di three
   x *= 0.6;
@@ -135,17 +142,47 @@ vec3 aces(vec3 x) {
 float hash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 
 void main() {
-  vec3 c = finite(texture2D(tScene, vUv).rgb);
+  vec2 uv = vUv;
+  float w = uWarp;
+  vec2 dc = (vUv - 0.5) * vec2(uAspect, 1.0);
+  float r = length(dc);
+  if (w > 0.001) {
+    // gerbang dimensi: cincin riak yang menyebar (maju) atau menyusut (mundur) dari tengah layar
+    float diag = 0.5 * sqrt(dot(vec2(uAspect, 1.0), vec2(uAspect, 1.0)));
+    float ring = exp(-sq((r - uRing * diag) * 14.0)) * w;
+    uv += (dc / max(r, 1e-4)) / vec2(uAspect, 1.0) * ring * ${PORTAL.ripple.toFixed(4)};
+  }
+  vec3 c = finite(texture2D(tScene, uv).rgb);
   if (uDof > 0.0) {
     // depth of field: kabur = aperture × |1 − fokus / jarak| (sama dengan dofBlur di view.ts), dikali kadar shot
-    float d = max(texture2D(tDepth, vUv).r, 0.01);
+    float d = max(texture2D(tDepth, uv).r, 0.01);
     float coc = clamp(uAperture * abs(1.0 - uFocus / d), 0.0, 1.0) * uDof;
-    c = mix(c, finite(texture2D(tDof, vUv).rgb), coc);
+    c = mix(c, finite(texture2D(tDof, uv).rgb), coc);
   }
-  c += finite(texture2D(tBloom, vUv).rgb) * uBloom;
-  // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim)
+  vec3 b = finite(texture2D(tBloom, uv).rgb);
+  if (w > 0.001) {
+    // warna terpecah, makin kuat ke tepi
+    vec2 off = (uv - 0.5) * ${PORTAL.chroma.toFixed(4)} * w * (1.0 + 6.0 * r);
+    c.r = finite(texture2D(tScene, uv + off).rgb).r;
+    c.b = finite(texture2D(tScene, uv - off).rgb).b;
+    // garis cahaya: adegan dan bloom dikaburkan ke arah tengah (cahaya memanjang ke luar, seperti melesat)
+    // titik cuplikan digeser acak per piksel: tingkatan salinan lebur menjadi garis halus
+    vec3 acc = vec3(0.0);
+    vec3 bacc = vec3(0.0);
+    float jit = hash(gl_FragCoord.xy + fract(uTime * 7.0) * 113.0);
+    for (int i = 1; i <= 7; i++) {
+      vec2 su = 0.5 + (uv - 0.5) * (1.0 - (float(i) - jit) / 7.0 * ${PORTAL.streak.toFixed(3)} * w);
+      acc += finite(texture2D(tScene, su).rgb);
+      bacc += finite(texture2D(tBloom, su).rgb);
+    }
+    c = mix(c, acc / 7.0, 0.5 * w);
+    b = mix(b, bacc / 7.0, 0.75 * w) * (1.0 + 0.9 * w);
+    c *= 1.0 + ${PORTAL.flash.toFixed(3)} * w;
+  }
+  c += b * uBloom;
+  // vinyet: tepi layar turun; teks di atas gambar menurunkan seluruh bingkai (uDim); menebal di dalam gerbang
   vec2 q = (vUv - 0.5) * vec2(1.0, 0.86);
-  float vig = 1.0 - 0.42 * smoothstep(0.28, 0.82, length(q));
+  float vig = 1.0 - (0.42 + 0.16 * w) * smoothstep(0.28 - 0.06 * w, 0.82, length(q));
   // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
   vig *= 1.0 - 0.38 * (1.0 - smoothstep(0.0, 0.3, vUv.y));
   c *= uExposure * vig * (1.0 - uDim);
@@ -156,7 +193,14 @@ void main() {
 }`;
 
 /** `dof`: kadar depth of field (0 = mati), jarak fokus (m), dan aperture (lihat `DOF` di view.ts). */
-export type PostParams = { exposure: number; dim: number; time: number; dof?: { amount: number; focus: number; aperture: number } };
+export type PostParams = {
+  exposure: number;
+  dim: number;
+  time: number;
+  dof?: { amount: number; focus: number; aperture: number };
+  /** Gerbang dimensi di gallery: kadar 0–1 (`portalWarp`) dan jari-jari cincin riak 0–1 (`portalRing`). */
+  portal?: { amount: number; ring: number };
+};
 
 /**
  * Hemat bandwidth tanpa mengubah gambar (audit host 14 Nov: fps 37–48 di tier High iPhone). GPU HP (berpetak, TBDR)
@@ -248,6 +292,9 @@ export class StagePost {
       uExposure: { value: 1 },
       uDim: { value: 0 },
       uTime: { value: 0 },
+      uWarp: { value: 0 },
+      uRing: { value: 0 },
+      uAspect: { value: 1 },
     });
     this.tri = new Mesh(geo, this.down);
     this.tri.frustumCulled = false;
@@ -412,6 +459,9 @@ export class StagePost {
     f.uExposure!.value = p.exposure;
     f.uDim!.value = p.dim;
     f.uTime!.value = p.time;
+    f.uWarp!.value = p.portal ? Math.max(0, Math.min(1, p.portal.amount)) : 0;
+    f.uRing!.value = p.portal?.ring ?? 0;
+    f.uAspect!.value = this.scene.width / Math.max(1, this.scene.height);
     this.pass(this.final, null);
     gl.autoClear = auto;
   }

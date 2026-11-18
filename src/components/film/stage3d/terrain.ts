@@ -4,36 +4,61 @@
  * Lampu desa ada di village.ts.
  */
 import { BufferAttribute, BufferGeometry, Mesh, ShaderMaterial } from "three";
+import { RIVER } from "@/engine/stage/river";
 import { TERRAIN, terrainHeight, type TerrainShape } from "@/engine/stage/terrain";
 import { COMMON, type Shared } from "./shared";
 
 const RINGS = 60;
 const SPOKES = 200;
+/**
+ * Jari-jari cincin jala: berjarak logaritmik dari tepi dalam ke tepi luar, ditambah cincin rapat (0,6 m) di sekitar
+ * Bengawan Solo (`river.ts`), supaya tepi air dan tebingnya halus tepat di bawah kartu gallery.
+ */
+function radii(ring: number): number[] {
+  const out: number[] = [];
+  for (let i = 0; i <= RINGS; i++) out.push(TERRAIN.inner * Math.pow(TERRAIN.outer / TERRAIN.inner, i / RINGS));
+  // sungai mengikuti lingkaran cincin, jadi tepiannya tetap halus dengan cincin selang 0,6 m (hemat segitiga)
+  const [a, b] = [ring - RIVER.half - RIVER.bank * 0.9, ring + RIVER.half + RIVER.bank * 1.1];
+  for (let r = a; r <= b; r += 0.6) out.push(r);
+  out.sort((p, q) => p - q);
+  return out.filter((r, i) => i === 0 || r - out[i - 1]! > 0.2);
+}
 
 export function terrainGeometry(shape: TerrainShape): BufferGeometry {
-  const count = (RINGS + 1) * (SPOKES + 1);
+  const RADII = radii(shape.river ?? RIVER.ring);
+  const rings = RADII.length - 1;
+  const count = (rings + 1) * (SPOKES + 1);
   const pos = new Float32Array(count * 3);
   const nrm = new Float32Array(count * 3);
   const h = (x: number, z: number) => terrainHeight(x, z, shape);
   let k = 0;
-  for (let i = 0; i <= RINGS; i++) {
-    const r = TERRAIN.inner * Math.pow(TERRAIN.outer / TERRAIN.inner, i / RINGS);
+  for (let i = 0; i <= rings; i++) {
+    const r = RADII[i]!;
     for (let j = 0; j <= SPOKES; j++) {
       const a = (j / SPOKES) * Math.PI * 2;
       const [x, z] = [r * Math.sin(a), -r * Math.cos(a)];
       const y = i === 0 ? -0.6 : h(x, z); // tepi dalam masuk ke bawah lantai pendapa
       pos.set([x, y, z], k);
-      // normal dari selisih tinggi; langkahnya ikut jarak supaya gunung jauh tidak berbintik
-      const e = Math.max(0.6, r * 0.02);
-      const [dx, dz] = [h(x + e, z) - h(x - e, z), h(x, z + e) - h(x, z - e)];
-      const l = Math.hypot(dx, 2 * e, dz);
-      nrm.set([-dx / l, (2 * e) / l, -dz / l], k);
       k += 3;
     }
   }
-  const index = new Uint32Array(RINGS * SPOKES * 6);
+  // normal dari titik-titik tetangga di jala (satu tinggi per titik, bukan lima): selisih ke arah luar × selisih
+  // memutar. Jarak tetangga ikut membesar di kejauhan, jadi gunung jauh tidak berbintik.
+  const P = (i: number, j: number) => ((Math.max(0, Math.min(rings, i)) * (SPOKES + 1) + ((j + SPOKES) % SPOKES)) * 3);
+  for (let i = 0; i <= rings; i++) {
+    for (let j = 0; j <= SPOKES; j++) {
+      const [o, inn, l, rt] = [P(i + 1, j), P(i - 1, j), P(i, j - 1), P(i, j + 1)];
+      const ar = [pos[o]! - pos[inn]!, pos[o + 1]! - pos[inn + 1]!, pos[o + 2]! - pos[inn + 2]!];
+      const aa = [pos[rt]! - pos[l]!, pos[rt + 1]! - pos[l + 1]!, pos[rt + 2]! - pos[l + 2]!];
+      let [nx, ny, nz] = [ar[1]! * aa[2]! - ar[2]! * aa[1]!, ar[2]! * aa[0]! - ar[0]! * aa[2]!, ar[0]! * aa[1]! - ar[1]! * aa[0]!];
+      if (ny < 0) [nx, ny, nz] = [-nx, -ny, -nz];
+      const len = Math.hypot(nx, ny, nz) || 1;
+      nrm.set([nx / len, ny / len, nz / len], (i * (SPOKES + 1) + j) * 3);
+    }
+  }
+  const index = new Uint32Array(rings * SPOKES * 6);
   let n = 0;
-  for (let i = 0; i < RINGS; i++) {
+  for (let i = 0; i < rings; i++) {
     for (let j = 0; j < SPOKES; j++) {
       const a = i * (SPOKES + 1) + j;
       const b = a + SPOKES + 1;

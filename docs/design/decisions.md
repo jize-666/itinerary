@@ -555,6 +555,45 @@ Belum disambungkan ke film (itu M3).
 - **Gerak:** selama suaranya berbunyi Clawd tetap bergerak "bicara" (lengan menjelaskan), tidak hanya selama teks diketik.
 - **Lisensi:** audio paket gratis ElevenLabs setahu Claude tanpa lisensi komersial dan wajib atribusi; perlu dicek host sebelum dipakai untuk klien berbayar.
 
+## Bengawan Solo dan larung lampion di gallery 3D (Tugas 8.1, 17 Nov 2026), pilihan host: "b aja coba"
+
+Pengganti benang emas. Riwayatnya: benang versi pertama ("upgrade lah, keliatan basic banget"), versi kedua, lalu host bertanya "di ganti apa gitu jangan benang, sekalian konsepnya juga ganti? saran?" dan memilih usul B dari tiga usul.
+
+- **Letak:** satu-satunya bagian lanskap yang tidak tertutup kartu, di layar lebar maupun HP, adalah pita tanah tepat di bawah kartu. Sungai melengkung mengitari bukit pendapa di pita itu, dan kedua ujungnya berbelok ke cakrawala kiri dan kanan.
+  - Jari-jari busurnya mengikuti baris lampion di layar (`riverRing`: layar lebar ±15,5 m, HP ±12 m) dan disimpan di `TerrainShape.river`.
+  - Muka air di busur datar, karena tinggi bukit di jari-jari yang sama sama di mana-mana.
+- **Alur diukir di tanah** (`river.ts` → `terrainHeight`): dasar berbentuk mangkuk di bawah air, dan bibir tebing di atas air. Di sisi luar busur, tempat tanah asal lebih rendah dari air, bibir itu menjadi tanggul kecil, jadi air tidak pernah melayang. Jala tanah dirapatkan (cincin 0,3 m) di sekitar sungai. Normal dihitung dari titik tetangga, jadi lanskap dibangun dalam 41 ms (sebelumnya 85 ms tanpa sungai).
+- **Air** (`stage3d/river.ts`, satu draw call):
+  - riak dua lapis yang mengalir ke hilir;
+  - pantulan langit menurut jam, dibatasi supaya di sudut landai tidak menjadi cermin putih;
+  - badan air cokelat kehijauan;
+  - butir kilau matahari/bulan, buih putus-putus di tepi;
+  - pantulan lampion sebagai garis cahaya yang bergoyang, riak buritan berbentuk V.
+  - Cahaya lampion kalah oleh siang dan berkuasa di malam hari.
+- **Larung** (`stage3d/larung.ts`, tiga draw call, hanya untuk hari yang tampak):
+  - tiap tempat singgah satu lampion kertas segi enam beratap di atas rakit daun pisang, terapung tepat di bawah kartunya (titik layar ditembakkan ke muka air dan dijaga di tengah alur);
+  - perahu tamu (jukung hijau tua bergaris gading, lampion di tiang) hanyut mengikuti gulir atau jari;
+  - tiap lampion menyala saat perahu tiba (kilatan singkat, lalu nyala hangat yang berkedip pelan);
+  - lampion di depan masih padam;
+  - ukuran dijaga terbaca dari jauh.
+- **Murni dan teruji:** `engine/stage/river.ts` dan `engine/stage/route.ts` (pengganti `thread.ts`). Yang diuji: lampion di bawah kartu di dua bentuk layar, air tidak melayang di tepi, kemajuan ikut gulir.
+
+## Gerbang dimensi di gallery (17 Nov 2026), permintaan host: "setiap nge-slide itu kayak ada kayak masuk dimensi gitu", "gas, buat video dimensinya dulu"
+
+Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya. Semua mengikuti kemajuan geseran (gulir atau jari; ditahan di tengah = tertahan di dalam gerbang). Konstanta di `PORTAL` (view.ts), kadar `portalWarp(p)` (nol di ujung, puncak di tengah).
+- **Kamera 3D:** menukik 2,3 m searah pandang saat maju, ditarik keluar saat mundur, dan lensanya melebar 20° di puncak (versi pertama 2,8 m dan 24°; dikurangi sedikit atas permintaan host "bikin lebih smooth", "kurangi dikit").
+- **Post-FX** (pass gabungan, hanya selama geseran):
+  - cincin riak dari tengah layar (maju menyebar, mundur menyusut);
+  - warna terpecah yang menguat ke tepi;
+  - garis cahaya: adegan dan bloom dikaburkan ke arah tengah dengan 7 cuplikan yang digeser acak per piksel, jadi lampion, matahari, dan bintang memanjang ke luar;
+  - versi halus (host: "bikin lebih smooth"): garis cahaya, warna terpecah, riak, kilau, dan vinyet ±separuh versi pertama; kurva gerbang sin²;
+  - kilau, dan vinyet yang menebal.
+- **Kartu (DOM, juga di film 2,5D):**
+  - maju: kartu lama menukik ke arah kamera (sampai 360 px ke depan, di bawah jarak pandang 1100 px) lalu larut; kartu berikutnya mundur dulu ke kedalaman (−760 px) lalu naik ke tempatnya; laju sine, 15 % lebih panjang dari perpindahan slide biasa;
+  - mundur: kebalikannya.
+  - Keadaan akhir sama dengan sebelumnya. Mode Calm tetap crossfade datar.
+- **Lompat waktu:** langit dan matahari di gallery berpindah ke jam tempat berikutnya selama tengah geseran (`SKY_WINDOW.inner` 0,25–0,75, sebelumnya 0–1). Tetap bergerak mulus tanpa lompatan.
+
 ## Gerak pandang di semua slide, 3D dan 2,5D (13 Nov 2026), aturan host
 
 Arahan host, urut: "tunggu, di fase gong itu kan 3D ya? bisa di zoom out/in? perspective shift, scroll driven depth, kamera parallax nya gimana?", lalu "semua" (keempat pilihan yang ditawarkan), lalu "pastikan di setiap objek 3D (semua), harus ada semuanya itu. bahkan di film 2,5D juga harus ada; perspective shift, scroll driven depth, kamera parallax". Ini aturan tetap untuk objek 3D yang akan datang juga (`CLAUDE.md`).

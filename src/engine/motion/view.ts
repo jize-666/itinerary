@@ -51,6 +51,38 @@ export const scrollDepth = (p: number) => VIEW.push * Math.sin(Math.PI * clamp(p
  * jadi lapisan tanah dekat, desa, dan Lawu tampak jelas bergerak dengan kecepatan berbeda; begitu kartu tiba fokus
  * kembali. Nol di kedua ujung perpindahan, jadi tidak ada lompatan.
  */
+/**
+ * Gerbang dimensi di gallery (permintaan host 17 Nov: "setiap nge-slide itu kayak ada kayak masuk dimensi gitu",
+ * "gas, buat video dimensinya dulu"). Tiap geser panel = menembus gerbang ke waktu tempat singgah berikutnya:
+ * kamera 3D menukik (maju) atau ditarik (mundur), lensa melebar, cahaya memanjang ke arah luar, cincin riak dari
+ * tengah, warna terpecah di tepi. Semuanya mengikuti kemajuan geseran (gulir atau jari). Dibuat lebih halus atas
+ * permintaan host 17 Nov ("bikin lebih smooth"; lalu "kamera + lensa dikurangi ga? kalau belum, kurangi dikit"):
+ * kamera dan lensa dikurangi sedikit (2,8 → 2,3 m; 24° → 20°), efek lainnya ±separuh versi pertama, kurva sin².
+ */
+export const PORTAL = {
+  /** Kamera bergerak sekian m searah pandang di puncak gerbang (maju: menukik; mundur: ditarik). */
+  push: 2.3,
+  /** Lensa melebar sekian derajat di puncak gerbang. */
+  fov: 20,
+  /** Panjang garis cahaya (zoom blur), bagian jarak ke tengah layar. */
+  streak: 0.09,
+  /** Pecahan warna di tepi layar (bagian ukuran layar). */
+  chroma: 0.0028,
+  /** Simpangan cincin riak (bagian ukuran layar). */
+  ripple: 0.011,
+  /** Kilau di puncak gerbang (pengali terang). */
+  flash: 0.1,
+} as const;
+
+/** Kadar gerbang 0–1 pada kemajuan geseran `p`: nol di kedua ujung, puncak di tengah, landai di awal dan akhir (sin²). */
+export const portalWarp = (p: number) => {
+  const s = Math.sin(Math.PI * clamp(p, 0, 1));
+  return s * s;
+};
+
+/** Jari-jari cincin riak (0 = tengah layar, 1 = tepi): maju menyebar keluar, mundur menyusut ke tengah. */
+export const portalRing = (p: number, dir: 1 | -1) => (dir > 0 ? clamp(p, 0, 1) : 1 - clamp(p, 0, 1));
+
 export const DOF = {
   /** Jarak fokus saat diam (m): sedikit di depan tanah terdekat yang tampak, jadi seluruh lanskap lembut. */
   rest: 12,

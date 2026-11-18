@@ -32,7 +32,9 @@ async function open(page: Page, query = "", hash = "") {
   await seedSession(page);
   await page.route(TRIP, (r) => json(r, 200, filmFixture("guest", { breakfast: true })));
   await page.goto(`/film/${query}${hash}`);
-  await expect(film(page)).toBeVisible();
+  // penantian di berkas ini memakai WAIT: panggung 3D digambar CPU di runner CI, jadi halaman dan transisi CSS
+  // bisa tertahan lebih dari 5 dtk bawaan (gunungan dan overlay sempat gagal di CI karena itu)
+  await expect(film(page)).toBeVisible({ timeout: WAIT });
   await settled(page);
 }
 
@@ -456,6 +458,9 @@ test.describe("gong ageng 3D", () => {
 
   test("zoom gong: tombol + dan −, dan Ctrl+roda; bidang sentuh tombol pukul ikut membesar", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
+    // lima penantian zoom, masing-masing menunggu kamera 3D yang digambar tanpa GPU; sejak sungai dan larung
+    // (Tugas 8.1) adegannya lebih berat di renderer perangkat lunak, jadi 30 dtk bawaan kadang habis saat zoom keluar
+    test.slow();
     const strike = await toGong(page, "?stage=low");
     const w0 = (await strike.boundingBox())!.width;
     await page.keyboard.press("+");
@@ -566,13 +571,13 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   test("film 3D dibuka dengan gunungan tertancap; gulir maju mencabutnya tanpa pindah slide, lalu teks prolog muncul", async ({ page }) => {
     await open3d(page, "?stage=low", "", "keep");
     await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
-    await expect.poll(() => opacity(page, HERO)).toBe(0);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(0);
     await nextFrames(page);
     expect((await stats(page))!.gate).toEqual({ end: "head", planted: 1, face: "agung" });
     await expect(page.locator(".fl-kayon")).toBeVisible();
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
-    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(1);
     await expect(page.locator(".fl-kayon")).toHaveCount(0);
     expect(await film(page).getAttribute("data-index")).toBe("0");
     await expect.poll(() => planted(page), { timeout: WAIT }).toBe(0);
@@ -601,15 +606,15 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
 
   test("mundur di slide pertama menancapkannya lagi: teks prolog memudar; maju mencabutnya lagi", async ({ page }) => {
     await open3d(page);
-    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(1);
     await page.keyboard.press("ArrowUp");
     await expect(film(page)).toHaveAttribute("data-gate", "head");
-    await expect.poll(() => opacity(page, HERO)).toBe(0);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(0);
     await expect.poll(() => planted(page), { timeout: WAIT }).toBe(1);
     expect((await stats(page))!.gate.face).toBe("agung");
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
-    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(1);
   });
 
   test("penutup: gulir maju di credits menancapkan gunungan dan credits memudar; mundur mencabutnya", async ({ page }) => {
@@ -619,13 +624,13 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
     await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: WAIT_LONG }).toBe(true);
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).toHaveAttribute("data-gate", "tail");
-    await expect.poll(() => opacity(page, CREDITS)).toBe(0);
+    await expect.poll(() => opacity(page, CREDITS), { timeout: WAIT }).toBe(0);
     await expect.poll(() => planted(page), { timeout: WAIT }).toBe(1);
     expect((await stats(page))!.gate.end).toBe("tail");
     expect(await film(page).getAttribute("data-index")).toBe(last);
     await page.keyboard.press("ArrowUp");
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
-    await expect.poll(() => opacity(page, CREDITS)).toBe(1);
+    await expect.poll(() => opacity(page, CREDITS), { timeout: WAIT }).toBe(1);
     await expect.poll(() => planted(page), { timeout: WAIT }).toBe(0);
     // tercabut: mundur berikutnya memindah slide
     await step(page, "ArrowUp");
@@ -664,7 +669,7 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   test("film 2,5D: tanpa gerbang, teks prolog langsung tampil; langkah pertama menabuh gong hero, kedua memindah slide", async ({ page }) => {
     await open(page);
     await expect(film(page)).not.toHaveAttribute("data-gate", /.+/);
-    await expect.poll(() => opacity(page, HERO)).toBe(1);
+    await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(1);
     await expect(page.locator(".fl-kayon")).toHaveCount(0);
     await page.keyboard.press("ArrowDown");
     await expect(film(page)).toHaveAttribute("data-beat", "out");
@@ -851,18 +856,20 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
       [c.width, c.height] = [img.width, img.height];
       const g = c.getContext("2d")!;
       g.drawImage(img, 0, 0);
-      // pita tanah di bawah cakrawala; dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
+      // pita tanah di bawah cakrawala, di atas Bengawan Solo (sungai di pita bawah kartu ada di dekat bidang fokus,
+      // jadi sengaja tajam, seperti Clawd); dihitung tepi tajam (beda terang > 6/255 antar piksel bertetangga), yang
       // paling peka terhadap kabur: garis pematang sawah
       const y0 = Math.round(c.height * 0.4);
-      const d = g.getImageData(0, y0, c.width, c.height - y0).data;
+      const y1 = Math.round(c.height * 0.74);
+      const d = g.getImageData(0, y0, c.width, y1 - y0).data;
       const lum = (i: number) => d[i]! * 0.3 + d[i + 1]! * 0.59 + d[i + 2]! * 0.11;
       let e = 0;
-      for (let y = 0; y < c.height - y0 - 1; y++)
+      for (let y = 0; y < y1 - y0 - 1; y++)
         for (let x = 0; x < c.width - 1; x++) {
           const i = (y * c.width + x) * 4;
           if (Math.max(Math.abs(lum(i) - lum(i + 4)), Math.abs(lum(i) - lum(i + c.width * 4))) > 6) e++;
         }
-      return e / (c.width * (c.height - y0));
+      return e / (c.width * (y1 - y0));
     }, png.toString("base64"));
   }
   const hold = (page: Page, at: number[] | null) =>

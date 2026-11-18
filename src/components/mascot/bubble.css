@@ -21,7 +21,8 @@
   z-index: 60;
   max-width: min(19.5em, calc(100vw - 24px));
   font-family: "Pixelify Sans", ui-monospace, monospace;
-  font-size: 17px;
+  /* HP sempit: gelembung sedikit lebih kecil (host 17 Nov: "bisa di perkecil bubble nya") */
+  font-size: clamp(14px, 3.9vw, 17px);
   line-height: 1.3;
   color: var(--cb-ink);
   pointer-events: auto;
@@ -34,6 +35,11 @@
 }
 .clawd-bubble[data-on] {
   visibility: visible;
+}
+/* tidak muat di sisi mana pun dengan huruf biasa: huruf dan piksel diperkecil (bubble-place.ts, TIGHT di bubble.ts) */
+.clawd-bubble[data-tight] {
+  --px: 2px;
+  font-size: calc(clamp(14px, 3.9vw, 17px) * 0.82);
 }
 
 .cb-box {

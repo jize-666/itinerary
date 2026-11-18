@@ -174,14 +174,12 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       const px = (size / (2 * -local.z * tv)) * h;
       const cx = ((v.x + 1) / 2) * w;
       const cy = ((1 - v.y) / 2) * h;
-      if (bubbleSide === "above") {
-        head.set(0, 0.95 + 0.4, 0).applyMatrix4(rig.character.bodyRig.matrixWorld).project(camera);
-        bubble?.render(ctx.sheet ? null : speech, view.left + ((head.x + 1) / 2) * w, view.top + ((1 - head.y) / 2) * h, "above");
-      } else {
-        // di samping: ekor menunjuk sisi badan, sedikit di luar lengan
-        const edge = px * 0.95 * (bubbleSide === "right" ? 1 : -1);
-        bubble?.render(ctx.sheet ? null : speech, view.left + cx + edge, view.top + cy, bubbleSide);
-      }
+      // kotak badan di layar (lengan, kaki, dan ruang di atas kepala): gelembung di sisi pilihan bila muat, tidak
+      // pernah menutupinya
+      head.set(0, 0.95 + 0.4, 0).applyMatrix4(rig.character.bodyRig.matrixWorld).project(camera);
+      const headY = ((1 - head.y) / 2) * h;
+      const box = { left: view.left + cx - px * 0.8, right: view.left + cx + px * 0.8, top: view.top + Math.min(headY, cy - px * 0.6), bottom: view.top + cy + px * 0.8 };
+      bubble?.render(ctx.sheet ? null : speech, box, bubbleSide);
       if (hit) {
         hit.style.width = hit.style.height = `${Math.round(px * 1.3)}px`;
         hit.style.transform = `translate(${(cx - px * 0.65).toFixed(1)}px, ${(cy - px * 0.6).toFixed(1)}px)`;

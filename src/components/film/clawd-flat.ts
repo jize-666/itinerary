@@ -129,8 +129,9 @@ export function createFlatGuide({ host, probe, still, touch }: { host: HTMLEleme
 
     // ---- gelembung dan partikel emosi ----
     const headY = pos.y - size * (0.5 + m.lift) - size * 0.22;
-    if (side3 === "above") bubble.render(ctx.sheet ? null : frame.speech, pos.x, headY, "above");
-    else bubble.render(ctx.sheet ? null : frame.speech, pos.x + body * 0.95 * (side3 === "right" ? 1 : -1), pos.y, side3);
+    // kotak badan beserta lengan, kaki, dan ruang di atas kepala: gelembung tidak pernah menutupinya
+    const box = { left: pos.x - size * 0.8, right: pos.x + size * 0.8, top: headY, bottom: pos.y + size * 0.8 };
+    bubble.render(ctx.sheet ? null : frame.speech, box, side3);
     emotes.update(t, frame.mood, pos.x, headY + size * 0.1, size, calm);
   };
   raf = requestAnimationFrame(tick);

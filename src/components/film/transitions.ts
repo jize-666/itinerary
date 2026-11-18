@@ -2,7 +2,8 @@
  * Resep transisi antar slide: memetakan (slide asal, slide tujuan) ke lintasan opacity/transform per elemen.
  * Hanya `opacity` dan `transform` yang digerakkan (aturan performa). Empat rupa:
  *  - slide: lapisan lama memudar naik, lapisan baru masuk dari arah perjalanan (vertikal)
- *  - inner: di dalam gallery, rel kartu bergeser satu kartu (menyamping)
+ *  - inner: di dalam gallery, rel kartu bergeser satu kartu sambil menembus gerbang dimensi (maju: kartu lama
+ *           menukik melewati kamera, yang baru naik dari kedalaman; mundur kebalikannya)
  *  - wipe : antar bab / lompatan: bayangan kayon menyapu layar, isi berganti di baliknya
  *  - fade : Calm mode, crossfade tanpa gerak
  */
@@ -149,19 +150,52 @@ export function planTransition(root: HTMLElement, film: Film, from: number, to: 
           : { el: track, x: [[0, -i * step], [1, -j * step]] },
       );
     }
-    // kartu tetangga berada lebih jauh dan berpaling menjauh (seperti panel di drum yang berputar): yang datang
-    // "membuka" menghadap penonton, yang pergi mundur dan berpaling. `turn` = paling kartu di sisi itu (kiri −, kanan +).
-    const dim = (el: HTMLElement | undefined, lit: boolean, turn: number) => {
-      if (!el) return;
-      // Calm: datar, tanpa kedalaman (kartu tetangga hanya mengecil), berganti di tengah crossfade
-      if (kind === "fade") tracks.push({ el, opacity: lit ? [[0, 0.42], [0.5, 0.42], [0.5, 1], [1, 1]] : [[0, 1], [0.5, 1], [0.5, 0.42], [1, 0.42]], scale: lit ? [[0, 0.93], [0.5, 0.93], [0.5, 1]] : [[0, 1], [0.5, 1], [0.5, 0.93]] });
-      else if (lit) tracks.push({ el, opacity: [[0, 0.42], [1, 1]], z: [[0, DEPTH.cardZ], [1, 0]], rotateY: [[0, turn], [1, 0]] });
-      else tracks.push({ el, opacity: [[0, 1], [1, 0.42]], z: [[0, 0], [1, DEPTH.cardZ]], rotateY: [[0, 0], [1, turn]] });
-    };
+    // Kartu tetangga berada lebih jauh dan berpaling menjauh (seperti panel di drum yang berputar). Selama geseran
+    // kartu menembus gerbang dimensi (permintaan host 17 Nov, PORTAL di view.ts; kamera 3D ikut menukik):
+    //  - maju : kartu lama menukik ke arah kamera dan larut; kartu baru mundur dulu ke kedalaman lalu naik ke
+    //           tempatnya;
+    //  - mundur: kartu lama tenggelam ke kedalaman; kartu yang kembali datang dari belakang kamera.
+    // Keadaan akhir sama dengan sebelumnya (tetangga: redup, mundur, berpaling). `turn` = paling kartu di sisi itu.
     const side = j > i ? 1 : -1;
-    dim(cards[i], false, -side * DEPTH.cardTurn); // maju: kartu lama jadi tetangga kiri
-    dim(cards[j], true, side * DEPTH.cardTurn); // maju: kartu baru datang dari kanan
-    return { kind, tracks, dur: kind === "fade" ? SLIDE.calmDur : Math.round(SLIDE.dur * 0.82), ease: kind === "fade" ? "sineInOut" : "power3InOut", textAt: kind === "fade" ? 0 : Math.round(SLIDE.textIn * 0.7) };
+    const [oldTurn, newTurn] = [-side * DEPTH.cardTurn, side * DEPTH.cardTurn];
+    const [old, next] = [cards[i], cards[j]];
+    if (kind === "fade") {
+      // Calm: datar, tanpa kedalaman (kartu tetangga hanya mengecil), berganti di tengah crossfade
+      if (old) tracks.push({ el: old, opacity: [[0, 1], [0.5, 1], [0.5, 0.42], [1, 0.42]], scale: [[0, 1], [0.5, 1], [0.5, 0.93]] });
+      if (next) tracks.push({ el: next, opacity: [[0, 0.42], [0.5, 0.42], [0.5, 1], [1, 1]], scale: [[0, 0.93], [0.5, 0.93], [0.5, 1]] });
+    } else if (side > 0) {
+      if (old)
+        tracks.push({
+          el: old,
+          opacity: [[0, 1], [0.24, 0.86], [0.5, 0], [0.8, 0], [1, 0.42]],
+          z: [[0, 0], [0.5, DEPTH.portalNear], [0.51, DEPTH.cardZ - 160], [1, DEPTH.cardZ]],
+          rotateY: [[0, 0], [0.5, 0], [0.51, oldTurn * 1.3], [1, oldTurn]],
+        });
+      if (next)
+        tracks.push({
+          el: next,
+          opacity: [[0, 0.42], [0.3, 0.14], [0.5, 0.26], [0.9, 1], [1, 1]],
+          z: [[0, DEPTH.cardZ], [0.34, DEPTH.portalFar], [1, 0]],
+          rotateY: [[0, newTurn], [0.34, newTurn * 0.5], [1, 0]],
+        });
+    } else {
+      if (old)
+        tracks.push({
+          el: old,
+          opacity: [[0, 1], [0.45, 0], [0.8, 0], [1, 0.42]],
+          z: [[0, 0], [0.48, DEPTH.portalFar], [0.49, DEPTH.cardZ - 160], [1, DEPTH.cardZ]],
+          rotateY: [[0, 0], [0.48, 0], [0.49, oldTurn * 1.3], [1, oldTurn]],
+        });
+      if (next)
+        tracks.push({
+          el: next,
+          opacity: [[0, 0.42], [0.28, 0], [0.4, 0], [0.86, 1], [1, 1]],
+          z: [[0, DEPTH.cardZ], [0.3, DEPTH.cardZ], [0.31, DEPTH.portalNear], [1, 0]],
+          rotateY: [[0, newTurn], [0.3, newTurn], [0.31, 0], [1, 0]],
+        });
+    }
+    // laju lembut (sine) dan sedikit lebih panjang: gerbang terasa mengalir, tidak menyentak (host: "bikin lebih smooth")
+    return { kind, tracks, dur: kind === "fade" ? SLIDE.calmDur : Math.round(SLIDE.dur * 1.15), ease: "sineInOut", textAt: kind === "fade" ? 0 : Math.round(SLIDE.textIn * 0.7) };
   }
 
   if (kind === "fade") {

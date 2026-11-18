@@ -2,7 +2,7 @@
  * Klip suara Clawd (`src/engine/mascot/voice.ts`). Suaranya "Clawd" di akun ElevenLabs host (Voice Design
  * "clawd-deep-6", voice_id `4gpmKMMFEuQLCXLQGo99`); audio paket gratis ElevenLabs, lihat catatan lisensi di HANDOFF.md.
  *
- *   pnpm -s exec tsx scripts/audio/clawd-voice.ts list [en|id]   kalimat yang perlu direkam (nama<TAB>teks)
+ *   pnpm -s exec tsx scripts/audio/clawd-voice.ts list [en|id]   kalimat yang perlu direkam (nama<TAB>emosi<TAB>teks)
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts build <mentah>  olah <mentah>/<lang>/<nama>.(mp3|wav) ke public/
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts check           semua kalimat punya klip, voice-clips.json cocok
  *
@@ -91,7 +91,7 @@ function check() {
 }
 
 const [cmd, arg] = process.argv.slice(2);
-if (cmd === "list") for (const l of voiceLines()) console.log(`${l.name}\t${arg === "id" ? l.id : l.en}`);
+if (cmd === "list") for (const l of voiceLines()) console.log(`${l.name}\t${l.mood}\t${arg === "id" ? l.id : l.en}`);
 else if (cmd === "build" && arg) build(arg);
 else if (cmd === "check") check();
 else {

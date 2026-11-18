@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Clawd } from "@/engine/mascot/clawd";
 import { Dialogue, holdTime, typingTime } from "@/engine/mascot/dialogue";
 import { INTRO, SAY, TIPS, WELCOME_BACK } from "@/engine/mascot/lines";
-import { clipMs, clipName, clipUrl, VOICE, voiceLines } from "@/engine/mascot/voice";
+import { clipMs, clipName, clipUrl, moodOf, VOICE, voiceLines } from "@/engine/mascot/voice";
 
 /**
  * Suara Clawd (arahan host 17 Nov: suara "Clawd" buatan host di ElevenLabs). Lama klip di sini tiruan supaya tes tidak
@@ -39,6 +39,22 @@ describe("daftar klip suara Clawd", () => {
     expect(lines.find((l) => l.name === "intro.2.touch")!.en).toBe(INTRO[2]!.touch!.en);
     expect(clipName("tip.zoom.0", true)).toBe("tip.zoom.0.touch");
     expect(clipUrl("id", "tap.2")).toBe("/audio/clawd/id/tap.2.mp3");
+  });
+
+  it("emosi suara: dasar tenang; marah, senang, terkejut, dan mengantuk mengikuti reaksi Clawd", () => {
+    expect(moodOf("intro.0")).toBe("calm");
+    expect(moodOf("tip.gong.0.touch")).toBe("calm");
+    expect(moodOf("angry.1")).toBe("angry");
+    expect(moodOf("happy.0")).toBe("happy");
+    expect(moodOf("love.1")).toBe("happy");
+    expect(moodOf("tap.2")).toBe("happy");
+    expect(moodOf("tap.0")).toBe("calm");
+    expect(moodOf("gong.1")).toBe("surprised");
+    expect(moodOf("wake.0")).toBe("surprised");
+    expect(moodOf("wake.1")).toBe("sleepy");
+    expect(moodOf("rest.0")).toBe("sleepy");
+    const moods = new Set(voiceLines().map((l) => l.mood));
+    expect([...moods].sort()).toEqual(["angry", "calm", "happy", "sleepy", "surprised"]);
   });
 
   it("klip yang belum ada: tanpa lama (kalimatnya tetap tampil tanpa suara)", () => {

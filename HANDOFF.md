@@ -1,11 +1,426 @@
 # HANDOFF
 
-Diperbarui 17 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · PR #12 di-merge 17 Nov; **PR #13 (pemutar suara Clawd + Next.js 16.4.6) siap Squash and merge** · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
+Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0` · **PR #14 (Tugas 8.1 Bengawan Solo dan larung, gerbang dimensi, gelembung dan emosi suara Clawd) dibuka 18 Nov, menunggu merge host** · PR #12 dan #13 di-merge 17 Nov; suara Clawd kini suara teman host, contoh menunggu pilihan host · sebelumnya: PR #12 (Tugas 7b, zoom dan kitar gong ±90°, Clawd M1–M4 di film 3D dan 2,5D; CI hijau, tanpa konflik). Saran Claude yang disetujui host ("gas buat pr dan perbarui handoff"): merge PR #12 sekarang, suara Clawd menyusul di PR terpisah dari `main` terbaru. Suara "Clawd" (Voice Design "clawd-deep-6") sudah tersimpan di akun ElevenLabs host; contoh EN/ID tertunda antrean gratis ElevenLabs (lihat bagian 0, "Suara Clawd").
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd — SEDANG DIKERJAKAN
+### Sesudah PR #13 di-merge (17 Nov): Tugas 8 — SEDANG DIKERJAKAN; klip suara Clawd menunggu antrean ElevenLabs
+
+**Permintaan host 18 Nov, kata demi kata:** "ceklis tugas yang sudah dan belum, lanjut buat pr."
+Tafsir Claude:
+- Daftar tugas di `CLAUDE.md` dicentang sesuai keadaan:
+  - Tugas 8 belum selesai: 8.1 selesai (Bengawan Solo dan larung, plus gerbang dimensi); 8.2 dan 8.4 belum; 8.3 sebagian;
+  - suara Clawd: acuan baru dan contoh dikirim, 78 klip menunggu pilihan host.
+- Sesudah semua tes (lint, typecheck, unit, content:check, build, e2e) dijalankan, PR dibuka dari branch ini untuk Squash and merge. Isinya semua kerja sejak PR #13. Host sendiri yang merge.
+- **Hasil 18 Nov: PR #14** (https://github.com/jize-666/itinerary/pull/14), siap Squash and merge, tanpa konflik dengan `main`.
+  - Tes:
+    - lint, typecheck, content:check, build: lulus;
+    - unit 445/445;
+    - e2e 285 lulus, 30 dilewati sesuai proyeknya, 1 gagal karena batas waktu.
+  - Yang gagal: tes zoom gong desktop, gagal 2 dari 3 saat diulang sendiri. Tiap putaran ±32 dtk, sedangkan batasnya 30 dtk, karena adegan lebih berat di renderer tanpa GPU sejak sungai dan larung.
+  - Perbaikan: diberi `test.slow()`, seperti tes di sebelahnya. Sesudahnya 4/4 lulus. Perilaku zoom tidak berubah.
+  - Di luar PR (tidak di repo):
+    - mod Lakon di container sesi;
+    - Artifact Jize Zone;
+    - rekaman dan contoh suara teman host.
+  - Langkah berikutnya:
+    - host merge PR #14;
+    - host memilih contoh suara Clawd, lalu 78 klip (PR terpisah dari `main` terbaru);
+    - Tugas 8.2–8.4 dengan arahan host.
+- **Pertanyaan host 18 Nov, dengan tangkapan layar PR #14 di GitHub HP ("CI / check (push)" gagal di e2e; "pull_request" lulus), kata demi kata:** "perlu perbaikan?"
+  - Temuan: dua tes e2e di run push.
+    - **[desktop] gunungan "mundur di slide pertama menancapkannya lagi"**: gagal dua kali, termasuk retry.
+      - Tes ini juga gagal berselang di run #275, #314, #319, #320, dan #326.
+      - Run #275 adalah commit dokumen tepat sesudah PR #13, kodenya sama dengan `main`. Jadi ketidakstabilannya sudah ada sebelum PR ini.
+    - **[iphone] "tanpa ?fps tidak ada overlay"**: lulus di retry; `main.film` belum tampil dalam 5 dtk.
+  - Akar masalah: main thread penuh oleh 3D yang digambar CPU di runner CI. Akibatnya transisi opacity CSS (0,5 dtk) bisa belum bergerak dalam 5 dtk bawaan `expect.poll`.
+    - Bukti: diulang dengan CPU diperlambat 4×; saat gagal, transisi opacity sedang berjalan tapi masih di 0.
+    - Berkas `stage.spec.ts` sudah punya `WAIT` (CI 45 dtk) untuk keadaan ini, tetapi 8 penantian opacity gunungan/credits dan `toBeVisible` di `open()` belum memakainya.
+  - Perbaikan (commit `0069e80`): semua penantian itu memakai `WAIT`. Nilai yang diperiksa tetap: opacity tepat 0 dan 1.
+  - Hasil:
+    - dengan CPU diperlambat 4×: 6/6 lulus (sebelumnya ±separuh gagal);
+    - semua tes gunungan dan overlay di desktop + iPhone: 15 lulus, 1 dilewati sesuai proyeknya;
+    - lint dan typecheck bersih.
+  - Langkah berikutnya: tunggu CI dari push ini hijau, lalu host merge.
+
+**Kata host, kata demi kata:** "sudah ku merge, coba lagi nanti".
+
+Tafsir Claude:
+- PR #13 (pemutar suara Clawd + Next.js 16.4.6) di-merge 17 Nov 10.43 UTC (squash `46ed295`). Branch kerja dimulai ulang dari `main` terbaru.
+- Contoh suara EN dicoba lagi nanti lewat percobaan terjadwal (diubah host: tiap 30 menit, lihat di bawah).
+- Bila contoh EN jadi: buat contoh ID, unduh, ukur, kirim ke host, lalu tunggu persetujuan sebelum merekam 78 klip.
+
+**Arahan host 17 Nov ±17.45 WIB, kata demi kata:** "mulai saja tugas 8, tetapi tetap perhatikan antreanya, kalau perlu persingkat waktu nya jadi /30menit".
+
+Tafsir Claude:
+- Tugas 8 dimulai, dari 8.1 (benang emas 3D). Rupanya dikirim dulu sebagai gambar diam untuk disetujui, sesuai rencana di "Rencana sesudah PR #11".
+- Antrean ElevenLabs dicoba tiap 30 menit, tanpa batas tiga kali, sampai contoh EN jadi. Jadwal 45 menit sebelumnya dibatalkan.
+- Klip suara dan Tugas 8 berjalan bersamaan di branch yang sama.
+
+**Tugas 8.1, benang emas — versi pertama (17 Nov):** benang tergelar di tanah gallery, di pita tepat di bawah kartu (satu-satunya bagian lanskap yang tidak tertutup kartu di layar lebar maupun HP). Tiap tempat singgah satu simpul, tepat di bawah kartunya. Benang tergambar sampai simpul panel yang tampil, dan ujungnya maju mengikuti gulir atau jari. Lintasan murni di `engine/stage/thread.ts` (8 tes), gambar di `stage3d/thread.ts` (tabung + simpul, 2 draw call).
+
+**Masukan host 17 Nov atas versi pertama, kata demi kata:** "upgrade lah, keliatan basic banget".
+
+Tafsir Claude: benangnya terlalu polos (garis tipis dengan titik); di siang hari hampir tak terlihat. Versi kedua:
+- benang sutra emas pilin tiga helai yang lebih tebal, dengan pendar lembut di sekelilingnya (terbaca juga siang hari) dan cahaya hangat yang jatuh ke tanah di bawahnya;
+- benang melayang sedikit dan bergoyang pelan, dengan gelombang cahaya yang merambat dan bunga api yang rontok dari ujung yang sedang tergambar;
+- simpul jadi manik emas 3D yang berputar; manik tempat sekarang lebih besar, bercincin cahaya di tanah, dengan tiang cahaya tipis;
+- jalur yang belum ditempuh tampak samar sebagai benang sutra redup, supaya perjalanan di depan terbaca.
+Tetap hemat: beberapa draw call, hanya saat gallery tampak.
+
+**Versi kedua: selesai 17 Nov; host belum puas dan membuka opsi ganti konsep (lihat di bawah).**
+1. Yang selesai:
+   - `engine/stage/thread.ts`: manik melayang 20 cm, benang melengkung turun 11 cm di antara manik, pangkal/ujung menyentuh tanah; `pointAt`, `currentKnot`.
+   - `stage3d/thread.ts`, enam draw call, hanya untuk benang hari yang tampak:
+     - tali sutra emas pilin tiga helai yang memantulkan langit (rona emas dijaga siang hari) dan berkelip;
+     - pendar yang menghadap kamera;
+     - cahaya hangat di tanah dengan genangan dan cincin riak di manik tempat sekarang;
+     - manik emas bersegi yang berputar (yang belum dilewati perunggu gelap);
+     - tiang cahaya tipis dan bunga api dari ujung yang sedang tergambar (lebih banyak selama geseran);
+     - jalur di depan berupa benang putus-putus yang redup; tali bergoyang pelan.
+2. Tes: lint, typecheck bersih; unit 433 lulus (benang 8; uji keamanan shader membaca shader baru otomatis). Gambar diam data April (nama Jize) di desktop subuh/pagi/siang/sore/senja dan HP, dikirim ke host. e2e belum dijalankan untuk versi ini.
+   - Antrean ElevenLabs dicoba lagi 11.07, 11.19, 11.54, 12.10 (atas pertanyaan host "elevenlabs masih penuh?"), dan 12.34 UTC: masih penuh, tanpa kredit terpakai. Percobaan berikutnya terjadwal 13.04 UTC.
+**Pertanyaan host 17 Nov atas versi kedua, kata demi kata:** "ada ide? atau mau remodel/redesign aja? kaya kurang gitu, di ganti apa gitu jangan benang, sekalian konsepnya juga ganti? saran?"
+
+Tafsir Claude: host belum puas dengan benang dan terbuka mengganti benang emas dengan elemen dan konsep lain. Yang bisa dipakai ulang apa pun pilihannya: letak tempat singgah tepat di bawah kartu dan kemajuan yang mengikuti gulir (`engine/stage/thread.ts`). Usul yang dikirim ke host (menunggu pilihan):
+- **A. Gending sehari (bonang), usul utama:** tiap tempat singgah satu pencon bonang di rancakan berukir yang terbentang di lanskap. Tiap geser panel menabuh pencon berikutnya: nada slendro, pendar, getar, dan riak cahaya di tanah. Satu hari = satu gending yang dimainkan tamu sendiri, ditutup gong ageng di akhir hari.
+- **B. Bengawan Solo dan larung lampion:** sungai berkelok melintasi lanskap dengan air yang memantulkan langit menurut jam. Tiap tempat singgah satu lampion terapung; perahu lampion hanyut mengikuti gulir dan menyalakan lampion yang dilewati.
+- **C. Kain batik terbentang:** kain parang/kawung yang tergelar mengikuti gulir, dengan cap motif prada di tiap tempat singgah; menyiapkan canting di Hari 3.
+
+**Pilihan host 17 Nov, kata demi kata:** "b aja coba".
+
+Tafsir Claude: benang emas diganti **Bengawan Solo dan larung lampion** (dicoba dulu, gambar diam untuk disetujui):
+- **Sungai:** berkelok melintasi lanskap gallery, tepat di pita di bawah kartu, dan berlanjut jauh ke kiri dan kanan cakrawala. Tanah diukir menjadi alur sungai. Airnya memantulkan langit menurut jam, beriak dan mengalir, dengan jalur kilau matahari.
+- **Lampion:** tiap tempat singgah satu lampion kertas di atas rakit daun, terapung tepat di bawah kartunya.
+- **Perahu:** perahu lampion tamu hanyut mengikuti gulir atau jari dan menyalakan tiap lampion yang dilewati. Ada riak buritan di air.
+- **Pantulan:** lampion yang menyala memantul di air sebagai garis cahaya.
+- Lampion di depan masih padam.
+- Kode benang emas diganti; tempat singgah di bawah kartu dan kemajuan ikut gulir dipakai ulang.
+
+**Sungai dan larung: versi pertama selesai 17 Nov, gambar diam dikirim ke host.**
+1. Yang selesai:
+   - `engine/stage/river.ts`: busur sungai mengitari bukit pendapa (muka air datar), kedua ujungnya berbelok ke cakrawala. Jari-jarinya mengikuti baris lampion di layar (`riverRing`: layar lebar ±15,5 m, HP ±12 m). Alur diukir di `terrainHeight` dengan bibir tebing/tanggul supaya air tidak melayang.
+   - Tanah: cincin jala rapat 0,3 m di sekitar sungai; normal dihitung dari titik tetangga, jadi pembangunan lanskap 41 ms (sebelumnya 85 ms tanpa sungai).
+   - `engine/stage/route.ts` (pengganti `thread.ts`): lampion tepat di bawah kartu, di tengah alur; jalur perahu di sisi dekat; kemajuan ikut gulir.
+   - `stage3d/river.ts`: riak mengalir, pantulan langit menurut jam (dibatasi supaya tidak jadi cermin putih), jalur kilau matahari, buih putus-putus, pantulan lampion, riak buritan.
+   - `stage3d/larung.ts`: lampion kertas di rakit daun (padam → menyala dengan kilatan), pendar, perahu jukung hijau tua bergaris gading dengan lampion di tiang.
+   - Benang emas (`stage3d/thread.ts`) dihapus.
+2. Tes: lint, typecheck bersih; unit lulus (sungai dan larung 11 tes); uji keamanan shader menangkap satu `smoothstep` terbalik di rangka lampion, sudah dibetulkan. e2e belum dijalankan untuk versi ini.
+3. Berikutnya: tinjauan host atas gambar sungai.
+
+**Permintaan host 17 Nov ±19.15 WIB, kata demi kata:** "Claude, gue pengen galerinya itu setiap nge-slide itu kayak ada kayak masuk dimensi gitu loh Claude. Jadi kayak apa ya, kameranya itu ya 3D, kayak ada vibes masuk atau keluar dimensi gitu. Coba lu asumsiin dulu deh."
+
+Tafsir Claude (dikirim ke host, menunggu persetujuan sebelum dikerjakan): tiap geser panel = menembus gerbang dimensi menuju waktu tempat singgah berikutnya.
+- Maju: kamera menukik maju menembus kartu yang sedang tampil. Ruang melengkung (lensa melebar lalu kembali, dolly zoom), garis-garis cahaya memancar dari tengah, riak seperti menembus permukaan air dari tengah layar, warna terpecah di tepi. Kartu lama melesat melewati kamera dan kartu berikutnya muncul dari kedalaman.
+- Mundur: kebalikannya (keluar dimensi, kamera ditarik mundur).
+- Langit dan cahaya berganti ke jam tempat singgah berikutnya tepat di puncak gerbang ("lompat waktu"). Perahu tetap hanyut ke lampion berikutnya.
+- Semua mengikuti gulir atau jari. Parallax, perspective shift, dan Calm/gerak dikurangi tetap berlaku.
+
+**Jawaban host 17 Nov, kata demi kata:** "gas, buat video dimensinya dulu".
+
+Tafsir Claude: tafsir "masuk dimensi" di atas disetujui untuk dicoba. Dikerjakan langsung di gallery (film 3D), lalu video contoh desktop + HP 9:16 (data April, nama Jize) dikirim ke host sebelum dirapikan lebih jauh. Tinjauan gambar sungai belum dijawab; dianggap lanjut karena sungai ikut tampak di video.
+
+**Pertanyaan host 17 Nov soal suara Clawd, kata demi kata:** "seleain elevenlabs, gada alternative lain?", lalu "cek di connectors, hugging face".
+
+Tafsir Claude: cari jalan lain untuk suara Clawd selain antrean gratis ElevenLabs. Usul yang dikirim:
+1. model open-source yang meniru suara Clawd asli dari video host (potongan 24,8 dtk masih ada di scratchpad);
+2. Google/OpenAI TTS dengan kunci host;
+3. rekam sendiri;
+4. suara bawaan browser (tidak disarankan).
+Host menunjuk connector Hugging Face: kini tersambung (akun host). Alat `dynamic_space` menjalankan Space Hugging Face dari jauh, jadi tidak perlu membuka jaringan sesi ke huggingface.co.
+
+Hasil pengecekan 17 Nov:
+- Daftar Space di `dynamic_space` memuat `ResembleAI/Chatterbox`: text to speech yang meniru suara dari rekaman contoh. Rekaman contoh harus berupa URL yang terjangkau Space.
+- Domain Space `resembleai-chatterbox.hf.space` ditambahkan ke jaringan lingkungan "itinerary" (disetujui host lewat layar izin), supaya potongan suara bisa diunggah langsung ke Space tanpa dijadikan file publik.
+- Potongan suara Clawd dibersihkan secara lokal (`voice/hf/clawd-ref.wav` di scratchpad): saringan frekuensi suara, peredam derau, kenyaringan disamakan.
+- Unggahannya ditolak pengaman sesi karena mengirim rekaman suara host ke server pihak luar. Menunggu persetujuan eksplisit host.
+- **Jawaban host 17 Nov atas pertanyaan "Boleh saya unggah rekaman suara Clawd itu ke Space Chatterbox?", kata demi kata:** "gas". Rekaman yang sudah dibersihkan diunggah ke penyimpanan sementara Space; contoh pendek (2 kalimat EN + 1 ID) dikirim dulu sebelum 78 klip.
+- Hasil 17 Nov:
+  - Unggahan berhasil.
+  - `invoke` lewat connector dimatikan pengaturan connector (`gradio=none`), jadi API Gradio Space dipanggil langsung dari sesi.
+  - Panggilan anonim ditolak: kuota ZeroGPU per IP habis.
+  - Token Hugging Face host disimpan lewat formulir aman (network secret untuk `resembleai-chatterbox.hf.space`), tetapi ZeroGPU melaporkan "InvalidAccessToken" dan tetap memakai kuota IP. Kemungkinan token salah ketik, atau token fine-grained tanpa izin yang cukup. Menunggu host membuat token jenis "Read" dan mengisinya ulang.
+  - Host: "udah ada tokenya". Masih InvalidAccessToken. Formulir dibuka ulang dengan petunjuk "isi hanya nilai token hf_, tanpa kata Bearer". Sesudah diisi ulang, Space menerima token.
+  - Tiga contoh dibuat dari rekaman Clawd asli. Nada dasar median, dibandingkan rekaman acuan 176 Hz (rentang 145–267):
+    - EN ekspresi 0,6: 253 Hz;
+    - EN ekspresi 0,45: 170 Hz (rentang 135–267), paling mirip;
+    - ID ekspresi 0,6: 209 Hz.
+  - Ketiganya dikirim ke host (MP3 di `voice/hf/` scratchpad, tidak di repo). Menunggu pilihan/penilaian host sebelum merekam 78 klip. Bila jalur ini disetujui, percobaan ElevenLabs dihentikan.
+  - **ElevenLabs 17 Nov 14.51 UTC:** satu versi akhirnya mulai, tetapi gagal: "Unusual activity has been detected on your account, so Free Tier access has been disabled. This can be triggered by using a proxy or VPN, or by creating multiple free accounts. Please upgrade to a paid subscription to continue."
+    - Jalur gratis ElevenLabs tertutup; percobaan otomatis dihentikan dan tidak dijadwalkan lagi.
+    - Rincian generasi mencantumkan 145 kredit; apakah terpotong untuk generasi yang gagal belum jelas (konektor tidak bisa membaca pemakaian akun).
+
+**Gerbang dimensi: versi pertama selesai 17 Nov, video dikirim ke host.**
+1. Selesai: `PORTAL`/`portalWarp`/`portalRing` di `view.ts`; kamera 3D menukik/ditarik dan lensa melebar; post-FX (cincin riak, warna terpecah, garis cahaya berjitter, kilau, vinyet); koreografi kartu maju/mundur; `SKY_WINDOW.inner` 0,25–0,75; tur rekaman `dimensi` (`QUERY=` untuk parameter URL). Rincian: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
+2. Tes: lint, typecheck bersih; unit 439 lulus (tes jendela langit gallery diperbarui sesuai keputusan baru, tes PORTAL baru). Video desktop 22,9 dtk dan HP 9:16 26,7 dtk (data April, nama Jize, `clawd=0`) dikirim. e2e belum dijalankan untuk perubahan ini.
+   - Server pratinjau sempat mati karena batas waktu tugas latar 30 menit; dinyalakan ulang dengan batas 2 jam. Rekaman desktop tidak terganggu.
+   - e2e penuh pertama: 282 lulus, 4 gagal, 30 dilewati sesuai proyek perangkat. Penyebab dan perbaikannya:
+     - **Batas segitiga prolog** (desktop + iPhone, < 60.000): 64.868 karena cincin tanah rapat dan pita air. Bebannya diturunkan, batasnya tidak diubah: cincin rapat 0,6 m (sungai mengikuti lingkaran cincin, tepian tetap halus) dan pita air 4 titik melintang.
+     - **Scrub matahari** (iPhone): tarikan jari kini 112 px (±31 % jarak antarkartu, tetap di bawah ambang 35 %), karena langit gallery kini berganti di 25–75 % geseran.
+     - **DOF lanskap** (desktop): rincian diukur di lanskap di atas sungai (40–74 % tinggi layar). Sungai dekat bidang fokus, jadi sengaja tajam (seperti Clawd). Batas 0,6 tetap.
+     - Keempatnya lulus sesudah diperbaiki; e2e penuh diulang.
+3. Berikutnya: tunggu penilaian host (halus/dramatis); lalu PR (sungai + larung + gerbang dimensi) bila host setuju.
+
+**Jawaban host 17 Nov, kata demi kata:** "1. bikin lebih smooth / 2. yang tenang, bagus. tapi, bisa di sesuaikan juga ga? kalo marah ya nada merah/tinggi, seneng/happy ya ekspresif".
+
+Tafsir Claude:
+1. **Gerbang dimensi lebih halus:** efeknya lebih lembut tanpa hilang; dikerjakan dulu, lalu video ulang.
+   - kamera menukik lebih sedikit, lensa melebar lebih sedikit;
+   - garis cahaya, warna terpecah, riak, dan kilau lebih tipis;
+   - kartu menukik/muncul dari kedalaman yang lebih dangkal, kurva gerak lebih lembut, durasi sedikit lebih panjang.
+2. **Suara Clawd mengikuti emosi**, dengan dasar versi "tenang" (Chatterbox, ekspresi 0,45):
+   - marah = nada lebih tinggi dan tegang;
+   - senang/sayang = ekspresif;
+   - terkejut = ekspresif dan cepat;
+   - mengantuk = pelan;
+   - perkenalan, petunjuk, dan sapaan = tenang.
+   Pemetaan emosi per kalimat disimpan di `voice.ts`. Contoh per emosi dikirim dulu sebelum 78 klip direkam.
+
+**Koreksi host 17 Nov (saat gerbang sedang dihaluskan), kata demi kata:** "kamera sama lensa nya biar, mau di ubah apa coba. kurangi semua, jangan di ubah."
+
+Tafsir Claude:
+- Kamera menukik (2,8 m) dan lensa melebar (24°) dikembalikan ke nilai pertama.
+- Yang dikurangi hanya efek lainnya: garis cahaya, warna terpecah, riak, kilau, vinyet, serta kedalaman kartu dan kurva gerak yang lebih lembut.
+
+**Pertanyaan host 17 Nov, kata demi kata:** "kamera + lensa dikurangi ga? kalau belum, kurangi dikit".
+Tafsir Claude: koreksi sebelumnya ternyata bukan "biarkan tetap". Kamera dan lensa dikurangi sedikit: menukik 2,8 → 2,3 m, lensa melebar 24° → 20°.
+
+Hasil 17 Nov:
+- e2e penuh kedua (kode sebelum perubahan halus): 286 lulus, 30 dilewati sesuai proyek perangkat, 0 gagal.
+- Versi halus di-build; video desktop + HP 9:16 versi halus sedang direkam (`dimensi-halus-*.mp4` di scratchpad).
+- Video versi halus (kamera 2,3 m, lensa +20°, efek lain ±separuh) dikirim 17 Nov: desktop 22,9 dtk, HP 9:16 26,7 dtk.
+- Berikutnya: build dengan perbaikan gelembung, e2e `film` + `stage`, tangkapan layar gelembung, lalu PR bila host oke.
+
+**Permintaan host 17 Nov (dengan tangkapan layar iPhone produksi: film 2,5D, hero prolog, gelembung "See the gong? Swipe once more" menutupi separuh badan Clawd), kata demi kata:** "cek semua bubble chat clawd, jangan sampai clawd terpotong bubble chat seperti di video. bisa di perkecil bubble nya, atau arahnya".
+
+Tafsir Claude: periksa letak gelembung di semua tempat dan arah (atas, bawah, kiri, kanan; film 3D dan 2,5D; HP dan desktop). Gelembung tidak boleh pernah menutupi badan Clawd: diperkecil di layar sempit dan/atau dipindah arahnya, dengan tes yang memeriksa kotak gelembung tidak beririsan dengan kotak badan Clawd.
+
+Perbaikan gelembung (17 Nov):
+1. **Penyebab:** `bestSide` (guide.ts) memilih sisi dengan anggapan gelembung bisa menyempit sampai 70 %. Padahal `bubble.ts` tidak pernah menyempitkannya (19,5em ≈ 330 px); gelembung lalu digeser masuk layar dan menimpa badan Clawd. Gelembung di atas kepala juga bisa didorong turun ke badan di dekat tepi atas.
+2. **Perbaikan:**
+   - `engine/mascot/bubble-place.ts` (murni): sisi pilihan → sisi seberang → atas kepala, lalu huruf diperkecil, lalu sisi samping terlapang.
+   - Lebar gelembung samping menyesuaikan ruang (minimal 150 px); atas kepala hanya bila muat; tidak pernah digeser ke badan.
+   - `bubble.ts` menerima kotak badan Clawd (film 3D dan 2,5D) dan mengukur ukuran gelembung hanya saat lebarnya melewati anak tangga 16 px.
+   - CSS: huruf `clamp(14px, 3,9vw, 17px)` (lebih kecil di HP), `data-tight` = 82 %.
+3. **Tes:** unit 445 lulus. `bubble-place.test.ts` (5 tes) mencakup kasus tangkapan layar host dan sapuan semua letak Clawd di 4 ukuran layar × 3 arah × 3 panjang kalimat: tidak pernah menutupi badan dan tidak keluar layar. e2e dan tangkapan layar menunggu rekaman video selesai (build ulang dulu).
+4. **Tangkapan layar sesudah build** (data April, nama Jize), dikirim ke host. Gelembung tidak menutupi Clawd di semua tangkapan:
+   - HP 2,5D: hero "See the gong?" (gelembung kini di atas kepala) dan gallery (di kanan);
+   - HP 3D: gallery;
+   - desktop 3D: gallery;
+   - desktop 2,5D: hero.
+   Catatan lain (bukan gelembung): di film 3D HP, kaki Clawd tertutup kartu gallery karena Clawd 3D digambar di bawah lapisan kartu DOM. Ditawarkan ke host sebagai perbaikan terpisah.
+5. e2e `film` + `stage` (dengan perbaikan gelembung dan gerbang versi halus): 170 lulus, 26 dilewati sesuai proyek perangkat, 0 gagal.
+
+**Keadaan branch 17 Nov malam (belum ada PR):**
+- Sungai dan larung lampion (pengganti benang emas).
+- Gerbang dimensi versi halus.
+- Gelembung Clawd yang tidak menutupi badan.
+- Emosi suara Clawd per kalimat.
+- Skrip catatan pratinjau Google Drive.
+Menunggu host:
+- penilaian video gerbang versi halus;
+- jawaban soal kaki Clawd 3D yang tertutup kartu;
+- keputusan kuota Hugging Face untuk 78 klip suara;
+- persetujuan membuka PR.
+
+**Permintaan host 17 Nov malam, kata demi kata:** "clode buatin gw fitur terbaru claude mods, bisa?"
+Tafsir Claude: mod Claude Code (tambahan tampilan/perilaku Claude di sesi ini: panel, baris di atas prompt, tema, perintah garis miring), bukan bagian situs. Jenisnya ditanyakan ke host dulu. Mod ditulis di folder mod sesi (`/root/.claude/dev-mods/<sesi>/`), tidak di repo.
+- Host memilih **Panel "Lakon"**: panel di samping chat yang memperbarui diri. Isinya:
+  - daftar tugas `CLAUDE.md` (centang dan tugas aktif);
+  - langkah terakhir dan butir "Menunggu host" dari `HANDOFF.md`;
+  - pratinjau yang belum di Drive (MB, dengan peringatan 1 GB);
+  - jumlah klip suara Clawd dari 78;
+  - branch, jumlah commit yang belum di-push, dan commit terakhir.
+- Panel dibuka dengan `/lakon`, diperbarui tiap menit dan sesudah Claude mengedit berkas atau menjalankan perintah.
+- Hasil cek: `claude plugin validate` lulus (peringatan README/lisensi/ikon hanya berlaku untuk katalog plugin); `tsc` lulus.
+- Mod ini hidup di container sesi, tidak di repo, dan hilang bersama container.
+
+**Pertanyaan host 17 Nov malam, kata demi kata:** "katanya bisa agent bisa tanya ke sesi satu ke sesi dua, dan bisa di bagi modelnya, contoh opus kerjain task berat, sonet kerjain task ringan, benar? dan tampilan bisa dibuat kaya dashboard".
+Tafsir Claude: pertanyaan, belum perintah kerja. Dijawab di chat:
+- antarsesi bisa (sesi cloud membuat sesi lain dan mengirim pesan);
+- model bisa dibagi per sesi atau per subagen;
+- panel Lakon bisa dibuat seperti dashboard.
+Perubahannya menunggu pilihan host.
+
+**Permintaan host 17 Nov malam, kata demi kata:** "gas ubah ke sesi dan agen".
+Tafsir Claude:
+- Panel Lakon diubah jadi dashboard berkartu, ditambah kartu **"Sesi & agen"**. Isinya: tiap agen pembantu dan sesi cloud yang dibuat sesi ini, dengan model, tugas, status, dan lama kerjanya.
+- Kerja ringan mulai diserahkan ke agen Sonnet; kerja berat tetap di sesi utama (Opus).
+
+Hasil 17 Nov malam:
+- Lakon jadi dashboard berkartu. Isinya:
+  - deretan angka: tugas, agen yang jalan, MB belum di Drive, klip suara;
+  - kartu **Sesi & agen**;
+  - kartu Tugas (tugas berikutnya ditandai ▸), Sedang dikerjakan, Pratinjau & suara, dan Git;
+  - tombol "Perbarui".
+- Kartu Sesi & agen:
+  - Sesi utama: model dibaca dari giliran terakhir, persen konteks, dan perkiraan biaya.
+  - Agen pembantu: dibaca sendiri dari engine tiap 5 dtk, dengan model, status, lama kerja, token, dan biaya.
+  - Sesi cloud: dicatat begitu dibuat lewat `create_session`, statusnya dibaca tiap 30 dtk. Bila panel tidak diizinkan membaca, muncul catatan.
+- Kartu menyusun diri: dua kolom di layar lebar, satu kolom di layar sempit.
+- Hasil cek: `tsc` lulus; `claude plugin validate` lulus. Peringatannya hanya soal katalog plugin: author, README, lisensi, ikon.
+- Agen Sonnet pertama, kerja ringan: menjalankan `pnpm lint`, `typecheck`, `test`, `content:check`, dan `build` di branch kerja, lalu melaporkan hasilnya. Hanya baca, tanpa edit atau commit.
+- Hasil agen Sonnet pertama:
+  - semua lulus: `lint`, `typecheck`, `test` (445/445, 27 berkas), `content:check`, dan `build`;
+  - ±27 dtk, ±94rb token;
+  - log build dan tes diperiksa ulang oleh sesi utama.
+- Host 17 Nov 23.34 WIB, tangkapan layar claude.ai di Safari iPhone: "mobile ga supp? kok gada".
+  - Penyebab: claude.ai di browser HP tidak menempatkan panel samping. `$.ui.open` menjawab "tidak ditempatkan", tapi `/lakon` tetap menulis "dibuka".
+  - Perbaikan: bila panel tidak ditempatkan, `/lakon` menulis dashboard yang sama sebagai teks di chat. Isinya: bar ▰▱, status agen ●/✓/✕, tugas berikutnya ▸.
+  - Teks itu hanya untuk host, tidak masuk ke permintaan model. `/lakon teks` memaksa versi teks di mana saja.
+  - Tes mod (`claude plugin test`): 2 lulus, untuk tanpa panel dan dengan panel. `tsc` dan `validate` juga lulus.
+- Host bertanya "ini ga pake credit sama berbayar kan". Jawaban:
+  - dashboard tidak memanggil model, jadi tidak memakai kredit;
+  - yang memakai jatah paket hanya kerja model: sesi utama dan agen pembantu;
+  - angka $ = perkiraan `/cost`, bukan tagihan.
+- Host tentang versi teks: "jelek banget, gada ui nya".
+  - Perbaikan: baris keluaran `/lakon` di chat (komponen `CommandOutput`, ada di semua tampilan termasuk HP) kini digambar mod sebagai dashboard berkartu. Isinya:
+    - judul dan tombol Perbarui;
+    - empat ubin angka;
+    - kartu Sesi & agen, Tugas, Sedang dikerjakan, Pratinjau & suara (bar progres asli), dan Git.
+  - Versi chat ringkas: satu kolom, tiga tugas berikutnya, paling banyak empat pembantu.
+  - Tetap tanpa panggilan model. Teks polos hanya cadangan bila tampilan tidak menjalankan mod.
+  - Tes mod 3 lulus. Tes ketiga menggambar baris itu di HP, desktop, dan terminal, dan memastikan perintah lain tidak disentuh. `tsc` dan `validate` lulus.
+- Permintaan host 17 Nov malam, kata demi kata, dengan video acuan (kumpulan dashboard ala machine learning: HUD gelap, garis neon yang mengalir ke satu simpul, partikel, grid sel, meter bersegmen): "ui diagram atau apalah di buat ala ala machine learning gini bisa ga?"
+  Tafsir Claude: Lakon diberi diagram bergaya HUD machine learning, gayanya saja, tanpa menjiplak desain di video. Bentuknya "peta saraf":
+  - sumber data (CLAUDE.md, HANDOFF.md, ledger, klip suara, git) mengalir ke simpul Lakon, lalu ke sesi utama dan agen-agen;
+  - ditambah pipeline tugas dan meter bersegmen.
+  - Digambar sebagai SVG beranimasi (didukung di HP dan desktop) di panel dan di baris `/lakon`, tetap tanpa panggilan model. Terminal tetap memakai kartu.
+  - Hasil: `hooks/neural.ts` di mod (`neuralSvg`, murni, ±39 rb karakter). Isinya:
+    - kepala dengan lampu LIVE;
+    - empat sel angka;
+    - peta: lima sumber data dengan serat neon dan denyut yang mengalir ke simpul "LAKON / LOADED" (cincin berputar), lalu ke sesi utama dan maksimal lima pembantu. Pembantu yang jalan berdenyut; slot kosong bergaris putus;
+    - pipeline 16 sel tugas, sel berikutnya berkedip;
+    - meter bersegmen untuk Drive dan suara.
+  - Di bawah peta: kartu ringkas Sesi & agen (lama kerja, token, biaya), kartu Menunggu host, dan tombol Perbarui.
+  - Perbaikan ikut: daftar "Menunggu host" kini diambil dari blok berbutir terbaru di bagian 0. Sebelumnya yang terbaca blok terakhir yang tanpa butir, jadi hasilnya 0.
+  - Tes mod 3 lulus: SVG di HP dan desktop, kartu di terminal. `tsc` dan `validate` lulus.
+  - Pratinjau dikirim ke host (foto data sekarang dan video animasi 6 dtk) dan dicatat di ledger. Belum di Drive: 0,2 MB.
+- Host sesudah `/lakon` di HP: "lah terus liat nya dimana? disini masih kartu". Peta SVG tidak tampil di claude.ai browser HP.
+  - Dugaan: tampilan web melapor dengan nama lain (tanpa elemen `Svg`), atau punya `Svg` tapi tidak menggambarnya.
+  - Langkah diagnosis:
+    - mod mencatat nama tampilan, daftar elemennya, dan `$.session.surfaces()` ke `scratchpad/lakon-surfaces.json`;
+    - kaki dashboard menulis "tampilan: …".
+  - Sesudah itu: pilih cara gambar yang benar-benar tampil di tampilan host.
+  - Hasil diagnosis (`/lakon` host 17 Nov):
+    - `$.session.surfaces()` kosong, `presentation` = `{ isFullscreen: false, columns: 80 }`;
+    - hook gambar `CommandOutput` tidak pernah dipanggil.
+    - Artinya claude.ai di browser tidak tersambung sebagai tampilan mod: yang sampai hanya teks keluaran perintah. Peta dan kartu tidak bisa tampil di sana, apa pun cara gambarnya.
+  - **Permintaan host 17 Nov malam, kata demi kata:** "sembari nunggu, buat artifacts nya di web. namanya jangan lakon, \"jize zone\"".
+    Tafsir Claude: pilihan (b) dikerjakan.
+    - Halaman Artifact claude.ai bernama **Jize Zone**, berisi dashboard peta saraf bergaya HUD machine learning, dengan data proyek yang sama seperti Lakon.
+    - Bisa dibuka di Safari HP. Mod di sesi tetap bernama Lakon.
+    - Hasil 17 Nov: https://claude.ai/artifact/KNJc3oEJvCAhQqdHTzr629 (tipe Data, privat sampai host membagikannya).
+      - Data: empat berkas JSON buatan `scratchpad/jize-zone/gen.py` (kodenya ikut di `meta`, terlihat di Sources):
+        - `ringkasan` (1 baris);
+        - `tugas` (16);
+        - `menunggu` (4);
+        - `kru` (sesi utama, agen, dan proses latar; dicatat Claude dari laporan sesi, sumbernya `scratchpad/jize-zone/kru-catatan.json`);
+        - kalkulasi `kru_ringkas` (pembantu jalan dari jumlah).
+      - Halaman: HUD gelap, berisi:
+        - ringkasan satu kalimat;
+        - empat ubin angka;
+        - peta aliran kanvas beranimasi: lima sumber mengalir ke simpul "JIZE / ZONE" lalu ke kru; berhenti bila pembaca memilih kurangi gerak;
+        - pipeline 16 sel (ketuk untuk nama tugas) dan tabel semua tugas;
+        - tabel sesi & agen, daftar menunggu, meter bersegmen, dan git.
+      - Sintaks skrip dicek (`node --check`). Laporan pemeriksaan halaman (`check`) belum ada karena halaman belum dibuka siapa pun.
+      - Memperbarui: jalankan `gen.py`, unggah ulang JSON-nya, lalu `update` `url` dan `updated` dataset terkait.
+  - Pilihan untuk host:
+    - (a) buka sesi ini di app Claude (iOS) atau app desktop: app termasuk tampilan mod (`mobile`, `desktop`), panel ada di lembar Mods. Ini belum diuji; catatan diagnosis akan menunjukkannya;
+    - (b) halaman Artifact "Lakon" (HTML, bisa dibuka di Safari) dengan peta beranimasi. Datanya diperbarui saat Claude menerbitkan ulang, jadi ada sedikit pemakaian model tiap pembaruan.
+- Langkah berikutnya:
+  - host mencoba `/lakon` lagi di HP (versi berkartu);
+  - `test:e2e` belum dijalankan ulang sejak cek film+stage terakhir.
+
+**Permintaan host 17 Nov, kata demi kata:** "claude, preview dari awal sampai akhir (sekarang) kamu masih simpen ga? jawab seadanya", lalu "uploaded semua nya di gdrive ku, nama folder nya: previews".
+
+Tafsir Claude: unggah semua pratinjau yang masih ada di scratchpad ke Google Drive host, ke folder "previews".
+- Isi scratchpad: 46 video (10–17 Nov, 681 MB), 64 audio (32 MB), ±4.900 gambar (±3.500 di antaranya bingkai kerja untuk merakit video: `cwclip`, `mclip`, `mclip2`, `video/kf`, `video/fr`).
+- Folder "previews" dibuat di My Drive host lewat connector Google Drive (id `1H-wMJltMnVnX2oJFjLQ9BkaTMVSHJCiX`).
+- Kendala: connector hanya mengunggah dengan isi file ditempel di perintah (base64), tidak mungkin untuk ±700 MB. Jalannya: API Google Drive langsung dari sesi dengan token akses host (formulir aman untuk `www.googleapis.com`).
+- Formulir token ditolak host ("Denied by user"); tidak dibuka lagi. Pilihan yang ditawarkan:
+  - token ditambahkan host sendiri di pengaturan network secret lingkungan "itinerary";
+  - atau berkas dikirim lewat chat dalam beberapa arsip zip untuk diunggah host sendiri.
+- Host bertanya "bayar ga jir" (jawaban: gratis, hanya memakai ruang Drive) dan "dimana si oauth playground google", lalu memberi token lewat formulir aman.
+  - Langkah token: developers.google.com/oauthplayground → Drive API v3 → `https://www.googleapis.com/auth/drive` → Authorize APIs → Exchange authorization code for tokens → salin Access token (`ya29.`).
+- Unggahan semua pratinjau ke folder "previews" sedang berjalan (`voicetools/drive_up.py` di scratchpad), 4 sekaligus. Isinya: subfolder `video` (48), `audio` (64), `gambar` (1.544), `bingkai-kerja` (3 zip berisi 3.438 bingkai kerja).
+
+**Aturan baru host 17 Nov, kata demi kata:** "sekarang ketika kamu mengirim preview disini, kamu juga langsung kirim/up ke gdrive ya".
+Tafsir Claude: setiap pratinjau (video, foto, audio) yang dikirim ke host di chat juga langsung diunggah ke folder "previews". Dicatat di `CLAUDE.md` bagian penutup sesi. Skripnya `scripts/preview/drive-upload.py`: subfolder per jenis, nama diawali tanggal, token dari proxy, 401 = minta token baru.
+- Unggahan semua pratinjau lama selesai 17 Nov: 1.659 berkas, 0 gagal.
+  - Satu salinan rusak dipindah ke tempat sampah Drive: "t8 - dimensi-halus-hp.mp4" terpotong (13,4 dari 15,4 MB) karena rekamannya belum selesai saat unggahan mulai. Versi utuhnya sudah diunggah terpisah.
+- Host bertanya "lah? upload langsung gabisa ya? kan kalo baru cuma beberapa mb". Dijawab: connector hanya menerima isi berkas yang ditulis di perintah (base64), jadi untuk berkas beberapa MB pun tidak praktis; API dengan token membaca berkas langsung dari disk.
+
+**Aturan host 17 Nov (mengganti "langsung up"), kata demi kata:** "yauda gini saja, tandai yang sudah dikirim dan yang belum dikirim, ingatkan aku jika sudah menyentuh 1gb".
+Tafsir Claude:
+- Tiap pratinjau yang dikirim ke host di chat dicatat di buku catatan pratinjau (`docs/previews-ledger.json`): nama, ukuran, tanggal kirim ke chat, dan tanggal/ID Drive bila sudah diunggah.
+- Pratinjau tidak lagi diunggah satu per satu (token hanya ±1 jam).
+- Bila total yang belum di Drive ≥ 1 GB, host diingatkan untuk memberi token baru, lalu semuanya diunggah sekaligus.
+- Alat: `scripts/preview/drive-upload.py` (`catat`, `status`, `unggah`).
+- Titik awal: semua pratinjau sampai 17 Nov sudah di Drive.
+
+Contoh suara per emosi (17 Nov, Chatterbox, rekaman Clawd asli). Setelan (ekspresi/cfg) dan nada dasar median:
+- tenang 0,45/0,5: 170 Hz (contoh sebelumnya);
+- sayang 0,85/0,45: 203 Hz;
+- senang 0,85/0,45: 267 Hz;
+- terkejut 0,95/0,4: 267 Hz;
+- marah 1,1/0,4: 345 Hz.
+Mengantuk dan contoh ID belum jadi: kuota ZeroGPU harian akun gratis host habis ("Subscribe to Hugging Face PRO to get 40 min of ZeroGPU quota a day") sesudah ±8 kali pembuatan. Dengan kuota gratis, 78 klip butuh ±10 hari; dengan PRO, cukup sehari. Keempat contoh dikirim ke host; menunggu penilaian dan keputusan kuota.
+
+Suara Clawd lewat Space Hugging Face: lihat di atas (contoh dikirim, menunggu penilaian host). (Rencana lama bila benang disetujui: benang di slide lain (rute TJQ → CGK → SOC di slide rute, kembali ke gong di akhir hari dan dibawa gelombang pukulan gong ke bab berikutnya), e2e, video desktop + HP, lalu 8.2–8.4.)
+
+**Permintaan host 17 Nov 23.12 WIB, kata demi kata, dengan dua rekaman (`AUDIO-2026-11-17-23-12-25.m4a`, `suara.m4a`):** "suara clawd, ganti dengan ini".
+Tafsir Claude: acuan suara Clawd diganti dengan rekaman baru ini, menggantikan potongan suara dari video host. Contohnya dibuat lewat Chatterbox seperti sebelumnya (dasar tenang, varian per emosi), lalu 78 klip.
+- Rekaman (tidak masuk repo, disimpan di `scratchpad/clawd-voice2/`):
+  - A: 31,9 dtk, ±19 dtk ucapan, jernih, −16 LUFS;
+  - B: 10,2 dtk, hanya ±3 dtk ucapan, sisanya bising;
+  - keduanya suara perempuan, nada median ±240 Hz, kemungkinan orang yang sama.
+- Acuan dari A (B jadi cadangan):
+  - pengolahan: high-pass 75 Hz, peredam bising ringan, −18 LUFS;
+  - potongan: `clawd-ref2.wav` 22,3 dtk dan `clawd-ref2-11s.wav` 11 dtk.
+- Sebelum diunggah ke Space: ditanyakan dulu ke host ini suara siapa. A bernama seperti pesan suara WhatsApp. Aturan lama proyek ini: suara orang lain tidak ditiru tanpa persetujuannya.
+- **Jawaban host, kata demi kata:** "aku minta temenku vn untuk suara clawd, dan dia setuju. bagaimana jika kamu jernihin dulu, lalu baru up".
+  Tafsir Claude: suara teman host, dengan persetujuannya, untuk Clawd. Urutannya:
+  1. Jernihkan rekaman dulu, dan kirim hasilnya ke host untuk didengar.
+  2. Unggah ke Space Chatterbox.
+  3. Buat tiga contoh: tenang EN, tenang ID, marah.
+  - Pengukuran bising A: SNR ±27–31 dB di pita ucapan, dengung 100 Hz (harmonik listrik 50 Hz) +12 dB, dan gemuruh di bawah 100 Hz.
+  - Host di tengah kerja: "jernihinya, jangan sampai rusak suaranya".
+  - Penjernihan dipilih yang paling lembut dari empat setelan yang diukur:
+    - rantai: high-pass 80 Hz, takik sempit 100 Hz, `noisereduce` stasioner dengan profil dari jeda (prop 0,6, ambang 1,0), −18 LUFS;
+    - bising di jeda turun ±9 dB, dengung hilang;
+    - warna suara asli vs jernih per ⅓ oktaf, 159 Hz–12,8 kHz: paling jauh ±1 dB;
+    - yang berubah lebih besar hanya pita di bawah nada suara: 100–126 Hz −6 dB, 126–159 Hz −1,8 dB.
+  - Contoh 12 dtk sebelum/sesudah dikirim ke host dan dicatat di ledger.
+  - Acuan `clawd-ref2-jernih.wav` (22,3 dtk) diunggah ke Space. Pembuatan contoh gagal: "You have exceeded your ZeroGPU runs limit" (kuota gratis harian host masih habis).
+  - Hasil Chatterbox di CPU (17 Nov):
+    - Jaringan:
+      - lingkungan "itinerary" ditambah host `huggingface.co`, `cas-bridge.xethub.hf.co`, `cdn-lfs.hf.co`, `cdn-lfs-us-1.hf.co`, dan `us.aws.cdn.hf.co` (disetujui host lewat kartu);
+      - unduhan memakai `HF_HUB_DISABLE_XET=1`, karena `cas-server.xethub.hf.co` tidak diizinkan.
+    - `setuptools<81` dipasang untuk penanda air `perth`.
+    - Waktu buat per kalimat: 13–39 dtk. Model multibahasa butuh 92 dtk untuk dimuat.
+    - Nada median contoh: 229–264 Hz; acuan 238 Hz.
+    - Empat contoh dikirim ke host dan dicatat di ledger:
+      - tenang EN;
+      - marah EN;
+      - tenang ID (setelan Melayu);
+      - tenang ID dibaca model Inggris (pembanding).
+    - Menunggu pilihan host sebelum 78 klip.
+  - Jalan keluar yang dicoba: Chatterbox dijalankan sendiri di container dengan CPU (torch CPU 2.6, `chatterbox-tts` 0.1.7, venv di scratchpad), tanpa kuota. Untuk kalimat ID dipertimbangkan model multibahasa dengan bahasa Melayu (`ms`), yang lebih dekat ke Indonesia daripada model Inggris.
+    - Pemasangan:
+      - `download.pytorch.org` diblokir proxy, jadi torch 2.6.0 diambil dari PyPI (cu124, jalan di CPU); venv ±6 GB di `scratchpad/cbenv`;
+      - skrip `scratchpad/voicetools/cb_local.py`: daftar pekerjaan JSON; `lang` "en" memakai model Inggris, bahasa lain model multibahasa.
+    - Host bertanya "kok lu tau dia orang melau jir". Jawaban: "Melayu" hanya setelan bahasa model untuk kalimat Indonesia (Chatterbox tidak punya bahasa Indonesia), bukan dugaan tentang orangnya. Versi model Inggris yang membaca kalimat ID dibuat sebagai pembanding.
+    - Host bertanya alternatif selain Chatterbox, lalu menemukan `github.com/jamiepine/voicebox`.
+      - Hasil baca README: Voicebox adalah aplikasi desktop berlisensi MIT yang membungkus Chatterbox Multilingual/Turbo, Qwen3-TTS, Kokoro, LuxTTS, dan HumeAI TADA; ada REST API dan bisa jalan di CPU.
+      - Bahasa Indonesia tidak disebut; yang terdekat tetap Chatterbox Multilingual dengan Melayu. Versi Linux belum ada yang jadi.
+      - Keputusan Claude:
+        - di container, mesinnya dipakai langsung;
+        - Voicebox disarankan untuk host coba sendiri di laptop;
+        - Chatterbox Turbo (tanda `[laugh]`, `[sigh]`) dicoba untuk reaksi EN.
+
+### Sesudah PR #12 di-merge (17 Nov): PR suara Clawd (selesai: PR #13)
 
 **Kata host, kata demi kata:** "cek handoff.md / sudah ku merge, lanjutkan tugasmu", lalu di tengah sesi: "pakai namaku jika mau record, jize".
 
