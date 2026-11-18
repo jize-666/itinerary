@@ -36,7 +36,7 @@ Tafsir Claude:
      - Versi 1 sempat ter-deploy dengan isi `_shared/contract.mjs` yang salah (kekeliruan Claude), lalu langsung diganti versi 2. Versi 1 tidak pernah menerima kejadian karena kunci masih ditolak.
      - `quick-processor` (salinan satu berkas dari dasbor) dibiarkan; boleh dihapus host sesudah `jz-ingest` terbukti jalan.
    - Repo `second-brain`, branch `claude/admiring-noether-tbqvap`: `emitter/install-hooks.mjs` (pemasang hook ke pengaturan pengguna Claude Code, aman diulang, `--uninstall`), tesnya, dan bagian README "dua cara sesi Claude membaca hook".
-   - Repo itinerary: `.claude/settings.json` berisi hook Jize Zone untuk 9 kejadian dan `JZ_INGEST_URL` disiapkan di container, **tetapi tidak di-commit**: pengaman mode otomatis menolak commit hook yang mengirim langkah kerja Claude keluar. Menunggu izin host. Emitter dicari di checkout `second-brain` di sebelah repo itinerary; bila tidak ada, hook diam.
+   - Repo itinerary: `.claude/settings.json` berisi hook Jize Zone untuk 9 kejadian dan `JZ_INGEST_URL` disiapkan, **tetapi tidak di-commit** (drafnya disimpan di scratchpad `jz-draft/itinerary-.claude/settings.json`, hilang bila container diganti; bisa dibuat ulang dari `emitter/hooks.json` `second-brain`): pengaman mode otomatis menolak commit hook yang mengirim langkah kerja Claude keluar. Menunggu izin host. Emitter dicari di checkout `second-brain` di sebelah repo itinerary; bila tidak ada, hook diam.
 2. **Tes dan kendala:**
    - `second-brain`: `npm test` 8/8 (3 tes baru untuk pemasang).
    - Perintah hook dicoba sekali dengan satu kejadian tiruan dan folder antrean di scratchpad: kejadian dirapikan sesuai kontrak, ditolak 401, masuk `spool.jsonl`.
