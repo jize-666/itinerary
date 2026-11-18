@@ -15,6 +15,17 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
+### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — MENUNGGU PILIHAN HOST
+
+**Kata host, kata demi kata:** "itu di previews, gada gong tapi bilang \"see the gong\" emang gitu?"
+Temuan Claude (dari frame video uji 2,5D, detik 25,8–28):
+- Di film 2,5D (tanpa panggung 3D: Calm, reduced motion, atau tanpa WebGL), "gong" di hero dan judul hari adalah dua cincin emas tipis di belakang judul. Petunjuk `tip.beat` ("See the gong? Scroll once more…") tetap tampil di sana (`tipAt` tidak membedakan `flat` untuk `beat`).
+- Alurnya sesuai ucapan Clawd: digulir sekali, huruf tersedot ke tengah cincin, gong berbunyi, Clawd terkejut. Tetapi cincinnya terlalu samar untuk dikenali sebagai gong.
+- Di film 3D (yang dilihat kebanyakan tamu, termasuk iPhone host di tier High) gongnya gong ageng 3D utuh.
+Usul (menunggu pilihan host):
+- A. Gong datar di film 2,5D dibuat jelas terbaca sebagai gong (pencu menonjol, bibir, kilap emas, bayangan), tetap DOM/CSS dan tetap dengan gerak pandang. Kalimat dan suara Clawd tidak berubah.
+- B. Biarkan seperti sekarang.
+
 ### Kiriman host 18 Nov malam: 39 klip suara Clawd — KLIP MASUK REPO; VIDEO PRATINJAU BERSUARA SEDANG DIREKAM
 
 **Kata host, kata demi kata:** "udah gw merge. ini suara clawd", dengan lampiran `clawd-klip-final.zip` (13 MB).
