@@ -24,6 +24,13 @@
 // (permintaan host 14 Nov "dua dua nya, 90derajat") di judul Hari 1: seret ke kanan sampai samping gong, dilepas
 // (kembali ke depan), seret ke kiri, zoom masuk dan keluar, gong ditabuh saat sudah dikitari, lalu gong penutup hari. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
 // hero punya tahap gong: `advance` mencabut gunungan dan menjalankan tahap gong lebih dulu bila perlu.
+// Bersuara: VOICE=<suara.json> mencatat kapan tiap klip suara Clawd mulai dan berhenti (waktu VIDEO), karena rekaman
+// Playwright tidak membawa audio. Rekaman lalu dimulai dari beranda seperti tamu: tombol "Begin the lakon" ditekan
+// (itu yang menyalakan suara; film dibuka lewat navigasi klien dengan ?stage= / QUERY / #hari yang sama), bahasa EN,
+// dan Chromium boleh memutar tanpa gestur. Berkas JSON berisi {K, fps, events:[{t, type:"start"|"stop", name}]}.
+// Sesudahnya: python3 -I scripts/preview/mix-voice.py . <video.mp4> <suara.json> <keluaran.mp4>. Web Audio halaman
+// berjalan dengan jam nyata (tidak ikut diperlambat), jadi hanya saat start dan stop eksplisit yang dipakai.
+// Contoh: STAGE=static VOICE=suara.json node scripts/preview/record-film.cjs data.json film.mp4 desktop 0.25 clawd
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -47,7 +54,8 @@ const fs = require('fs');
   const phone = device === 'iphone' || device === 'hp916';
   const dpr = phone ? 3 : 1.5;
   const base = device === 'hp916' ? { ...devices['iPhone 14 Pro'], viewport: { width: 360, height: 640 }, screen: { width: 360, height: 640 } } : phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
-  const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`] });
+  const VOICE = process.env.VOICE || '';
+  const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
     sessionStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
@@ -62,12 +70,52 @@ const fs = require('fs');
     // terpasang (awal muat halaman) jam rAF masih jam nyata; di situ dipakai jam virtual.
     window.requestAnimationFrame = (cb) => raf((ts) => cb(Math.min(ts, performance.now())));
   }, K);
+  /** Peristiwa suara Clawd, dalam waktu video (diisi binding di bawah). */
+  const voiceEvents = [];
+  if (VOICE) {
+    await ctx.exposeFunction('__voiceEv', (type, name) => {
+      if (!rolling || t0 === null) return; // sebelum video mulai: tidak ada waktu video
+      voiceEvents.push({ t: +((Date.now() / 1000 - t0) * K).toFixed(3), type, name });
+    });
+    await ctx.addInitScript(() => {
+      localStorage.setItem('lakon.lang', 'en');
+      const names = new WeakMap(); // ArrayBuffer / AudioBuffer klip Clawd -> nama klip
+      const nameOf = (u) => (/\/audio\/clawd\/(?:[^/?#]+\/)?([^/?#]+)\.mp3/.exec(u) || [])[1];
+      const f = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        const n = nameOf(typeof input === 'string' ? input : input instanceof Request ? input.url : String(input));
+        const pr = f(input, init);
+        return !n ? pr : pr.then((r) => {
+          const ab = r.arrayBuffer.bind(r);
+          r.arrayBuffer = () => ab().then((buf) => { names.set(buf, n); return buf; });
+          return r;
+        });
+      };
+      const dd = BaseAudioContext.prototype.decodeAudioData;
+      BaseAudioContext.prototype.decodeAudioData = function (buf, ok, err) {
+        const n = names.get(buf); // dicatat sebelum aslinya jalan: ArrayBuffer dilepas sesudahnya
+        const done = (ab) => { if (n) names.set(ab, n); return ab; };
+        const r = dd.call(this, buf, ok && ((ab) => ok(done(ab))), err);
+        return n ? r.then(done) : r;
+      };
+      const proto = AudioBufferSourceNode.prototype;
+      for (const type of ['start', 'stop']) {
+        const orig = proto[type];
+        proto[type] = function (...a) {
+          const n = this.buffer && names.get(this.buffer);
+          if (n) window.__voiceEv(type, n);
+          return orig.apply(this, a);
+        };
+      }
+    });
+  }
   await ctx.route('**/functions/v1/trip-data', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(DATA, 'utf8') }));
   const p = await ctx.newPage();
   const cdp = await ctx.newCDPSession(p);
   const { width, height } = p.viewportSize();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
+  if (VOICE) ff.on('close', () => fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents }, null, 1)));
   /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
   let rolling = true;
   const emitUntil = (tv) => { while (last && tick / FPS <= tv) { ff.stdin.write(last); tick++; written++; } };
@@ -103,18 +151,43 @@ const fs = require('fs');
   };
 
   await p.goto('about:blank');
-  rolling = !STAGE || STAGE === 'static';
+  rolling = VOICE ? false : !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
-  await p.goto(`${BASE}/film/${query ? `?${query}` : ''}${['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : ''}`, { waitUntil: 'commit' });
-  await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
+  const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : '';
+  const filmUrl = `/film/${query ? `?${query}` : ''}${hash}`;
+  if (VOICE) {
+    // bersuara: mulai dari beranda dan tekan "Begin the lakon" seperti tamu (itu yang menyalakan suara). Navigasi
+    // klien ke /film/ membuang query dan hash, jadi pushState/replaceState menambahkannya kembali.
+    await p.goto(`${BASE}/`, { waitUntil: 'commit' });
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
+    await p.evaluate((target) => {
+      const [path, rest] = [target.split(/[?#]/)[0], target.slice(target.split(/[?#]/)[0].length)];
+      for (const m of ['pushState', 'replaceState']) {
+        const orig = history[m].bind(history);
+        history[m] = (state, title, url) => {
+          const u = url == null ? null : new URL(String(url), location.href);
+          if (u && u.pathname === path && !u.search && !u.hash && rest) return orig(state, title, path + rest);
+          return orig(state, title, url);
+        };
+      }
+    }, filmUrl);
+    await p.waitForSelector('.hm-begin', { timeout: 60000 });
+    await w(2500); // sambutan tampil dulu
+    await tap(p.locator('.hm-begin'), 0);
+    await p.waitForURL(/\/film\//, { timeout: 60000 });
+  } else {
+    await p.goto(`${BASE}${filmUrl}`, { waitUntil: 'commit' });
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
+  }
   await p.waitForSelector('.film');
   if (STAGE && STAGE !== 'static') {
     // tunggu kanvas 3D tampil penuh, lalu mulai video dari sini (bukan dari layar muat)
     await p.waitForSelector('.film[data-stage="on"]', { timeout: 600000 });
     rolling = true;
   }
+  if (VOICE) rolling = true;
   /** Akhiri rekaman: tutup aliran ke ffmpeg dan laporkan. */
   const finish = async () => {
     await cdp.send('Page.stopScreencast');
