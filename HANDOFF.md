@@ -7,7 +7,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 Menunggu host:
 - Jize Zone: izinkan akses Vercel ke tim host (website belum di-deploy; backend Supabase sudah lengkap)
-- merge PR `second-brain` (pemasang hook dan perbaikan jalur produksi)
+- merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi) dan PR itinerary #17 (hook dan dokumen)
 - rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
@@ -90,7 +90,7 @@ Tafsir Claude:
    - E2E itinerary: 290 lulus, 32 dilewati sesuai proyeknya, 2 gagal batas waktu 30 dtk (desktop: sapuan bab gunungan, zoom gong judul hari; 30,5–31,3 dtk), juga 4/4 gagal saat diulang sendiri. Kode aplikasi sama dengan `main` (e2e penuh terakhir 18 Nov lulus semua). Dugaan: container ini lebih lambat (4 inti, beban 4,7–5,3); belum dibuktikan. Tes tidak diubah.
 3. **Langkah berikutnya:**
    - Vercel: host mengizinkan akses tim, lalu Claude mengimpor repo `second-brain` (env `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`), mengatur Site URL dan redirect Supabase ke alamat Vercel, dan menguji login magic link.
-   - PR `second-brain` (pemasang hook + perbaikan produksi) dan PR itinerary (hook + dokumen), siap Squash and merge.
+   - PR dibuka, siap Squash and merge: `second-brain` #2 (pemasang hook + perbaikan produksi) dan itinerary #17 (hook + dokumen). Host yang merge.
    - Bersih-bersih: `quick-processor` dan `jz-diag` boleh dihapus host; berkas kunci di scratchpad dihapus bila host setuju.
 
 ### Keputusan host 18 Nov: suara Clawd = suara teman host, bahasa Inggris saja — DICATAT, KLIP SEDANG DIBUAT
