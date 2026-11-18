@@ -8,7 +8,8 @@
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts build <mentah>  olah <mentah>/<lang>/<nama>.(mp3|wav) ke public/
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts check           semua kalimat punya klip, voice-clips.json cocok
  *
- * Olahan tiap klip: mono, hening di awal dan akhir dipangkas (sisa 40 ms), kenyaringan disamakan dengan audio situs
+ * Olahan tiap klip: mono, hening di awal dan akhir dipangkas (sisa 40 ms), jeda di tengah klip paling lama ±0,6 dtk
+ * (Chatterbox kadang memberi jeda 1–1,5 dtk di antara dua kalimat), kenyaringan disamakan dengan audio situs
  * lainnya (-16 LUFS, puncak di bawah -1,5 dBTP), MP3 48 kbps. Lalu lama tiap klip ditulis ke `voice-clips.json`, yang
  * dipakai gelembung untuk menunggu klip selesai. Rekaman mentah disimpan di luar repo (scratchpad).
  */
@@ -40,6 +41,11 @@ function lufs(file: string) {
 const seconds = (file: string) => Number(run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).trim());
 
 const TRIM = "silenceremove=start_periods=1:start_threshold=-48dB:start_silence=0.04";
+/**
+ * Jeda di tengah klip dipendekkan: hening di bawah −50 dB yang lebih panjang dari ±0,6 dtk disisakan ±0,6 dtk (di
+ * ffmpeg 6.1 sisa jeda ≈ stop_duration + stop_silence). Jeda yang lebih pendek tidak berubah.
+ */
+const PAUSE = "silenceremove=stop_periods=-1:stop_duration=0.3:stop_threshold=-50dB:stop_silence=0.3";
 function build(raw: string) {
   const tmp = join(raw, ".olah");
   mkdirSync(tmp, { recursive: true });
@@ -50,7 +56,7 @@ function build(raw: string) {
       const src = ["mp3", "wav"].map((ext) => join(raw, lang, `${name}.${ext}`)).find(existsSync);
       if (!src) continue;
       const trimmed = join(tmp, `${lang}.${name}.wav`);
-      run("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ac", "1", "-ar", "44100", "-af", `${TRIM},areverse,${TRIM},areverse`, trimmed]);
+      run("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ac", "1", "-ar", "44100", "-af", `${TRIM},areverse,${TRIM},areverse,${PAUSE}`, trimmed]);
       const gain = TARGET_LUFS - lufs(trimmed);
       const dst = join(OUT, lang, `${name}.mp3`);
       run("ffmpeg", ["-y", "-loglevel", "error", "-i", trimmed, "-af", `volume=${gain.toFixed(2)}dB,alimiter=limit=0.84:level=false`, "-c:a", "libmp3lame", "-b:a", "48k", dst]);

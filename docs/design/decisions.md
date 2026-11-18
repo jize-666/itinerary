@@ -560,7 +560,9 @@ Sumber suara diganti 17–18 Nov (host: "suara clawd, ganti dengan ini"; pilihan
   - "Haaah..." untuk "Yawn..." (`rest.0`, `wake.1`): "Yawn" dibaca sebagai kata, bukan bunyi menguap;
   - "Control plus scroll, or the plus and minus keys" untuk "Ctrl + scroll or the + and - keys" (`tip.zoom.0`): singkatan dan simbol tombol tidak dibaca utuh.
   - Teks gelembung tetap seperti di `lines.ts`.
-- **Olahan klip:** mono, hening di awal dan akhir dipangkas, kenyaringan −16 LUFS seperti gendhing dan efek lainnya, MP3 48 kbps.
+- **Olahan klip:** mono, hening di awal dan akhir dipangkas, jeda di tengah klip paling lama ±0,6 dtk, kenyaringan −16 LUFS seperti gendhing dan efek lainnya, MP3 48 kbps.
+  - Jeda dipendekkan karena Chatterbox kadang memberi jeda 1–1,5 dtk di antara dua kalimat (`welcome.0`, `intro.2`, `tip.gallery.0.touch`, `angry.1`), sehingga gelembung ikut menunggu dan iramanya lambat. Hanya hening yang dipotong; warna suara tidak diubah.
+  - Isi ucapan ke-39 klip diperiksa dengan transkripsi lokal (Whisper `small.en` di container, audio tidak dikirim ke luar): tidak ada kata tambahan, ulangan, atau potongan. Yang berbeda hanya interjeksi pendek ("Hehe", "Hmph", "Aww") yang memang sulit ditranskripsi.
 - **Gelembung menunggu klip:** lama tiap klip ada di `engine/mascot/voice-clips.json`. Kalimat bersuara ditahan sampai klipnya selesai (+0,45 dtk), walau teksnya sudah lengkap. Otak Clawd tetap murni (tanpa menunggu peristiwa audio), jadi bisa dites.
 - **Ketukan:** ketukan pertama melengkapi teks dan suara jalan terus; ketukan berikutnya melewati kalimat dan suaranya berhenti.
 - **Satu suara pada satu waktu:** klip baru, reaksi yang menyela, kalimat yang dilewati, gelembung yang memudar, atau bahasa yang diganti menghentikan klip lama. Klip yang baru siap lebih dari 0,6 dtk sesudah kalimatnya muncul tidak diputar, karena suaranya akan tertinggal teks.
