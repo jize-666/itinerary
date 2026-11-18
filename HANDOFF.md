@@ -5,6 +5,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 18 Nov sore: PRD untuk Jize Zone bergaya montage "larp", dan pembantu Sonnet/Haiku/Fable — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host:** "buatin gw promt / prd web seperti ini 90-95% mirip, untuk update artifacts mu. agent yang akan mengerjakan adalah codex/gpt astra." dan "di artifacts, pembantu baru si sonnet, haiku dan fabble masih nganggur. suruh mereka kerja (catatan, fable hanya bisa kerja atas izin dariku)". Lampiran: `larp.zip` (21 frame 512×682 dari video montage 9,9 dtk berisi dasbor agen AI bergaya terminal dengan visual 3D; disimpan di scratchpad, tidak masuk repo).
+Tafsir Claude:
+- Buat PRD + prompt untuk Codex/GPT: desain ulang artifact **Jize Zone** supaya 90–95% mirip gaya montage itu, dengan isi Jize Zone sendiri (tugas, menunggu host, kru, ringkasan). Merek dan nama produk dari video tidak disalin.
+- Batas teknis ikut tipe Dashboard artifact (berkas di store, tanpa modul, tanpa host luar, `dash.data`), supaya hasil Codex bisa dipasang ke artifact yang sama.
+- Pembantu: Sonnet dan Haiku dipakai sebagai subagen untuk pekerjaan ini (inventaris frame, tinjauan PRD). Fable tidak dijalankan tanpa izin host; Claude mengusulkan pekerjaannya dan menunggu izin.
+- Kartu "Sesi & agen" di Jize Zone diperbarui supaya Sonnet, Haiku, dan Fable (menunggu izin) tampak.
+
 ### Permintaan host 18 Nov (di tengah 8.4): coba suara host sendiri untuk Clawd — CONTOH DIKIRIM, MENUNGGU PILIHAN HOST
 
 **Kata host:** "coba suara gw", dengan tiga rekaman suara host (7, 5, dan 11 detik; m4a 48 kHz mono).
