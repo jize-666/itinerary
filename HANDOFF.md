@@ -5,6 +5,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 8.2 + 8.3: grading warna per fase di semua slide 3D — SEDANG DIKERJAKAN
+
+**Arahan host 18 Nov, kata demi kata:** "kerjakan tugas 8.2 + 8.3 dulu. tandain yang di lewati."
+Tafsir Claude:
+- Dikerjakan sekarang: 8.2 (grading per fase subuh/pagi/siang/senja/malam di semua slide 3D) dan 8.3 (grading warna di post-FX).
+- **Dilewati dulu**, ditandai ⏭️ di `CLAUDE.md` dan di rencana di bawah:
+  - 78 klip suara Clawd (langkah 1 rencana): tetap menunggu host memilih contoh suara, lalu dikerjakan sesudah 8.2 + 8.3;
+  - 8.4 partikel per fase tetap sesudahnya, sesuai urutan.
+
 ### Sesudah PR #14 di-merge (18 Nov): rencana berikutnya
 
 **Kata host, kata demi kata:** "sudah ku merge, lalu apa planningmu? update sekalian handofff".
@@ -25,7 +34,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - kaki Clawd 3D yang tertutup kartu gallery: perlu dibetulkan atau dibiarkan;
    - uji di iPhone produksi (`/film/?fps`): sungai, gerbang, dan Clawd di `high ×1 (paksa)`.
 3. **Rencana, urutan usulan:**
-   1. **Suara Clawd, 78 klip** (PR terpisah), begitu host memilih contoh.
+   1. ⏭️ **Dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu").** **Suara Clawd, 78 klip** (PR terpisah), begitu host memilih contoh.
       - 39 kalimat EN dan 39 ID dibuat Chatterbox di CPU container, ±1 jam (13–39 dtk per kalimat), dengan setelan per emosi (`moodOf`):
         - tenang: ekspresi 0,45 / cfg 0,5;
         - senang: 0,85 / 0,45;

@@ -84,7 +84,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Rekaman dijernihkan (warna suara berubah ±1 dB; host: "jangan sampai rusak suaranya").
     - Ditiru dengan Chatterbox di CPU container, karena kuota ZeroGPU Hugging Face habis.
     - Empat contoh sudah dikirim ke host: tenang EN, marah EN, tenang ID dengan setelan Melayu, dan tenang ID dengan model Inggris.
-    - ⬜ 78 klip, sesudah host memilih. Rekaman tidak masuk repo.
+    - ⏭️ 78 klip: dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu"). Dikerjakan sesudah host memilih contoh. Rekaman tidak masuk repo.
 - [ ] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel. Dimulai 17 Nov atas arahan host ("mulai saja tugas 8"). Rincian dan status: `HANDOFF.md` bagian 0.
   - [x] **8.1 Desain ulang benang emas.** ✅ 17 Nov 2026.
     - Dua versi benang emas tidak memuaskan host ("upgrade lah, keliatan basic banget"), jadi konsepnya diganti atas pilihan host ("b aja coba").
@@ -97,7 +97,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Tiap geser panel, kamera menukik menembus kartu: lensa melebar, garis cahaya, riak, dan warna terpecah di tepi.
     - Dihaluskan atas arahan host ("bikin lebih smooth"; "kurangi dikit"): dorongan 2,3 m, lensa +20°.
     - Rinciannya: `docs/design/decisions.md` bagian "Gerbang dimensi di gallery".
-  - [ ] **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery.
+  - [ ] **8.2 Sisa siklus waktu 3D:** grading per fase (subuh, siang, senja, malam) di semua slide 3D, bukan hanya gallery. Sedang dikerjakan sejak 18 Nov bersama 8.3 (host: "kerjakan tugas 8.2 + 8.3 dulu").
   - [ ] **8.3 Post-FX:** sebagian.
     - Sudah: DOF gallery dari 7b, dan efek gerbang dimensi (zoom blur, warna terpecah, riak, kilatan).
     - Belum: grading warna.
