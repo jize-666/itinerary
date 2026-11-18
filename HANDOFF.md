@@ -29,7 +29,8 @@ Tafsir Claude:
      - Kunang-kunang terlalu kecil dan redup: diperbesar, kedip lebih terang dan lebih lama, inti dan pendar.
      - Embun dan debu emas hampir tak terlihat saat ditebar jauh di sawah (tertelan langit siang yang terang, terlalu redup di subuh). Dipindah ke ruang udara yang mengikuti kamera.
      - Kotak yang berpusat di kamera menaruh separuh butir di belakang lensa, dan di pembuka hari (kamera mendongak) embun di bawah mata tidak masuk layar. Kotak digeser ke depan kamera dan embun dinaikkan setinggi mata.
-   - Tes penuh dan video: lihat poin di bawah, diisi sesudah dijalankan.
+   - Tes penuh 18 Nov: lint, typecheck, unit 461/461, content:check, build lulus; e2e 292 lulus, 32 dilewati sesuai proyeknya, 0 gagal (15,9 menit).
+   - Video pratinjau: gallery Hari 1 desktop dan HP 9:16 (sedang direkam saat catatan ini ditulis).
 3. **Langkah berikutnya:**
    - host meninjau video dan merge PR 8.4;
    - sesudah 8.4, Tugas 8 tinggal sisa yang menunggu host (video gerbang dimensi versi halus, kaki Clawd di gallery, uji iPhone);
