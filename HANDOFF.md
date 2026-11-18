@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai dari `main` (`3d0ed78`, PR #16 sudah di-merge) · **Jize Zone v2 ke Supabase "live-second-brain" (permintaan host 18 Nov malam): website tayang di https://jize-zone.vercel.app, backend lengkap; tinggal URL login di Supabase** · 39 klip suara Clawd ditunda: rekaman teman host hilang bersama container lama · sebelumnya: PR #16 (Tugas 8.4) di-merge host 18 Nov.
+Diperbarui 18 Nov 2026 malam (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`f32a1e9`, PR #17 dan `second-brain` #2 sudah di-merge) · **sedang dikerjakan: 39 klip suara Clawd bahasa Inggris dari zip kiriman host** · Jize Zone tayang di https://jize-zone.vercel.app (URL login Supabase menunggu host).
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -14,6 +14,19 @@ Menunggu host:
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
+
+### Kiriman host 18 Nov malam: 39 klip suara Clawd — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "udah gw merge. ini suara clawd", dengan lampiran `clawd-klip-final.zip` (13 MB).
+Tafsir Claude:
+- PR itinerary #17 dan `second-brain` #2 sudah di-merge; branch kerja di kedua repo dimulai ulang dari `main`.
+- Zip berisi hasil sesi sebelumnya (sebelum container diganti), dibuat Chatterbox di CPU dari suara teman host:
+  - `final/en/`: 39 klip WAV, satu per kalimat Clawd bahasa Inggris, take terpilih per kalimat (`final/sumber.json`, beberapa dari benih lain);
+  - `olah/`: versi MP3 olahan;
+  - `ucap.json`: empat kalimat yang ucapannya sengaja beda dari teks gelembung ("wah-yang" untuk wayang, "Haaah..." untuk "Yawn...", tombol zoom diucapkan);
+  - `jobs-en.json` (setelan per emosi) dan `daftar-klip.txt`.
+- Yang dikerjakan: periksa 39 nama dan teks cocok dengan `voiceLines()`, ukur tiap klip (lama, kenyaringan, terpotong atau tidak), olah lewat `scripts/audio/clawd-voice.ts build` ke `public/audio/clawd/en/` dan `voice-clips.json`, `check` hanya bahasa Inggris, catatan sumber suara di skrip dan `docs/design/decisions.md`, tes, e2e, video pratinjau bersuara (desktop dan HP, data April, nama Jize), lalu PR.
+- Rekaman mentah teman host tidak masuk repo; hanya klip olahan.
 
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
