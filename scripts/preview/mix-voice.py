@@ -2,7 +2,7 @@
 
   python3 -I scripts/preview/mix-voice.py <repo> <video.mp4> <voice.json> <keluaran.mp4>
 
-<voice.json> dibuat record-film.cjs dengan VOICE=<berkas>: {K, fps, events:[{t, type:"start"|"stop", name}]}, t = waktu
+<voice.json> dibuat record-film.cjs dengan VOICE=<berkas>: {K, fps, events:[{t, type:"start"|"stop"|"hush", name}]}, t = waktu
 VIDEO (detik). Tiap klip (public/audio/clawd/en/<name>.mp3) ditaruh pada waktu start-nya dan dipotong dengan fade 60 ms
 bila ada stop atau klip lain mulai (satu suara pada satu waktu, seperti AudioEngine.endVoice). Gain = VOICE_LEVEL di
 src/engine/audio/catalog.ts. Hasilnya disamakan ke ±-16 LUFS (limiter -1 dBTP), 48 kHz stereo, lalu digabung ke video
@@ -61,15 +61,20 @@ def main():
             if clips and clips[-1][2] is None:
                 clips[-1][2] = e["t"]  # klip baru memotong yang lama (playVoice → endVoice)
             clips.append([e["t"], e["name"], None])
+        elif e["type"] == "hush":
+            if clips and clips[-1][2] is None:
+                clips[-1][2] = e["t"]  # gelembung mulai memudar → suara berhenti (session.ts → audioStatus.hush)
         elif clips and clips[-1][2] is None and clips[-1][1] == e["name"]:
             clips[-1][2] = e["t"]
     summary = []
     for at, name, stop in clips:
         pcm = load(name) * level
+        cut = False
         if stop is not None:
             keep = max(0, int(round((stop - at) * SR)))
             if keep < len(pcm):
                 pcm = pcm[:keep].copy()
+                cut = True
                 f = min(int(FADE * SR), len(pcm))
                 if f:
                     pcm[-f:] *= np.cos(np.linspace(0, np.pi / 2, f))[:, None]
@@ -77,7 +82,7 @@ def main():
         j = min(len(track), i + len(pcm))
         if j > i:
             track[i:j] += pcm[: j - i]
-        summary.append((at, name, len(pcm) / SR, stop is not None))
+        summary.append((at, name, len(pcm) / SR, cut))
     if not clips:
         sys.exit("tidak ada klip di catatan suara")
     raw = OUT.with_suffix(".f32")

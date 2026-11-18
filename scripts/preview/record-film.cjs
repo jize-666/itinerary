@@ -27,7 +27,7 @@
 // Bersuara: VOICE=<suara.json> mencatat kapan tiap klip suara Clawd mulai dan berhenti (waktu VIDEO), karena rekaman
 // Playwright tidak membawa audio. Rekaman lalu dimulai dari beranda seperti tamu: tombol "Begin the lakon" ditekan
 // (itu yang menyalakan suara; film dibuka lewat navigasi klien dengan ?stage= / QUERY / #hari yang sama), bahasa EN,
-// dan Chromium boleh memutar tanpa gestur. Berkas JSON berisi {K, fps, events:[{t, type:"start"|"stop", name}]}.
+// dan Chromium boleh memutar tanpa gestur. Berkas JSON berisi {K, fps, events:[{t, type:"start"|"stop"|"hush", name}]}; hush = gelembung mulai memudar.
 // Sesudahnya: python3 -I scripts/preview/mix-voice.py . <video.mp4> <suara.json> <keluaran.mp4>. Web Audio halaman
 // berjalan dengan jam nyata (tidak ikut diperlambat), jadi hanya saat start dan stop eksplisit yang dipakai.
 // Contoh: STAGE=static VOICE=suara.json node scripts/preview/record-film.cjs data.json film.mp4 desktop 0.25 clawd
@@ -107,6 +107,20 @@ const fs = require('fs');
           return orig.apply(this, a);
         };
       }
+      // Klip di halaman berjalan dengan jam nyata dan biasanya sudah habis sebelum dihentikan, jadi `stop` jarang
+      // terpanggil. Aplikasi menghentikan suara begitu gelembung mulai memudar (fade < 1, session.ts → hush), jadi
+      // saat opacity gelembung turun dari 1 dicatat sebagai `hush`: klip yang sedang berbunyi di video berhenti.
+      const seen = new WeakSet();
+      const watch = (el) => {
+        let was = 1;
+        new MutationObserver(() => {
+          const o = parseFloat(el.style.opacity || '1');
+          if (was >= 1 && o < 1) window.__voiceEv('hush', '');
+          was = o;
+        }).observe(el, { attributes: true, attributeFilter: ['style'] });
+      };
+      const find = () => { for (const el of document.querySelectorAll('.clawd-bubble')) if (!seen.has(el)) { seen.add(el); watch(el); } };
+      document.addEventListener('DOMContentLoaded', () => { find(); new MutationObserver(find).observe(document.body, { childList: true, subtree: true }); });
     });
   }
   await ctx.route('**/functions/v1/trip-data', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(DATA, 'utf8') }));
