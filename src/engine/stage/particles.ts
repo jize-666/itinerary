@@ -5,7 +5,7 @@
  * diturunkan dari bobot fase langit yang sama dengan grading warna (`phaseWeights` di grade.ts), jadi partikel ikut
  * jam tiap slide dan bergeser mulus mengikuti gulir:
  * - debu lampu: debu emas di udara pendapa, terang di dekat blencong (gerbang dan malam);
- * - embun: butir sejuk yang melayang rendah di atas sawah dan berkilau saat kena cahaya (subuh);
+ * - embun: butir sejuk yang melayang rendah di udara dan berkilau memantulkan langit subuh (subuh);
  * - debu emas siang: butir di udara yang berkilau saat memandang ke arah matahari, menjingga saat senja (siang, senja);
  * - kunang-kunang: titik kuning kehijauan yang berkedip dan mengembara rendah di atas sawah dan tepi sungai (malam,
  *   mulai muncul di akhir senja, sedikit di malam gerbang).
@@ -57,35 +57,46 @@ export function kindOf(i: number, count: number): ParticleKind {
 export const kindIndex = (k: ParticleKind) => KINDS.indexOf(k);
 
 /**
- * Sebaran tiap jenis di sekitar pendapa (meter): cincin jari-jari `r` (luas merata) dan tinggi di atas tanah atau
- * muka air. Lanskap gallery dipandang dari tepi belakang pendapa ke sawah dan Bengawan Solo (±15 m), jadi embun
- * tersebar sampai 18 m dan kunang-kunang sampai 24 m; sebagian kunang-kunang di halaman pendapa supaya tampak juga di
- * prolog dan gong.
+ * Kunang-kunang tersebar di cincin sekitar pendapa (meter, luas merata), melayang di atas tanah atau muka air.
+ * Lanskap gallery dipandang dari tepi belakang pendapa ke sawah dan Bengawan Solo (±15 m), jadi sebarannya sampai
+ * 24 m; sebagian di halaman pendapa (`YARD`) supaya tampak juga di prolog dan gong.
  */
-export const SPREAD: Readonly<Record<Exclude<ParticleKind, "lamp">, { r: readonly [number, number]; h: readonly [number, number] }>> = {
-  dew: { r: [4, 18], h: [0.05, 0.8] },
-  // debu emas tinggi dan dekat, supaya banyak yang tampak di depan langit (kilau ke arah matahari)
-  motes: { r: [2.5, 14], h: [0.6, 7] },
-  fireflies: { r: [4, 24], h: [0.25, 1.6] },
-};
+export const SPREAD = { fireflies: { r: [4, 24] as const, h: [0.25, 1.6] as const } };
 /** Bagian kunang-kunang yang berada di halaman pendapa (jari-jari `YARD`). */
 export const YARD = { share: 0.3, r: [2.6, 6.5] as const };
+
+/**
+ * Embun dan debu emas mengisi ruang udara yang mengikuti kamera (cara salju dan debu di gim): letak tiap butir tetap
+ * di dunia, dibungkus ke dalam kotak `box` (meter) yang berpusat `ahead` m di depan kamera dan `lift` m di atas atau
+ * di bawah matanya. Kamera yang bergeser tidak menggeser butir (parallax dan kedalaman ikut gulir tetap benar), dan
+ * di slide mana pun selalu ada butir di depan lensa. Butir dekat tampak sebagai cakram lembut (bokeh), butir jauh
+ * sebagai kilau kecil. Tepi kotak memudar (`edge`) supaya butir yang terbungkus tidak muncul tiba-tiba.
+ * Percobaan pertama menebarnya jauh di sawah: di siang hari tertelan langit dan sawah yang terang, di subuh terlalu
+ * redup. Percobaan kedua memusatkan kotak di kamera dengan embun di bawah mata: separuh butir di belakang lensa, dan
+ * di pembuka hari (kamera mendongak) embun hampir tidak masuk layar. Embun kini setinggi mata, sedikit lebih rendah
+ * dan lebih tipis dari debu emas.
+ */
+export const NEAR = {
+  dew: { box: [9, 3, 9] as const, ahead: 3, lift: -0.3 },
+  motes: { box: [14, 7, 14] as const, ahead: 4.5, lift: 0.6 },
+  edge: 0.75,
+};
 
 export type Ground = (x: number, z: number) => number;
 
 /**
- * Letak dasar satu butir (dunia, meter) dari empat benih 0–1. Debu lampu tidak memakai letak dasar (geraknya di
- * kotak udara pendapa, dihitung shader dari benih), jadi untuknya hasilnya titik asal.
+ * Letak dasar satu butir (dunia, meter) dari empat benih 0–1. Hanya kunang-kunang yang punya letak dasar di lanskap;
+ * debu lampu (kotak udara pendapa) dan embun serta debu emas (ruang udara yang mengikuti kamera, `NEAR`) dihitung
+ * shader dari benih, jadi untuk ketiganya hasilnya titik asal.
  */
 export function placeParticle(kind: ParticleKind, seed: readonly [number, number, number, number], ground: Ground): [number, number, number] {
-  if (kind === "lamp") return [0, 0, 0];
+  if (kind !== "fireflies") return [0, 0, 0];
   const [a, b, c, d] = seed;
-  const near = kind === "fireflies" && d < YARD.share;
-  const [r0, r1] = near ? YARD.r : SPREAD[kind].r;
+  const [r0, r1] = d < YARD.share ? YARD.r : SPREAD.fireflies.r;
   const r = Math.sqrt(r0 * r0 + (r1 * r1 - r0 * r0) * a);
   const th = b * Math.PI * 2;
   const x = Math.sin(th) * r;
   const z = -Math.cos(th) * r;
-  const [h0, h1] = SPREAD[kind].h;
+  const [h0, h1] = SPREAD.fireflies.h;
   return [x, ground(x, z) + h0 + (h1 - h0) * c, z];
 }

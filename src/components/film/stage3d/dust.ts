@@ -9,11 +9,25 @@
  * perubahan langit) dan letak dasar butir (sekali per bentuk lanskap). Jenis yang kadarnya nol tidak dirasterisasi.
  */
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Points, ShaderMaterial, Vector4 } from "three";
-import { kindIndex, kindOf, type Ground, type ParticleMix, placeParticle } from "@/engine/stage/particles";
+import { kindIndex, kindOf, type Ground, NEAR, type ParticleMix, placeParticle } from "@/engine/stage/particles";
 import { COMMON, type Shared } from "./shared";
+
+const v3 = (v: readonly number[]) => `vec3(${v.map((x) => x.toFixed(2)).join(", ")})`;
 
 const VERT = /* glsl */ `
 ${COMMON}
+/* ruang udara yang mengikuti kamera (NEAR di particles.ts): letak dunia dibungkus ke kotak berpusat di depan kamera */
+vec3 nearCenter(float ahead, float lift) {
+  vec3 fwd = -vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+  return cameraPosition + fwd * ahead + vec3(0.0, lift, 0.0);
+}
+vec3 wrapNear(vec3 p, vec3 box, vec3 center) {
+  return center + (fract((p - center) / box + 0.5) - 0.5) * box;
+}
+float edgeFade(vec3 wp, vec3 box, vec3 center) {
+  vec3 e = abs(wp - center) / (box * 0.5);
+  return 1.0 - smoothstep(${NEAR.edge.toFixed(2)}, 1.0, max(e.x, max(e.y, e.z)));
+}
 attribute vec4 aSeed;
 attribute vec3 aBase;
 attribute float aKind;
@@ -53,20 +67,27 @@ void main() {
     col = mix(vec3(1.0, 0.72, 0.36), vec3(1.0, 0.9, 0.7), s) * (lamp * 0.42 + 0.014 * dot(uAmbSky, vec3(0.33)) + 0.003) * life;
     size = 0.0022 + 0.004 * s * s;
   } else if (k < 1.5) {
-    // embun: melayang rendah dan hanyut pelan; berkilau sesekali memantulkan langit subuh (sebelum sarapan matahari
-    // belum tampak, jadi terangnya dari langit, bukan dari cahaya kunci)
-    wp = aBase + vec3(0.3 * sin(uTime * 0.05 + s * 40.0), 0.06 * sin(uTime * 0.4 + s * 20.0), 0.3 * cos(uTime * 0.045 + s * 31.0));
+    // embun: melayang setinggi mata kamera, hanyut pelan dan sedikit turun; berkilau sesekali memantulkan langit subuh
+    // (sebelum sarapan matahari belum tampak, jadi terangnya dari langit, bukan dari cahaya kunci)
+    vec3 box = ${v3(NEAR.dew.box)};
+    vec3 center = nearCenter(${NEAR.dew.ahead.toFixed(2)}, ${NEAR.dew.lift.toFixed(2)});
+    vec3 drift = vec3(0.18 * uTime * (0.3 + s), -0.03 * uTime, 0.12 * uTime * (0.5 - aSeed.z)) + 0.15 * vec3(sin(uTime * 0.4 + s * 20.0), sin(uTime * 0.3 + s * 9.0), cos(uTime * 0.35 + s * 31.0));
+    wp = wrapNear(aSeed.xyz * box * 3.0 + drift, box, center);
     float glint = pow(max(0.5 + 0.5 * sin(uTime * (0.8 + 2.4 * aSeed.x) + s * 60.0), 0.0), 10.0);
-    float sky = 2.2 * dot(uSky[1], vec3(0.333)) + 0.25 * key;
-    col = mix(vec3(0.8, 0.9, 1.0), keyTint, 0.25) * sky * (0.18 + 1.6 * glint);
-    size = 0.01 + 0.01 * s;
+    float sky = 3.5 * dot(uSky[1], vec3(0.333)) + 0.35 * key + 0.05;
+    col = mix(vec3(0.8, 0.9, 1.0), keyTint, 0.25) * sky * (0.45 + 1.6 * glint) * edgeFade(wp, box, center);
+    size = 0.004 + 0.005 * s;
   } else if (k < 2.5) {
-    // debu emas siang: berputar pelan di udara; berkilau saat dipandang ke arah matahari (hamburan ke depan)
+    // debu emas siang: berputar pelan di udara sekitar kamera dan naik perlahan; berkilau saat dipandang ke arah matahari
+    // (hamburan ke depan), menjingga saat senja (warna cahaya kunci)
+    vec3 box = ${v3(NEAR.motes.box)};
+    vec3 center = nearCenter(${NEAR.motes.ahead.toFixed(2)}, ${NEAR.motes.lift.toFixed(2)});
     float t = uTime * (0.02 + 0.03 * s);
-    wp = aBase + vec3(0.55 * sin(t * 3.1 + s * 17.0), 0.5 * sin(t * 1.7 + s * 9.0), 0.55 * cos(t * 2.3 + s * 29.0));
+    vec3 drift = vec3(0.6 * sin(t * 3.1 + s * 17.0), 0.06 * uTime * (0.4 + s) + 0.4 * sin(t * 1.7 + s * 9.0), 0.6 * cos(t * 2.3 + s * 29.0));
+    wp = wrapNear(aSeed.xyz * box * 3.0 + drift, box, center);
     float fwd = pow(max(dot(safeNormalize(wp - cameraPosition), uSunDir), 0.0), 4.0);
-    col = mix(vec3(1.0, 0.86, 0.6), keyTint, 0.5) * (key * (0.06 + 1.3 * fwd) + 0.03 * dot(uAmbSky, vec3(0.33)));
-    size = 0.005 + 0.007 * s * s;
+    col = mix(vec3(1.0, 0.86, 0.6), keyTint, 0.5) * (key * (0.12 + 1.6 * fwd) + 0.04 * dot(uAmbSky, vec3(0.33))) * edgeFade(wp, box, center);
+    size = 0.004 + 0.006 * s * s;
   } else {
     // kunang-kunang: mengembara rendah dan berkedip (kilat singkat lalu meredup), bercahaya sendiri
     wp = aBase + vec3(0.6 * sin(uTime * 0.23 + s * 31.0), 0.25 * sin(uTime * 0.37 + s * 17.0), 0.6 * cos(uTime * 0.19 + s * 13.0));
@@ -85,9 +106,13 @@ void main() {
   // kamera dan di kabut jauh
   float px = uPixel * size / dist;
   float fade = smoothstep(0.35, 1.2, dist) * exp(-uFogDensity * dist * 0.8);
-  vColor = col * amount * fade * min(1.0, px * px);
+  // energi cahaya tetap: butir lebih kecil dari satu piksel diredupkan, butir dekat yang besar (embun, debu emas)
+  // melebar jadi cakram lembut yang lebih redup per piksel, bukan bercak terang
+  float cap = glow > 0.5 ? 16.0 : (k < 0.5 ? 4.0 : 12.0);
+  float spread = k > 0.5 && glow < 0.5 ? 9.0 / max(9.0, px * px) : 1.0;
+  vColor = col * amount * fade * min(1.0, px * px) * spread;
   vGlow = glow;
-  gl_PointSize = clamp(px, 1.0, glow > 0.5 ? 16.0 : 4.0);
+  gl_PointSize = clamp(px, 1.0, cap);
 }`;
 
 const FRAG = /* glsl */ `

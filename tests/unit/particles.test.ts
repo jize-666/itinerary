@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type DayLight, skyAt, STILL } from "@/engine/slides/sky";
-import { BY_PHASE, KINDS, kindOf, particleMix, placeParticle, SHARE, SPREAD, YARD } from "@/engine/stage/particles";
+import { BY_PHASE, KINDS, kindOf, NEAR, particleMix, placeParticle, SHARE, SPREAD, YARD } from "@/engine/stage/particles";
 import { riverLine, waterLevel } from "@/engine/stage/river";
 import { terrainHeight } from "@/engine/stage/terrain";
 
@@ -56,30 +56,43 @@ describe("butir di dunia", () => {
     expect(low.size).toBe(4);
   });
 
-  it("embun, debu emas, dan kunang-kunang melayang di atas tanah atau muka air, di cincin sebarannya", () => {
+  it("kunang-kunang melayang di atas tanah atau muka air, di cincin sebarannya; jenis lain dihitung shader", () => {
     const line = riverLine();
     const ground = (x: number, z: number) => Math.max(terrainHeight(x, z), waterLevel(x, z, line) ?? -Infinity);
     let s = 11;
     const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
     let yard = 0;
-    for (const kind of ["dew", "motes", "fireflies"] as const) {
-      for (let i = 0; i < 400; i++) {
-        const seed = [rand(), rand(), rand(), rand()] as const;
-        const [x, y, z] = placeParticle(kind, seed, ground);
-        const r = Math.hypot(x, z);
-        const lift = y - ground(x, z);
-        expect(lift, kind).toBeGreaterThanOrEqual(SPREAD[kind].h[0] - 1e-9);
-        expect(lift, kind).toBeLessThanOrEqual(SPREAD[kind].h[1] + 1e-9);
-        const near = kind === "fireflies" && seed[3] < YARD.share;
-        const [r0, r1] = near ? YARD.r : SPREAD[kind].r;
-        expect(r, kind).toBeGreaterThanOrEqual(r0 - 1e-9);
-        expect(r, kind).toBeLessThanOrEqual(r1 + 1e-9);
-        if (near) yard++;
-      }
+    for (let i = 0; i < 600; i++) {
+      const seed = [rand(), rand(), rand(), rand()] as const;
+      const [x, y, z] = placeParticle("fireflies", seed, ground);
+      const lift = y - ground(x, z);
+      expect(lift).toBeGreaterThanOrEqual(SPREAD.fireflies.h[0] - 1e-9);
+      expect(lift).toBeLessThanOrEqual(SPREAD.fireflies.h[1] + 1e-9);
+      const near = seed[3] < YARD.share;
+      const [r0, r1] = near ? YARD.r : SPREAD.fireflies.r;
+      const r = Math.hypot(x, z);
+      expect(r).toBeGreaterThanOrEqual(r0 - 1e-9);
+      expect(r).toBeLessThanOrEqual(r1 + 1e-9);
+      if (near) yard++;
     }
     // sebagian kunang-kunang di halaman pendapa (tampak di prolog dan gong), sisanya di sawah dan tepi sungai
-    expect(yard / 400).toBeGreaterThan(0.2);
-    expect(yard / 400).toBeLessThan(0.4);
-    expect(placeParticle("lamp", [0.1, 0.2, 0.3, 0.4], () => 5)).toEqual([0, 0, 0]);
+    expect(yard / 600).toBeGreaterThan(0.22);
+    expect(yard / 600).toBeLessThan(0.38);
+    for (const k of ["lamp", "dew", "motes"] as const) expect(placeParticle(k, [0.1, 0.2, 0.3, 0.4], () => 5)).toEqual([0, 0, 0]);
+  });
+
+  it("ruang udara embun dan debu emas: embun setinggi mata dan lebih rendah, debu emas di sekitar dan di atasnya", () => {
+    const top = (k: "dew" | "motes") => NEAR[k].lift + NEAR[k].box[1] / 2;
+    expect(NEAR.dew.lift).toBeLessThanOrEqual(0);
+    expect(NEAR.dew.lift).toBeLessThan(NEAR.motes.lift);
+    expect(top("dew")).toBeLessThan(top("motes"));
+    expect(top("motes")).toBeGreaterThan(3);
+    expect(NEAR.edge).toBeGreaterThan(0.5);
+    expect(NEAR.edge).toBeLessThan(1);
+    // kotak di depan kamera, tetapi kamera tetap di dalamnya (selalu ada butir dekat yang melintas di depan lensa)
+    for (const k of ["dew", "motes"] as const) {
+      expect(NEAR[k].ahead).toBeGreaterThan(0);
+      expect(NEAR[k].ahead).toBeLessThan((NEAR[k].box[2] / 2) * NEAR.edge);
+    }
   });
 });
