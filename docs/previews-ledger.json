@@ -230,6 +230,22 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "clawd-bersuara-25d-desktop-v2.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/rekam/clawd-bersuara-25d-desktop-v2.mp4",
+      "size": 15760477,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-bersuara-25d-hp-v2.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/rekam/clawd-bersuara-25d-hp-v2.mp4",
+      "size": 16866119,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
