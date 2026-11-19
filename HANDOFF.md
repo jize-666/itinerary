@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR branch ini menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR #20 menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
