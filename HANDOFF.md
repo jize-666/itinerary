@@ -32,6 +32,8 @@ Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang dis
    - Belum diuji di perangkat fisik (iPhone High ≥ 55 fps, p95 ≤ 20 ms; MacBook Air ≥ 58 fps).
    - Di HP pendek (360 × 640) kartu standar menutupi sebagian besar candi Cetho; di iPhone 14 Pro candi masih terlihat di atas kartu. Bila host ingin pemandangan lebih lega di HP, bisa dibuat varian kartu ringkas khusus Hari 2.
 3. **Langkah berikutnya:** PR #21 dibuka, siap Squash and merge; host meninjau kedua video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex). Sesudah merge: Tugas 11 (Canting) bila hasil Codex sudah ada.
+- **Permintaan host, kata demi kata:** "cek pr #21 ada yang gagal" (tangkapan layar: CI / check (pull_request) gagal sesudah 28 m 10 dtk, langkah `pnpm test:e2e --trace off` merah; test, content:check, build hijau).
+  Tafsir Claude: baca log CI, cari tes yang gagal, bedakan regresi dari kode Lawu dan tes yang lambat di runner CI, perbaiki akar masalahnya (tanpa melewati atau mematikan tes), push, lalu pantau CI sampai hijau.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
