@@ -21,6 +21,16 @@ Proses yang dimodelkan (sogan Solo, disederhanakan): nglowong + ngisen-iseni (ga
 - 11.4 (P1) suara malam/celup/lorod, kain buatan tamu di epilog, kalimat Clawd.
 **Bagi tugas:** Haiku memeriksa sumber budaya (kawung, istilah proses) dan memindai; Sonnet menulis kode dengan arahan jelas dan tes; Opus merancang motif, shader, alur, meninjau, merekam.
 
+**11.1 Motif kawung dan kain — SELESAI 19 NOV, FOTO DIKIRIM, MENUNGGU TINJAUAN HOST**
+1. **Selesai:**
+   - `src/engine/canting/motif.ts` (Opus): kawung ukel orisinal, 852 guratan (167 garis, 522 cecek, 163 bidang): inti kawung, empat daun soga bertulang dan bercecek, empat lira ukel berpita (tebal di tengah, meruncing ke gulungan) dengan kuncup soga dan tetes cecek, renda cecek, bidang kawung miring 45° bersimetri empat arah, pinggiran garis ganda dan cecek.
+   - `src/engine/canting/trace.ts` (Opus): ±72 ribu dab berwaktu (nglowong 0–61 %, ngisen-iseni sampai 92 %, nembok sampai 100 %), `countAt`, `tipAt`; deterministik maju-mundur.
+   - `src/components/canting/batik.ts` + `surface.ts` (Opus): target malam (keep, temp, panas) dan warna (nila, soga, remukan) di GPU; mori bertenun, malam berelief dan mengilap, kerok, lorod, prada; kain melendut di gawangan dengan genangan cahaya.
+   - `/canting/` sementara (Sonnet, ditinjau Opus): studio foto `?tahap=malam|nila|soga|lorod&draw=&q=`; kain diputar 90° di layar tegak; parallax kursor/kemiringan (mati di Calm); opsi, `fitDistance`, dan 14 tes unit baru.
+   - Sumber budaya (Haiku): catatan di scratchpad untuk README; kawung tercatat museum sebagai motif larangan keraton Yogyakarta dan Surakarta, jadi teks `/canting/` menceritakannya sebagai sejarah.
+2. **Tes dan kendala:** typecheck, lint, unit 527/527, build (`/canting` terekspor). Bug yang ditemukan dan diperbaiki: semua segitiga target malam terbuang oleh backface culling (ruang kain y ke bawah membalik urutan sudut), jadi materi target dibuat dua sisi.
+3. **Langkah berikutnya:** host meninjau foto empat tahap; lalu 11.2 (menggambar dengan mouse/jari, canting 3D, Clawd memandu, celup, lorod, simpan PNG, Calm/2,5D, e2e, video).
+
 ### Pesan host 19 Nov malam sesudah PR #21 di-merge: "daftar planning mana? liat. codex sakit gabisa lanjutin task" — DAFTAR DIKIRIM, MENUNGGU PILIHAN HOST
 
 Tafsir Claude: host minta melihat daftar rencana, dan Codex tidak bisa melanjutkan Tugas 11 (Canting dan kain mori) dan 12 (Boarding pass 3D dengan fisika) yang PRD-nya sudah ada di `docs/handoff/`. Claude menyusun daftar (yang selesai, yang tersisa, yang menunggu host) dan mengusulkan Claude mengambil alih Tugas 11 lalu 12 dari PRD yang sama, dengan pembagian Haiku/Sonnet/Opus. Belum ada kode; menunggu host memilih.

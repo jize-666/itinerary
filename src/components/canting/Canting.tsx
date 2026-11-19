@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Color,
@@ -55,7 +55,9 @@ export function Canting({ lang, calm, quality, tahap, draw, showFps = false }: C
   const [ready, setReady] = useState(false);
   const state = tahapState(tahap, draw);
   const stateRef = useRef(state);
-  stateRef.current = state;
+  useLayoutEffect(() => {
+    stateRef.current = state;
+  }, [state]);
   const tier: CantingQuality = quality ?? "high";
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export function Canting({ lang, calm, quality, tahap, draw, showFps = false }: C
     scene.background = new Color("#0b0a12");
     const trace = traceMotif(kawungUkel({ aspect: ASPECT }));
     const batik = new Batik(renderer, trace, ASPECT, tier);
-    const geometry = new PlaneGeometry(ASPECT, 1, 1, 1);
+    const geometry = new PlaneGeometry(ASPECT, 1, 96, 60);
     const material: ShaderMaterial = surfaceMaterial({
       wax: batik.wax.texture,
       dye: batik.dye.texture,
@@ -88,7 +90,10 @@ export function Canting({ lang, calm, quality, tahap, draw, showFps = false }: C
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      distance = fitDistance(FOV, w / h, ASPECT, 1, MARGIN);
+      // layar tegak: kain diputar 90° supaya mengisi layar (kawung ukel bersimetri empat arah, motif tetap utuh)
+      const portrait = w / h < 0.9;
+      mesh.rotation.set(-CLOTH_TILT, 0, portrait ? Math.PI / 2 : 0);
+      distance = portrait ? fitDistance(FOV, w / h, 1, ASPECT, MARGIN) : fitDistance(FOV, w / h, ASPECT, 1, MARGIN);
     };
     resize();
     const observer = new ResizeObserver(resize);

@@ -15,6 +15,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CustomBlending,
+  DoubleSide,
   Float32BufferAttribute,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
@@ -73,7 +74,7 @@ float bCracks(vec2 p) {
     float d = length(g + o - f);
     if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
   }
-  return 1.0 - smoothstep(0.0, 0.06, d2 - d1);
+  return 1.0 - smoothstep(0.0, 0.04, d2 - d1);
 }
 // bagian malam tembok yang sudah dikerok (0–1), tepi tidak rata; p = koordinat kain (x 0–aspek, y 0–1)
 float bKerok(vec2 p, float k) {
@@ -170,11 +171,11 @@ void main() {
   float crackA = bCracks(p * 46.0) * (0.55 + 0.45 * bNoise(p * 11.0));
   float crackB = bCracks(p * 58.0 + 3.7) * (0.55 + 0.45 * bNoise(p * 13.0 + 2.0));
   float waxA = clamp(wax.r + wax.g, 0.0, 1.0);
-  float nila = dip(uNila, vUv, 0.0) * mix(1.0, crackA * 0.42, waxA);
+  float nila = dip(uNila, vUv, 0.0) * mix(1.0, crackA * 0.8, waxA);
   float waxB = clamp(wax.r + wax.g * (1.0 - bKerok(p, uKerok)), 0.0, 1.0);
-  float soga = dip(uSoga, vUv, 2.3) * mix(1.0, crackB * 0.38, waxB);
+  float soga = dip(uSoga, vUv, 2.3) * mix(1.0, crackB * 0.6, waxB);
   // serat mori tidak menyerap rata: sedikit belang
-  float mottle = 0.92 + 0.08 * bNoise(p * vec2(60.0, 9.0));
+  float mottle = 0.96 + 0.04 * bNoise(p * vec2(34.0, 24.0)) - 0.03 * bNoise(p * 4.0);
   gl_FragColor = vec4(clamp(nila * mottle, 0.0, 1.0), clamp(soga * mottle, 0.0, 1.0), 0.0, 1.0);
 }`;
 
@@ -221,7 +222,8 @@ export class Batik {
     quad.setAttribute("aDab", new InstancedBufferAttribute(dab, 4));
     quad.setAttribute("aTime", new InstancedBufferAttribute(time, 1));
     quad.instanceCount = 0;
-    const maxBlend = { blending: CustomBlending, blendEquation: MaxEquation, blendSrc: OneFactor, blendDst: OneFactor } as const;
+    // ruang kain y ke bawah, ruang klip y ke atas: urutan sudut segitiga terbalik, jadi kedua sisi digambar
+    const maxBlend = { blending: CustomBlending, blendEquation: MaxEquation, blendSrc: OneFactor, blendDst: OneFactor, side: DoubleSide } as const;
     this.dabMesh = new Mesh(
       quad,
       new ShaderMaterial({

@@ -60,8 +60,10 @@ vec3 batikAlbedo(vec2 uv) {
   // malam di atas kain: kuning bening dan sedikit lebih gelap (kain basah oleh malam); panas = lebih bening, amber
   float wax = batikWax(uv);
   float hot = batikHot(uv);
-  vec3 waxed = col * vec3(0.9, 0.78, 0.5) + vec3(0.03, 0.022, 0.008);
-  col = mix(col, waxed, wax * 0.8);
+  // malam tidak rata tebalnya: sedikit lebih bening di bagian tipis
+  float thick = 0.78 + 0.22 * bNoise(p * 70.0) + 0.1 * bNoise(p * 9.0);
+  vec3 waxed = col * vec3(0.9, 0.78, 0.5) * (1.04 - 0.08 * thick) + vec3(0.03, 0.022, 0.008);
+  col = mix(col, waxed, wax * 0.8 * thick);
   col = mix(col, col * vec3(0.72, 0.56, 0.3), hot * 0.45);
   // prada: emas di bagian krem sesudah nglorod (kilau di gong terakhir)
   float cream = (1.0 - max(d.r, d.g)) * (1.0 - wax);
@@ -84,19 +86,35 @@ float batikGloss(vec2 uv) {
 }
 `;
 
+/**
+ * Kain di gawangan: sedikit melendut di tengah dan bergelombang lembut di antara tali pengikat. Tinggi dan turunannya
+ * dihitung analitis supaya normalnya tepat. `uDrape` 0 = datar.
+ */
 const vs = /* glsl */ `
+uniform float uDrape;
+uniform vec2 uSize;
 varying vec2 vUv;
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec3 vTangent;
 varying vec3 vBitangent;
+const float PI = 3.14159265;
 void main() {
   vUv = uv;
-  vec4 w = modelMatrix * vec4(position, 1.0);
+  // lendut: nol di tepi, terdalam di tengah; gelombang: lipatan halus sejajar tinggi kain
+  float sx = sin(PI * uv.x);
+  float sy = sin(PI * uv.y);
+  float wave = sin(uv.x * PI * 7.0 + 0.6) * 0.18;
+  float h = uDrape * (-sx * sy + wave * sy * 0.6);
+  float dhdu = uDrape * (-PI * cos(PI * uv.x) * sy + cos(uv.x * PI * 7.0 + 0.6) * PI * 7.0 * 0.18 * sy * 0.6);
+  float dhdv = uDrape * (-sx * PI * cos(PI * uv.y) + wave * PI * cos(PI * uv.y) * 0.6);
+  vec3 pos = position + vec3(0.0, 0.0, h);
+  vec3 n = normalize(vec3(-dhdu / uSize.x, -dhdv / uSize.y, 1.0));
+  vec4 w = modelMatrix * vec4(pos, 1.0);
   vWorld = w.xyz;
-  vNormal = normalize(mat3(modelMatrix) * normal);
-  vTangent = normalize(mat3(modelMatrix) * vec3(1.0, 0.0, 0.0));
-  vBitangent = normalize(mat3(modelMatrix) * vec3(0.0, 1.0, 0.0));
+  vNormal = normalize(mat3(modelMatrix) * n);
+  vTangent = normalize(mat3(modelMatrix) * normalize(vec3(1.0, 0.0, dhdu / uSize.x)));
+  vBitangent = normalize(cross(vNormal, vTangent));
   gl_Position = projectionMatrix * viewMatrix * w;
 }`;
 
@@ -109,6 +127,7 @@ varying vec3 vBitangent;
 uniform vec3 uLightDir;
 uniform vec3 uLightColor;
 uniform vec3 uAmbient;
+uniform vec3 uPool;
 ${BATIK_SURFACE}
 void main() {
   vec3 albedo = batikAlbedo(vUv);
@@ -121,7 +140,10 @@ void main() {
   float diff = max(dot(N, L), 0.0);
   float gloss = batikGloss(vUv);
   float spec = pow(max(dot(N, H), 0.0), mix(24.0, 110.0, gloss)) * gloss * 0.9;
-  vec3 col = albedo * (uAmbient + uLightColor * diff) + uLightColor * spec;
+  // genangan cahaya lampu di atas kain: terang di tengah, meredup ke tepi
+  float pool = 1.0 - smoothstep(uPool.z * 0.35, uPool.z, length(vWorld.xy - uPool.xy));
+  vec3 key = uLightColor * (0.55 + 0.6 * pool);
+  vec3 col = albedo * (uAmbient * (0.8 + 0.3 * pool) + key * diff) + key * spec;
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -146,6 +168,10 @@ export function surfaceMaterial(t: SurfaceTargets) {
       uLightDir: { value: new Vector3(-0.45, 0.55, 0.7).normalize() },
       uLightColor: { value: new Color(1.0, 0.93, 0.82).multiplyScalar(1.15) },
       uAmbient: { value: new Color(0.32, 0.3, 0.34) },
+      uDrape: { value: 0.012 },
+      uSize: { value: new Vector2(t.aspect, 1) },
+      // pusat genangan cahaya (x, y dunia) dan jari-jarinya
+      uPool: { value: new Vector3(-0.1, 0.12, 1.15) },
     },
   });
 }
