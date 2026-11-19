@@ -1,11 +1,11 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex diterima, sedang dipasang** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex dipasang, kartu Hari 2 disamakan dengan film; menunggu tinjauan host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DITERIMA, SEDANG DIPASANG
+### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DIPASANG, UI DISAMAKAN; MENUNGGU TINJAUAN HOST
 
 **Kata host, kata demi kata:** "dah gw merge, ni tugas lanjutan" (sesudah PR #20 di-merge). Lampiran: `README-10-lereng-lawu.md` dan `Tugas-10-Lereng-Lawu.zip` (699 KB: `changes.patch` untuk 21 berkas lama, `files/` berisi 24 berkas baru termasuk `public/stage/lawu/relief.bin` 1 MB).
 Klaim README Codex (dibuat pada `main` `9065447`, sebelum diorama masuk):
@@ -17,6 +17,20 @@ Klaim README Codex (dibuat pada `main` `9065447`, sebelum diorama masuk):
 Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan di atas `main` terbaru (yang sudah memuat diorama), jalankan semua tes, rekam pratinjau desktop + HP dengan data trip April (nama "Jize"), buat klip suara `tip.mountain.0` bila bisa, lalu PR.
 - **Pertanyaan host di tengah pemasangan, kata demi kata:** "ui nya ga kamu sesuaikan?"
   Tafsir Claude: seperti diorama ("sesuaikan ui/ux nya dengan project kita"), antarmuka Hari 2 buatan Codex disamakan dengan bahasa visual film: kartu gallery Lawu (Codex memberinya gaya sendiri: kaca hijau tua, lebih kecil, foto mini, kartu lain nyaris hilang) kembali memakai kartu gallery hari lain (kertas, huruf, tombol, ukuran), dengan penyesuaian letak seperlunya supaya candi dan air terjun tetap terlihat; entri credits dan film 2,5D Lawu dicek ikut gaya situs. Dunia 3D dan logikanya tidak diubah.
+1. **Selesai (19 Nov):**
+   - ZIP diperiksa di luar repo (Haiku): kode aplikasi hanya memuat dari origin sendiri (`/stage/lawu/relief.bin`, chunk dinamis); tanpa eval, innerHTML, WASM, worker, atau dependensi baru; penyimpanan baru hanya di skrip pratinjau. SHA-256 `relief.bin` cocok dengan README.
+   - Patch diterapkan di atas `main` `71e97cd` (dibuat Codex di `9065447`). Satu bentrok, `scripts/preview/record-film.cjs` (diorama juga mengubahnya), digabung tangan; `require('playwright')` dipertahankan. Commit pemasangan apa adanya terpisah dari penyesuaian Claude.
+   - UI (Sonnet mengerjakan, Opus meninjau dan merapikan): gaya kartu khusus Codex dihapus; kartu Hari 2 = kartu gallery standar. Letak tetap rendah: desktop di kiri bawah (lebar `clamp(380px, 34vw, 520px)`, tinggi poster standar, tetangga di luar layar), HP lebar standar dengan poster lebih pendek. Film 2,5D Hari 2 ikut memakai kartu standar.
+   - Tes: lint, typecheck, unit 513/513 (35 berkas), content:check OK, build OK. E2E penuh 331 lulus, 5 gagal, 32 dilewati; kelima yang gagal (tes panggung 3D desktop yang habis waktu saat CPU penuh) lulus saat diulang sendiri. Sesudah perubahan UI: `lawu.spec` + `film.spec` 93 lulus, 1 gagal karena beban (tes Lawu iPhone, lulus saat diulang sendiri).
+   - Satu tes Codex diubah: posisi kamera "diam" dibandingkan dengan toleransi 1 µm per sumbu (sebelumnya persis; selisih terukur 1e-10 m).
+   - Video desktop 33 dtk (High, `LAWU_PACE=2`, data trip April, nama Jize, bahasa ID) dikirim ke host dan dicatat di ledger.
+2. **Kendala dan temuan:**
+   - Klip suara EN `tip.mountain.0` belum dibuat: rekaman teman host (`clawd-ref2-jernih.wav`) tidak ada di container ini. Sampai ada, gelembung Clawd di Kemuning tampil tanpa suara.
+   - Beban: `createWorld` membangun ±650 ribu segitiga sekaligus di main thread (±130–300 ms di High, 50–80 ms di Medium/Low, diukur di Node) tiga slide sebelum Hari 2. Usul bila host melihat patah di iPhone: bangun per potong dan `compileAsync` shader saat dunia masih tersembunyi.
+   - Panel "Kembali ke Solo, istirahat" (15.15) memandang dataran hijau berkabut yang kosong; kesan visual paling lemah di Hari 2.
+   - Kamera di Cetho dan Sukuh cerah, belum terasa "candi di dalam kabut" seperti PRD.
+   - Belum diuji di perangkat fisik (iPhone High ≥ 55 fps, p95 ≤ 20 ms; MacBook Air ≥ 58 fps).
+3. **Langkah berikutnya:** video HP, PR siap Squash and merge; host meninjau video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex).
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
