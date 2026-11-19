@@ -65,7 +65,7 @@ test.describe("tautan ke maket", () => {
     await expect(page).toHaveURL(/\/diorama\/\?lokasi=pendhapa$/);
   });
 
-  test("gallery: kartu tanpa lokasi tidak punya tautan; mengetuk tautan tidak menggeser slide", async ({ page }) => {
+  test("gallery: kartu tanpa lokasi tidak punya tautan (tombol lain tetap ada)", async ({ page }) => {
     await openFilm(page, "#day-1");
     await goTo(page, "day-1/market");
     await expect(page.locator(".fl-layer[data-pos='cur'] .gal-card[data-cur] a[data-diorama]")).toHaveCount(0);
