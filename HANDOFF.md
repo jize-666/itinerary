@@ -1,11 +1,14 @@
+Menunggu host (⏭️ semua dilewati dulu atas arahan host 19 Nov: "tandai dan lewati semua, lanjut tugas besar dulu"; dikerjakan lagi sesudah Tugas 9 atau bila host memintanya):
+
+
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **berikutnya: Tugas 9 (Diorama Solo), menunggu arahan host atas rencana di bawah** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **sedang dikerjakan: Tugas 9 (Diorama Solo)** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Rencana Tugas 9: Diorama Solo — MENUNGGU ARAHAN HOST (19 Nov)
+### Tugas 9: Diorama Solo — SEDANG DIKERJAKAN (19 Nov)
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
 Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).
@@ -20,6 +23,8 @@ Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggun
   1. Data asli OSM (buka `overpass-api.de`) atau prosedural saja?
   2. Letak: prolog + Hari 1 seperti PRD, atau juga menggantikan lanskap umum di gallery Hari 1?
   3. Gaya: miniatur (tanah liat/kertas, tilt-shift) atau lebih realistis?
+- **Arahan host, kata demi kata:** "tandai dan lewati semua, lanjut tugas besar dulu".
+  Tafsir Claude: semua butir yang menunggu host ditandai ⏭️ dan dilewati; Tugas 9 dikerjakan sekarang. Tiga keputusan di atas diambil dari PRD tanpa menunggu: (1) data asli OSM, dengan meminta `overpass-api.de` dibuka lewat kartu izin lingkungan, dan cadangan prosedural bila ditolak; (2) letak di prolog dan Hari 1; (3) gaya miniatur. Host bisa mengubahnya kapan saja.
 - Catatan: sesi lain (branch `claude/gallant-hopper-1jlpo0`) masih hidup dan menyimpan rekaman suara teman host; sebaiknya tidak dua sesi mengerjakan tugas yang sama.
 
 ### MULAI DI SINI (19 Nov pagi)

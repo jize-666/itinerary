@@ -24,7 +24,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 19 Nov 2026 (PR #12–#18 di-merge; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Berikutnya: Tugas 9 dengan arahan host.
+Diperbarui 19 Nov 2026 (PR #12–#18 di-merge; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Sedang dikerjakan: Tugas 9 (Diorama Solo).
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -118,7 +118,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - tinjauan video gerbang dimensi versi halus;
     - jawaban soal kaki Clawd 3D yang tertutup kartu gallery;
     - uji di iPhone produksi (`/film/?fps`), termasuk sungai dan gerbang di `high ×1 (paksa)`.
-- [ ] **9. Diorama Solo.**
+- [ ] **9. Diorama Solo.** Dimulai 19 Nov (host: "tandai dan lewati semua, lanjut tugas besar dulu"). Mengikuti PRD: data OSM, prolog + Hari 1, gaya miniatur; langkah 9.1–9.4 dan statusnya di `HANDOFF.md` bagian 0. Sisa pekerjaan yang menunggu host di tugas-tugas sebelumnya ditandai ⏭️ dan dilewati dulu.
 - [ ] **10. Lereng Lawu.**
 - [ ] **11. Canting dan kain mori.**
 - [ ] **12. Boarding pass 3D dengan fisika.**
