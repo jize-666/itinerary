@@ -1,9 +1,20 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR #20 menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex diterima, sedang dipasang** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DITERIMA, SEDANG DIPASANG
+
+**Kata host, kata demi kata:** "dah gw merge, ni tugas lanjutan" (sesudah PR #20 di-merge). Lampiran: `README-10-lereng-lawu.md` dan `Tugas-10-Lereng-Lawu.zip` (699 KB: `changes.patch` untuk 21 berkas lama, `files/` berisi 24 berkas baru termasuk `public/stage/lawu/relief.bin` 1 MB).
+Klaim README Codex (dibuat pada `main` `9065447`, sebelum diorama masuk):
+- Hari 2 di `/film/#day-2` menjadi dunia 3D lereng Lawu dari DEM SRTM (Skadi `S08E111`, domain publik, dikunci SHA-256): kebun teh Kemuning mengikuti kontur DEM, Cetho dan Sukuh (relief abstrak), Grojogan Sewu, pulang senja; satu cahaya per tempat singgah. Titik tempat dari OSM (ODbL), atribusi di credits.
+- Matahari 9 April 2027 dari NOAA/Meeus: tepi atas matahari melewati punggung DEM di Kemuning 06.15.14 WIB (terbit datar 05.37.51).
+- Registry dunia per bab (`stage3d/chapters.ts`) untuk Tugas 11; cadangan prosedural bila DEM gagal; Static/Calm 2,5D (`LawuLayers.tsx`); suara angin dan air WebAudio; kalimat Clawd baru `tip.mountain.0` (klip EN menjadi bagian Claude).
+- Dependensi baru 0 B; DEM 635 KB gzip, chunk dunia 10 KB gzip. 482 tes unit, Playwright Lawu 18/18.
+- Belum tercapai: siap ≤ 5 dtk di 4G untuk masuk langsung (8,8–10,8 dtk tanpa gzip, 4,7–5,7 dtk dengan gzip); fps di iPhone/MacBook belum diukur di perangkat fisik.
+Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan di atas `main` terbaru (yang sudah memuat diorama), jalankan semua tes, rekam pratinjau desktop + HP dengan data trip April (nama "Jize"), buat klip suara `tip.mountain.0` bila bisa, lalu PR.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
