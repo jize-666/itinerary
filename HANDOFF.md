@@ -1,9 +1,23 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`38e179d`, PR #21 Tugas 10 Lereng Lawu di-merge host) · **Tugas 11 (Canting, motif kawung, Clawd memegang canting) dikerjakan Claude, mulai dari `/canting/`** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 malam (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `38e179d`, PR #21 di-merge) · **Tugas 11.1 (kain kawung di GPU, studio `/canting/`) selesai dan di-push, foto empat tahap dikirim; belum ada PR; sesi ditutup atas arahan host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### MULAI DI SINI (sesi berikutnya, sesudah 19 Nov malam)
+
+**Kata host, kata demi kata:** "dah cukup, update handoff dan istirahat" (sesudah foto empat tahap 11.1 dikirim). Sesi ditutup tanpa mulai 11.2.
+1. **Keadaan:**
+   - Branch `claude/admiring-noether-tbqvap` = `main` `38e179d` + commit Tugas 11.1 (motif, urutan torehan, kain GPU, studio `/canting/`, 14 tes unit, ledger). Semua sudah di-push; working tree bersih. **Belum ada PR** untuk Tugas 11: rencananya PR dibuka saat 11.2 jadi (atau lebih awal bila host minta).
+   - Foto yang dikirim ke host dan dicatat di ledger: `kawung-4-tahap-desktop.jpg`, `kawung-4-tahap-hp.jpg`, `kawung-dekat-nila.jpg`, `kawung-lorod-desktop.png` (437,9 MB belum di Drive, di bawah 1 GB).
+   - Rincian 11.1 di bagian "Tugas 11: Canting dan kain mori" di bawah. Catatan sumber budaya (kawung, canting, sogan, prada) hanya ada di scratchpad sesi ini; ringkasannya: kawung tercatat museum (Google Arts & Culture) sebagai motif larangan keraton Yogyakarta dan Surakarta; urutan sogan nglowong → ngisen → nembok → medel → ngerok → nyoga → nglorod; prada = emas pada kain upacara. Tulis ulang ke README/decisions saat 11.2.
+2. **Tes:** typecheck, lint, unit 527/527, build lulus. E2E belum ada untuk `/canting/` (dibuat di 11.2). Foto direkam di Chromium + SwiftShader.
+3. **Langkah berikutnya (urut):**
+   - Tunggu tanggapan host atas foto 11.1 (warna soga, kepadatan motif, bentuk ukel). Pertanyaan terakhir Claude: "ada bagian yang mau diubah dulu?"
+   - 11.2 halaman `/canting/` untuk membatik sendiri: aliran malam dari pointer (lebar menurut kecepatan, tetes saat diam, celup ulang), canting 3D (nyamplung tembaga, cucuk, gagang bambu), Clawd memandu di samping, alat klowong/cecek/tembok, pola tuntunan kawung, urungkan, celup nila/kerok/soga, lorod, simpan PNG `batik-laweyan.png` (≥ 2048 px, Web Share bila ada), penyimpanan lokal, Calm/2,5D, teks dua bahasa dengan konteks sejarah kawung, e2e (`?demo=1`), video desktop + HP. Target malam interaktif butuh lintasan warna bertumpuk (ping-pong) dan peluruhan panas per frame; `Batik` sekarang hanya mode deterministik.
+   - 11.3 film Hari 3 (Clawd memegang canting, torehan mengikuti gulir lewat `trace.countAt/tipAt`, dunia bab "batik" di `stage3d/chapters.ts`, lorod dan prada di gong terakhir), lalu 11.4 (suara, kain tamu di epilog).
+   - Butir lama yang menunggu host tetap di daftar ⏭️ dan di `CLAUDE.md` (uji iPhone Lawu, klip `tip.mountain.0`, kartu Hari 2 ringkas di HP pendek, dan lain-lain).
 
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
 
