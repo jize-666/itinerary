@@ -1118,12 +1118,15 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
   const gradeOff = (page: Page, off: boolean) => page.evaluate((v) => ((window as unknown as { __lakonStage: { gradeOff?: boolean } }).__lakonStage.gradeOff = v), off);
   /** Rona hangat ternormalisasi: (merah − biru) / terang. Positif = hangat; tidak terpengaruh gambar lebih gelap/terang. */
   const tone = ([r, g, b]: [number, number, number]) => (r - b) / Math.max(1e-3, r + g + b);
-  /** Rata-rata warna gambar panggung (R, G, B, 0–1), dengan lapisan DOM disembunyikan. */
-  async function meanRgb(page: Page): Promise<[number, number, number]> {
+  /**
+   * Rata-rata warna gambar panggung (R, G, B, 0–1), dengan lapisan DOM disembunyikan. PNG didekode di tab kosong
+   * (`scratch`) supaya putaran gambar film yang sibuk tidak menundanya.
+   */
+  async function meanRgb(page: Page, scratch: Page): Promise<[number, number, number]> {
     await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
     await nextFrames(page, 3);
     const png = await page.screenshot();
-    return page.evaluate(async (b64) => {
+    return scratch.evaluate(async (b64) => {
       const img = new Image();
       img.src = `data:image/png;base64,${b64}`;
       await img.decode();
@@ -1161,28 +1164,35 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
 
   test("grading sungguh mengubah gambar: judul hari (gerbang) lebih hangat, intro prolog (malam) lebih biru, dibanding tanpa grading", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar");
-    test.slow();
-    await open3d(page, "?stage=low&clawd=0", "#day-1");
-    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
-    const gateOn = tone(await meanRgb(page));
-    await gradeOff(page, true);
-    const gateOff = tone(await meanRgb(page));
-    expect(gateOn).toBeGreaterThan(gateOff + 0.03);
+    // dua kali membuka panggung dan enam tangkapan penuh yang digambar CPU: sendiri ±45 dtk, di bawah beban CPU ±80 dtk;
+    // di CI dua worker berbagi CPU dan sesekali melewati 90 dtk (PR #21). Isi uji tidak berubah.
+    test.setTimeout(180_000);
+    const scratch = await page.context().newPage();
+    try {
+      await open3d(page, "?stage=low&clawd=0", "#day-1");
+      await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
+      const gateOn = tone(await meanRgb(page, scratch));
+      await gradeOff(page, true);
+      const gateOff = tone(await meanRgb(page, scratch));
+      expect(gateOn).toBeGreaterThan(gateOff + 0.03);
 
-    // malam diukur di slide intro prolog (tanpa gong yang baranya masih berubah), bergantian dua kali lalu dirata-rata
-    await open3d(page, "?stage=low&clawd=0");
-    await step(page); // headline
-    await step(page); // intro: langit malam
-    await expect(film(page)).toHaveAttribute("data-kind", "intro");
-    await expect.poll(() => phase(page), { timeout: WAIT }).toBe("night");
-    await page.waitForTimeout(1500);
-    const night: Record<"on" | "off", number[]> = { on: [], off: [] };
-    for (const off of [false, true, false, true]) {
-      await gradeOff(page, off);
-      night[off ? "off" : "on"].push(tone(await meanRgb(page)));
+      // malam diukur di slide intro prolog (tanpa gong yang baranya masih berubah), bergantian dua kali lalu dirata-rata
+      await open3d(page, "?stage=low&clawd=0");
+      await step(page); // headline
+      await step(page); // intro: langit malam
+      await expect(film(page)).toHaveAttribute("data-kind", "intro");
+      await expect.poll(() => phase(page), { timeout: WAIT }).toBe("night");
+      await page.waitForTimeout(1500);
+      const night: Record<"on" | "off", number[]> = { on: [], off: [] };
+      for (const off of [false, true, false, true]) {
+        await gradeOff(page, off);
+        night[off ? "off" : "on"].push(tone(await meanRgb(page, scratch)));
+      }
+      const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+      expect(avg(night.on)).toBeLessThan(avg(night.off) - 0.006);
+    } finally {
+      await scratch.close();
     }
-    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-    expect(avg(night.on)).toBeLessThan(avg(night.off) - 0.006);
   });
 });
 
