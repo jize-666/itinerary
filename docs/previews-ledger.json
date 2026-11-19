@@ -334,6 +334,22 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "diorama-tur-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-video/diorama-tur-desktop.mp4",
+      "size": 25523634,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "diorama-tur-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-video/diorama-tur-hp.mp4",
+      "size": 27973216,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
     }
   ]
 }

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Tugas 9 (Diorama Solo) ditunda atas arahan host; menunggu arahan berikutnya** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR branch ini menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -54,7 +54,8 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
      - Warna studio kanvas digelapkan ke nila; maket, lampu, dan bayangan tidak diubah. Selektor e2e tidak berubah.
      - Tes: lint, typecheck, unit 496/496, content:check, build, e2e diorama + tautan 26/26.
   2. **Catatan:** mode layar penuh menutupi sakelar bahasa global (perilaku lama Codex); Calm karena `prefers-reduced-motion` tidak bisa dimatikan dari sakelar (sama dengan film).
-  3. **Langkah berikutnya:** foto sesudah dikirim ke host; video tur desktop + HP, e2e penuh, PR.
+  3. **Selesai juga:** foto sesudah (desktop + iPhone) dan video tur 64 dtk desktop + HP (`DIO_Q=high`, K 0,03, ±35 menit tiap video) dikirim ke host dan dicatat di ledger (389,6 MB belum di Drive, di bawah 1 GB).
+  4. **Langkah berikutnya:** e2e penuh, PR siap Squash and merge; host meneruskan PRD Tugas 10–12 ke Codex sesudah PR di-merge.
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
