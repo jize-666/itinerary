@@ -153,7 +153,6 @@
   border-top: 1px solid var(--dio-line);
   padding: 11px 0;
   min-height: 64px;
-  transition: transform 0.3s var(--ease-expo-out);
 }
 .dio-place:last-child {
   border-bottom: 1px solid var(--dio-line);
@@ -319,7 +318,243 @@
 .dio-zoom,
 .dio-steppers,
 .dio-segment {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  pointer-events: auto;
+}
+/* kompas dan arah duduk di keping kaca supaya terbaca di atas bangunan terang */
+.dio-bearing {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 14px 5px 6px;
+  border: 1px solid var(--dio-line);
+  border-radius: 16px;
+  background: var(--dio-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--mori);
+}
+.dio-compass {
+  width: 47px;
+  height: 47px;
+  color: var(--mori);
+}
+.dio-needle {
+  fill: var(--prada);
+}
+.dio-needle-tail {
+  fill: none;
+  stroke: var(--mori);
+  stroke-width: 0.9;
+  opacity: 0.8;
+}
+.dio-bearing > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dio-bearing strong {
+  font-weight: 650;
+  font-size: 0.84rem;
+}
+.dio-bearing small {
+  font-size: 0.76rem;
+  color: var(--dio-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+.dio-caption {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  padding: 13px 0 0;
+}
+.dio-caption-title {
+  font:
+    450 1.02rem/1.35 var(--font-display),
+    Georgia,
+    serif;
+}
+.dio-caption p {
+  max-width: 72ch;
+  margin: 5px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--dio-muted);
+}
+.dio-steppers {
+  flex: none;
+}
+.dio-meter {
+  position: absolute;
+  top: 78px;
+  left: 18px;
+  background: var(--dio-glass);
+  padding: 4px 8px;
+  border: 1px solid var(--dio-line);
+  border-radius: 8px;
+  color: var(--mori);
+  font:
+    12px ui-monospace,
+    monospace;
+  pointer-events: none;
+}
+.dio-immersive .dio-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  height: 100dvh;
+  min-height: 0;
+  width: 100vw;
+  border: 0;
+  border-radius: 0;
+}
+.dio-immersive .dio-stage-top {
+  top: max(14px, env(safe-area-inset-top));
+}
+.dio-immersive .dio-stage-bottom {
+  bottom: max(14px, env(safe-area-inset-bottom));
+}
+/* sheet gaya situs (lihat .sheet di globals.css): permukaan nila-2, garis tipis, naik dengan easing situs */
+.dio-dialog {
+  width: min(480px, calc(100vw - 28px));
+  max-height: min(86svh, 800px);
+  overflow: auto;
+  padding: 14px 20px calc(20px + env(safe-area-inset-bottom));
+  border: 1px solid var(--dio-line);
+  border-radius: 22px;
+  background: var(--nila-2);
+  color: var(--mori);
+  box-shadow: 0 26px 90px rgb(5 6 12 / 0.7);
+  overscroll-behavior: contain;
+}
+.dio-dialog[open] {
+  animation: sheet-up 0.42s var(--ease-expo-out) both;
+}
+.dio-dialog::backdrop {
+  background: rgb(5 6 12 / 0.72);
+  animation: fade-in 0.25s ease both;
+}
+.dio-dialog-wide {
+  width: min(650px, calc(100vw - 28px));
+}
+.dio-dialog-head,
+.dio-format,
+.dio-settings label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dio-dialog-head {
+  margin-bottom: 13px;
+}
+.dio-dialog-head h2,
+.dio-help h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0;
+}
+.dio-dialog-head .pb {
+  flex: none;
+}
+.dio-angle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dio-angle-grid .pb,
+.dio-pose-list .pb {
+  display: flex;
+  width: 100%;
+}
+.dio-angle-grid .pb-face,
+.dio-pose-list .pb-face {
+  padding: 0 10px;
+  font-size: 0.85rem;
+}
+/* pilihan yang sedang aktif menyala emas, seperti sakelar lain di situs */
+.dio-pick[aria-pressed="true"] {
+  --face: #c29a52;
+  --face-hi: #efd6a0;
+  --edge: #6f5022;
+  --ink: var(--nila);
+  --ring: rgb(255 244 220 / 0.3);
+  --shade: rgb(120 82 26 / 0.55);
+}
+.dio-angle-mark {
+  display: grid;
+  place-items: center;
+  color: var(--prada);
+}
+.dio-pick[aria-pressed="true"] .dio-angle-mark {
+  color: inherit;
+}
+.dio-settings {
+  margin: 14px 0;
+  border-block: 1px solid var(--dio-line);
+}
+.dio-settings label {
+  font-size: 0.9rem;
+  min-height: 52px;
+}
+.dio-settings select {
+  max-width: 58%;
+  background: var(--nila);
+  border: 1px solid var(--dio-line);
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+.dio-settings input {
+  accent-color: var(--prada);
+  width: 22px;
+  height: 22px;
+}
+.dio-pose-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.dio-help > div {
+  display: flex;
+  gap: 16px;
+  padding: 13px 0;
+  border-top: 1px solid var(--dio-line);
+}
+.dio-help > div > svg {
+  flex: none;
+  margin: 5px 0;
+  color: var(--prada);
+}
+.dio-help h3 {
+  font-size: 1.3rem;
+  margin: 0 0 4px;
+}
+.dio-help p {
+  font-size: 0.9rem;
+  max-width: 48ch;
+}
+.dio-help > p {
+  padding: 12px 0 0;
+  border-top: 1px solid var(--dio-line);
+}
+.dio-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.dio-format {
+  margin: 4px 0 16px;
+  font-size: 0.88rem;
 }
 .dio-single {
   display: block;
@@ -371,7 +606,7 @@
 @media (max-width: 850px) {
   .dio-layout {
     column-gap: 16px;
-    padding: 20px 18px;
+    padding: 14px 18px 20px;
     grid-template-columns: 205px minmax(0, 1fr);
   }
   .dio-intro h1 {
@@ -400,28 +635,17 @@
 }
 @media (max-width: 690px) {
   .dio-top {
-    height: 63px;
-    padding: 0 13px;
-    gap: 7px;
+    min-height: 62px;
+    padding-left: calc(13px + env(safe-area-inset-left));
   }
-  .dio-top .dio-back {
-    width: 44px;
-    min-width: 44px;
-    padding: 0;
-  }
-  .dio-back span {
-    display: none;
-  }
-  .dio-sign {
-    position: static;
-    transform: none;
-    gap: 6px;
-  }
-  .dio-sign span {
-    font-size: 1.12rem;
-  }
-  .dio-sign svg {
-    width: 24px;
+  /* di HP dialog menjadi sheet dari bawah, seperti .sheet situs */
+  .dio-dialog,
+  .dio-dialog-wide {
+    margin: auto auto 0;
+    width: 100%;
+    max-width: 100%;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
   }
   .dio-layout {
     display: flex;
@@ -468,9 +692,9 @@
     grid-column: 2;
     margin: 0;
     font-size: 0.79rem;
-    gap: 5px;
-    padding: 0 10px;
-    min-height: 44px;
+  }
+  .dio-tour .pb-face {
+    padding: 0 12px;
   }
   .dio-tour small {
     display: none;
@@ -478,7 +702,7 @@
   .dio-stage {
     order: 1;
     height: clamp(316px, 48svh, 540px);
-    border-radius: 7px;
+    border-radius: 14px;
   }
   .dio-stage-top {
     top: 9px;
@@ -499,11 +723,16 @@
   .dio-stage-tools {
     gap: 4px;
   }
-  .dio-stage-tools .dio-labeled {
-    padding: 0 9px;
+  .dio-stage-tools .pb-face {
+    padding-inline: 9px;
+  }
+  .dio-stage-tools .pb--icon .pb-face {
+    padding: 0;
   }
   .dio-bearing {
     gap: 3px;
+    padding: 3px 10px 3px 4px;
+    border-radius: 14px;
   }
   .dio-compass {
     width: 34px;
@@ -575,18 +804,25 @@
   .dio-bearing > span {
     display: none;
   }
+  .dio-top .dio-back span {
+    display: none;
+  }
+  .dio-top .dio-back .pb-face {
+    width: 40px;
+    padding: 0;
+  }
   .dio-stage-tools .dio-shutter {
     min-width: 44px;
+  }
+  .dio-stage-tools .dio-shutter .pb-face {
     padding: 0;
+    width: 40px;
   }
   .dio-shutter span {
     display: none;
   }
   .dio-intro h1 {
     font-size: 1.43rem;
-  }
-  .dio-sign span {
-    font-size: 1rem;
   }
 }
 @media (max-height: 540px) and (orientation: landscape) {
@@ -603,4 +839,14 @@
   .dio-locations {
     margin-top: 18px;
   }
+}
+
+/* Calm: tanpa gerak di antarmuka diorama (kamera diatur controller) */
+.dio-root[data-calm="true"] *,
+.dio-root[data-calm="true"] *::before,
+.dio-root[data-calm="true"] *::after,
+.dio-root[data-calm="true"] .dio-dialog,
+.dio-root[data-calm="true"] .dio-dialog::backdrop {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
 }
