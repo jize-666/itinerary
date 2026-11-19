@@ -808,7 +808,7 @@
     grid-area: guide;
     margin: 0;
   }
-  .dio-root .dio-place {
+  .dio-root button.dio-place {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -825,7 +825,7 @@
   .dio-place:last-child {
     border-bottom: 0;
   }
-  .dio-root .dio-place[aria-pressed="true"] {
+  .dio-root button.dio-place[aria-pressed="true"] {
     border-left-color: var(--prada);
     background: color-mix(in srgb, var(--prada) 12%, transparent);
   }
@@ -854,7 +854,7 @@
     flex: none;
     color: var(--dio-muted);
   }
-  .dio-root .dio-place[aria-pressed="true"] .dio-chev {
+  .dio-root button.dio-place[aria-pressed="true"] .dio-chev {
     color: var(--prada);
   }
   .dio-dialog {
