@@ -5,6 +5,18 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — MENUNGGU KODE CODEX
+
+**Kata host, kata demi kata:** "ini prd ku, codex telah mengerjakan nya, jadi kamu cukup memasangnya nanti di lingkunganmu", lalu "pendapat?". Lampiran: `PRD-Diorama-Solo-3D.pdf` (v1.0, 19 Nov 2026, 13 halaman; tidak disalin ke repo).
+Ringkasan PRD:
+- Web interaktif HP + desktop: satu maket di atas alas hijau tua bertepi kuningan, tiga lokasi: Pendhapa Ageng Pura Mangkunegaran (utara), Pasar Gede (tenggara), Kampung Batik Laweyan (barat daya). Dibangun prosedural (TypeScript, Three.js, R3F), tanpa model unduhan, tanpa data OSM.
+- Kamera: orbit 360°, miring 8–85°, geser, zoom (FOV 38° tetap), delapan sudut + Atas; tur kamera 64 dtk enam adegan; Sebelumnya/Berikutnya antarlokasi; Tampilan awal.
+- Mode foto: potret bingkai aktif, atau sembilan sudut sekaligus jadi ZIP PNG (sisi panjang 1920 px).
+- Kinerja: siap ≤ 5 dtk di 10 Mbps, unduhan awal ≤ 3 MB; iPhone 13 / Pixel 6a p95 ≤ 33,4 ms; desktop p95 ≤ 20 ms; ≤ 150 draw call, ≤ 200 rb segitiga, DPR awal 1,5.
+- Aksesibilitas: Tab/Enter, panah memutar, enam pose tur untuk gerak minim.
+Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti diorama versi PRD ini. Claude tidak membangunnya; Claude memasang hasil Codex di repo itinerary sesudah kodenya diterima, dan menilai PRD-nya sekarang.
+- Host `overpass-api.de` yang sempat ditambahkan ke lingkungan tidak dibutuhkan lagi untuk PRD ini.
+
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
