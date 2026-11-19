@@ -1,11 +1,11 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **sedang dikerjakan: Tugas 9 (Diorama Solo)** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Tugas 9 (Diorama Solo) ditunda atas arahan host; menunggu arahan berikutnya** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 9: Diorama Solo — SEDANG DIKERJAKAN (19 Nov)
+### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
 Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).
@@ -22,6 +22,11 @@ Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggun
   3. Gaya: miniatur (tanah liat/kertas, tilt-shift) atau lebih realistis?
 - **Arahan host, kata demi kata:** "tandai dan lewati semua, lanjut tugas besar dulu".
   Tafsir Claude: semua butir yang menunggu host ditandai ⏭️ dan dilewati; Tugas 9 dikerjakan sekarang. Tiga keputusan di atas diambil dari PRD tanpa menunggu: (1) data asli OSM, dengan meminta `overpass-api.de` dibuka lewat kartu izin lingkungan, dan cadangan prosedural bila ditolak; (2) letak di prolog dan Hari 1; (3) gaya miniatur. Host bisa mengubahnya kapan saja.
+- **Arahan host berikutnya, kata demi kata:** "tunggu, jangan buat diorama nya dulu".
+  Tafsir Claude: Tugas 9 dihentikan sebelum ada kode. Keadaan saat dihentikan:
+  - host `overpass-api.de` sudah ditambahkan ke jaringan lingkungan "itinerary" (disetujui lewat kartu izin), tetapi permintaan ke sana masih gagal (tunnel proxy tertutup di tengah jalan); belum ada data yang diunduh;
+  - belum ada berkas diorama, skrip data, atau tes.
+  - Menunggu arahan host: apa yang dikerjakan sebelum diorama, dan apakah host `overpass-api.de` dibiarkan atau dihapus lagi.
 - Catatan: sesi lain (branch `claude/gallant-hopper-1jlpo0`) masih hidup dan menyimpan rekaman suara teman host; sebaiknya tidak dua sesi mengerjakan tugas yang sama.
 
 ### MULAI DI SINI (19 Nov pagi)
