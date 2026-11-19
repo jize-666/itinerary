@@ -9,8 +9,9 @@
  * dan ibadah tidak mendapat panel sendiri; mereka dilebur sebagai catatan di panel tetangganya supaya satu hari
  * tetap ±8–9 panel.
  */
+import morning from "../stage/lawu/morning.json";
 import type { Contact, DayView, FactView, PhraseView, StopView, TripView } from "@/lib/trip";
-import { type DayLight, dayLight, type Sky, skyClock } from "./sky";
+import { type DayLight, dayLight, minutesOf, type Sky, skyClock } from "./sky";
 
 export type { Sky };
 export type Theme = "travel" | "royal" | "lawu" | "batik";
@@ -86,6 +87,7 @@ type SlideInput = DistributiveOmit<Slide, "chapter" | "scene"> & { scene?: strin
 
 /** Bagi stop sehari menjadi panel gallery + catatan yang dilebur. Tidak ada stop yang hilang. */
 export function dayPanels(day: DayView): Panel[] {
+  if (day.theme === "lawu") return day.stops.map(stop => ({stop, lead: [], then: []}));
   const own = (s: StopView) => !s.kind || !MERGED_KINDS.has(s.kind);
   if (!day.stops.some(own)) return day.stops.map((stop) => ({ stop, lead: [], then: [] }));
   const panels: Panel[] = [];
@@ -145,7 +147,13 @@ export function buildFilm(data: TripView): Film {
     const light = dayLight(day, panels.map((p) => p.stop));
     const timed = (stop: StopView | undefined) => {
       const clock = light && stop ? skyClock(stop, light) : null;
-      return light && clock !== null ? { clock, light } : {};
+      if (!light || clock === null) return {};
+      if (theme === "lawu" && stop?.id === "kemuning-sunrise" && stop.end) {
+        const end = minutesOf(stop.end) ?? clock;
+        // Hold just after first light, within the actual visit. Both film sky and mountain use this clock.
+        return { clock: Math.max(clock, Math.min(end, morning.firstMinute + 4)), light };
+      }
+      return { clock, light };
     };
     open({ id: slug, kind: "day", day });
     push({ id: `${slug}/title`, kind: "title", day, sky: "gate", theme });

@@ -9,7 +9,7 @@
  * Untuk uji dan pratinjau: `?stage=high|medium|low|static` memaksa tier (pengatur FPS hanya mengukur),
  * `?fps` menampilkan overlay FPS.
  */
-import { type ComponentType, type RefObject, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { type ComponentType, type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
@@ -64,6 +64,7 @@ function choose(): Choice {
   const q = new URLSearchParams(window.location.search);
   const forced = q.get("stage") as Tier | null;
   const debug = q.has("fps");
+  if (forced === "static") return { tier: "static", locked: true, debug, pinned: false };
   const caps = readCaps();
   if (forced && TIERS.includes(forced)) return { tier: caps.webgl2 ? forced : "static", locked: true, debug, pinned: false };
   // iPhone/iPad: High dipaksa (keputusan host 12 & 14 Nov)
@@ -71,12 +72,13 @@ function choose(): Choice {
 }
 
 export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props) {
-  const [choice] = useState(choose);
+  const [reduced] = useState(prefersReducedMotion);
+  const flat = calm || reduced;
+  const choice = useMemo((): Choice => flat ? { tier: "static", locked: true, debug: false, pinned: false } : choose(), [flat]);
   const [Stage, setStage] = useState<ComponentType<Stage3DProps> | null>(null);
   const [failed, setFailed] = useState(false);
   const [live, setLive] = useState(false);
   // Calm dan reduced motion: tanpa WebGL (reduced motion dibaca sekali; Calm bisa berganti di tengah film)
-  const [reduced] = useState(prefersReducedMotion);
   const wanted = choice.tier !== "static" && !calm && !reduced && !failed;
 
   useLayoutEffect(() => {
@@ -85,8 +87,23 @@ export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props
 
   // gunungan pembuka menunggu teksturnya: diunduh bersamaan dengan bundle 3D, bukan sesudahnya
   useEffect(() => {
-    if (wanted) prefetchKayon(choice.tier === "high");
-  }, [wanted, choice.tier]);
+    if (wanted && film.slides[probe().from]?.theme !== "lawu") prefetchKayon(choice.tier === "high");
+  }, [wanted, choice.tier, film, probe]);
+
+  // On a Day 2 deep link, the local relief and its shader code can travel alongside the shared stage.
+  // The actual world still belongs to the stage lifecycle and its abortable chapter loader.
+  useEffect(() => {
+    if (!wanted || film.slides[probe().from]?.theme !== "lawu") return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "fetch";
+    link.fetchPriority = "high";
+    link.crossOrigin = "anonymous";
+    link.href = "/stage/lawu/relief.bin";
+    document.head.append(link);
+    void import("./stage3d/lawu/world").catch(() => {});
+    return () => link.remove();
+  }, [wanted, film, probe]);
 
   useEffect(() => {
     if (!wanted || Stage) return;

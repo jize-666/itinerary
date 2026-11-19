@@ -1,9 +1,45 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR #20 menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex dipasang, kartu Hari 2 disamakan dengan film; menunggu tinjauan host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DIPASANG, UI DISAMAKAN; MENUNGGU TINJAUAN HOST
+
+**Kata host, kata demi kata:** "dah gw merge, ni tugas lanjutan" (sesudah PR #20 di-merge). Lampiran: `README-10-lereng-lawu.md` dan `Tugas-10-Lereng-Lawu.zip` (699 KB: `changes.patch` untuk 21 berkas lama, `files/` berisi 24 berkas baru termasuk `public/stage/lawu/relief.bin` 1 MB).
+Klaim README Codex (dibuat pada `main` `9065447`, sebelum diorama masuk):
+- Hari 2 di `/film/#day-2` menjadi dunia 3D lereng Lawu dari DEM SRTM (Skadi `S08E111`, domain publik, dikunci SHA-256): kebun teh Kemuning mengikuti kontur DEM, Cetho dan Sukuh (relief abstrak), Grojogan Sewu, pulang senja; satu cahaya per tempat singgah. Titik tempat dari OSM (ODbL), atribusi di credits.
+- Matahari 9 April 2027 dari NOAA/Meeus: tepi atas matahari melewati punggung DEM di Kemuning 06.15.14 WIB (terbit datar 05.37.51).
+- Registry dunia per bab (`stage3d/chapters.ts`) untuk Tugas 11; cadangan prosedural bila DEM gagal; Static/Calm 2,5D (`LawuLayers.tsx`); suara angin dan air WebAudio; kalimat Clawd baru `tip.mountain.0` (klip EN menjadi bagian Claude).
+- Dependensi baru 0 B; DEM 635 KB gzip, chunk dunia 10 KB gzip. 482 tes unit, Playwright Lawu 18/18.
+- Belum tercapai: siap ≤ 5 dtk di 4G untuk masuk langsung (8,8–10,8 dtk tanpa gzip, 4,7–5,7 dtk dengan gzip); fps di iPhone/MacBook belum diukur di perangkat fisik.
+Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan di atas `main` terbaru (yang sudah memuat diorama), jalankan semua tes, rekam pratinjau desktop + HP dengan data trip April (nama "Jize"), buat klip suara `tip.mountain.0` bila bisa, lalu PR.
+- **Pertanyaan host di tengah pemasangan, kata demi kata:** "ui nya ga kamu sesuaikan?"
+  Tafsir Claude: seperti diorama ("sesuaikan ui/ux nya dengan project kita"), antarmuka Hari 2 buatan Codex disamakan dengan bahasa visual film: kartu gallery Lawu (Codex memberinya gaya sendiri: kaca hijau tua, lebih kecil, foto mini, kartu lain nyaris hilang) kembali memakai kartu gallery hari lain (kertas, huruf, tombol, ukuran), dengan penyesuaian letak seperlunya supaya candi dan air terjun tetap terlihat; entri credits dan film 2,5D Lawu dicek ikut gaya situs. Dunia 3D dan logikanya tidak diubah.
+1. **Selesai (19 Nov):**
+   - ZIP diperiksa di luar repo (Haiku): kode aplikasi hanya memuat dari origin sendiri (`/stage/lawu/relief.bin`, chunk dinamis); tanpa eval, innerHTML, WASM, worker, atau dependensi baru; penyimpanan baru hanya di skrip pratinjau. SHA-256 `relief.bin` cocok dengan README.
+   - Patch diterapkan di atas `main` `71e97cd` (dibuat Codex di `9065447`). Satu bentrok, `scripts/preview/record-film.cjs` (diorama juga mengubahnya), digabung tangan; `require('playwright')` dipertahankan. Commit pemasangan apa adanya terpisah dari penyesuaian Claude.
+   - UI (Sonnet mengerjakan, Opus meninjau dan merapikan): gaya kartu khusus Codex dihapus; kartu Hari 2 = kartu gallery standar. Letak tetap rendah: desktop di kiri bawah (lebar `clamp(380px, 34vw, 520px)`, tinggi poster standar, tetangga di luar layar), HP lebar standar dengan poster lebih pendek. Film 2,5D Hari 2 ikut memakai kartu standar.
+   - Tes: lint, typecheck, unit 513/513 (35 berkas), content:check OK, build OK. E2E penuh 331 lulus, 5 gagal, 32 dilewati; kelima yang gagal (tes panggung 3D desktop yang habis waktu saat CPU penuh) lulus saat diulang sendiri. Sesudah perubahan UI: `lawu.spec` + `film.spec` 93 lulus, 1 gagal karena beban (tes Lawu iPhone, lulus saat diulang sendiri).
+   - Satu tes Codex diubah: posisi kamera "diam" dibandingkan dengan toleransi 1 µm per sumbu (sebelumnya persis; selisih terukur 1e-10 m).
+   - Video desktop (1440 × 900) dan HP (1080 × 1920, layar 360 × 640) masing-masing 33 dtk (High, `LAWU_PACE=2`, data trip April, nama Jize, bahasa ID, suara angin dan air) dikirim ke host dan dicatat di ledger (436,7 MB belum di Drive, di bawah 1 GB).
+2. **Kendala dan temuan:**
+   - Klip suara EN `tip.mountain.0` belum dibuat: rekaman teman host (`clawd-ref2-jernih.wav`) tidak ada di container ini. Sampai ada, gelembung Clawd di Kemuning tampil tanpa suara.
+   - Beban: `createWorld` membangun ±650 ribu segitiga sekaligus di main thread (±130–300 ms di High, 50–80 ms di Medium/Low, diukur di Node) tiga slide sebelum Hari 2. Usul bila host melihat patah di iPhone: bangun per potong dan `compileAsync` shader saat dunia masih tersembunyi.
+   - Panel "Kembali ke Solo, istirahat" (15.15) memandang dataran hijau berkabut yang kosong; kesan visual paling lemah di Hari 2.
+   - Kamera di Cetho dan Sukuh cerah, belum terasa "candi di dalam kabut" seperti PRD.
+   - Belum diuji di perangkat fisik (iPhone High ≥ 55 fps, p95 ≤ 20 ms; MacBook Air ≥ 58 fps).
+   - Di HP pendek (360 × 640) kartu standar menutupi sebagian besar candi Cetho; di iPhone 14 Pro candi masih terlihat di atas kartu. Bila host ingin pemandangan lebih lega di HP, bisa dibuat varian kartu ringkas khusus Hari 2.
+3. **Langkah berikutnya:** PR #21 dibuka, siap Squash and merge; host meninjau kedua video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex). Sesudah merge: Tugas 11 (Canting) bila hasil Codex sudah ada.
+- **Permintaan host, kata demi kata:** "cek pr #21 ada yang gagal" (tangkapan layar: CI / check (pull_request) gagal sesudah 28 m 10 dtk, langkah `pnpm test:e2e --trace off` merah; test, content:check, build hijau).
+  Tafsir Claude: baca log CI, cari tes yang gagal, bedakan regresi dari kode Lawu dan tes yang lambat di runner CI, perbaiki akar masalahnya (tanpa melewati atau mematikan tes), push, lalu pantau CI sampai hijau.
+  - **Temuan:** satu tes gagal di run `pull_request` (335 lulus, 32 dilewati): `stage.spec.ts` "kunang-kunang sungguh tampak di gong penutup" (desktop), habis waktu 90 dtk di percobaan pertama dan ulangannya. Run `push` untuk commit yang sama hijau.
+  - **Bukan regresi Lawu:** dijalankan sendiri, tes ini butuh 53,4 dtk di `main` dan 54,2 dtk di branch ini. Tes memakai tier High yang digambar CPU; empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,7 dtk + dekode PNG ±3 dtk di halaman film yang sibuk). Dengan dua worker di CI, sesekali lewat 90 dtk.
+  - **Perbaikan (Sonnet mengerjakan, Opus meninjau):** tangkapan hanya pita yang dihitung (45–90 % tinggi, `clip`), dekode dan hitung di tab kosong terpisah; isi uji (pita, aturan warna, empat sampel, ambang +40) tidak berubah. Sendiri kini 48–50 dtk. Batas waktu tes ini dinaikkan dari 90 dtk (`test.slow()`) ke 180 dtk dengan alasan tertulis di kode.
+  - **CI kedua (`8d08792`) masih merah di tes yang sama, 90 dtk:** kesalahan Claude. Pengganti teks mengenai kemunculan pertama dua baris yang sama di tes DOF gallery (baris 883), jadi batas 180 dtk terpasang di tes yang salah. Diperbaiki: tes DOF kembali persis seperti di `main`, batas 180 dtk di tes kunang-kunang. Bukti lokal dengan dua dan tiga proses pembeban CPU: tes kunang-kunang 1,4 menit (±84 dtk, dekat batas lama 90 dtk), lulus di batas baru.
+  - **Run CI kedua untuk `8d08792` juga merah di tes "grading sungguh mengubah gambar"** (tier Low, dua kali membuka panggung, enam tangkapan penuh; run itu lebih lambat, 32,6 menit). Sendiri 45 dtk, di bawah tiga pembeban CPU 78 dtk. Kemungkinan PR ini menambah tekanan: 18 tes Lawu yang juga menggambar 3D di CPU kini berbagi waktu dengan tes panggung di worker lain. Perbaikan yang sama (Sonnet, ditinjau Opus): dekode di tab kosong dan batas 180 dtk dengan alasan di kode; isi uji tidak berubah. Di bawah beban yang sama kini 66 dtk.
+  - **Hasil:** CI GitHub untuk head `d5cfba8` hijau di kedua run `check` (push dan pull_request); PR #21 `mergeable_state: clean`. Deskripsi PR diperbarui dengan perbaikan CI. Siap Squash and merge oleh host.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 

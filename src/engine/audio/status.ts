@@ -18,6 +18,7 @@ export type SceneSound = "gong" | "api-naga" | "gunungan-balik";
 /** Bagian mesin yang dipakai UI global. setEnabled dipanggil sinkron di handler klik (kebijakan autoplay iOS). */
 export type AudioControl = {
   setEnabled(on: boolean): void;
+  environment?(): {context:AudioContext;output:AudioNode} | null;
   playSfx(name: ClickSound | SceneSound, opts: { gain?: number; delay?: number; duck?: boolean }): unknown;
   /** Unduh dan urai lebih dulu, supaya bunyi pertama tidak terlambat. */
   preload(name: SceneSound): void;
@@ -69,6 +70,7 @@ export const audioStatus = {
     if (state.started && state.enabled) for (const s of sounds) control?.preload(s);
   },
   /** Suara Clawd boleh berbunyi: lakon sudah dimulai, suara menyala, dan mesin audio sudah dimuat. */
+  environment: () => state.started && state.enabled ? control?.environment?.() ?? null : null,
   voiceOn: () => state.started && state.enabled && control !== null,
   /** Putar suara Clawd untuk satu kalimat (menghentikan yang sebelumnya). */
   voice(url: string) {

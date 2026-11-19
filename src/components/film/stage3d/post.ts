@@ -129,6 +129,7 @@ uniform float uAperture;
 uniform float uBloom;
 uniform float uExposure;
 uniform float uDim;
+uniform float uMist;
 uniform float uTime;
 uniform float uWarp;
 uniform float uRing;
@@ -194,6 +195,7 @@ void main() {
   // tepi bawah turun: di sana ada penanda bab dan petunjuk, dan film 2,5D pun gelap di kaki layar
   vig *= 1.0 - 0.38 * (1.0 - smoothstep(0.0, 0.3, vUv.y));
   c *= uExposure * vig * (1.0 - uDim);
+  c = mix(c, vec3(.28,.35,.38), uMist);
   c = aces(c);
   c = mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
   // grading per fase (Tugas 8.2 + 8.3, grade.ts): CDL per kanal, saturasi di sekitar luma, lalu split toning, pada
@@ -212,6 +214,7 @@ void main() {
 export type PostParams = {
   exposure: number;
   dim: number;
+  mist?: number;
   time: number;
   dof?: { amount: number; focus: number; aperture: number };
   /** Gerbang dimensi di gallery: kadar 0–1 (`portalWarp`) dan jari-jari cincin riak 0–1 (`portalRing`). */
@@ -309,6 +312,7 @@ export class StagePost {
       uBloom: { value: 0 },
       uExposure: { value: 1 },
       uDim: { value: 0 },
+      uMist: { value: 0 },
       uTime: { value: 0 },
       uWarp: { value: 0 },
       uRing: { value: 0 },
@@ -482,6 +486,7 @@ export class StagePost {
     f.uAperture!.value = dof?.aperture ?? 0;
     f.uExposure!.value = p.exposure;
     f.uDim!.value = p.dim;
+    f.uMist!.value = p.mist ?? 0;
     f.uTime!.value = p.time;
     f.uWarp!.value = p.portal ? Math.max(0, Math.min(1, p.portal.amount)) : 0;
     f.uRing!.value = p.portal?.ring ?? 0;

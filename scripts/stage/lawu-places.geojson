@@ -1,0 +1,16 @@
+{
+  "type":"FeatureCollection",
+  "name":"Western Lawu public landmarks",
+  "license":"Open Database License 1.0",
+  "attribution":"© OpenStreetMap contributors",
+  "source":"https://www.openstreetmap.org/copyright",
+  "features":[
+    {"type":"Feature","properties":{"name":"Kemuning Sky Hill","osm":"node/11086723139","point":"viewpoint"},"geometry":{"type":"Point","coordinates":[111.132899,-7.595472]}},
+    {"type":"Feature","properties":{"name":"Ndoro Doker","osm":"node/5500130222","point":"tea-house vicinity"},"geometry":{"type":"Point","coordinates":[111.117528,-7.606125]}},
+    {"type":"Feature","properties":{"name":"Candi Cetho","osm":"way/646444773","point":"representative mean of way nodes"},"geometry":{"type":"Point","coordinates":[111.158122,-7.595724]}},
+    {"type":"Feature","properties":{"name":"Candi Sukuh","osm":"way/646444755","point":"representative mean of way nodes"},"geometry":{"type":"Point","coordinates":[111.131523,-7.627301]}},
+    {"type":"Feature","properties":{"name":"Tawangmangu","osm":"node/11055945315","point":"village"},"geometry":{"type":"Point","coordinates":[111.128871,-7.672455]}},
+    {"type":"Feature","properties":{"name":"Grojogan Sewu","osm":"node/2049487389","point":"waterfall"},"geometry":{"type":"Point","coordinates":[111.131079,-7.660697]}},
+    {"type":"Feature","properties":{"name":"Gunung Lawu","osm":"node/1070172240","ele":3265,"point":"summit"},"geometry":{"type":"Point","coordinates":[111.194316,-7.627382]}}
+  ]
+}

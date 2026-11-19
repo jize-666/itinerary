@@ -30,8 +30,11 @@ export const WELCOME_BACK: readonly Text[] = [{ en: "Welcome back! Clawd here.",
  * menghapus semua text pemandu yang lama, seperti \"click the gong\" dll."). Tiap petunjuk diucapkan sekali per
  * perangkat, saat tamu pertama kali tiba di tempatnya.
  */
-export type TipId = "kayon" | "beat" | "zoom" | "gallery" | "phrases" | "gong" | "credits";
+export type TipId = "kayon" | "beat" | "zoom" | "gallery" | "phrases" | "gong" | "credits" | "mountain";
 export const TIPS: Readonly<Record<TipId, readonly Text[]>> = {
+  mountain: [
+    {en:"Look along the rows. The first warm light has to clear the ridge.",id:"Coba lihat barisan teh itu. Cahaya pagi baru sampai setelah melewati punggung bukit."},
+  ],
   kayon: [
     { en: "This is the gunungan. It opens every wayang show.", id: "Ini gunungan, pembuka setiap pertunjukan wayang." },
     {

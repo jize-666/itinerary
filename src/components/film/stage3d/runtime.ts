@@ -23,6 +23,7 @@ import { type ParticleMix, particleMix } from "@/engine/stage/particles";
 import { RIVER, riverLine, waterLevel } from "@/engine/stage/river";
 import { drawnAt, filmPosition, larungRoutes, pointAt, type Route, riverRing, shownAt } from "@/engine/stage/route";
 import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
+import { chapterWorlds } from "./chapters";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
 import { createGong } from "./gong";
@@ -140,6 +141,7 @@ export type Runtime = {
 
 export function createRuntime({ gl, scene, advance, film, root, spec, governor, stats, hooks }: RuntimeOptions): Runtime {
   const shared = createShared();
+  const chapters = chapterWorlds(scene, shared, spec, film, root);
   const sky = createSky(shared);
   const shape0 = TERRAIN_DEFAULT;
   const terrain = createTerrain(shared, shape0);
@@ -183,6 +185,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
   const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, river.mesh, larung.group, dust.points, sky.mesh];
   let worldHidden = false;
+  let inChapter = false;
   const nodes = [...world, ...gunungan.nodes];
   scene.add(...nodes);
   const post = new StagePost(gl, spec);
@@ -269,6 +272,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const planted = held ? Math.max(0, Math.min(1, held[0]!)) : gateEnd ? gate.planted(gt) : 0;
     const shot = planted > 0 ? blendShot(cue.shot, kayonAt, gateCamera(planted), "slide") : cue.shot;
     const s = cue.sky;
+    if (inChapter) lastSky = null; // restore shared illumination when leaving a chapter
     if (s !== lastSky || !mood) {
       lastSky = s;
       mood = moodOf(s);
@@ -369,6 +373,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.rotateY(-Math.atan(kick.side * lens));
       camera.rotateZ(kick.roll);
     }
+    gl.getDrawingBufferSize(buf);
+    const chapter = chapters.update({ camera, cursor, look: lk, t, pixels: buf.y });
+    inChapter = chapter.visible;
     const forced = stats.cam;
     if (forced && forced.length >= 7) {
       camera.fov = forced[6]!;
@@ -432,7 +439,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       worldHidden = hide;
       for (const n of world) n.visible = !hide;
     }
-    dust.points.visible = !hide && !stats.particlesOff;
+    for (const node of [terrain.mesh, pendapa.group, gong.group, blencong.group, river.mesh, larung.group, village.points]) node.visible = !hide && !inChapter;
+    dust.points.visible = !hide && !inChapter && !stats.particlesOff;
+    post.setDepthSource(chapter.ground ?? terrain.mesh);
     stageBus.gateTick();
 
     const pixel = buf.y / Math.tan((camera.fov * Math.PI) / 360);
@@ -472,13 +481,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const inner = cue.moving && film.slides[cursor.from]?.scene === film.slides[cursor.to]?.scene;
     const dofHeld = stats.dofAt && stats.dofAt.length >= 2 ? stats.dofAt : null;
     const dofAmount = spec.dof ? (dofHeld ? dofHeld[0]! : shot.dof) : 0;
-    const dofAt = dofHeld ? dofHeld[1]! : dofFocus(cursor.p, inner);
+    const dofAt = dofHeld ? dofHeld[1]! : inChapter ? chapter.focus : dofFocus(cursor.p, inner);
     post.render(scene, camera, {
       exposure: mood.exposure,
-      dim: shot.dim,
+      dim: inChapter ? 0.03 : shot.dim,
+      mist: chapter.mist,
       time: t,
       dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },
-      portal: { amount: portal, ring: portalRing(cursor.p, portalDir) },
+      portal: { amount: inChapter ? 0 : portal, ring: portalRing(cursor.p, portalDir) },
       grade: stats.gradeOff ? undefined : (grade ?? undefined),
     });
 
@@ -588,6 +598,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     }
     ro.disconnect();
     canvas.removeEventListener("webglcontextlost", onLost);
+    chapters.dispose();
     scene.remove(...nodes);
     sky.dispose();
     terrain.dispose();

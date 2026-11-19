@@ -281,6 +281,7 @@ export type InputHandlers = {
   axisFor(dir: Dir): Axis | null;
   /** Jarak jari (px) untuk satu slide penuh pada transisi ke arah `dir`. */
   spanFor(dir: Dir): number;
+  wheelDistance?(pixels: number): boolean;
   step(dir: Dir, source: "wheel" | "key" | "touch"): void;
   edge(to: "first" | "last"): void;
   /** Jari mulai men-scrub ke arah `dir`. */
@@ -347,7 +348,9 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
       wheelOrbit.timer = setTimeout(endWheelOrbit, INPUT.wheelGap);
       return;
     }
-    const dir = wheel.push(wheelSample(e, allowX, root.clientHeight));
+    const sample = wheelSample(e, allowX, root.clientHeight);
+    if (sample && h.wheelDistance?.(sample.delta)) return;
+    const dir = wheel.push(sample);
     if (dir) h.step(dir, "wheel");
   };
 

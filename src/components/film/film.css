@@ -1913,3 +1913,34 @@ html.film-on body {
   min-width: 0;
   text-align: center;
 }
+
+/* Hari 2 (Lawu): kartu gallery sama dengan hari lain; hanya letaknya rendah (kiri bawah di desktop) supaya candi dan air terjun di dunia 3D tetap terlihat. */
+.film[data-theme="lawu"] .gal-track {
+  align-items: end;
+}
+/* HP: poster lebih pendek supaya bangunan di atas kartu tetap terlihat; desktop memakai tinggi standar */
+@media (max-width: 759px) {
+  .film[data-theme="lawu"] .gal-paper {
+    min-height: min(clamp(260px, 42vh, 440px), 100vh - 226px);
+    min-height: min(clamp(260px, 42svh, 440px), 100svh - 226px);
+  }
+}
+.lawu-layers { position:absolute;inset:0;overflow:hidden;pointer-events:none;perspective:850px;--land-depth:0;--night:0;--sun-up:0; }
+.lawu-layers svg { position:absolute;width:106%;height:100%;inset:0 -3%; }
+.lawu-ridge {fill:#607977;transform:translate3d(calc(var(--lx,0)*-4px),0,-12px) scale(1.04);}
+.lawu-bank {position:absolute;inset:42% -8% 0;background:linear-gradient(0deg,transparent 8%,#93a6a275 59%,transparent 85%); transform:translate3d(calc(var(--lx,0)*-9px),0,6px);}
+.lawu-fields {transform:translate3d(calc(var(--lx,0)*-15px - var(--land-depth)*.5px),calc(var(--ly,0)*-6px),calc(var(--land-depth)*2px)) rotateY(calc(var(--lx,0)*-.5deg));}
+.lawu-orb {position:absolute;left:59%;top:41%;width:1.5rem;aspect-ratio:1;border-radius:50%;background:#ffefbc;box-shadow:0 0 28px #f5bf86;opacity:var(--sun-up);transform:translateY(calc(var(--sun-up)*-18px));}
+.lawu-layers .lawu-figure {inset:auto auto 36% 39%;width:23%;height:20%;fill:#445a50;transform:translate3d(calc(var(--lx,0)*-11px),calc(var(--ly,0)*-4px),12px);}
+.lawu-night {position:absolute;inset:0;background:#0b152a;opacity:calc(var(--night)*.82);}
+@media (min-width: 760px) {
+  .film[data-theme="lawu"] .fl-body--gallery {
+    --card-w: clamp(380px, 34vw, 520px);
+    --gap: 95vw;
+  }
+  .film[data-theme="lawu"] .gal-track {
+    padding-inline: clamp(25px, 5vw, 85px);
+  }
+}
+
+.film:has(.lawu-layers) .fl-sunbox, .film:has(.lawu-layers) .fl-hills {visibility:hidden;}

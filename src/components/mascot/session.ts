@@ -49,7 +49,8 @@ const storage = () => {
 
 /** Keadaan film yang dibaca dari atribut data akar film (`data-kind`, `data-beat`, `data-gate`, `data-sheet`). */
 export function contextOf(el: HTMLElement, moving: boolean, flat: boolean): GuideContext {
-  return { kind: el.dataset.kind as GuideContext["kind"], beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
+  return {
+    mountainDawn: el.dataset.theme === "lawu" && el.dataset.slide?.endsWith("/kemuning-sunrise"), kind: el.dataset.kind as GuideContext["kind"], beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
 }
 
 export type SessionFrame = Readonly<{

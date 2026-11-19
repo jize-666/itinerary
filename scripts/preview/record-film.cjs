@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu]
+// lawu = eleven Day 2 stops, frame-stepped on desktop 1440×900 or phone 1080×1920 at 24 fps (record-lawu.cjs).
+// Use the April client-data fixture. Optional PREVIEW_BROWSER selects a locally installed headless Chromium.
 // diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, VOICE diabaikan): DIO_Q=high|medium|low (bawaan high)
 // mengunci kualitas, DIO_LANG=en|id (bawaan en, lewat localStorage lakon.lang), QUERY menambah parameter URL. Video
 // mulai begitu .dio-root[data-ready="true"] (mesin maket hidup, tur otomatis jalan dari detik 0; STAGE diabaikan) dan
@@ -51,6 +53,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 (async () => {
   const [DATA, out, device = 'desktop', kArg, tour = 'film'] = process.argv.slice(2);
+  if (tour === 'lawu') return require('./record-lawu.cjs')(DATA, out, device);
   const K = +(kArg || 0.25);
   const BASE = process.env.BASE_URL || 'http://localhost:4173';
   const STAGE = process.env.STAGE || '';
