@@ -81,9 +81,12 @@ test("pixel wheel holds the actual camera at partial travel and can return to th
   await expect(f).toHaveAttribute("data-moving", "");
   await expect.poll(camera).not.toEqual(before);
   await page.waitForTimeout(240);
-  const held = await camera();
+  const held = (await camera())!;
   await page.waitForTimeout(480);
-  expect(await camera()).toEqual(held);
+  // held = no visible travel: each axis within 1 µm (exact float equality flaked on a 1e-10 m settle tail)
+  const after = (await camera())!;
+  expect(after).toHaveLength(held.length);
+  after.forEach((v, i) => expect(v).toBeCloseTo(held[i]!, 6));
   await f.dispatchEvent("wheel", { deltaY: -75, deltaMode: 0 });
   await expect(f).not.toHaveAttribute("data-moving", "", stateWait);
   await expect(f).toHaveAttribute("data-slide", "day-2/kemuning-sunrise");
