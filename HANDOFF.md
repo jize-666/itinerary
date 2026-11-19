@@ -34,6 +34,9 @@ Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang dis
 3. **Langkah berikutnya:** PR #21 dibuka, siap Squash and merge; host meninjau kedua video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex). Sesudah merge: Tugas 11 (Canting) bila hasil Codex sudah ada.
 - **Permintaan host, kata demi kata:** "cek pr #21 ada yang gagal" (tangkapan layar: CI / check (pull_request) gagal sesudah 28 m 10 dtk, langkah `pnpm test:e2e --trace off` merah; test, content:check, build hijau).
   Tafsir Claude: baca log CI, cari tes yang gagal, bedakan regresi dari kode Lawu dan tes yang lambat di runner CI, perbaiki akar masalahnya (tanpa melewati atau mematikan tes), push, lalu pantau CI sampai hijau.
+  - **Temuan:** satu tes gagal di run `pull_request` (335 lulus, 32 dilewati): `stage.spec.ts` "kunang-kunang sungguh tampak di gong penutup" (desktop), habis waktu 90 dtk di percobaan pertama dan ulangannya. Run `push` untuk commit yang sama hijau.
+  - **Bukan regresi Lawu:** dijalankan sendiri, tes ini butuh 53,4 dtk di `main` dan 54,2 dtk di branch ini. Tes memakai tier High yang digambar CPU; empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,7 dtk + dekode PNG ±3 dtk di halaman film yang sibuk). Dengan dua worker di CI, sesekali lewat 90 dtk.
+  - **Perbaikan (Sonnet mengerjakan, Opus meninjau):** tangkapan hanya pita yang dihitung (45–90 % tinggi, `clip`), dekode dan hitung di tab kosong terpisah; isi uji (pita, aturan warna, empat sampel, ambang +40) tidak berubah. Sendiri kini 48–50 dtk. Batas waktu tes ini dinaikkan dari 90 dtk (`test.slow()`) ke 180 dtk dengan alasan tertulis di kode.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 

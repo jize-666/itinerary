@@ -881,7 +881,9 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
 
   test("tier High di gallery: depth of field digambar (fokus dekat saat diam) dan mengaburkan lanskap; di luar gallery tidak", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
-    test.slow();
+    // tier High digambar CPU: empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,5 dtk) ditambah membuka panggung;
+    // sendiri ±50 dtk, di CI dua worker berbagi CPU dan sesekali melewati 90 dtk (PR #21). Isi uji tidak berubah.
+    test.setTimeout(180_000);
     // yang diukur kabur lanskap: Clawd (sengaja selalu tajam di depth of field) tidak ikut di gambar ini
     await open3d(page, "?stage=high&clawd=0", "#day-1");
     await nextFrames(page);
@@ -1192,12 +1194,19 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
     return m ? Object.entries(m).reduce((a, b) => (b[1] > a[1] ? b : a))[0] : null;
   };
   const particlesOff = (page: Page, off: boolean) => page.evaluate((v) => ((window as unknown as { __lakonStage: { particlesOff?: boolean } }).__lakonStage.particlesOff = v), off);
-  /** Banyak piksel pendar kunang-kunang di pita halaman dan lantai, lapisan DOM disembunyikan. */
-  async function fireflyPixels(page: Page) {
+  /**
+   * Banyak piksel pendar kunang-kunang di pita halaman dan lantai, lapisan DOM disembunyikan. Pita (45–90 % tinggi)
+   * ditangkap langsung lewat clip, lalu didekode dan dihitung di tab kosong (`scratch`) supaya putaran gambar film
+   * yang sibuk (High, digambar CPU) tidak menunda dekode PNG.
+   */
+  async function fireflyPixels(page: Page, scratch: Page) {
     await page.addStyleTag({ content: ".fl-stage,.fl-chrome,.fl-grain,.fl-wipe,.clawd-bubble{visibility:hidden!important}" });
     await nextFrames(page, 3);
-    const png = await page.screenshot();
-    return page.evaluate(async (b64) => {
+    const { width, height } = page.viewportSize()!;
+    const y0 = Math.round(height * 0.45);
+    const y1 = Math.round(height * 0.9);
+    const png = await page.screenshot({ clip: { x: 0, y: y0, width, height: y1 - y0 } });
+    return scratch.evaluate(async (b64) => {
       const img = new Image();
       img.src = `data:image/png;base64,${b64}`;
       await img.decode();
@@ -1205,10 +1214,9 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
       [c.width, c.height] = [img.width, img.height];
       const g = c.getContext("2d")!;
       g.drawImage(img, 0, 0);
-      // pita halaman dan lantai (45–90 % tinggi): di sana tidak ada bintang; pendar kunang-kunang sesudah grading malam
+      // pita halaman dan lantai: di sana tidak ada bintang; pendar kunang-kunang sesudah grading malam
       // berwarna kuning kehijauan pucat (hijau ≥ merah, hijau jauh di atas biru)
-      const y0 = Math.round(c.height * 0.45);
-      const d = g.getImageData(0, y0, c.width, Math.round(c.height * 0.9) - y0).data;
+      const d = g.getImageData(0, 0, c.width, c.height).data;
       let n = 0;
       for (let i = 0; i < d.length; i += 4) if (d[i + 1]! > 70 && d[i + 1]! >= d[i]! && d[i + 1]! > d[i + 2]! + 20) n++;
       return n;
@@ -1239,9 +1247,14 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
     await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("fireflies");
     await page.waitForTimeout(3000); // kilatan pukulan gong saat tiba sudah padam
     const count: Record<"on" | "off", number> = { on: 0, off: 0 };
-    for (const off of [false, true, false, true]) {
-      await particlesOff(page, off);
-      count[off ? "off" : "on"] += await fireflyPixels(page);
+    const scratch = await page.context().newPage(); // tab kosong untuk dekode, dipakai ulang lalu ditutup
+    try {
+      for (const off of [false, true, false, true]) {
+        await particlesOff(page, off);
+        count[off ? "off" : "on"] += await fireflyPixels(page, scratch);
+      }
+    } finally {
+      await scratch.close();
     }
     expect(count.on).toBeGreaterThan(count.off + 40);
   });
