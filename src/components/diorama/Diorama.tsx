@@ -7,7 +7,8 @@ import { directions, locationContent, scenes, tr, type StringKey } from "@/engin
 import { NEXT } from "@/engine/diorama/camera";
 import { RouteOptions } from "./RouteOptions";
 import { DioramaController, initialState, type ViewerState } from "./controller";
-import { Icon, LandmarkIcon, Mark, type IconName } from "./Icons";
+import { IconCalm } from "@/components/Icons";
+import { Icon, LandmarkIcon, type IconName } from "./Icons";
 import type { SurfaceMode } from "./artwork";
 import { Viewer } from "./Viewer";
 import { DioDialog } from "./Dialog";
@@ -21,6 +22,8 @@ type NavWindow = Window & {
 };
 const timecode = (n: number) => "0" + Math.floor(n / 60) + ":" + String(Math.floor(n) % 60).padStart(2, "0");
 
+type Tone = "gold" | "tonal" | "glass";
+/** Tombol sistem `.pb` situs. `visible` menampilkan label; tanpa itu hanya ikon (target sentuh tetap 44 px). */
 function Tool({
   icon,
   label,
@@ -28,6 +31,7 @@ function Tool({
   disabled,
   className = "",
   visible = false,
+  tone = "glass",
 }: {
   icon: IconName;
   label: string;
@@ -35,18 +39,22 @@ function Tool({
   disabled?: boolean;
   className?: string;
   visible?: boolean;
+  tone?: Tone;
 }) {
   return (
     <button
       type="button"
-      className={(visible ? "dio-labeled" : "dio-icon-btn") + " " + className}
+      className={"pb pb--" + tone + " pb--sm" + (visible ? " dio-labeled" : " pb--icon dio-icon-btn") + " " + className}
+      data-sfx="ui-tok"
       aria-label={label}
       title={label}
       disabled={disabled}
       onClick={onClick}
     >
-      <Icon name={icon} size={18} />
-      {visible && <span>{label}</span>}
+      <span className="pb-face">
+        <Icon name={icon} size={18} />
+        {visible && <span>{label}</span>}
+      </span>
     </button>
   );
 }
@@ -64,8 +72,8 @@ function Compass({ az, letter }: { az: number; letter: string }) {
         />
       ))}
       <g transform={"rotate(" + (180 - az) + " 26 26)"}>
-        <path d="m26 10 3.4 18.8L26 26l-3.4 2.8Z" fill="#dcc18d" />
-        <path d="m26 42 3.4-13.2L26 26l-3.4 2.8Z" fill="none" stroke="#b6aa8b" strokeWidth=".9" />
+        <path className="dio-needle" d="m26 10 3.4 18.8L26 26l-3.4 2.8Z" />
+        <path className="dio-needle-tail" d="m26 42 3.4-13.2L26 26l-3.4 2.8Z" />
       </g>
       <title>{letter}</title>
     </svg>
@@ -123,6 +131,23 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
     if (local && history.length > 1) history.back();
     else router.push("/film/");
   };
+  // Calm sama dengan film: tersimpan di localStorage; rute membacanya lewat event "storage",
+  // yang tidak menyala di tab yang sama, jadi dipicu sendiri.
+  const toggleCalm = () => {
+    try {
+      localStorage.setItem("lakon.calm", calm ? "0" : "1");
+    } catch {
+      /* tidak diingat */
+    }
+    window.dispatchEvent(new Event("storage"));
+  };
+  useEffect(() => {
+    const before = document.title;
+    document.title = "Diorama · A Three-Day Lakon";
+    return () => {
+      document.title = before;
+    };
+  }, []);
   const open = (p: Panel) => {
     if (p === "all" || p === "single") engine?.freeze(true);
     else if (p) engine?.pause();
@@ -153,8 +178,12 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
     <div className="dio-webgl-error" role="alert">
       <Icon name="layers" size={32} />
       <p>{text("unavailable")}</p>
-      <button className="dio-quiet" onClick={() => setRevision((x) => x + 1)}>
-        {text("retry")}
+      <button
+        className="pb pb--tonal pb--sm dio-quiet"
+        data-sfx="ui-tok"
+        onClick={() => setRevision((x) => x + 1)}
+      >
+        <span className="pb-face">{text("retry")}</span>
       </button>
     </div>
   );
@@ -169,10 +198,26 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
       data-ready={enabled ? "true" : "false"}
     >
       <header className="dio-top">
-        <Tool icon="back" label={text("back")} visible onClick={goBack} className="dio-back" />
-        <div className="dio-sign">
-          <Mark size={30} />
-          <span>{text("stageTitle")}</span>
+        <div className="dio-corner">
+          <button type="button" className="pb pb--tonal pb--sm dio-back" data-sfx="ui-tok" onClick={goBack}>
+            <span className="pb-face">
+              <Icon name="back" size={18} />
+              <span>{text("back")}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="pb pb--glass pb--sm pb--icon dio-calm"
+            data-sfx="ui-tok"
+            aria-pressed={calm}
+            aria-label={text("calm")}
+            title={text("calm")}
+            onClick={toggleCalm}
+          >
+            <span className="pb-face">
+              <IconCalm />
+            </span>
+          </button>
         </div>
       </header>
       <div className="dio-layout">
@@ -188,16 +233,19 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
             <p>{text("intro")}</p>
             <button
               type="button"
-              className="dio-tour"
+              className="pb pb--gold pb--sm dio-tour"
+              data-sfx="ui-tok"
               aria-label={tourLabel}
               onClick={play}
               disabled={!enabled}
             >
-              <Icon name={calm ? "grid" : state.tour === "playing" ? "pause" : "play"} size={16} />
-              <span>{tourLabel}</span>
-              <small>
-                {calm ? "6" : timecode(state.tour === "playing" || state.tour === "paused" ? state.time : 64)}
-              </small>
+              <span className="pb-face">
+                <Icon name={calm ? "grid" : state.tour === "playing" ? "pause" : "play"} size={16} />
+                <span>{tourLabel}</span>
+                <small>
+                  {calm ? "6" : timecode(state.tour === "playing" || state.tour === "paused" ? state.time : 64)}
+                </small>
+              </span>
             </button>
           </div>
           <nav className="dio-locations" aria-label={text("selectLocation")}>
@@ -206,6 +254,7 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
               <button
                 key={id}
                 className="dio-place"
+                data-sfx="ui-tok"
                 aria-label={locationContent[id].name[lang]}
                 aria-pressed={state.location === id}
                 disabled={!enabled}
@@ -221,9 +270,16 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
               </button>
             ))}
           </nav>
-          <button type="button" className="dio-guide" onClick={() => open("guide")}>
-            <Icon name="help" size={17} />
-            {text("guide")}
+          <button
+            type="button"
+            className="pb pb--glass pb--sm dio-guide"
+            data-sfx="ui-tok"
+            onClick={() => open("guide")}
+          >
+            <span className="pb-face">
+              <Icon name="help" size={17} />
+              {text("guide")}
+            </span>
           </button>
         </aside>
         <section
@@ -290,6 +346,7 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
                 icon="angles"
                 label={text("angle")}
                 visible
+                tone="tonal"
                 onClick={() => open("angles")}
                 disabled={!enabled}
               />
@@ -350,6 +407,7 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
                 icon="camera"
                 label={text("photo")}
                 visible
+                tone="gold"
                 className="dio-shutter"
                 disabled={!enabled}
                 onClick={() => open("single")}
@@ -407,12 +465,14 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
             {scenes.map((s, i) => (
               <button
                 key={s.en}
+                className="pb pb--glass pb--sm dio-pick"
+                data-sfx="ui-tok"
                 onClick={() => {
                   engine?.calmPose(i);
                   close();
                 }}
               >
-                {s[lang]}
+                <span className="pb-face">{s[lang]}</span>
               </button>
             ))}
           </div>
@@ -424,27 +484,31 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
             {directions.map((d, i) => (
               <button
                 key={d.en}
+                className="pb pb--glass pb--sm dio-pick"
+                data-sfx="ui-tok"
                 aria-pressed={state.angle === i}
                 onClick={() => {
                   engine?.direction(i);
                   close();
                 }}
               >
-                <span className="dio-angle-mark">
-                  {i === 8 ? (
-                    <Icon name="aperture" size={18} />
-                  ) : (
-                    <svg width="19" height="19" viewBox="0 0 20 20" aria-hidden="true">
-                      <path
-                        d="M10 2 13.5 13 10 11 6.5 13Z"
-                        transform={"rotate(" + i * 45 + " 10 10)"}
-                        stroke="currentColor"
-                        fill="none"
-                      />
-                    </svg>
-                  )}
+                <span className="pb-face">
+                  <span className="dio-angle-mark">
+                    {i === 8 ? (
+                      <Icon name="aperture" size={18} />
+                    ) : (
+                      <svg width="19" height="19" viewBox="0 0 20 20" aria-hidden="true">
+                        <path
+                          d="M10 2 13.5 13 10 11 6.5 13Z"
+                          transform={"rotate(" + i * 45 + " 10 10)"}
+                          stroke="currentColor"
+                          fill="none"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  {d[lang]}
                 </span>
-                {d[lang]}
               </button>
             ))}
           </div>
@@ -464,9 +528,11 @@ export function Diorama({ lang, calm, quality, focus, onTour, onLocation, onSlow
               <input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} />
             </label>
           </div>
-          <button className="dio-quiet" onClick={() => open("all")}>
-            <Icon name="grid" size={17} />
-            {text("allPhotos")}
+          <button className="pb pb--tonal pb--sm dio-quiet" data-sfx="ui-tok" onClick={() => open("all")}>
+            <span className="pb-face">
+              <Icon name="grid" size={17} />
+              {text("allPhotos")}
+            </span>
           </button>
         </DioDialog>
       )}

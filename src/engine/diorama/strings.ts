@@ -4,7 +4,6 @@ type Pair = Readonly<Record<Lang, string>>;
 export const strings = {
   back: { en: "Back", id: "Kembali" },
   title: { en: "Solo in miniature", id: "Solo dalam miniatur" },
-  stageTitle: { en: "Ruang Solo", id: "Ruang Solo" },
   intro: {
     en: "Explore a palace pavilion, a market and a batik makers’ lane in one scale model of Solo.",
     id: "Susuri serambi istana, pasar, dan gang perajin batik dalam satu maket Solo.",

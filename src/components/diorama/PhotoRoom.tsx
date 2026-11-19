@@ -136,11 +136,13 @@ export function PhotoRoom({
               <button
                 type="button"
                 key={f}
+                className="pb pb--glass pb--sm dio-pick"
+                data-sfx="ui-tok"
                 disabled={job.busy}
                 aria-pressed={format === f}
                 onClick={() => changeFormat(f)}
               >
-                {f.toUpperCase()}
+                <span className="pb-face">{f.toUpperCase()}</span>
               </button>
             ))}
           </div>
@@ -192,21 +194,29 @@ export function PhotoRoom({
         {group && !job.output && !job.busy && (
           <button
             type="button"
-            className="dio-primary"
+            className="pb pb--gold pb--sm dio-primary"
+            data-sfx="ui-tok"
             onClick={() => void run(true, format, job.failed ? job.shots : [])}
           >
-            <Icon name="camera" />
-            {text(job.failed ? "retry" : "allPhotos")}
+            <span className="pb-face">
+              <Icon name="camera" />
+              {text(job.failed ? "retry" : "allPhotos")}
+            </span>
           </button>
         )}
         {!group && job.failed && (
-          <button className="dio-primary" onClick={() => void run(false, "png")}>
-            {text("retry")}
+          <button
+            className="pb pb--gold pb--sm dio-primary"
+            data-sfx="ui-tok"
+            onClick={() => void run(false, "png")}
+          >
+            <span className="pb-face">{text("retry")}</span>
           </button>
         )}
         {job.output && (
           <a
-            className="dio-primary"
+            className="pb pb--gold pb--sm dio-primary"
+            data-sfx="ui-tok"
             href={job.url}
             download={job.output.name}
             onClick={() => {
@@ -214,20 +224,30 @@ export function PhotoRoom({
               setAttempted(true);
             }}
           >
-            <Icon name="download" size={17} />
-            {saveFailed || attempted ? text("retry") : text("save")} {group ? "ZIP" : "PNG"}
+            <span className="pb-face">
+              <Icon name="download" size={17} />
+              {saveFailed || attempted ? text("retry") : text("save")} {group ? "ZIP" : "PNG"}
+            </span>
           </a>
         )}
         {canShare && (
-          <button className="dio-quiet" onClick={() => void share(job.output!)}>
-            <Icon name="share" />
-            {text("share")}
+          <button
+            className="pb pb--tonal pb--sm dio-quiet"
+            data-sfx="ui-tok"
+            onClick={() => void share(job.output!)}
+          >
+            <span className="pb-face">
+              <Icon name="share" />
+              {text("share")}
+            </span>
           </button>
         )}
         {!group && !job.busy && (
-          <button className="dio-quiet" onClick={chooseGroup}>
-            <Icon name="grid" size={17} />
-            {text("allPhotos")}
+          <button className="pb pb--tonal pb--sm dio-quiet" data-sfx="ui-tok" onClick={chooseGroup}>
+            <span className="pb-face">
+              <Icon name="grid" size={17} />
+              {text("allPhotos")}
+            </span>
           </button>
         )}
       </div>

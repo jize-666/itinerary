@@ -45,8 +45,16 @@ export function DioDialog({
     >
       <div className="dio-dialog-head">
         <h2>{title}</h2>
-        <button type="button" className="dio-icon-btn" onClick={onClose} aria-label={tr(lang, "close")}>
-          <Icon name="close" />
+        <button
+          type="button"
+          className="pb pb--glass pb--sm pb--icon dio-icon-btn"
+          data-sfx="ui-tok"
+          onClick={onClose}
+          aria-label={tr(lang, "close")}
+        >
+          <span className="pb-face">
+            <Icon name="close" />
+          </span>
         </button>
       </div>
       {children}

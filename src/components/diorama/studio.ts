@@ -240,9 +240,9 @@ function backdrop() {
     depthTest: false,
     toneMapped: false,
     uniforms: {
-      deep: { value: new Color("#132825") },
-      light: { value: new Color("#40534b") },
-      low: { value: new Color("#1b322d") },
+      deep: { value: new Color("#0a0c18") },
+      light: { value: new Color("#3a2e34") },
+      low: { value: new Color("#121833") },
     },
     vertexShader: /* glsl */ `
       varying vec2 vDioUv;
@@ -277,7 +277,7 @@ function contactShadow() {
     transparent: true,
     depthWrite: false,
     toneMapped: false,
-    uniforms: { color: { value: new Color("#0b1815") } },
+    uniforms: { color: { value: new Color("#05060c") } },
     vertexShader: /* glsl */ `
       varying vec2 vDioFloor;
       void main() {
