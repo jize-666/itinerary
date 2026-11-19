@@ -24,7 +24,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 19 Nov 2026 (PR #12–#18 di-merge; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) ditunda atas arahan host, lalu diganti diorama dari Codex yang dipasang 19 Nov di `/diorama/`. Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 19 Nov 2026 (PR #12–#20 di-merge; Tugas 8 selesai; Tugas 10 dari Codex dipasang, menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) ditunda atas arahan host, lalu diganti diorama dari Codex yang dipasang 19 Nov di `/diorama/`. Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -120,7 +120,11 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - uji di iPhone produksi (`/film/?fps`), termasuk sungai dan gerbang di `high ×1 (paksa)`.
 - [ ] **9. Diorama Solo.** ⏸️ Ditunda 19 Nov sebelum ada kode (host: "tunggu, jangan buat diorama nya dulu"); menunggu arahan host. Sempat dimulai 19 Nov (host: "tandai dan lewati semua, lanjut tugas besar dulu"). Mengikuti PRD: data OSM, prolog + Hari 1, gaya miniatur; langkah 9.1–9.4 dan statusnya di `HANDOFF.md` bagian 0. Sisa pekerjaan yang menunggu host di tugas-tugas sebelumnya ditandai ⏭️ dan dilewati dulu.
   - Diorama versi PRD host dikerjakan Codex dan **dipasang 19 Nov** sebagai halaman privat `/diorama/` (bukan di film), dengan tautan masuk dari film dan Today. UI-nya disamakan dengan situs. Video tur desktop dan HP sudah dikirim. Rinciannya di `HANDOFF.md` bagian 0, "Kiriman host 19 Nov: PRD Diorama Solo 3D".
-- [ ] **10. Lereng Lawu.** 📝 PRD untuk Codex dikirim ke host 19 Nov (host: "biar codex yang mengerjakanya. susun prd, jangan batasi kemampuan design codex"): `docs/handoff/codex-prd-bersama.md` + `codex-prd-10-lereng-lawu.md`. Claude memasang hasil Codex sesudah diterima.
+- [x] **10. Lereng Lawu.** ✅ 19 Nov 2026 (dipasang; menunggu tinjauan host). PRD untuk Codex: `docs/handoff/codex-prd-bersama.md` + `codex-prd-10-lereng-lawu.md`. Hasil Codex (README `docs/handoff/README-10-lereng-lawu.md`) dipasang di atas `main` yang sudah memuat diorama (host: "dah gw merge, ni tugas lanjutan"): Hari 2 di film menjadi dunia 3D lereng Lawu dari DEM SRTM, matahari nyata 9 April 2027 (cahaya pertama di Kemuning 06.15 WIB), kebun teh Kemuning, Cetho, Sukuh, Grojogan Sewu, pulang senja; satu cahaya per tempat singgah; registry dunia per bab untuk Tugas 11. Kartu Hari 2 disamakan dengan kartu film (host: "ui nya ga kamu sesuaikan?"). Rinciannya: `docs/design/decisions.md` bagian "Lereng Lawu" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+  - Uji di iPhone produksi dan MacBook (`/film/?stage=high&fps#day-2`, fungsi ukur di README Codex): target ≥ 55 fps, p95 ≤ 20 ms.
+  - Klip suara EN `tip.mountain.0` (butuh rekaman teman host; sampai ada, gelembung tanpa suara).
+  - Siap ≤ 5 dtk saat dibuka langsung di 4G belum tercapai tanpa gzip (8,8–10,8 dtk di server statis repo).
+  - Temuan beban: dunia dibangun sekaligus di main thread (±130–300 ms di High) di akhir Hari 1; diperbaiki bila host melihat patah.
 - [ ] **11. Canting dan kain mori.** 📝 PRD Codex: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`).
 - [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
 

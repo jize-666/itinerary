@@ -4,6 +4,8 @@ const fs = require("node:fs"),
   path = require("node:path");
 const { spawnSync } = require("node:child_process"),
   ts = require("typescript");
+// LAWU_PACE (bawaan 1) memperpanjang diam dan geser tiap panel, mis. 2 = video ±33 dtk untuk pratinjau host.
+const pace = Math.max(0.25, Number(process.env.LAWU_PACE) || 1);
 const beats = [
   ["depart-lawu", 7, 30],
   ["kemuning-sunrise", 22, 22],
@@ -16,7 +18,7 @@ const beats = [
   ["rest-2", 10, 24],
   ["selat-solo", 6, 21],
   ["movie-night", 16, 0],
-];
+].map(([id, hold, move]) => [id, Math.round(hold * pace), Math.round(move * pace)]);
 // Render the very same procedural sound node offline on the video clock. Capturing a
 // wall-clock microphone or tab stream would stretch the bed on a software-rendered machine.
 async function mixAmbience(page, output, fps = 24) {
