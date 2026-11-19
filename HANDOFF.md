@@ -5,6 +5,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SEDANG DISUSUN
+
+**Kata host, kata demi kata:** "sekalian project berat apalagi yg belum? biar codex yang mengerjakanya. susun prd, jangan batasi kemampuan design codex, maksimalkan kerjanya."
+Tafsir Claude:
+- Proyek berat yang belum dikerjakan di Daftar tugas: Tugas 10 (Lereng Lawu, kebun teh, Candi Sukuh), Tugas 11 (Canting dan kain mori), Tugas 12 (Boarding pass 3D dengan fisika). Tugas 9 sudah diganti diorama dari Codex (sedang dipasang).
+- Satu PRD per tugas, untuk Codex, dalam Markdown di `docs/handoff/`. Desain dibebaskan: PRD memuat tujuan, rasa, rujukan budaya, letak yang disarankan, batas teknis yang wajib (versi, CSP tanpa WASM kecuali host mengizinkan, aturan gerak kamera host, beban), dan uji penerimaan; bentuk, teknik, dan komposisi diserahkan ke Codex.
+- Bahan faktual dikumpulkan Haiku; PRD disusun Opus.
+
 ### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — KODE CODEX DITERIMA, SEDANG DIPASANG
 
 **Kata host, kata demi kata:** "ini prd ku, codex telah mengerjakan nya, jadi kamu cukup memasangnya nanti di lingkunganmu", lalu "pendapat?". Lampiran: `PRD-Diorama-Solo-3D.pdf` (v1.0, 19 Nov 2026, 13 halaman; tidak disalin ke repo).
