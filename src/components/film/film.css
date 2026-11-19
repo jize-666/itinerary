@@ -1914,21 +1914,17 @@ html.film-on body {
   text-align: center;
 }
 
-/* Day 2 uses the DOM cards as a low reading rail, leaving the middle of the lens open. */
-.film[data-theme="lawu"] .fl-body--gallery { --card-w: min(82vw, 370px); }
-.film[data-theme="lawu"] .gal-track { align-items: end; }
-.film[data-theme="lawu"] .gal-paper {
-  min-height: 0; gap: 5px; padding: 12px 18px 13px; border-radius: 10px;
-  background: linear-gradient(155deg, #243630f5, #101c19f7);
+/* Hari 2 (Lawu): kartu gallery sama dengan hari lain; hanya letaknya rendah (kiri bawah di desktop) supaya candi dan air terjun di dunia 3D tetap terlihat. */
+.film[data-theme="lawu"] .gal-track {
+  align-items: end;
 }
-.film[data-theme="lawu"] .gal-paper::before { opacity: .32; }
-.film[data-theme="lawu"] .gal-time { font-size: clamp(19px, 3.5svh, 32px); }
-.film[data-theme="lawu"] .gal-title { font-size: clamp(20px, 3.4svh, 30px); }
-.film[data-theme="lawu"] .gal-photo { position:absolute;top:12px;right:15px;width:19%;height:44px;object-fit:cover;border-radius:4px; }
-.film[data-theme="lawu"] .gal-paper > .gal-art { width:20%;height:43px;right:11px;top:12px;opacity:.48; }
-.film[data-theme="lawu"] .gal-meta { padding-right:22%; }
-.film[data-theme="lawu"] .gal-why { font-size:clamp(12px,1.6svh,15px); }
-.film[data-theme="lawu"] .gal-card:not([data-cur]) { opacity:.23; }
+/* HP: poster lebih pendek supaya bangunan di atas kartu tetap terlihat; desktop memakai tinggi standar */
+@media (max-width: 759px) {
+  .film[data-theme="lawu"] .gal-paper {
+    min-height: min(clamp(260px, 42vh, 440px), 100vh - 226px);
+    min-height: min(clamp(260px, 42svh, 440px), 100svh - 226px);
+  }
+}
 .lawu-layers { position:absolute;inset:0;overflow:hidden;pointer-events:none;perspective:850px;--land-depth:0;--night:0;--sun-up:0; }
 .lawu-layers svg { position:absolute;width:106%;height:100%;inset:0 -3%; }
 .lawu-ridge {fill:#607977;transform:translate3d(calc(var(--lx,0)*-4px),0,-12px) scale(1.04);}
@@ -1937,13 +1933,14 @@ html.film-on body {
 .lawu-orb {position:absolute;left:59%;top:41%;width:1.5rem;aspect-ratio:1;border-radius:50%;background:#ffefbc;box-shadow:0 0 28px #f5bf86;opacity:var(--sun-up);transform:translateY(calc(var(--sun-up)*-18px));}
 .lawu-layers .lawu-figure {inset:auto auto 36% 39%;width:23%;height:20%;fill:#445a50;transform:translate3d(calc(var(--lx,0)*-11px),calc(var(--ly,0)*-4px),12px);}
 .lawu-night {position:absolute;inset:0;background:#0b152a;opacity:calc(var(--night)*.82);}
-@media (max-height:530px) { .film[data-theme="lawu"] .fl-body--gallery {--card-w:min(64vw,415px)} .film[data-theme="lawu"] .gal-paper {padding:7px 14px;gap:2px;} }
 @media (min-width: 760px) {
-  .film[data-theme="lawu"] .fl-body--gallery { --card-w: clamp(275px,29vw,375px); --gap: 95vw; }
-  .film[data-theme="lawu"] .gal-track {padding-inline:clamp(25px,5vw,85px);}
-}
-@media (max-width: 759px) {
-  .film[data-theme="lawu"] .fl-body--gallery { --gap: 12vw; }
+  .film[data-theme="lawu"] .fl-body--gallery {
+    --card-w: clamp(380px, 34vw, 520px);
+    --gap: 95vw;
+  }
+  .film[data-theme="lawu"] .gal-track {
+    padding-inline: clamp(25px, 5vw, 85px);
+  }
 }
 
 .film:has(.lawu-layers) .fl-sunbox, .film:has(.lawu-layers) .fl-hills {visibility:hidden;}
