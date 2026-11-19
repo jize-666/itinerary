@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — MENUNGGU KODE CODEX
+### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — REVISI v1.1 DIKIRIM, MENUNGGU KODE CODEX
 
 **Kata host, kata demi kata:** "ini prd ku, codex telah mengerjakan nya, jadi kamu cukup memasangnya nanti di lingkunganmu", lalu "pendapat?". Lampiran: `PRD-Diorama-Solo-3D.pdf` (v1.0, 19 Nov 2026, 13 halaman; tidak disalin ke repo).
 Ringkasan PRD:
@@ -16,6 +16,11 @@ Ringkasan PRD:
 - Aksesibilitas: Tab/Enter, panah memutar, enam pose tur untuk gerak minim.
 Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti diorama versi PRD ini. Claude tidak membangunnya; Claude memasang hasil Codex di repo itinerary sesudah kodenya diterima, dan menilai PRD-nya sekarang.
 - Host `overpass-api.de` yang sempat ditambahkan ke lingkungan tidak dibutuhkan lagi untuk PRD ini.
+- **Pendapat Claude (dikirim di chat):** PRD cocok dengan trip (Pasar Gede Hari 1; Laweyan dan Mangkunegaran Hari 3) dan dengan stack (Three.js + R3F, prosedural). Saran: halaman sendiri `/diorama/` (bukan di kanvas film, karena gestur bentrok), parallax ringan saat diam untuk aturan gerak kamera host, foto sembilan sudut dirender satu per satu (memori Safari), cek versi pustaka dan CSP tanpa WASM, dua bahasa, Calm; Tugas 11 (canting) bisa digabung ke Laweyan.
+- **Permintaan host, kata demi kata:** "berikan file revisi susulan untuk codex".
+  1. **Selesai:** `docs/handoff/codex-diorama-revisi-1.1.md` (dikirim ke host): prompt siap tempel berbahasa Inggris, lalu 12 bagian: lingkungan repo (versi, CSP tanpa WASM, i18n, sesi, Calm), bentuk penyerahan (`src/app/diorama/`, `src/components/diorama/`, `src/engine/diorama/`), letak dan parameter URL, aturan gerak kamera, kinerja, mode foto, bahasa dan penamaan, `DioramaProps`, aksesibilitas, tes, tugas Claude sesudahnya, ringkasan perubahan.
+  2. **Kendala:** dua pilihan dijadikan bawaan di revisi tanpa menunggu jawaban host (halaman `/diorama/`; parallax ringan saat diam); host bisa mengubahnya sebelum diberikan ke Codex.
+  3. **Langkah berikutnya:** host memberikan PRD v1.0 + revisi v1.1 ke Codex; Claude memasang hasil Codex sesudah kodenya diterima (Haiku mendata isi, Sonnet memindahkan dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
