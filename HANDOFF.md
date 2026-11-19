@@ -19,7 +19,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
 
 Menunggu host:
-- merge PR suara Clawd + gong datar 2,5D (branch `claude/admiring-noether-tbqvap`)
+- merge PR #19 (suara Clawd 39 klip EN, video pratinjau bersuara, gong datar 2,5D; branch `claude/admiring-noether-tbqvap`)
 - dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
 - arahan Tugas 9 (Diorama Solo)
 - Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
@@ -93,7 +93,7 @@ Tafsir Claude:
 3. **Selesai sesudahnya (19 Nov):** video 3D HP dikirim dan dicatat (15 klip, kalimat layar sentuh). Tes penutup:
    - lint, typecheck, unit 465/465, content:check, `clawd-voice.ts check` lulus; build lulus (bagian dari e2e);
    - e2e 291 lulus, 32 dilewati sesuai proyeknya, 1 gagal: `stage.spec.ts:530` (sapuan bab gunungan, desktop) habis batas 30 dtk di 30,4 dtk. Kode aplikasi di jalur itu tidak berubah, dan tes yang sama lulus di CI PR #17; container ini lebih lambat (4 inti). Tes tidak diubah.
-4. **Langkah berikutnya:** host merge PR, mendengar tiga klip, lalu arahan Tugas 9.
+4. **Langkah berikutnya:** host merge PR #19 (https://github.com/jize-666/itinerary/pull/19), mendengar tiga klip, lalu arahan Tugas 9.
 
 ### Permintaan host 19 Nov pagi: rapikan branch kerja sesudah PR #16 — SELESAI
 
