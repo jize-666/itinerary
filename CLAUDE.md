@@ -126,7 +126,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
   - Klip suara EN `tip.mountain.0` (butuh rekaman teman host; sampai ada, gelembung tanpa suara).
   - Siap ≤ 5 dtk saat dibuka langsung di 4G belum tercapai tanpa gzip (8,8–10,8 dtk di server statis repo).
   - Temuan beban: dunia dibangun sekaligus di main thread (±130–300 ms di High) di akhir Hari 1; diperbaiki bila host melihat patah.
-- [ ] **11. Canting dan kain mori.** 📝 PRD Codex: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`).
+- [ ] **11. Canting dan kain mori.** 🔨 Dikerjakan Claude sejak 19 Nov (Codex tidak bisa melanjutkan). PRD: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`). Keputusan host 19 Nov: motif **kawung** (Claude memilih arah kawung ukel dari referensi host), **Clawd memegang canting**, `/canting/` dulu lalu film. Langkah 11.1–11.4 dan statusnya di `HANDOFF.md` bagian 0.
 - [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.

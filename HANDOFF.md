@@ -1,9 +1,25 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`38e179d`, PR #21 Tugas 10 Lereng Lawu di-merge host) · **Codex tidak bisa melanjutkan; Tugas 11–12 menunggu keputusan host apakah dikerjakan Claude** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`38e179d`, PR #21 Tugas 10 Lereng Lawu di-merge host) · **Tugas 11 (Canting, motif kawung, Clawd memegang canting) dikerjakan Claude, mulai dari `/canting/`** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
+
+**Pertanyaan host:** "boleh tau konsepnya kaya gimana canting sama mori nya?" Claude menjelaskan konsep dari PRD `docs/handoff/codex-prd-11-canting-mori.md` (film Hari 3 mengikuti gulir + halaman `/canting/`, satu mesin) dan menanyakan tiga hal.
+**Jawaban host, kata demi kata:** "gw pilih; 1. kawung, prefrensi gw kirim, lu pilih 2. clawd yg pegang 3. setuju". Lampiran: empat tangkapan layar pencarian gambar batik kawung (Vecteezy, Shutterstock, Pngtree, Magnific; gambar stok berlisensi, tidak disalin, tidak masuk repo).
+Tafsir Claude:
+1. **Motif = kawung.** Claude memilih arah **kawung ukel**: medalion empat arah dengan daun soga yang memancar, ukel krem keemasan, isian cecek, di atas bidang kawung kecil (empat lonjong mengelilingi pusat). Palet = hasil asli batik sogan Solo: dasar hampir hitam (nila + soga), daun cokelat soga, garis dan titik krem mori, aksen prada emas. Motif digambar sendiri di kode (orisinal), referensi hanya arah rasa.
+2. **Clawd memegang canting** di film (meniup cucuk, menorehkan malam). Di `/canting/` canting mengikuti tangan tamu; Clawd memandu di sampingnya.
+3. **Urutan kerja:** `/canting/` dulu (mesin malam dan pewarnaan), baru urutan di film.
+Proses yang dimodelkan (sogan Solo, disederhanakan): nglowong + ngisen-iseni (garis dan cecek, malam tetap sampai lorod) → nembok bidang daun → medel (nila) → ngerok (malam tembok dikerok) → nyoga (soga) → nglorod. Hasil: garis dan titik krem, daun cokelat soga, dasar hitam kecokelatan.
+**Rencana langkah (tiap langkah: tes, pratinjau desktop + HP, commit; PR di akhir atau per tonggak):**
+- 11.1 Motif kawung dan kain: generator motif (garis, cecek, tembok dalam koordinat kain), model malam deterministik, pewarna kain di GPU (render target malam/warna, tenunan mori, kilap malam, remukan); foto diam empat tahap (malam, nila, soga, lorod) untuk disetujui host.
+- 11.2 Halaman `/canting/`: menggambar dengan mouse/jari (aliran malam, tetes, celup ulang), canting 3D, Clawd memandu, alat klowong/cecek/tembok, pola tuntunan kawung, celup nila/soga, lorod, simpan PNG, Calm, e2e, video.
+- 11.3 Film Hari 3: dunia bab "batik" lewat `stage3d/chapters.ts`; Clawd memegang canting dan menorehkan kawung mengikuti gulir; celup mengikuti jam; lorod dan pendar prada di gong terakhir; versi 2,5D; tes; video.
+- 11.4 (P1) suara malam/celup/lorod, kain buatan tamu di epilog, kalimat Clawd.
+**Bagi tugas:** Haiku memeriksa sumber budaya (kawung, istilah proses) dan memindai; Sonnet menulis kode dengan arahan jelas dan tes; Opus merancang motif, shader, alur, meninjau, merekam.
 
 ### Pesan host 19 Nov malam sesudah PR #21 di-merge: "daftar planning mana? liat. codex sakit gabisa lanjutin task" — DAFTAR DIKIRIM, MENUNGGU PILIHAN HOST
 
