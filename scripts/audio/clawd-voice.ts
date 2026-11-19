@@ -1,12 +1,15 @@
 /**
- * Klip suara Clawd (`src/engine/mascot/voice.ts`). Suaranya "Clawd" di akun ElevenLabs host (Voice Design
- * "clawd-deep-6", voice_id `4gpmKMMFEuQLCXLQGo99`); audio paket gratis ElevenLabs, lihat catatan lisensi di HANDOFF.md.
+ * Klip suara Clawd (`src/engine/mascot/voice.ts`). Sumber suara: rekaman pesan suara teman host (sudah setuju
+ * suaranya dipakai untuk proyek ini), ditiru dengan Chatterbox (model TTS open source Resemble AI, lisensi MIT) yang
+ * dijalankan di CPU container. Rekaman mentah dan WAV hasil Chatterbox disimpan di luar repo; hanya MP3 olahan yang
+ * masuk. Hanya bahasa Inggris (pilihan host 18 Nov); suara ElevenLabs "clawd-deep-6" yang lama tidak dipakai lagi.
  *
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts list [en|id]   kalimat yang perlu direkam (nama<TAB>emosi<TAB>teks)
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts build <mentah>  olah <mentah>/<lang>/<nama>.(mp3|wav) ke public/
  *   pnpm -s exec tsx scripts/audio/clawd-voice.ts check           semua kalimat punya klip, voice-clips.json cocok
  *
- * Olahan tiap klip: mono, hening di awal dan akhir dipangkas (sisa 40 ms), kenyaringan disamakan dengan audio situs
+ * Olahan tiap klip: mono, hening di awal dan akhir dipangkas (sisa 40 ms), jeda di tengah klip paling lama ±0,6 dtk
+ * (Chatterbox kadang memberi jeda 1–1,5 dtk di antara dua kalimat), kenyaringan disamakan dengan audio situs
  * lainnya (-16 LUFS, puncak di bawah -1,5 dBTP), MP3 48 kbps. Lalu lama tiap klip ditulis ke `voice-clips.json`, yang
  * dipakai gelembung untuk menunggu klip selesai. Rekaman mentah disimpan di luar repo (scratchpad).
  */
@@ -15,7 +18,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { join } from "node:path";
 import { voiceLines } from "../../src/engine/mascot/voice";
 
-const LANGS = ["en", "id"] as const;
+// Hanya EN: pilihan host 18 Nov ("gausa kasih indo"). Saat film berbahasa Indonesia, Clawd tampil tanpa suara.
+const LANGS = ["en"] as const;
 const OUT = "public/audio/clawd";
 const MANIFEST = "src/engine/mascot/voice-clips.json";
 const TARGET_LUFS = -16;
@@ -37,6 +41,11 @@ function lufs(file: string) {
 const seconds = (file: string) => Number(run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).trim());
 
 const TRIM = "silenceremove=start_periods=1:start_threshold=-48dB:start_silence=0.04";
+/**
+ * Jeda di tengah klip dipendekkan: hening di bawah −50 dB yang lebih panjang dari ±0,6 dtk disisakan ±0,6 dtk (di
+ * ffmpeg 6.1 sisa jeda ≈ stop_duration + stop_silence). Jeda yang lebih pendek tidak berubah.
+ */
+const PAUSE = "silenceremove=stop_periods=-1:stop_duration=0.3:stop_threshold=-50dB:stop_silence=0.3";
 function build(raw: string) {
   const tmp = join(raw, ".olah");
   mkdirSync(tmp, { recursive: true });
@@ -47,7 +56,7 @@ function build(raw: string) {
       const src = ["mp3", "wav"].map((ext) => join(raw, lang, `${name}.${ext}`)).find(existsSync);
       if (!src) continue;
       const trimmed = join(tmp, `${lang}.${name}.wav`);
-      run("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ac", "1", "-ar", "44100", "-af", `${TRIM},areverse,${TRIM},areverse`, trimmed]);
+      run("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ac", "1", "-ar", "44100", "-af", `${TRIM},areverse,${TRIM},areverse,${PAUSE}`, trimmed]);
       const gain = TARGET_LUFS - lufs(trimmed);
       const dst = join(OUT, lang, `${name}.mp3`);
       run("ffmpeg", ["-y", "-loglevel", "error", "-i", trimmed, "-af", `volume=${gain.toFixed(2)}dB,alimiter=limit=0.84:level=false`, "-c:a", "libmp3lame", "-b:a", "48k", dst]);

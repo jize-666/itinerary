@@ -1,10 +1,12 @@
 /**
- * Suara Clawd (arahan host 17 Nov: suara perempuan "Clawd", Voice Design ElevenLabs "clawd-deep-6"). Semua kalimat
- * Clawd tetap (tanpa nama tamu), jadi tiap kalimat direkam sekali per bahasa dan diputar saat gelembungnya muncul.
+ * Suara Clawd (host 18 Nov: "gw pilih suara temen gw yang en. gausa kasih indo."): rekaman pesan suara teman host yang
+ * sudah setuju suaranya dipakai, ditiru dengan Chatterbox (MIT). Hanya bahasa Inggris; film berbahasa Indonesia tampil
+ * tanpa suara. Semua kalimat Clawd tetap (tanpa nama tamu), jadi tiap kalimat direkam sekali dan diputar saat
+ * gelembungnya muncul.
  *
  * - Nama klip = kunci kalimat di gelembung (`intro.0`, `tip.gong.0`, `angry.1`), ditambah `.touch` untuk varian layar
  *   sentuh ("ketuk", "geser").
- * - Berkas: `public/audio/clawd/<lang>/<nama>.mp3`, dibuat `scripts/audio/clawd-voice.sh`.
+ * - Berkas: `public/audio/clawd/<lang>/<nama>.mp3`, dibuat `scripts/audio/clawd-voice.ts`.
  * - Lama tiap klip (ms) ada di `voice-clips.json`, ditulis skrip yang sama. Gelembung memakai angka ini untuk menunggu
  *   klip selesai, tanpa menunggu peristiwa audio (otak Clawd tetap murni dan bisa dites).
  * - Kalimat tanpa klip tetap tampil seperti biasa, hanya tanpa suara.

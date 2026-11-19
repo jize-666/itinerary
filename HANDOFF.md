@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/gallant-hopper-1jlpo0`, dimulai ulang dari `main` (`f32a1e9`; PR #16 dan #17 sudah di-merge) · **tidak ada PR terbuka; catatan 18 Nov yang belum masuk `main` dibawa ke branch ini** · berikutnya: PR suara Clawd 39 klip EN (berkas masih ada di container ini) · Jize Zone tinggal URL login di Supabase · sebelumnya: PR #17 (hook Jize Zone) di-merge host 18 Nov 23.52 WIB, PR #16 (Tugas 8.4) 21.11 WIB.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `f32a1e9`, `main` terbaru `d9858b3` = PR #18 sudah digabung ke branch ini) · **selesai, PR menunggu host: 39 klip suara Clawd EN, perekam video bersuara, gong datar film 2,5D** · Jize Zone tayang di https://jize-zone.vercel.app · berikutnya: Tugas 9 dengan arahan host.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -19,13 +19,81 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
 
 Menunggu host:
-- Jize Zone: di Supabase Authentication → URL Configuration, Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**`, lalu coba login magic link
-- merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi); PR itinerary #17 sudah di-merge 18 Nov 23.52 WIB
+- merge PR #19 (suara Clawd 39 klip EN, video pratinjau bersuara, gong datar 2,5D; branch `claude/admiring-noether-tbqvap`)
+- dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
+- arahan Tugas 9 (Diorama Solo)
+- Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
+- Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
+- Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
+
+### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — HOST MEMILIH A, GONG BARU SELESAI 19 NOV
+
+**Kata host, kata demi kata:** "itu di previews, gada gong tapi bilang \"see the gong\" emang gitu?"
+Temuan Claude (dari frame video uji 2,5D, detik 25,8–28):
+- Di film 2,5D (tanpa panggung 3D: Calm, reduced motion, atau tanpa WebGL), "gong" di hero dan judul hari adalah dua cincin emas tipis di belakang judul. Petunjuk `tip.beat` ("See the gong? Scroll once more…") tetap tampil di sana (`tipAt` tidak membedakan `flat` untuk `beat`).
+- Alurnya sesuai ucapan Clawd: digulir sekali, huruf tersedot ke tengah cincin, gong berbunyi, Clawd terkejut. Tetapi cincinnya terlalu samar untuk dikenali sebagai gong.
+- Di film 3D (yang dilihat kebanyakan tamu, termasuk iPhone host di tier High) gongnya gong ageng 3D utuh.
+Usul (menunggu pilihan host):
+- A. Gong datar di film 2,5D dibuat jelas terbaca sebagai gong (pencu menonjol, bibir, kilap emas, bayangan), tetap DOM/CSS dan tetap dengan gerak pandang. Kalimat dan suara Clawd tidak berubah.
+- B. Biarkan seperti sekarang.
+
+**Jawaban host, kata demi kata:** "a". Gong datar di film 2,5D diperjelas (usul A).
+1. **Selesai (19 Nov):**
+   - Sonnet: `.fs-gong` digambar ulang sebagai gong ageng perunggu: bibir berkilap logam (`conic-gradient`), rai gelap hangat dengan dua alur, pencu (`::before`) dengan sorot kiri atas, bayangan jatuh dan pendar; riak sedikit lebih jelas; getaran singkat saat dipukul (tanpa getaran di Calm dan reduced motion). `decisions.md` bagian "Gong datar di film 2,5D diperjelas". Opus meninjau diff dan foto.
+   - Foto desktop dan HP dikirim ke host dan dicatat di ledger: judul tetap terbaca di atas rai gelap; pencu dan kilatan pukulan terlihat; gong kecil di tombol penutup hari terbaca sebagai gong (ikon tombol di atas pencu).
+2. **Kendala:** container sempat di-restart di menit ke-68 rekaman 3D desktop; video tersimpan 76 dtk tetapi log suara hilang. Perekam kini menulis log suara tiap peristiwa. Rekaman 3D desktop diulang.
+3. **Langkah berikutnya:** video 3D bersuara desktop dan HP, video 2,5D bersuara diulang dengan gong baru, e2e, PR.
+
+### Kiriman host 18 Nov malam: 39 klip suara Clawd — SELESAI 19 NOV, PR MENUNGGU HOST
+
+**Kata host, kata demi kata:** "udah gw merge. ini suara clawd", dengan lampiran `clawd-klip-final.zip` (13 MB).
+Tafsir Claude:
+- PR itinerary #17 dan `second-brain` #2 sudah di-merge; branch kerja di kedua repo dimulai ulang dari `main`.
+- Zip berisi hasil sesi sebelumnya (sebelum container diganti), dibuat Chatterbox di CPU dari suara teman host:
+  - `final/en/`: 39 klip WAV, satu per kalimat Clawd bahasa Inggris, take terpilih per kalimat (`final/sumber.json`, beberapa dari benih lain);
+  - `olah/`: versi MP3 olahan;
+  - `ucap.json`: empat kalimat yang ucapannya sengaja beda dari teks gelembung ("wah-yang" untuk wayang, "Haaah..." untuk "Yawn...", tombol zoom diucapkan);
+  - `jobs-en.json` (setelan per emosi) dan `daftar-klip.txt`.
+- Yang dikerjakan: periksa 39 nama dan teks cocok dengan `voiceLines()`, ukur tiap klip (lama, kenyaringan, terpotong atau tidak), olah lewat `scripts/audio/clawd-voice.ts build` ke `public/audio/clawd/en/` dan `voice-clips.json`, `check` hanya bahasa Inggris, catatan sumber suara di skrip dan `docs/design/decisions.md`, tes, e2e, video pratinjau bersuara (desktop dan HP, data April, nama Jize), lalu PR.
+- Rekaman mentah teman host tidak masuk repo; hanya klip olahan.
+- **Arahan host di tengah kerja, kata demi kata:** "kerjakan jangn lupa bagi tugas. haiku untuk task paling ringan, sonnet untuk task sedang dan kamu opus, otaknya". Dicatat sebagai aturan kerja di `CLAUDE.md`. Pembagian untuk klip ini: Haiku mengukur 39 klip dan mencocokkan teksnya; Sonnet mengubah skrip `check`, catatan sumber suara, `decisions.md`, dan tes unit; Opus memutuskan klip yang dipakai, mengolah, meninjau, menguji, merekam pratinjau, dan membuka PR.
+
+1. **Selesai:**
+   - Haiku: 39 nama dan teks cocok persis dengan `voiceLines()`; tidak ada hening berlebih atau potongan; WAV float 32-bit (puncak > 0 dBTP di 18 klip, tetapi tanpa clipping, flat factor 0).
+   - Sonnet: transkripsi lokal Whisper `small.en` (audio tidak dikirim ke luar): 28/39 cocok persis, sisanya hanya interjeksi pendek yang salah dengar ("Hehe", "Hmph", "Aww", "Huh", "Ow") dan "Clawd" tertulis "Claude"/"Claw". Tidak ada kata tambahan, ulangan, atau potongan.
+   - Opus: klip diolah lewat `clawd-voice.ts build` (−16,4 LUFS, puncak ≤ −2,8 dBFS, 876 KB). Aturan baru di build: jeda hening di tengah klip paling lama ±0,6 dtk (Chatterbox memberi jeda 1–1,5 dtk di `welcome.0`, `intro.2`, `tip.gallery.0.touch`, `angry.1`).
+   - Sonnet: `check` dan `LANGS` hanya EN, catatan sumber suara di skrip dan `voice.ts`, `decisions.md` bagian "Suara Clawd" (sumber, emosi, ucapan khusus, lisensi), tes baru `voice-clips.test.ts` (4 tes, berkas asli). Opus meninjau, mempertegas tes folder `id`, dan membetulkan alasan butir "Ucapan".
+   - Perekam bersuara (Sonnet, ditinjau Opus): `VOICE=<berkas.json>` di `record-film.cjs` mulai dari beranda dan menekan "Begin the lakon" seperti tamu (itu yang menyalakan suara), bahasa EN, lalu mencatat mulai/berhenti klip dalam waktu video lewat bungkus `fetch`/`decodeAudioData`/`AudioBufferSourceNode`. `scripts/preview/mix-voice.py` menaruh klip di video (−16 LUFS, AAC). Opus menambah peristiwa `hush` (gelembung mulai memudar = suara berhenti), karena Web Audio halaman berjalan dengan jam nyata dan `stop` jarang terpanggil.
+2. **Tes dan kendala:**
+   - lint, typecheck, unit 465/465, content:check lulus; `clawd-voice.ts check` lulus.
+   - Agen Sonnet perekam sempat terhenti karena batas pemakaian 5 jam Sonnet, lalu dilanjutkan sesudah pulih.
+   - Log suara uji pertama kosong karena `out/` basi (dibangun sebelum klip ada); sesudah `pnpm build`, 12 klip tercatat dan waktunya cocok dengan gelembung (dicek dari frame).
+   - Klip yang perlu didengar host (tidak bisa dinilai lewat transkripsi): `intro.0` ("Claw"), `gong.1` (ditranskripsi "song"), `tip.kayon.0` ("gunungang").
+3. **Langkah berikutnya:** uji `hush` di film 2,5D, lalu video Clawd bersuara 3D desktop dan HP (data April, Jize), e2e, ledger, PR.
+
+**Video pratinjau bersuara (18–19 Nov):**
+1. **Selesai:**
+   - 2,5D desktop dan HP 9:16, dengan gong datar baru (v2), dikirim dan dicatat di ledger: 12 klip; di HP otomatis klip layar sentuh.
+   - 3D desktop dikirim dan dicatat: 15 klip (perkenalan, gunungan, gong hero + zoom, reaksi gong, gallery, gong penutup, marah); sinkron dicek dari frame (gelembung "Want a closer look?" di 33 dtk, klip mulai 32,5; "Whoa!" di 46,6, klip mulai 46,0).
+   - Perbaikan perekam selama perekaman 3D (semua di `record-film.cjs` / `mix-voice.py`):
+     - batas tunggu navigasi ikut K (film 3D diperlambat 50×);
+     - query film (`?stage=high`) dibawa sejak beranda, karena `StageMount` membaca `location.search` sebelum router memanggil `pushState`;
+     - log suara ditulis tiap peristiwa (container dua kali di-restart di tengah rekaman 3D dan log hilang);
+     - peristiwa sebelum video mulai disimpan dengan waktu negatif dan awal klipnya dipotong (intro.0 di film 3D);
+     - jam `AudioContext.currentTime` ikut diperlambat K: tanpa itu `playVoice` membuang klip yang dimuat > 0,6 dtk jam audio nyata, dan rekaman 3D pertama kehilangan 5 klip (video itu dikirim dengan catatan, lalu direkam ulang).
+2. **Kendala:**
+   - Container di-restart dua kali saat rekaman 3D berjalan di latar dan giliran Claude sudah berakhir (kemungkinan dianggap menganggur). Rekaman panjang kini ditunggu dengan perintah di latar depan (tiap ≤ 10 menit).
+   - Rekaman 3D 84 dtk memakan ±70 menit (K = 0,02, panggung digambar CPU).
+   - Video hanya membawa suara Clawd (tanpa gendhing dan efek).
+3. **Selesai sesudahnya (19 Nov):** video 3D HP dikirim dan dicatat (15 klip, kalimat layar sentuh). Tes penutup:
+   - lint, typecheck, unit 465/465, content:check, `clawd-voice.ts check` lulus; build lulus (bagian dari e2e);
+   - e2e 291 lulus, 32 dilewati sesuai proyeknya, 1 gagal: `stage.spec.ts:530` (sapuan bab gunungan, desktop) habis batas 30 dtk di 30,4 dtk. Kode aplikasi di jalur itu tidak berubah, dan tes yang sama lulus di CI PR #17; container ini lebih lambat (4 inti). Tes tidak diubah.
+4. **Langkah berikutnya:** host merge PR #19 (https://github.com/jize-666/itinerary/pull/19), mendengar tiga klip, lalu arahan Tugas 9.
 
 ### Permintaan host 19 Nov pagi: rapikan branch kerja sesudah PR #16 — SELESAI
 

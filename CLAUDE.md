@@ -4,6 +4,7 @@
 - Untuk tugas aktif, pakai `query_graph` dari Graphify dulu buat mencari file dan fungsi yang relevan. Buka bagian kode yang diperlukan saja dan cek perubahan lokal sebelum mengedit.
 - **Setiap menyelesaikan satu tugas, kecil maupun besar, wajib memperbarui `HANDOFF.md` dan rencana pekerjaan berikutnya** (aturan host, 11 Nov 2026). Isinya 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya. Jangan menunggu akhir sesi; perbarui begitu tugasnya selesai, lalu commit.
 - Permintaan baru dari host di tengah sesi dicatat dulu di `HANDOFF.md` sebelum kodenya dikerjakan.
+- **Bagi tugas** (arahan host 18 Nov: "jangan lupa bagi tugas. haiku untuk task paling ringan, sonnet untuk task sedang, dan kamu opus, otaknya"): pekerjaan paling ringan (mengukur, mencocokkan, mendaftar, memindai) ke subagen Haiku; pekerjaan sedang (mengubah kode atau dokumen dengan arahan jelas, menulis tes) ke subagen Sonnet; Opus merencanakan, memutuskan, meninjau hasil subagen, dan menggabungkan. Fable hanya atas izin host.
 
 ## Kalau host bilang "lanjut tugas, baca isi claude.md"
 
@@ -23,7 +24,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 19 Nov 2026 pagi (PR #12–#17 di-merge, tidak ada PR terbuka; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 disambungkan ke Supabase "live-second-brain" dan tayang di jize-zone.vercel.app; tinggal URL login di Supabase dan PR `second-brain` #2 (`HANDOFF.md` bagian 0). Berikutnya: PR 39 klip suara Clawd bahasa Inggris dengan suara teman host (klipnya sudah jadi dan masih ada di container sesi 19 Nov; letaknya di `HANDOFF.md` bagian 0, "MULAI DI SINI"), lalu Tugas 9 dengan arahan host.
+Diperbarui 19 Nov 2026 (PR #12–#18 di-merge; Tugas 8 selesai, tinggal sisa yang menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Berikutnya: Tugas 9 dengan arahan host.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -85,7 +86,9 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - Ditiru dengan Chatterbox di CPU container, karena kuota ZeroGPU Hugging Face habis.
     - Empat contoh sudah dikirim ke host: tenang EN, marah EN, tenang ID dengan setelan Melayu, dan tenang ID dengan model Inggris.
     - ⏭️ 78 klip: dilewati dulu (host 18 Nov: "kerjakan tugas 8.2 + 8.3 dulu"). Dikerjakan sesudah host memilih contoh. Rekaman tidak masuk repo.
-    - Pilihan host 18 Nov ("gw pilih suara temen gw yang en. gausa kasih indo."): suara teman host, bahasa Inggris saja. Jadi 39 klip EN, tanpa klip ID (film berbahasa Indonesia: Clawd tanpa suara). 39 klip sudah jadi 18 Nov (pratinjau dan cadangan `clawd-klip-final.zip` dikirim ke host). Sesi Jize Zone mengira rekamannya hilang, tetapi berkasnya masih ada di container sesi 19 Nov. Masuk PR suara terpisah dari `main` terbaru.
+    - Pilihan host 18 Nov ("gw pilih suara temen gw yang en. gausa kasih indo."): suara teman host, bahasa Inggris saja. Jadi 39 klip EN, tanpa klip ID (film berbahasa Indonesia: Clawd tanpa suara). 39 klip dibuat 18 Nov oleh sesi branch `claude/gallant-hopper-1jlpo0` (pratinjau dan cadangan `clawd-klip-final.zip` dikirim ke host); rekaman yang dijernihkan dan venv Chatterbox masih ada di container sesi itu. Catatan PR #17 bahwa rekaman hilang hanya berlaku untuk container sesi Jize Zone.
+    - ✅ 19 Nov: 39 klip masuk repo dari zip kiriman host ("ini suara clawd"). Diperiksa Haiku (nama, teks, kenyaringan) dan Sonnet (transkripsi Whisper lokal), diolah dengan jeda di tengah klip paling lama 0,6 dtk. Video pratinjau bersuara 2,5D dan 3D, desktop dan HP, dikirim. Sisa: host mendengar `intro.0`, `gong.1`, `tip.kayon.0`.
+  - ✅ 19 Nov: gong datar di film 2,5D diperjelas jadi gong ageng perunggu (host bertanya "gada gong tapi bilang see the gong", memilih "a"). Rinciannya: `docs/design/decisions.md` bagian "Gong datar di film 2,5D diperjelas".
 - [x] **8. Benang emas (desain ulang) dan siklus waktu 3D**, post-FX, partikel. ✅ 18 Nov 2026 (8.1–8.4). Dimulai 17 Nov atas arahan host ("mulai saja tugas 8"). Rincian dan status: `HANDOFF.md` bagian 0.
   - [x] **8.1 Desain ulang benang emas.** ✅ 17 Nov 2026.
     - Dua versi benang emas tidak memuaskan host ("upgrade lah, keliatan basic banget"), jadi konsepnya diganti atas pilihan host ("b aja coba").
