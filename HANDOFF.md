@@ -15,7 +15,7 @@ Menunggu host:
 - jawaban soal kaki Clawd 3D yang tertutup kartu gallery
 - uji di iPhone produksi (`/film/?fps`)
 
-### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — HOST MEMILIH A, SEDANG DIKERJAKAN
+### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — HOST MEMILIH A, GONG BARU SELESAI 19 NOV
 
 **Kata host, kata demi kata:** "itu di previews, gada gong tapi bilang \"see the gong\" emang gitu?"
 Temuan Claude (dari frame video uji 2,5D, detik 25,8–28):
@@ -27,6 +27,11 @@ Usul (menunggu pilihan host):
 - B. Biarkan seperti sekarang.
 
 **Jawaban host, kata demi kata:** "a". Gong datar di film 2,5D diperjelas (usul A).
+1. **Selesai (19 Nov):**
+   - Sonnet: `.fs-gong` digambar ulang sebagai gong ageng perunggu: bibir berkilap logam (`conic-gradient`), rai gelap hangat dengan dua alur, pencu (`::before`) dengan sorot kiri atas, bayangan jatuh dan pendar; riak sedikit lebih jelas; getaran singkat saat dipukul (tanpa getaran di Calm dan reduced motion). `decisions.md` bagian "Gong datar di film 2,5D diperjelas". Opus meninjau diff dan foto.
+   - Foto desktop dan HP dikirim ke host dan dicatat di ledger: judul tetap terbaca di atas rai gelap; pencu dan kilatan pukulan terlihat; gong kecil di tombol penutup hari terbaca sebagai gong (ikon tombol di atas pencu).
+2. **Kendala:** container sempat di-restart di menit ke-68 rekaman 3D desktop; video tersimpan 76 dtk tetapi log suara hilang. Perekam kini menulis log suara tiap peristiwa. Rekaman 3D desktop diulang.
+3. **Langkah berikutnya:** video 3D bersuara desktop dan HP, video 2,5D bersuara diulang dengan gong baru, e2e, PR.
 
 ### Kiriman host 18 Nov malam: 39 klip suara Clawd — KLIP MASUK REPO; VIDEO PRATINJAU BERSUARA SEDANG DIREKAM
 
