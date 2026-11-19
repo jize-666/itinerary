@@ -37,6 +37,7 @@ Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang dis
   - **Temuan:** satu tes gagal di run `pull_request` (335 lulus, 32 dilewati): `stage.spec.ts` "kunang-kunang sungguh tampak di gong penutup" (desktop), habis waktu 90 dtk di percobaan pertama dan ulangannya. Run `push` untuk commit yang sama hijau.
   - **Bukan regresi Lawu:** dijalankan sendiri, tes ini butuh 53,4 dtk di `main` dan 54,2 dtk di branch ini. Tes memakai tier High yang digambar CPU; empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,7 dtk + dekode PNG ±3 dtk di halaman film yang sibuk). Dengan dua worker di CI, sesekali lewat 90 dtk.
   - **Perbaikan (Sonnet mengerjakan, Opus meninjau):** tangkapan hanya pita yang dihitung (45–90 % tinggi, `clip`), dekode dan hitung di tab kosong terpisah; isi uji (pita, aturan warna, empat sampel, ambang +40) tidak berubah. Sendiri kini 48–50 dtk. Batas waktu tes ini dinaikkan dari 90 dtk (`test.slow()`) ke 180 dtk dengan alasan tertulis di kode.
+  - **CI kedua (`8d08792`) masih merah di tes yang sama, 90 dtk:** kesalahan Claude. Pengganti teks mengenai kemunculan pertama dua baris yang sama di tes DOF gallery (baris 883), jadi batas 180 dtk terpasang di tes yang salah. Diperbaiki: tes DOF kembali persis seperti di `main`, batas 180 dtk di tes kunang-kunang. Bukti lokal dengan dua dan tiga proses pembeban CPU: tes kunang-kunang 1,4 menit (±84 dtk, dekat batas lama 90 dtk), lulus di batas baru.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 

@@ -881,9 +881,7 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
 
   test("tier High di gallery: depth of field digambar (fokus dekat saat diam) dan mengaburkan lanskap; di luar gallery tidak", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
-    // tier High digambar CPU: empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,5 dtk) ditambah membuka panggung;
-    // sendiri ±50 dtk, di CI dua worker berbagi CPU dan sesekali melewati 90 dtk (PR #21). Isi uji tidak berubah.
-    test.setTimeout(180_000);
+    test.slow();
     // yang diukur kabur lanskap: Clawd (sengaja selalu tajam di depth of field) tidak ikut di gambar ini
     await open3d(page, "?stage=high&clawd=0", "#day-1");
     await nextFrames(page);
@@ -1241,7 +1239,9 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
 
   test("kunang-kunang sungguh tampak di gong penutup: titik kuning kehijauan bertambah dibanding tanpa partikel", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "cukup satu ukuran layar; tier High digambar CPU");
-    test.slow();
+    // tier High digambar CPU: empat sampel × (3 frame ±2,5 dtk + tangkapan ±3,5 dtk) ditambah membuka panggung;
+    // sendiri ±50 dtk, di CI dua worker berbagi CPU dan sesekali melewati 90 dtk (PR #21). Isi uji tidak berubah.
+    test.setTimeout(180_000);
     await open3d(page, "?stage=high&clawd=0", "#day-2");
     await step(page, "ArrowUp");
     await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("fireflies");
