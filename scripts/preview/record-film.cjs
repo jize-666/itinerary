@@ -4,7 +4,7 @@
 //   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama]
 // diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, VOICE diabaikan): DIO_Q=high|medium|low (bawaan high)
 // mengunci kualitas, DIO_LANG=en|id (bawaan en, lewat localStorage lakon.lang), QUERY menambah parameter URL. Video
-// mulai begitu .dio-root[data-ready="true"][data-tour="playing"] (mesin hidup, tur berjalan; STAGE diabaikan) dan
+// mulai begitu .dio-root[data-ready="true"] (mesin maket hidup, tur otomatis jalan dari detik 0; STAGE diabaikan) dan
 // berhenti saat data-tour="done" + ±1,5 dtk virtual, batas aman 70 dtk virtual. Contoh:
 //   DIO_Q=high node scripts/preview/record-film.cjs <client.json> out.mp4 desktop 0.03 diorama
 // dimensi = gerbang dimensi di gallery (permintaan host 17 Nov): judul Hari 1 → intro → tiga panel maju (masuk
@@ -251,8 +251,8 @@ const fs = require('fs');
 
   if (dio) {
     // mulai saat mesin maket hidup dan tur berjalan (kanvas sudah menggambar), bukan dengan waktu tetap
-    await p.waitForSelector('.dio-root[data-ready="true"][data-tour="playing"]', { timeout: 600000 });
-    await p.waitForSelector('.dio-root canvas', { timeout: 60000 });
+    // (data-ready = mesin ada, kanvas sudah menggambar; tur otomatis langsung jalan dari detik 0)
+    await p.waitForSelector('.dio-root[data-ready="true"]', { timeout: 600000 });
     rolling = true;
     // tur selesai = data-tour="done"; batas aman 70 dtk virtual (waktu nyata = 70 / K)
     await p.waitForSelector('.dio-root[data-tour="done"]', { timeout: 70000 / K }).catch(() => console.error('tur belum selesai di batas 70 dtk virtual'));
