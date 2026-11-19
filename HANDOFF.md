@@ -23,14 +23,15 @@ Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang dis
    - UI (Sonnet mengerjakan, Opus meninjau dan merapikan): gaya kartu khusus Codex dihapus; kartu Hari 2 = kartu gallery standar. Letak tetap rendah: desktop di kiri bawah (lebar `clamp(380px, 34vw, 520px)`, tinggi poster standar, tetangga di luar layar), HP lebar standar dengan poster lebih pendek. Film 2,5D Hari 2 ikut memakai kartu standar.
    - Tes: lint, typecheck, unit 513/513 (35 berkas), content:check OK, build OK. E2E penuh 331 lulus, 5 gagal, 32 dilewati; kelima yang gagal (tes panggung 3D desktop yang habis waktu saat CPU penuh) lulus saat diulang sendiri. Sesudah perubahan UI: `lawu.spec` + `film.spec` 93 lulus, 1 gagal karena beban (tes Lawu iPhone, lulus saat diulang sendiri).
    - Satu tes Codex diubah: posisi kamera "diam" dibandingkan dengan toleransi 1 µm per sumbu (sebelumnya persis; selisih terukur 1e-10 m).
-   - Video desktop 33 dtk (High, `LAWU_PACE=2`, data trip April, nama Jize, bahasa ID) dikirim ke host dan dicatat di ledger.
+   - Video desktop (1440 × 900) dan HP (1080 × 1920, layar 360 × 640) masing-masing 33 dtk (High, `LAWU_PACE=2`, data trip April, nama Jize, bahasa ID, suara angin dan air) dikirim ke host dan dicatat di ledger (436,7 MB belum di Drive, di bawah 1 GB).
 2. **Kendala dan temuan:**
    - Klip suara EN `tip.mountain.0` belum dibuat: rekaman teman host (`clawd-ref2-jernih.wav`) tidak ada di container ini. Sampai ada, gelembung Clawd di Kemuning tampil tanpa suara.
    - Beban: `createWorld` membangun ±650 ribu segitiga sekaligus di main thread (±130–300 ms di High, 50–80 ms di Medium/Low, diukur di Node) tiga slide sebelum Hari 2. Usul bila host melihat patah di iPhone: bangun per potong dan `compileAsync` shader saat dunia masih tersembunyi.
    - Panel "Kembali ke Solo, istirahat" (15.15) memandang dataran hijau berkabut yang kosong; kesan visual paling lemah di Hari 2.
    - Kamera di Cetho dan Sukuh cerah, belum terasa "candi di dalam kabut" seperti PRD.
    - Belum diuji di perangkat fisik (iPhone High ≥ 55 fps, p95 ≤ 20 ms; MacBook Air ≥ 58 fps).
-3. **Langkah berikutnya:** video HP, PR siap Squash and merge; host meninjau video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex).
+   - Di HP pendek (360 × 640) kartu standar menutupi sebagian besar candi Cetho; di iPhone 14 Pro candi masih terlihat di atas kartu. Bila host ingin pemandangan lebih lega di HP, bisa dibuat varian kartu ringkas khusus Hari 2.
+3. **Langkah berikutnya:** PR siap Squash and merge; host meninjau kedua video dan mengukur di iPhone (`/film/?stage=high&fps#day-2`, fungsi `ukurLawu` di README Codex). Sesudah merge: Tugas 11 (Canting) bila hasil Codex sudah ada.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
