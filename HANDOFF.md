@@ -30,6 +30,8 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
      - Foto desktop dan HP (tampilan awal, Pendhapa, Pasar, Laweyan) dikirim ke host dan dicatat di ledger.
   2. **Catatan:** judul halaman dari Codex "Ruang Solo" (situs: "A Three-Day Lakon"); label arah kompas di atas bangunan terang agak sulit dibaca saat kamera dekat. Belum diuji di perangkat fisik.
   3. **Langkah berikutnya:** tautan masuk dari film (slide rute, kartu Pasar Gede/Laweyan/Mangkunegaran) dan Today (Sonnet, sedang), video tur desktop + HP, e2e penuh, PR.
+- **Permintaan host, kata demi kata:** "kamu rapikan, sesuaikan ui/ux nya dengan project kita" (jawaban atas tawaran merapikan judul "Ruang Solo" dan label kompas).
+  Tafsir Claude: antarmuka halaman `/diorama/` disamakan dengan bahasa visual situs (film dan Today): nama situs, bilah atas, tombol, sakelar bahasa, warna dan huruf, gerak; label kompas dibuat terbaca di atas maket. Maket 3D dan logikanya tidak diubah.
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
