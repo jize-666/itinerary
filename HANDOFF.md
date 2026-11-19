@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — REVISI v1.1 DIKIRIM, MENUNGGU KODE CODEX
+### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — KODE CODEX DITERIMA, SEDANG DIPASANG
 
 **Kata host, kata demi kata:** "ini prd ku, codex telah mengerjakan nya, jadi kamu cukup memasangnya nanti di lingkunganmu", lalu "pendapat?". Lampiran: `PRD-Diorama-Solo-3D.pdf` (v1.0, 19 Nov 2026, 13 halaman; tidak disalin ke repo).
 Ringkasan PRD:
@@ -21,6 +21,8 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
   1. **Selesai:** `docs/handoff/codex-diorama-revisi-1.1.md` (dikirim ke host): prompt siap tempel berbahasa Inggris, lalu 12 bagian: lingkungan repo (versi, CSP tanpa WASM, i18n, sesi, Calm), bentuk penyerahan (`src/app/diorama/`, `src/components/diorama/`, `src/engine/diorama/`), letak dan parameter URL, aturan gerak kamera, kinerja, mode foto, bahasa dan penamaan, `DioramaProps`, aksesibilitas, tes, tugas Claude sesudahnya, ringkasan perubahan.
   2. **Kendala:** dua pilihan dijadikan bawaan di revisi tanpa menunggu jawaban host (halaman `/diorama/`; parallax ringan saat diam); host bisa mengubahnya sebelum diberikan ke Codex.
   3. **Langkah berikutnya:** host memberikan PRD v1.0 + revisi v1.1 ke Codex; Claude memasang hasil Codex sesudah kodenya diterima (Haiku mendata isi, Sonnet memindahkan dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
+- **Kiriman host berikutnya:** `Diorama-Solo-Itinerary-v1.1.zip` dan `README-diorama.md` dari Codex (tanpa kata-kata; dibuat pada `main` `9065447`, PRD v1.0 + adendum v1.1). Klaim README: tanpa dependensi runtime baru (ZIP memakai fflate bawaan three), kode modul ±53 KB gzip, 493 tes unit lulus (28 tes diorama), 18 skenario Playwright, 33 draw call dan 186.775 segitiga maksimal, belum diuji di perangkat fisik.
+  Tafsir Claude: pasang di branch ini. Langkah: periksa isi ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan, jalankan semua tes, pasang tautan masuk dari film dan Today (bagian Claude di §11), pratinjau foto sembilan sudut dan video tur desktop + HP, lalu PR.
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
