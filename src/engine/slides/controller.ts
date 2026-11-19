@@ -40,6 +40,7 @@ export type SlideEvent =
   | { type: "step"; dir: Dir; source: Source; at?: number }
   | { type: "jump"; to: number }
   | { type: "scrubStart" }
+  | { type: "finishHold"; commit:boolean }
   /** Posisi jari bertanda: + = menuju slide berikutnya, − = sebelumnya; 1 = satu slide penuh. */
   | { type: "scrub"; signed: number }
   /** `flick`: sentakan saat dilepas (arah), 0 bila dilepas pelan. */
@@ -157,6 +158,11 @@ export function reduce(s: SlideState, e: SlideEvent): Out {
       return [{ ...s, to, progress }, fx];
     }
 
+    case "finishHold": {
+      if (s.phase !== "scrub") return [s, []];
+      if (s.to === null) return [{...s, phase:"idle", progress:0}, []];
+      return reduce({...s,phase:"run",settle:e.commit?"commit":"cancel"}, {type:"settled"});
+    }
     case "scrubEnd": {
       if (s.phase !== "scrub") {
         // sentuhan saat transisi berjalan tidak men-scrub; sentakan yang sah tetap dihitung satu langkah

@@ -22,6 +22,7 @@ export type GuideContext = Readonly<{
   sheet: boolean;
   /** Film 2,5D (tanpa panggung 3D): tidak ada zoom/kitar gong dan gunungan pembuka. Bawaan: film 3D. */
   flat?: boolean;
+  mountainDawn?: boolean;
 }>;
 
 /** Petunjuk yang berlaku di tempat ini, atau null. */
@@ -35,7 +36,7 @@ export function tipAt(c: GuideContext): TipId | null {
     case "title":
       return c.beat ? (c.flat ? null : "zoom") : "beat";
     case "panel":
-      return "gallery";
+      return c.mountainDawn ? "mountain" : "gallery";
     case "phrases":
       return "phrases";
     case "gong":
@@ -72,7 +73,7 @@ export function spotAt(c: GuideContext, speaking: TipId | null): Spot {
 export const GUIDE_KEY = "lakon.clawd";
 export type Seen = { intro: boolean; tips: TipId[] };
 const EMPTY: Seen = { intro: false, tips: [] };
-const TIP_IDS: readonly TipId[] = ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits"];
+const TIP_IDS: readonly TipId[] = ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits", "mountain"];
 
 export function readSeen(store: Pick<Storage, "getItem"> | undefined): Seen {
   try {

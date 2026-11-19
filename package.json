@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "content:check": "tsx scripts/content-check.ts",
+    "content:check": "node --import tsx scripts/content-check.ts",
     "content:publish": "tsx scripts/content-publish.ts",
     "access:hash": "tsx scripts/access-hash.ts"
   },

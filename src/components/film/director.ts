@@ -31,6 +31,36 @@ export class Director {
   /** Sheet detail terbuka: input film dimatikan. */
   paused = false;
   private root: HTMLElement | null = null;
+  private heldDistance = 0;
+  private touchDistance: number | null = null;
+  private betweenMountainPanels(dir: Dir) {
+    const current = this.film.slides[this.index];
+    const adjacent = this.film.slides[this.index + dir];
+    return !this.calm && current?.theme === "lawu" && current.kind === "panel" && adjacent?.scene === current.scene;
+  }
+
+  private finishHold(commit: boolean) {
+    this.heldDistance = 0;
+    this.store.dispatch({ type: "finishHold", commit });
+  }
+
+  private moveBy(delta: number) {
+    const next = this.heldDistance + delta;
+    const direction = next >= 0 ? 1 : -1;
+    if (this.store.get().phase === "run") return false;
+    if (!this.betweenMountainPanels(direction)) {
+      if (!this.heldDistance) return false;
+      this.finishHold(false);
+      return true;
+    }
+    this.store.dispatch({ type: "scrubStart" });
+    this.store.dispatch({ type: "scrub", signed: next });
+    this.heldDistance = next;
+    if (Math.abs(next) >= 1) this.finishHold(true);
+    else if (Math.abs(next) < 0.0001) this.finishHold(false);
+    return true;
+  }
+
   private timeline: Timeline | null = null;
   private plan: Plan | null = null;
   private pendingLive: (() => void) | null = null;
@@ -64,7 +94,17 @@ export class Director {
       spanFor: (dir) => scrubSpan(root, this.film, this.index, this.index + dir),
       // gunungan pembuka/penutup: langkah di ujung film mencabut atau menancapkannya (semua sumber, juga keyboard).
       // slide gong 3D: gulir maju pertama mendekat ke gong, gulir mundur saat dekat menjauh dulu (keyboard tetap per slide)
+      wheelDistance: (pixels) => {
+        const dir = pixels > 0 ? 1 : -1;
+        if (!pixels || (!this.heldDistance && !this.betweenMountainPanels(dir))) return false;
+        const span = scrubSpan(root, this.film, this.index, this.index + dir);
+        return this.moveBy(pixels / Math.max(1, span));
+      },
       step: (dir, source) => {
+        if (this.heldDistance) {
+          this.finishHold(Math.sign(this.heldDistance) === dir);
+          return;
+        }
         // tahap judul lebih dulu: di hero yang teksnya sudah keluar, mundur mengembalikan teks dulu, baru
         // langkah mundur berikutnya menancapkan gunungan pembuka (selama gunungan tertancap tahap tidak berlaku)
         if (this.beatStep(dir)) return;
@@ -75,11 +115,28 @@ export class Director {
       edge: (to) => this.jump(to === "first" ? 0 : this.film.slides.length - 1),
       // jari di slide pertama saat gunungan pembuka tertancap: yang digeser gunungannya (mengikuti jari)
       scrubStart: (dir) => {
+        if (this.heldDistance || this.betweenMountainPanels(dir)) {
+          this.touchDistance = 0;
+          return;
+        }
         this.gateScrub = dir === 1 && !this.calm && stageBus.gateScrubStart(this.index);
         if (!this.gateScrub) this.store.dispatch({ type: "scrubStart" });
       },
-      scrub: (signed) => (this.gateScrub ? stageBus.gateScrub(signed) : this.store.dispatch({ type: "scrub", signed })),
+      scrub: (signed) => {
+        if (this.touchDistance !== null) {
+          const delta = signed - this.touchDistance;
+          this.touchDistance = signed;
+          this.moveBy(delta);
+          return;
+        }
+        if (this.gateScrub) stageBus.gateScrub(signed);
+        else this.store.dispatch({ type: "scrub", signed });
+      },
       scrubEnd: (flick) => {
+        if (this.touchDistance !== null) {
+          this.touchDistance = null;
+          return;
+        }
         if (!this.gateScrub) return this.store.dispatch({ type: "scrubEnd", flick });
         this.gateScrub = false;
         stageBus.gateScrubEnd(flick);
@@ -118,6 +175,10 @@ export class Director {
   }
 
   step(dir: Dir) {
+    if (this.heldDistance) {
+      this.finishHold(Math.sign(this.heldDistance) === dir);
+      return;
+    }
     if (this.beatStep(dir)) return;
     if (this.gateStep(dir)) return;
     this.store.dispatch({ type: "step", dir, source: "ui" });
@@ -147,6 +208,7 @@ export class Director {
   }
 
   jump(to: number) {
+    if (this.heldDistance) this.finishHold(false);
     this.store.dispatch({ type: "jump", to });
   }
 

@@ -515,6 +515,11 @@ function Credits({ data }: Ctx) {
           </div>
         )}
         <div>
+          <dt>{tx({en: "Mountain relief and map", id: "Relief gunung dan peta"})}</dt>
+          <dd>SRTM · USGS / NASA · Mapzen</dd>
+          <dd><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">{tx({en:"© OpenStreetMap contributors · ODbL",id:"© Kontributor OpenStreetMap · ODbL"})}</a></dd>
+        </div>
+        <div>
           <dt>{t("film.credits.music")}</dt>
           <dd>{t("film.credits.musicBody")}</dd>
         </div>

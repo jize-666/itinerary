@@ -26,6 +26,7 @@ import { Director, type FilmView } from "./director";
 import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
 import { startLook, stepLook } from "./look";
+import { LawuLayers, LawuSound } from "./LawuLayers";
 import { StageMount, type StagePhase } from "./StageMount";
 import { HILLS, hillShift, sunPlace } from "./transitions";
 
@@ -502,6 +503,10 @@ function Stage({ data }: { data: TripView }) {
         ))}
         <div className="fl-sky" data-sky="gate" style={{ opacity: sky.gate }} />
       </div>
+      {slide?.theme === "lawu" && (slide.kind === "panel" || slide.kind === "dayintro") && <>
+        {stage !== "on" && <LawuLayers film={film} slide={slide} probe={probe} moving={!!view.moving} calm={calm} />}
+        <LawuSound place={slide.kind==="panel" ? slide.stop.id : "depart-lawu"} />
+      </>}
       <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
       {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
       {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}

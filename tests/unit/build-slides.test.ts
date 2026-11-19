@@ -180,11 +180,12 @@ describe("konten Solo yang sebenarnya", () => {
     expect(film.chapters.map((c) => c.id)).toEqual(["prologue", "day-1", "day-2", "day-3", "epilogue", "credits"]);
   });
 
-  it("tiap hari 5–9 panel, dan jumlah slide tetap dalam ukuran film pendek", () => {
+  it("Hari Lawu memiliki sebelas panel, bab lain 5–9, dan film tetap singkat", () => {
     for (const c of film.chapters.filter((x) => x.kind === "day")) {
       const n = panels.filter((p) => p.chapter === c.id).length;
       expect(n, c.id).toBeGreaterThanOrEqual(5);
-      expect(n, c.id).toBeLessThanOrEqual(9);
+      if(c.day?.theme==="lawu") expect(n,c.id).toBe(11);
+      else expect(n, c.id).toBeLessThanOrEqual(9);
     }
     expect(film.slides.length).toBeGreaterThanOrEqual(40);
     expect(film.slides.length).toBeLessThanOrEqual(56);

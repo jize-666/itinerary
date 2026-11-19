@@ -46,6 +46,7 @@ class AudioEngine {
   }
 
   // ---- status untuk React (useSyncExternalStore) ----
+  environment = () => this.ctx && this.sfxBus ? {context:this.ctx,output:this.sfxBus} : null;
   getState = () => this.state;
   getServerState = () => INITIAL_AUDIO;
   subscribe = (fn: () => void) => {

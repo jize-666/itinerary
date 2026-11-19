@@ -1,3 +1,4 @@
+import morning from "@/engine/stage/lawu/morning.json";
 import { describe, expect, it } from "vitest";
 import { Trip } from "@content/schema";
 import { trip as soloInput } from "@content/trips/solo/trip";
@@ -250,7 +251,7 @@ describe("konten Solo: tiap panel membawa jamnya", () => {
   it("jam panel = jam langit stop; intro hari memakai jam panel pertama tanpa matahari", () => {
     for (const chapter of ["day-1", "day-2", "day-3"]) {
       const panels = panelsOf(chapter);
-      for (const p of panels) expect(p.clock, p.id).toBe(skyClock(p.stop, p.light!));
+      for (const p of panels) expect(p.clock, p.id).toBe(p.stop.id==="kemuning-sunrise"?morning.firstMinute+4:skyClock(p.stop, p.light!));
       const intro = film.slides.find((s) => s.id === `${chapter}/intro`)!;
       expect(intro.clock).toBe(panels[0]!.clock);
       // masuk gallery: warna langit tidak berganti; matahari (bila ada) memudar masuk di tempat
@@ -259,7 +260,7 @@ describe("konten Solo: tiap panel membawa jamnya", () => {
       expect(from.sun).toEqual({ ...to.sun, opacity: 0 });
     }
     expect(panelsOf("day-1")[0]!.clock).toBe(minutesOf("07:00"));
-    expect(panelsOf("day-2")[0]!.clock).toBe(minutesOf("05:55")); // panel matahari terbit: terbit 05:35 + 20 menit
+    expect(panelsOf("day-2")[0]!.clock).toBe(minutesOf("04:00"));
   });
 
   it("hari yang dibuka dengan sarapan: matahari tak tampak sampai sarapan, lalu tampak dari jadwal berikutnya sampai sore", () => {
@@ -278,12 +279,13 @@ describe("konten Solo: tiap panel membawa jamnya", () => {
   });
 
   it("Hari 2 (ada jadwal sebelum sarapan): matahari sudah menyembul di panel matahari terbit dan penuh saat sarapan", () => {
-    const [sunrise, breakfast, temple] = panelsOf("day-2");
+    const [depart, sunrise, breakfast, temple] = panelsOf("day-2");
+    expect(skyState(depart!).sun.opacity).toBe(0);
     expect(sunrise!.stop.kind).not.toBe("food");
     expect(breakfast!.stop.kind).toBe("food");
     const rising = skyState(sunrise!).sun;
     expect(rising.opacity).toBeGreaterThan(0.6);
-    expect(rising.v).toBeGreaterThan(0.85);
+    expect(rising.v).toBeGreaterThan(0.65);
     expect(skyState(breakfast!).sun.opacity).toBe(1);
     expect(skyState(breakfast!).sun.v).toBeLessThan(rising.v);
     expect(skyState(temple!).sun.u).toBeGreaterThan(skyState(breakfast!).sun.u);
