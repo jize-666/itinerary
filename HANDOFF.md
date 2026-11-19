@@ -1,14 +1,17 @@
 # HANDOFF
 
-Diperbarui 18 Nov 2026 malam (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`f32a1e9`, PR #17 dan `second-brain` #2 sudah di-merge) · **sedang dikerjakan: 39 klip suara Clawd bahasa Inggris dari zip kiriman host** · Jize Zone tayang di https://jize-zone.vercel.app (URL login Supabase menunggu host).
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `f32a1e9`) · **selesai, PR menunggu host: 39 klip suara Clawd EN, perekam video bersuara, gong datar film 2,5D** · Jize Zone tayang di https://jize-zone.vercel.app · berikutnya: Tugas 9 dengan arahan host.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
 Menunggu host:
-- Jize Zone: di Supabase Authentication → URL Configuration, Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**`, lalu coba login magic link
-- merge PR `second-brain` #2 (pemasang hook dan perbaikan jalur produksi) dan PR itinerary #17 (hook dan dokumen)
-- rekaman suara teman host dikirim ulang (hilang bersama container lama), untuk 39 klip Clawd
+- merge PR suara Clawd + gong datar 2,5D (branch `claude/admiring-noether-tbqvap`)
+- dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
+- arahan Tugas 9 (Diorama Solo)
+- Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
+- Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
+- Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
 - keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
 - izin untuk Fable (pembantu yang hanya bekerja atas izin host)
 - penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
@@ -33,7 +36,7 @@ Usul (menunggu pilihan host):
 2. **Kendala:** container sempat di-restart di menit ke-68 rekaman 3D desktop; video tersimpan 76 dtk tetapi log suara hilang. Perekam kini menulis log suara tiap peristiwa. Rekaman 3D desktop diulang.
 3. **Langkah berikutnya:** video 3D bersuara desktop dan HP, video 2,5D bersuara diulang dengan gong baru, e2e, PR.
 
-### Kiriman host 18 Nov malam: 39 klip suara Clawd — KLIP MASUK REPO; VIDEO PRATINJAU BERSUARA SEDANG DIREKAM
+### Kiriman host 18 Nov malam: 39 klip suara Clawd — SELESAI 19 NOV, PR MENUNGGU HOST
 
 **Kata host, kata demi kata:** "udah gw merge. ini suara clawd", dengan lampiran `clawd-klip-final.zip` (13 MB).
 Tafsir Claude:
@@ -74,7 +77,10 @@ Tafsir Claude:
    - Container di-restart dua kali saat rekaman 3D berjalan di latar dan giliran Claude sudah berakhir (kemungkinan dianggap menganggur). Rekaman panjang kini ditunggu dengan perintah di latar depan (tiap ≤ 10 menit).
    - Rekaman 3D 84 dtk memakan ±70 menit (K = 0,02, panggung digambar CPU).
    - Video hanya membawa suara Clawd (tanpa gendhing dan efek).
-3. **Langkah berikutnya:** video 3D HP (sedang direkam), e2e penuh, PR.
+3. **Selesai sesudahnya (19 Nov):** video 3D HP dikirim dan dicatat (15 klip, kalimat layar sentuh). Tes penutup:
+   - lint, typecheck, unit 465/465, content:check, `clawd-voice.ts check` lulus; build lulus (bagian dari e2e);
+   - e2e 291 lulus, 32 dilewati sesuai proyeknya, 1 gagal: `stage.spec.ts:530` (sapuan bab gunungan, desktop) habis batas 30 dtk di 30,4 dtk. Kode aplikasi di jalur itu tidak berubah, dan tes yang sama lulus di CI PR #17; container ini lebih lambat (4 inti). Tes tidak diubah.
+4. **Langkah berikutnya:** host merge PR, mendengar tiga klip, lalu arahan Tugas 9.
 
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
