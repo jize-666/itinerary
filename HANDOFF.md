@@ -1,9 +1,13 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex dipasang, kartu Hari 2 disamakan dengan film; menunggu tinjauan host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`38e179d`, PR #21 Tugas 10 Lereng Lawu di-merge host) · **Codex tidak bisa melanjutkan; Tugas 11–12 menunggu keputusan host apakah dikerjakan Claude** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Pesan host 19 Nov malam sesudah PR #21 di-merge: "daftar planning mana? liat. codex sakit gabisa lanjutin task" — DAFTAR DIKIRIM, MENUNGGU PILIHAN HOST
+
+Tafsir Claude: host minta melihat daftar rencana, dan Codex tidak bisa melanjutkan Tugas 11 (Canting dan kain mori) dan 12 (Boarding pass 3D dengan fisika) yang PRD-nya sudah ada di `docs/handoff/`. Claude menyusun daftar (yang selesai, yang tersisa, yang menunggu host) dan mengusulkan Claude mengambil alih Tugas 11 lalu 12 dari PRD yang sama, dengan pembagian Haiku/Sonnet/Opus. Belum ada kode; menunggu host memilih.
 
 ### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DIPASANG, UI DISAMAKAN; MENUNGGU TINJAUAN HOST
 
