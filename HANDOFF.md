@@ -23,6 +23,13 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
   3. **Langkah berikutnya:** host memberikan PRD v1.0 + revisi v1.1 ke Codex; Claude memasang hasil Codex sesudah kodenya diterima (Haiku mendata isi, Sonnet memindahkan dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
 - **Kiriman host berikutnya:** `Diorama-Solo-Itinerary-v1.1.zip` dan `README-diorama.md` dari Codex (tanpa kata-kata; dibuat pada `main` `9065447`, PRD v1.0 + adendum v1.1). Klaim README: tanpa dependensi runtime baru (ZIP memakai fflate bawaan three), kode modul ±53 KB gzip, 493 tes unit lulus (28 tes diorama), 18 skenario Playwright, 33 draw call dan 186.775 segitiga maksimal, belum diuji di perangkat fisik.
   Tafsir Claude: pasang di branch ini. Langkah: periksa isi ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan, jalankan semua tes, pasang tautan masuk dari film dan Today (bagian Claude di §11), pratinjau foto sembilan sudut dan video tur desktop + HP, lalu PR.
+  1. **Selesai (19 Nov):**
+     - ZIP diperiksa di luar repo: 28 berkas, semuanya baru di jalur adendum (tidak menimpa apa pun). Pindai Haiku: tanpa jaringan luar, `eval`, `innerHTML`, atau WASM; penyimpanan hanya `lakon.calm` (dibaca) dan `dio.orientation` (sessionStorage); impor di luar modul hanya `useRequireSession`, `useI18n`, `e2e/helpers` (ada di repo), dan fflate bawaan three.
+     - Dipasang apa adanya (commit sendiri); README Codex dipindah ke `docs/handoff/README-diorama.md`.
+     - Tes: lint, typecheck, unit 493/493 (28 diorama), content:check, build (`out/diorama/`), e2e diorama 18/18 (desktop + iPhone, termasuk ZIP sembilan sudut di bawah CSP produksi).
+     - Foto desktop dan HP (tampilan awal, Pendhapa, Pasar, Laweyan) dikirim ke host dan dicatat di ledger.
+  2. **Catatan:** judul halaman dari Codex "Ruang Solo" (situs: "A Three-Day Lakon"); label arah kompas di atas bangunan terang agak sulit dibaca saat kamera dekat. Belum diuji di perangkat fisik.
+  3. **Langkah berikutnya:** tautan masuk dari film (slide rute, kartu Pasar Gede/Laweyan/Mangkunegaran) dan Today (Sonnet, sedang), video tur desktop + HP, e2e penuh, PR.
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 

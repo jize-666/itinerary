@@ -286,6 +286,22 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "dio-desktop-lembar.jpg",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-foto/dio-desktop-lembar.jpg",
+      "size": 183921,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "dio-hp-lembar.jpg",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-foto/dio-hp-lembar.jpg",
+      "size": 211534,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
