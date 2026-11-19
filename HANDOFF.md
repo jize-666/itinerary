@@ -57,6 +57,24 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
   3. **Selesai juga:** foto sesudah (desktop + iPhone) dan video tur 64 dtk desktop + HP (`DIO_Q=high`, K 0,03, ±35 menit tiap video) dikirim ke host dan dicatat di ledger (389,6 MB belum di Drive, di bawah 1 GB).
   4. **Langkah berikutnya:** e2e penuh, PR siap Squash and merge; host meneruskan PRD Tugas 10–12 ke Codex sesudah PR di-merge.
 
+### Revisi host 19 Nov atas UI `/diorama/` (sesudah foto dan video tur) — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:**
+1. "itu ada text -3d diorama, hapus. ganti; diorama solox"
+2. "itu ui, text di bawah diorama, versi mobile. "location" dan gambar di bawahnya, revisi. rapikan lagi, buat lebih terstucture"
+
+Tafsir Claude:
+1. Kicker "— 3D DIORAMA" (garis dan teksnya) di atas judul diganti "Diorama Solo". "solox" dibaca sebagai salah ketik "Solo"; mudah diganti bila host memang mau "Solox".
+2. Di HP, bagian di bawah kanvas dirapikan: keterangan lokasi aktif (judul, teks, Sebelumnya/Berikutnya) dan daftar "Locations" (ikon dan nama yang kini berdesakan tiga kolom, subjudul terpotong) dibuat terstruktur: susunan yang jelas, ukuran seragam, teks tidak terpotong. Desktop tidak diubah kecuali perlu.
+
+### Temuan e2e penuh 19 Nov: tes privasi bundle gagal karena diorama — DIPUTUSKAN HOST, SELESAI
+
+- E2E penuh sesudah diorama dipasang: 316 lulus, 2 gagal.
+  - `stage.spec.ts:173` habis waktu karena beban container; lulus saat diulang sendiri (21,5 dtk).
+  - `smoke.spec.ts` "bundle statis tidak memuat data trip" gagal: teks diorama (`src/engine/diorama/strings.ts`) memuat "Laweyan", salah satu penanda trip. Jadwal, jam, nama tamu, dan penanda lain tidak ada di bundle; "Solo" memang sudah ada sejak dulu.
+- **Pilihan host (kartu tanya):** "Terima, kecualikan diorama". Nama landmark publik di diorama dianggap bukan data trip.
+- **Dikerjakan:** tes hanya mengecualikan literal string utuh (dengan tanda kutip) dari modul teks diorama yang memuat "Laweyan". Penanda lain tetap diperiksa di semua berkas. Dibuktikan dengan berkas tanam berisi `"Batik class in Laweyan at 08:30"`: tes gagal sebagaimana mestinya; tanpa berkas itu lulus.
+
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
