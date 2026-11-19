@@ -35,21 +35,10 @@ import {
   WebGLRenderTarget,
 } from "three";
 import { DAB, type Trace } from "@/engine/canting/trace";
+import { EMPTY_STATE, type BatikState } from "@/engine/canting/state";
 
-export type BatikState = {
-  /** Progres torehan 0–1 (dab dan bidang dengan waktu ≤ progres sudah di kain). */
-  draw: number;
-  /** Kadar celup nila 0–1 (kain turun ke bak dari tepi bawah; 1 = seluruh kain sudah terendam). */
-  nila: number;
-  /** Malam tembok dikerok 0–1. */
-  kerok: number;
-  /** Kadar celup soga 0–1. */
-  soga: number;
-  /** Malam dilorod 0–1. */
-  lorod: number;
-};
-
-export const EMPTY_STATE: BatikState = { draw: 0, nila: 0, kerok: 0, soga: 0, lorod: 0 };
+export type { BatikState };
+export { EMPTY_STATE };
 
 export type BatikQuality = "high" | "medium" | "low";
 
