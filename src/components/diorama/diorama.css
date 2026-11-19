@@ -358,6 +358,7 @@
 .dio-bearing strong {
   font-weight: 650;
   font-size: 0.84rem;
+  white-space: nowrap;
 }
 .dio-bearing small {
   font-size: 0.76rem;
@@ -742,7 +743,14 @@
     font-size: 0.74rem;
   }
   .dio-bearing small {
-    font-size: 0.7rem;
+    display: none;
+  }
+  .dio-shutter .pb-face > span {
+    display: none;
+  }
+  .dio-stage-tools .dio-shutter .pb-face {
+    padding: 0;
+    width: 40px;
   }
   .dio-caption {
     order: 2;
@@ -818,7 +826,7 @@
     padding: 0;
     width: 40px;
   }
-  .dio-shutter span {
+  .dio-shutter .pb-face > span {
     display: none;
   }
   .dio-intro h1 {
