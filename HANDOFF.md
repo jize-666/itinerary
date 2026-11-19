@@ -1,9 +1,26 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `f32a1e9`, `main` terbaru `d9858b3` = PR #18 sudah digabung ke branch ini) · **selesai, PR menunggu host: 39 klip suara Clawd EN, perekam video bersuara, gong datar film 2,5D** · Jize Zone tayang di https://jize-zone.vercel.app · berikutnya: Tugas 9 dengan arahan host.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **berikutnya: Tugas 9 (Diorama Solo), menunggu arahan host atas rencana di bawah** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Rencana Tugas 9: Diorama Solo — MENUNGGU ARAHAN HOST (19 Nov)
+
+**Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
+Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).
+- **Isi menurut PRD:** diorama kota Solo bergaya miniatur untuk prolog dan Hari 1. Footprint bangunan, jalan, dan sungai dari OpenStreetMap (ODbL, wajib atribusi di credits); landmark dimodelkan sendiri (Keraton Kasunanan dengan Panggung Songgo Buwono, Pasar Gede, Pura Mangkunegaran, Bengawan Solo, siluet Lawu di timur). Kamera terbang dari keraton ke pasar mengikuti gulir; malam hari jendela dan lampu jalan menyala (bloom selektif), ikut siklus waktu, grading, dan partikel Tugas 8.
+- **Usul langkah (tiap langkah: output dites, foto/video desktop + HP, PR):**
+  - 9.1 Data: skrip OSM → geometri ringkas (target < 300 KB gzip) + tes. Butuh host `overpass-api.de` dibuka di jaringan lingkungan (kartu izin); cadangan: bentuk prosedural tanpa data luar.
+  - 9.2 Diorama dan landmark: geometri digabung/instancing, material miniatur, bayangan kontak; gambar diam dulu untuk disetujui.
+  - 9.3 Shot kamera dan gulir: letak di prolog (slide rute, "3 days · ~20 stops · 1 city") dan Hari 1; parallax, perspective shift, kedalaman ikut gulir.
+  - 9.4 Malam dan beban: lampu jendela/jalan, cek fps tier High iPhone (`/film/?fps`), video.
+- **Bagi tugas:** Haiku mengukur data (jumlah bangunan, ukuran) dan memindai; Sonnet menulis skrip data, geometri, dan tes; Opus merancang gaya, shot, meninjau, dan mengukur beban.
+- **Keputusan host yang dibutuhkan:**
+  1. Data asli OSM (buka `overpass-api.de`) atau prosedural saja?
+  2. Letak: prolog + Hari 1 seperti PRD, atau juga menggantikan lanskap umum di gallery Hari 1?
+  3. Gaya: miniatur (tanah liat/kertas, tilt-shift) atau lebih realistis?
+- Catatan: sesi lain (branch `claude/gallant-hopper-1jlpo0`) masih hidup dan menyimpan rekaman suara teman host; sebaiknya tidak dua sesi mengerjakan tugas yang sama.
 
 ### MULAI DI SINI (19 Nov pagi)
 
@@ -19,9 +36,8 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 - Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
 
 Menunggu host:
-- merge PR #19 (suara Clawd 39 klip EN, video pratinjau bersuara, gong datar 2,5D; branch `claude/admiring-noether-tbqvap`)
 - dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
-- arahan Tugas 9 (Diorama Solo)
+- arahan Tugas 9 (Diorama Solo): tiga keputusan di "Rencana Tugas 9" di bawah
 - Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
 - Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
 - Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
