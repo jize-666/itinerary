@@ -246,6 +246,22 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "clawd-3d-desktop-suara-sebagian.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/rekam/clawd-3d-desktop-suara-sebagian.mp4",
+      "size": 55391518,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "clawd-bersuara-3d-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/rekam/clawd-bersuara-3d-desktop.mp4",
+      "size": 55595027,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
