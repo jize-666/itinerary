@@ -78,6 +78,11 @@ def main():
                 f = min(int(FADE * SR), len(pcm))
                 if f:
                     pcm[-f:] *= np.cos(np.linspace(0, np.pi / 2, f))[:, None]
+        if at < 0:  # klip mulai sebelum video (film 3D: selagi panggung dimuat): awalnya dipotong
+            pcm = pcm[int(round(-at * SR)):]
+            at = 0.0
+            if not len(pcm):
+                continue
         i = int(round(at * SR))
         j = min(len(track), i + len(pcm))
         if j > i:

@@ -70,14 +70,21 @@ const fs = require('fs');
     // terpasang (awal muat halaman) jam rAF masih jam nyata; di situ dipakai jam virtual.
     window.requestAnimationFrame = (cb) => raf((ts) => cb(Math.min(ts, performance.now())));
   }, K);
-  /** Peristiwa suara Clawd, dalam waktu video (diisi binding di bawah). */
+  /**
+   * Peristiwa suara Clawd (jam dinding nyata `tw`). Waktu video t = (tw − t0) × K dihitung saat ditulis; peristiwa
+   * sebelum video mulai (film 3D: Clawd sudah bicara selagi panggung dimuat) mendapat t negatif, dan mix-voice.py
+   * memotong awal klipnya. Log ditulis tiap peristiwa: bila rekaman terputus (container di-restart), isinya tidak hilang.
+   */
   const voiceEvents = [];
+  const dumpVoice = (selesai) => {
+    if (t0 === null) return;
+    const events = voiceEvents.map(({ tw, type, name }) => ({ t: +((tw - t0) * K).toFixed(3), type, name }));
+    fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events, selesai }, null, 1));
+  };
   if (VOICE) {
     await ctx.exposeFunction('__voiceEv', (type, name) => {
-      if (!rolling || t0 === null) return; // sebelum video mulai: tidak ada waktu video
-      voiceEvents.push({ t: +((Date.now() / 1000 - t0) * K).toFixed(3), type, name });
-      // ditulis tiap peristiwa: bila rekaman terputus (container di-restart), log sampai titik itu tidak hilang
-      fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents, selesai: false }, null, 1));
+      voiceEvents.push({ tw: Date.now() / 1000, type, name });
+      dumpVoice(false);
     });
     await ctx.addInitScript(() => {
       localStorage.setItem('lakon.lang', 'en');
@@ -131,7 +138,7 @@ const fs = require('fs');
   const { width, height } = p.viewportSize();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
-  if (VOICE) ff.on('close', () => fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents, selesai: true }, null, 1)));
+  if (VOICE) ff.on('close', () => dumpVoice(true));
   /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
   let rolling = true;
   const emitUntil = (tv) => { while (last && tick / FPS <= tv) { ff.stdin.write(last); tick++; written++; } };
