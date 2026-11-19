@@ -350,6 +350,30 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "dio-rev2-desktop-home.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-ui-rev2/kirim/dio-rev2-desktop-home.png",
+      "size": 1428531,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "dio-rev2-iphone-home.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-ui-rev2/kirim/dio-rev2-iphone-home.png",
+      "size": 560318,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "dio-rev2-iphone-pasar.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/dio-ui-rev2/kirim/dio-rev2-iphone-pasar.png",
+      "size": 780624,
+      "sent": "2026-11-19",
+      "drive": null,
+      "driveId": null
     }
   ]
 }

@@ -57,7 +57,7 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
   3. **Selesai juga:** foto sesudah (desktop + iPhone) dan video tur 64 dtk desktop + HP (`DIO_Q=high`, K 0,03, ±35 menit tiap video) dikirim ke host dan dicatat di ledger (389,6 MB belum di Drive, di bawah 1 GB).
   4. **Langkah berikutnya:** e2e penuh, PR siap Squash and merge; host meneruskan PRD Tugas 10–12 ke Codex sesudah PR di-merge.
 
-### Revisi host 19 Nov atas UI `/diorama/` (sesudah foto dan video tur) — SEDANG DIKERJAKAN
+### Revisi host 19 Nov atas UI `/diorama/` (sesudah foto dan video tur) — SELESAI, MENUNGGU TINJAUAN HOST
 
 **Kata host, kata demi kata:**
 1. "itu ada text -3d diorama, hapus. ganti; diorama solox"
@@ -66,6 +66,14 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
 Tafsir Claude:
 1. Kicker "— 3D DIORAMA" (garis dan teksnya) di atas judul diganti "Diorama Solo". "solox" dibaca sebagai salah ketik "Solo"; mudah diganti bila host memang mau "Solox".
 2. Di HP, bagian di bawah kanvas dirapikan: keterangan lokasi aktif (judul, teks, Sebelumnya/Berikutnya) dan daftar "Locations" (ikon dan nama yang kini berdesakan tiga kolom, subjudul terpotong) dibuat terstruktur: susunan yang jelas, ukuran seragam, teks tidak terpotong. Desktop tidak diubah kecuali perlu.
+
+1. **Selesai (Sonnet mengerjakan, Opus meninjau):**
+   - Kicker "Diorama Solo" (EN dan ID) tanpa garis, di desktop dan HP. Kunci teks baru `kicker`; `model` tetap untuk label panggung.
+   - HP (≤ 690 px): baris judul lokasi + tombol Sebelumnya/Berikutnya, keterangan selebar penuh di bawahnya. "LOCATIONS" dengan tombol Guide di baris yang sama, lalu satu panel nila berisi tiga baris (ubin ikon 56 × 40, nama Fraunces, subjudul, chevron; tinggi ≥ 64 px). Baris aktif: nama prada, latar emas lembut, tepi kiri prada. Tanpa geser menyamping di 320–430 px.
+   - Desktop tetap, kecuali kicker. Satu tombol Guide saja (tidak terduplikasi untuk pembaca layar).
+   - Tes: lint, typecheck, unit 496/496, build, e2e diorama + tautan + smoke 33/33. Foto HP dan desktop dikirim ke host dan dicatat di ledger.
+2. **Catatan:** di lebar 320 px label tombol Kembali tersembunyi (aturan lama ≤ 355 px, tinggal ikon).
+3. **Langkah berikutnya:** host meninjau foto; PR.
 
 ### Temuan e2e penuh 19 Nov: tes privasi bundle gagal karena diorama — DIPUTUSKAN HOST, SELESAI
 
