@@ -76,6 +76,8 @@ const fs = require('fs');
     await ctx.exposeFunction('__voiceEv', (type, name) => {
       if (!rolling || t0 === null) return; // sebelum video mulai: tidak ada waktu video
       voiceEvents.push({ t: +((Date.now() / 1000 - t0) * K).toFixed(3), type, name });
+      // ditulis tiap peristiwa: bila rekaman terputus (container di-restart), log sampai titik itu tidak hilang
+      fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents, selesai: false }, null, 1));
     });
     await ctx.addInitScript(() => {
       localStorage.setItem('lakon.lang', 'en');
@@ -129,7 +131,7 @@ const fs = require('fs');
   const { width, height } = p.viewportSize();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
-  if (VOICE) ff.on('close', () => fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents }, null, 1)));
+  if (VOICE) ff.on('close', () => fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events: voiceEvents, selesai: true }, null, 1)));
   /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
   let rolling = true;
   const emitUntil = (tv) => { while (last && tick / FPS <= tv) { ff.stdin.write(last); tick++; written++; } };
