@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama]
+// diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, VOICE diabaikan): DIO_Q=high|medium|low (bawaan high)
+// mengunci kualitas, DIO_LANG=en|id (bawaan en, lewat localStorage lakon.lang), QUERY menambah parameter URL. Video
+// mulai begitu .dio-root[data-ready="true"][data-tour="playing"] (mesin hidup, tur berjalan; STAGE diabaikan) dan
+// berhenti saat data-tour="done" + ±1,5 dtk virtual, batas aman 70 dtk virtual. Contoh:
+//   DIO_Q=high node scripts/preview/record-film.cjs <client.json> out.mp4 desktop 0.03 diorama
 // dimensi = gerbang dimensi di gallery (permintaan host 17 Nov): judul Hari 1 → intro → tiga panel maju (masuk
 // dimensi), satu mundur (keluar dimensi), maju lagi; di HP satu geser jari ditahan di tengah gerbang. Bengawan Solo
 // dan larung lampion ikut tampak. QUERY=clawd=0 menambah parameter URL (mis. tanpa Clawd).
@@ -54,7 +59,8 @@ const fs = require('fs');
   const phone = device === 'iphone' || device === 'hp916';
   const dpr = phone ? 3 : 1.5;
   const base = device === 'hp916' ? { ...devices['iPhone 14 Pro'], viewport: { width: 360, height: 640 }, screen: { width: 360, height: 640 } } : phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
-  const VOICE = process.env.VOICE || '';
+  const dio = tour === 'diorama';
+  const VOICE = dio ? '' : process.env.VOICE || '';
   const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
@@ -190,12 +196,14 @@ const fs = require('fs');
   };
 
   await p.goto('about:blank');
-  rolling = VOICE ? false : !STAGE || STAGE === 'static';
+  rolling = dio ? false : VOICE ? false : !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
+  if (dio) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); } catch {} }, process.env.DIO_LANG || 'en');
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
   const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : '';
-  const filmUrl = `/film/${query ? `?${query}` : ''}${hash}`;
+  const dioQuery = ['tur=1', `q=${process.env.DIO_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
+  const filmUrl = dio ? `/diorama/?${dioQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
   if (VOICE) {
     // bersuara: mulai dari beranda dan tekan "Begin the lakon" seperti tamu (itu yang menyalakan suara). Navigasi
     // klien ke /film/ membuang query dan hash, jadi pushState/replaceState menambahkannya kembali.
@@ -223,8 +231,8 @@ const fs = require('fs');
     await p.goto(`${BASE}${filmUrl}`, { waitUntil: 'commit' });
     await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   }
-  await p.waitForSelector('.film');
-  if (STAGE && STAGE !== 'static') {
+  if (!dio) await p.waitForSelector('.film');
+  if (!dio && STAGE && STAGE !== 'static') {
     // tunggu kanvas 3D tampil penuh, lalu mulai video dari sini (bukan dari layar muat)
     await p.waitForSelector('.film[data-stage="on"]', { timeout: 600000 });
     rolling = true;
@@ -240,6 +248,17 @@ const fs = require('fs');
     console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
     await b.close();
   };
+
+  if (dio) {
+    // mulai saat mesin maket hidup dan tur berjalan (kanvas sudah menggambar), bukan dengan waktu tetap
+    await p.waitForSelector('.dio-root[data-ready="true"][data-tour="playing"]', { timeout: 600000 });
+    await p.waitForSelector('.dio-root canvas', { timeout: 60000 });
+    rolling = true;
+    // tur selesai = data-tour="done"; batas aman 70 dtk virtual (waktu nyata = 70 / K)
+    await p.waitForSelector('.dio-root[data-tour="done"]', { timeout: 70000 / K }).catch(() => console.error('tur belum selesai di batas 70 dtk virtual'));
+    await w(1500);
+    return finish();
+  }
 
   if (tour === 'clawd') {
     // M3: Clawd memandu di film 3D. Gunungan tertancap, Clawd muncul dan memperkenalkan diri, satu klik memajukan
