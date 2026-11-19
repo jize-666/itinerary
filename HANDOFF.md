@@ -60,6 +60,22 @@ Tafsir Claude:
    - Klip yang perlu didengar host (tidak bisa dinilai lewat transkripsi): `intro.0` ("Claw"), `gong.1` (ditranskripsi "song"), `tip.kayon.0` ("gunungang").
 3. **Langkah berikutnya:** uji `hush` di film 2,5D, lalu video Clawd bersuara 3D desktop dan HP (data April, Jize), e2e, ledger, PR.
 
+**Video pratinjau bersuara (18–19 Nov):**
+1. **Selesai:**
+   - 2,5D desktop dan HP 9:16, dengan gong datar baru (v2), dikirim dan dicatat di ledger: 12 klip; di HP otomatis klip layar sentuh.
+   - 3D desktop dikirim dan dicatat: 15 klip (perkenalan, gunungan, gong hero + zoom, reaksi gong, gallery, gong penutup, marah); sinkron dicek dari frame (gelembung "Want a closer look?" di 33 dtk, klip mulai 32,5; "Whoa!" di 46,6, klip mulai 46,0).
+   - Perbaikan perekam selama perekaman 3D (semua di `record-film.cjs` / `mix-voice.py`):
+     - batas tunggu navigasi ikut K (film 3D diperlambat 50×);
+     - query film (`?stage=high`) dibawa sejak beranda, karena `StageMount` membaca `location.search` sebelum router memanggil `pushState`;
+     - log suara ditulis tiap peristiwa (container dua kali di-restart di tengah rekaman 3D dan log hilang);
+     - peristiwa sebelum video mulai disimpan dengan waktu negatif dan awal klipnya dipotong (intro.0 di film 3D);
+     - jam `AudioContext.currentTime` ikut diperlambat K: tanpa itu `playVoice` membuang klip yang dimuat > 0,6 dtk jam audio nyata, dan rekaman 3D pertama kehilangan 5 klip (video itu dikirim dengan catatan, lalu direkam ulang).
+2. **Kendala:**
+   - Container di-restart dua kali saat rekaman 3D berjalan di latar dan giliran Claude sudah berakhir (kemungkinan dianggap menganggur). Rekaman panjang kini ditunggu dengan perintah di latar depan (tiap ≤ 10 menit).
+   - Rekaman 3D 84 dtk memakan ±70 menit (K = 0,02, panggung digambar CPU).
+   - Video hanya membawa suara Clawd (tanpa gendhing dan efek).
+3. **Langkah berikutnya:** video 3D HP (sedang direkam), e2e penuh, PR.
+
 ### Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase — WEBSITE TAYANG DI jize-zone.vercel.app; MENUNGGU URL LOGIN DI SUPABASE
 
 **Kata host, kata demi kata:** "lanjut tugas, baca isi claude.md", lalu di tengah kerja: "bukan suara. supabase, connect in".
