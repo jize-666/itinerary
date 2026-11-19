@@ -4,7 +4,9 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import { fmtDay, fmtSpan } from "@/engine/today/format";
 import { timeline, type TodayState } from "@/engine/today/schedule";
 import type { DayView, StopView } from "@/lib/trip";
-import { IconCheck, IconCopy, IconPin, IconUmbrella } from "../Icons";
+import { dioramaFor, dioramaHref } from "@/engine/slides/diorama-link";
+import { IconCheck, IconCopy, IconMaket, IconPin, IconUmbrella } from "../Icons";
+import { CurtainLink } from "../motion/Curtain";
 import { copyText } from "./hooks";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -32,6 +34,30 @@ export function MapsLink({ stop, compact = false }: { stop: StopView; compact?: 
         {!compact && <span>{t("today.maps")}</span>}
       </span>
     </a>
+  );
+}
+
+/**
+ * Tautan ke halaman maket. Tanpa `stop`: tautan umum ke /diorama/; dengan `stop`: hanya tampil bila tempat itu ada
+ * di maket, dan membuka lokasinya. Tautan biasa (`<a href>`), jadi tidak memicu gestur geser film.
+ */
+export function DioramaLink({ stop }: { stop?: StopView }) {
+  const { t, tx } = useI18n();
+  const lokasi = stop ? dioramaFor(stop.id) : undefined;
+  if (stop && !lokasi) return null;
+  const label = stop ? t("film.dioramaAt") : t("film.diorama");
+  return (
+    <CurtainLink
+      className="pb pb--tonal"
+      href={dioramaHref(lokasi ?? undefined)}
+      data-diorama={lokasi ?? "umum"}
+      aria-label={stop ? t("film.dioramaFor", { place: tx(stop.title) }) : undefined}
+    >
+      <span className="pb-face">
+        <IconMaket size={18} />
+        <span>{label}</span>
+      </span>
+    </CurtainLink>
   );
 }
 
@@ -189,9 +215,10 @@ function Stop({ stop, i, rain, state, onCopied }: { stop: StopView; i: number; r
             )}
           </p>
         )}
-        {(mapsUrl(stop) || address) && (
+        {(mapsUrl(stop) || address || dioramaFor(stop.id)) && (
           <div className="tl-acts">
             <MapsLink stop={stop} />
+            <DioramaLink stop={stop} />
             {address && <CopyButton text={address} label={t("today.copyFor", { place: tx(stop.title) })} onCopied={onCopied} />}
           </div>
         )}

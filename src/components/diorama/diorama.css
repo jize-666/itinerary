@@ -1,0 +1,917 @@
+/* Diorama memakai bahasa visual situs: nila, mori, prada, tombol .pb. Hijau tua hanya di alas maket (objek 3D). */
+.dio-root {
+  --dio-line: color-mix(in srgb, var(--mori) 15%, transparent);
+  --dio-muted: color-mix(in srgb, var(--mori) 74%, var(--nila));
+  --dio-glass: color-mix(in srgb, var(--nila) 72%, transparent);
+  min-height: 100svh;
+  color: var(--mori);
+  background:
+    radial-gradient(
+      ellipse 70% 42% at 12% 0%,
+      rgb(255 178 87 / 0.1),
+      transparent 70%
+    ),
+    linear-gradient(180deg, var(--nila-2), var(--nila) 62%);
+  background-color: var(--nila);
+  color-scheme: dark;
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+.dio-root button:not(.pb),
+.dio-root a,
+.dio-root select {
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.dio-root button:not(.pb) {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.dio-root button:disabled {
+  cursor: wait;
+  opacity: 0.56;
+}
+.dio-root select:focus-visible,
+.dio-canvas canvas:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+.dio-root button:not(.pb),
+.dio-root select {
+  min-width: 44px;
+  min-height: 44px;
+}
+/* target sentuh >= 44 px: wajah tombol .pb--sm (40 px) + tebalnya (3 px) memanjang ke 44 */
+.dio-root .pb {
+  min-height: 44px;
+}
+.dio-root .pb--icon {
+  min-width: 44px;
+}
+/* kiri atas seperti film (.fl-corner); kanan atas milik LangToggle dan SoundToggle global */
+.dio-top {
+  min-height: 66px;
+  padding: calc(13px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right)) 0
+    calc(16px + env(safe-area-inset-left));
+}
+.dio-corner {
+  display: flex;
+  gap: 8px;
+}
+.dio-calm[aria-pressed="true"] {
+  --face: #c29a52;
+  --face-hi: #efd6a0;
+  --edge: #6f5022;
+  --ink: var(--nila);
+  --ring: rgb(255 244 220 / 0.3);
+  --shade: rgb(120 82 26 / 0.55);
+}
+.dio-layout {
+  max-width: 1880px;
+  margin: auto;
+  padding: clamp(14px, 2.4vw, 40px) clamp(22px, 3.5vw, 68px) 28px;
+  display: grid;
+  grid-template-columns: clamp(248px, 23vw, 355px) minmax(0, 1fr);
+  column-gap: clamp(24px, 3.3vw, 64px);
+  align-items: start;
+}
+.dio-sidebar {
+  grid-row: 1 / span 2;
+  min-width: 0;
+  padding: clamp(8px, 1.5vw, 22px) 0 0;
+}
+.dio-eyebrow,
+.dio-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--prada);
+  font: 600 12px/1.2 var(--font-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.dio-intro h1 {
+  margin: 20px 0 16px;
+  letter-spacing: -0.062em;
+  line-height: 1.02;
+  font:
+    normal 420 clamp(3.2rem, 5.35vw, 5.9rem)/0.98 var(--font-display),
+    Georgia,
+    serif;
+  letter-spacing: -0.06em;
+}
+.dio-intro h1 em {
+  display: block;
+  font-style: italic;
+  margin-top: 0.11em;
+  font-weight: 380;
+  line-height: 1.05;
+  font-size: 0.62em;
+  letter-spacing: -0.055em;
+  color: var(--prada);
+}
+.dio-intro p,
+.dio-help p,
+.dio-note,
+.dio-webgl-error p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--dio-muted);
+  margin: 0;
+  max-width: 34ch;
+}
+.dio-root .dio-tour {
+  margin-top: 23px;
+}
+.dio-tour small {
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--nila) 30%, transparent);
+  font:
+    600 0.8rem/1.2 var(--font-ui),
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.dio-locations {
+  margin-top: clamp(25px, 5.6vh, 64px);
+}
+.dio-section-title {
+  color: var(--dio-muted);
+  font-size: 0.75rem;
+  margin-bottom: 10px;
+}
+.dio-root .dio-place {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  border-top: 1px solid var(--dio-line);
+  padding: 11px 0;
+  min-height: 64px;
+}
+.dio-place:last-child {
+  border-bottom: 1px solid var(--dio-line);
+}
+.dio-etching {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 63px;
+  height: 40px;
+  border: 1px solid var(--dio-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--nila-2) 80%, var(--nila));
+  color: var(--prada);
+}
+.dio-etching svg {
+  width: 57px;
+  height: 34px;
+}
+.dio-etching-pasar {
+  color: var(--blencong);
+}
+.dio-etching-laweyan {
+  color: #a9b8ff; /* indigo batik, sama dengan warna Rain plan di film */
+}
+.dio-place-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dio-place-copy strong {
+  font:
+    500 1.12rem/1.2 var(--font-display),
+    Georgia,
+    serif;
+  letter-spacing: -0.02em;
+}
+.dio-place-copy small {
+  color: var(--dio-muted);
+  font-size: 0.75rem;
+}
+.dio-root .dio-place:hover .dio-place-copy strong,
+.dio-root .dio-place[aria-pressed="true"] strong {
+  color: var(--prada);
+}
+.dio-place[aria-pressed="true"] .dio-etching {
+  border-color: var(--prada);
+}
+.dio-root .dio-place:focus-visible {
+  outline: 2px solid var(--prada);
+  outline-offset: 3px;
+}
+.dio-root .dio-guide {
+  margin-top: 12px;
+}
+.dio-chev {
+  display: none;
+}
+.dio-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  height: clamp(440px, calc(100svh - 195px), 860px);
+  border: 1px solid var(--dio-line);
+  border-radius: 18px;
+  background: var(--nila-2);
+}
+.dio-canvas,
+.dio-labels,
+.dio-canvas > div,
+.dio-webgl-error {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.dio-canvas canvas {
+  touch-action: none;
+  display: block;
+  cursor: grab;
+}
+.dio-canvas canvas:active {
+  cursor: grabbing;
+}
+.dio-webgl-error {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 20px;
+  gap: 12px;
+  z-index: 5;
+  color: var(--prada);
+}
+.dio-stage:has(.dio-webgl-error) .dio-loading {
+  display: none;
+}
+.dio-loading {
+  position: absolute;
+  inset: 46% 0 auto;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--prada);
+  pointer-events: none;
+}
+.dio-labels {
+  pointer-events: none;
+  overflow: hidden;
+}
+.dio-labels[hidden],
+.dio-labels span[hidden] {
+  display: none;
+}
+.dio-labels span {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  border: 1px solid var(--dio-line);
+  background: var(--dio-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 4px 9px;
+  color: var(--mori);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.dio-stage-top,
+.dio-stage-bottom {
+  position: absolute;
+  left: clamp(12px, 2.1vw, 28px);
+  right: clamp(12px, 2.1vw, 28px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  pointer-events: none;
+}
+.dio-stage-top {
+  top: clamp(12px, 2vw, 26px);
+}
+.dio-stage-bottom {
+  bottom: clamp(12px, 2vw, 26px);
+}
+.dio-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mori);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--dio-line);
+  background: var(--dio-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 100px;
+  padding: 7px 12px;
+}
+.dio-state svg {
+  color: var(--prada);
+}
+.dio-stage-tools,
+.dio-zoom,
+.dio-steppers,
+.dio-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+/* kompas dan arah duduk di keping kaca supaya terbaca di atas bangunan terang */
+.dio-bearing {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 14px 5px 6px;
+  border: 1px solid var(--dio-line);
+  border-radius: 16px;
+  background: var(--dio-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--mori);
+}
+.dio-compass {
+  width: 47px;
+  height: 47px;
+  color: var(--mori);
+}
+.dio-needle {
+  fill: var(--prada);
+}
+.dio-needle-tail {
+  fill: none;
+  stroke: var(--mori);
+  stroke-width: 0.9;
+  opacity: 0.8;
+}
+.dio-bearing > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dio-bearing strong {
+  font-weight: 650;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+.dio-bearing small {
+  font-size: 0.76rem;
+  color: var(--dio-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+.dio-caption {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  padding: 13px 0 0;
+}
+.dio-caption-title {
+  font:
+    450 1.02rem/1.35 var(--font-display),
+    Georgia,
+    serif;
+}
+.dio-caption p {
+  max-width: 72ch;
+  margin: 5px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--dio-muted);
+}
+.dio-steppers {
+  flex: none;
+}
+.dio-meter {
+  position: absolute;
+  top: 78px;
+  left: 18px;
+  background: var(--dio-glass);
+  padding: 4px 8px;
+  border: 1px solid var(--dio-line);
+  border-radius: 8px;
+  color: var(--mori);
+  font:
+    12px ui-monospace,
+    monospace;
+  pointer-events: none;
+}
+.dio-immersive .dio-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  height: 100dvh;
+  min-height: 0;
+  width: 100vw;
+  border: 0;
+  border-radius: 0;
+}
+.dio-immersive .dio-stage-top {
+  top: max(14px, env(safe-area-inset-top));
+}
+.dio-immersive .dio-stage-bottom {
+  bottom: max(14px, env(safe-area-inset-bottom));
+}
+/* sheet gaya situs (lihat .sheet di globals.css): permukaan nila-2, garis tipis, naik dengan easing situs */
+.dio-dialog {
+  width: min(480px, calc(100vw - 28px));
+  max-height: min(86svh, 800px);
+  overflow: auto;
+  padding: 14px 20px calc(20px + env(safe-area-inset-bottom));
+  border: 1px solid var(--dio-line);
+  border-radius: 22px;
+  background: var(--nila-2);
+  color: var(--mori);
+  box-shadow: 0 26px 90px rgb(5 6 12 / 0.7);
+  overscroll-behavior: contain;
+}
+.dio-dialog[open] {
+  animation: sheet-up 0.42s var(--ease-expo-out) both;
+}
+.dio-dialog::backdrop {
+  background: rgb(5 6 12 / 0.72);
+  animation: fade-in 0.25s ease both;
+}
+.dio-dialog-wide {
+  width: min(650px, calc(100vw - 28px));
+}
+.dio-dialog-head,
+.dio-format,
+.dio-settings label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dio-dialog-head {
+  margin-bottom: 13px;
+}
+.dio-dialog-head h2,
+.dio-help h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0;
+}
+.dio-dialog-head .pb {
+  flex: none;
+}
+.dio-angle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dio-angle-grid .pb,
+.dio-pose-list .pb {
+  display: flex;
+  width: 100%;
+}
+.dio-angle-grid .pb-face,
+.dio-pose-list .pb-face {
+  padding: 0 10px;
+  font-size: 0.85rem;
+}
+/* pilihan yang sedang aktif menyala emas, seperti sakelar lain di situs */
+.dio-pick[aria-pressed="true"] {
+  --face: #c29a52;
+  --face-hi: #efd6a0;
+  --edge: #6f5022;
+  --ink: var(--nila);
+  --ring: rgb(255 244 220 / 0.3);
+  --shade: rgb(120 82 26 / 0.55);
+}
+.dio-angle-mark {
+  display: grid;
+  place-items: center;
+  color: var(--prada);
+}
+.dio-pick[aria-pressed="true"] .dio-angle-mark {
+  color: inherit;
+}
+.dio-settings {
+  margin: 14px 0;
+  border-block: 1px solid var(--dio-line);
+}
+.dio-settings label {
+  font-size: 0.9rem;
+  min-height: 52px;
+}
+.dio-settings select {
+  max-width: 58%;
+  background: var(--nila);
+  border: 1px solid var(--dio-line);
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+.dio-settings input {
+  accent-color: var(--prada);
+  width: 22px;
+  height: 22px;
+}
+.dio-pose-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.dio-help > div {
+  display: flex;
+  gap: 16px;
+  padding: 13px 0;
+  border-top: 1px solid var(--dio-line);
+}
+.dio-help > div > svg {
+  flex: none;
+  margin: 5px 0;
+  color: var(--prada);
+}
+.dio-help h3 {
+  font-size: 1.3rem;
+  margin: 0 0 4px;
+}
+.dio-help p {
+  font-size: 0.9rem;
+  max-width: 48ch;
+}
+.dio-help > p {
+  padding: 12px 0 0;
+  border-top: 1px solid var(--dio-line);
+}
+.dio-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.dio-format {
+  margin: 4px 0 16px;
+  font-size: 0.88rem;
+}
+.dio-single {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--nila);
+  border: 1px solid var(--dio-line);
+}
+.dio-single img {
+  display: block;
+  max-height: 49svh;
+  width: 100%;
+  object-fit: contain;
+}
+.dio-contact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px 7px;
+}
+.dio-contact > div {
+  min-width: 0;
+  background: var(--nila);
+  border: 1px solid var(--dio-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.dio-contact a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  text-decoration: none;
+  font-size: 0.78rem;
+  padding: 3px 7px;
+}
+.dio-contact a:first-child {
+  padding: 0;
+}
+.dio-contact img {
+  width: 100%;
+  height: 85px;
+  object-fit: contain;
+}
+.dio-note {
+  font-size: 0.9rem;
+  margin: 12px 0;
+  max-width: 50ch;
+}
+@media (max-width: 850px) {
+  .dio-layout {
+    column-gap: 16px;
+    padding: 14px 18px 20px;
+    grid-template-columns: 205px minmax(0, 1fr);
+  }
+  .dio-intro h1 {
+    font-size: 3.15rem;
+  }
+  .dio-intro p {
+    font-size: 0.93rem;
+  }
+  .dio-stage {
+    height: clamp(450px, 69svh, 680px);
+  }
+  .dio-stage-top,
+  .dio-stage-bottom {
+    left: 12px;
+    right: 12px;
+  }
+  .dio-place-copy strong {
+    font-size: 1rem;
+  }
+  .dio-etching {
+    width: 52px;
+  }
+  .dio-etching svg {
+    width: 50px;
+  }
+}
+@media (max-width: 690px) {
+  .dio-top {
+    min-height: 62px;
+    padding-left: calc(13px + env(safe-area-inset-left));
+  }
+  /* di HP dialog menjadi sheet dari bawah, seperti .sheet situs */
+  .dio-dialog,
+  .dio-dialog-wide {
+    margin: auto auto 0;
+    width: 100%;
+    max-width: 100%;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+  .dio-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px 13px max(15px, env(safe-area-inset-bottom));
+    gap: 0;
+  }
+  .dio-sidebar {
+    display: contents;
+  }
+  .dio-intro {
+    order: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    padding: 0 2px 15px;
+  }
+  .dio-eyebrow {
+    font-size: 0.72rem;
+    grid-column: 1;
+    gap: 7px;
+  }
+  .dio-intro h1 {
+    font-size: clamp(1.6rem, 5.9vw, 2.5rem);
+    margin: 5px 0 0;
+    grid-column: 1;
+    line-height: 1.13;
+  }
+  .dio-intro h1 em {
+    display: inline;
+    font-size: 0.92em;
+    margin: 0;
+  }
+  .dio-intro p {
+    display: none;
+  }
+  .dio-root .dio-tour {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    margin: 0;
+    font-size: 0.79rem;
+  }
+  .dio-tour .pb-face {
+    padding: 0 12px;
+  }
+  .dio-tour small {
+    display: none;
+  }
+  .dio-stage {
+    order: 1;
+    height: clamp(316px, 48svh, 540px);
+    border-radius: 14px;
+  }
+  .dio-stage-top {
+    top: 9px;
+  }
+  .dio-stage-bottom {
+    bottom: 9px;
+  }
+  .dio-stage-top,
+  .dio-stage-bottom {
+    left: 9px;
+    right: 9px;
+  }
+  .dio-state {
+    font-size: 0.72rem;
+    padding: 5px 7px;
+    gap: 4px;
+  }
+  .dio-stage-tools {
+    gap: 4px;
+  }
+  .dio-stage-tools .pb-face {
+    padding-inline: 9px;
+  }
+  .dio-stage-tools .pb--icon .pb-face {
+    padding: 0;
+  }
+  .dio-bearing {
+    gap: 3px;
+    padding: 3px 10px 3px 4px;
+    border-radius: 14px;
+  }
+  .dio-compass {
+    width: 34px;
+    height: 34px;
+  }
+  .dio-bearing strong {
+    font-size: 0.74rem;
+  }
+  .dio-bearing small {
+    display: none;
+  }
+  .dio-shutter .pb-face > span {
+    display: none;
+  }
+  .dio-stage-tools .dio-shutter .pb-face {
+    padding: 0;
+    width: 40px;
+  }
+  .dio-caption {
+    order: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 16px 2px 0;
+  }
+  .dio-caption > div:first-child {
+    display: contents;
+  }
+  .dio-caption-title {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 1.05rem;
+  }
+  .dio-caption .dio-steppers {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .dio-caption p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .dio-locations {
+    order: 3;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title guide"
+      "list list";
+    align-items: center;
+    gap: 12px 8px;
+    margin-top: 24px;
+    padding: 0 2px max(8px, env(safe-area-inset-bottom));
+  }
+  .dio-section-title {
+    grid-area: title;
+    margin: 0;
+  }
+  .dio-places {
+    grid-area: list;
+    overflow: hidden;
+    background: var(--nila-2);
+    border: 1px solid var(--dio-line);
+    border-radius: 18px;
+  }
+  .dio-root .dio-guide {
+    grid-area: guide;
+    margin: 0;
+  }
+  .dio-root button.dio-place {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 10px 14px 10px 12px;
+    border-top: 1px solid var(--dio-line);
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+  }
+  .dio-place:first-child {
+    border-top: 0;
+  }
+  .dio-place:last-child {
+    border-bottom: 0;
+  }
+  .dio-root button.dio-place[aria-pressed="true"] {
+    border-left-color: var(--prada);
+    background: color-mix(in srgb, var(--prada) 12%, transparent);
+  }
+  .dio-etching {
+    width: 56px;
+    height: 40px;
+  }
+  .dio-etching svg {
+    width: 50px;
+    height: 30px;
+  }
+  .dio-place-copy {
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+  .dio-place-copy strong {
+    font-size: 1.19rem;
+  }
+  .dio-place-copy small {
+    font: 400 0.8125rem/1.35 var(--font-ui);
+  }
+  .dio-chev {
+    display: grid;
+    place-items: center;
+    flex: none;
+    color: var(--dio-muted);
+  }
+  .dio-root button.dio-place[aria-pressed="true"] .dio-chev {
+    color: var(--prada);
+  }
+  .dio-dialog {
+    padding: 15px;
+  }
+  .dio-angle-grid button {
+    font-size: 0.78rem;
+    gap: 2px;
+  }
+}
+@media (max-width: 355px) {
+  .dio-bearing > span {
+    display: none;
+  }
+  .dio-top .dio-back span {
+    display: none;
+  }
+  .dio-top .dio-back .pb-face {
+    width: 40px;
+    padding: 0;
+  }
+  .dio-stage-tools .dio-shutter {
+    min-width: 44px;
+  }
+  .dio-stage-tools .dio-shutter .pb-face {
+    padding: 0;
+    width: 40px;
+  }
+  .dio-shutter .pb-face > span {
+    display: none;
+  }
+  .dio-intro h1 {
+    font-size: 1.43rem;
+  }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .dio-layout {
+    padding-top: 12px;
+  }
+  .dio-stage {
+    height: calc(100svh - 82px);
+    min-height: 255px;
+  }
+  .dio-intro h1 {
+    font-size: 2.5rem;
+  }
+  .dio-locations {
+    margin-top: 18px;
+  }
+}
+
+/* Calm: tanpa gerak di antarmuka diorama (kamera diatur controller) */
+.dio-root[data-calm="true"] *,
+.dio-root[data-calm="true"] *::before,
+.dio-root[data-calm="true"] *::after,
+.dio-root[data-calm="true"] .dio-dialog,
+.dio-root[data-calm="true"] .dio-dialog::backdrop {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}

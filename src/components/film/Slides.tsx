@@ -15,6 +15,7 @@ import { InstallGuide } from "../InstallGuide";
 import { CurtainLink } from "../motion/Curtain";
 import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
 import { HangingPass } from "../pass/Pass";
+import { DioramaLink } from "../today/DayPlan";
 import { useTitleStrike } from "./TitleStrike";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -165,6 +166,9 @@ function Route({ data, slide }: Ctx) {
           </div>
         ))}
       </dl>
+      <div className="f-rise fs-diorama" style={d(1700)}>
+        <DioramaLink />
+      </div>
     </div>
   );
 }

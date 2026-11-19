@@ -1607,6 +1607,8 @@ html.film-on body {
 
 .gal-acts {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   padding-top: 4px;
 }

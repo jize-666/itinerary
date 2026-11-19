@@ -1,9 +1,111 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `f32a1e9`, `main` terbaru `d9858b3` = PR #18 sudah digabung ke branch ini) · **selesai, PR menunggu host: 39 klip suara Clawd EN, perekam video bersuara, gong datar film 2,5D** · Jize Zone tayang di https://jize-zone.vercel.app · berikutnya: Tugas 9 dengan arahan host.
+Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **Diorama dari Codex terpasang di `/diorama/` (UI disamakan dengan situs, video tur desktop + HP dikirim); PRD Codex untuk Tugas 10–12 dikirim ke host; PR #20 menunggu merge host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
+
+**Kata host, kata demi kata:** "sekalian project berat apalagi yg belum? biar codex yang mengerjakanya. susun prd, jangan batasi kemampuan design codex, maksimalkan kerjanya."
+Tafsir Claude:
+- Proyek berat yang belum dikerjakan di Daftar tugas: Tugas 10 (Lereng Lawu, kebun teh, Candi Sukuh), Tugas 11 (Canting dan kain mori), Tugas 12 (Boarding pass 3D dengan fisika). Tugas 9 sudah diganti diorama dari Codex (sedang dipasang).
+- Satu PRD per tugas, untuk Codex, dalam Markdown di `docs/handoff/`. Desain dibebaskan: PRD memuat tujuan, rasa, rujukan budaya, letak yang disarankan, batas teknis yang wajib (versi, CSP tanpa WASM kecuali host mengizinkan, aturan gerak kamera host, beban), dan uji penerimaan; bentuk, teknik, dan komposisi diserahkan ke Codex.
+- Bahan faktual dikumpulkan Haiku; PRD disusun Opus.
+1. **Selesai (19 Nov):** empat berkas di `docs/handoff/` (dikirim ke host di chat):
+   - `codex-prd-bersama.md`: aturan bersama ketiga tugas. Isinya: prompt siap tempel EN; semangat "desain dibebaskan" (ruang bebas, lebih baik dari PRD diharapkan, boleh mengusulkan pelonggaran batas); fakta repo (panggung 3D, shader HDR + `COMMON`, tier, `?stage=`, Calm = tanpa WebGL, Clawd, perekam); batas keras (tanpa WASM/asal luar, aturan gerak kamera host, "beban hemat tapi jangan turunkan kualitas", fps iPhone High ≥ 55 dan p95 ≤ 20 ms, privasi nama "Jize", budaya dan lisensi); bentuk serah terima (PR/ZIP per tugas, diff untuk berkas lama, urutan 10 → 11, 12 boleh paralel); uji bersama; pratinjau video; bagian Claude sesudahnya.
+   - `codex-prd-10-lereng-lawu.md`: dunia 3D Hari 2 di lereng Lawu dari DEM (diolah di luar runtime, cadangan prosedural), matahari nyata 9 April 2027 dari balik punggung gunung, kebun teh mengikuti kontur, Cetho dan Sukuh di kabut (relief eksplisit tidak digambar), Grojogan Sewu; lampion tempat singgah tetap ada dalam bentuk lain; sambungan "dunia per bab" yang dipakai ulang Tugas 11.
+   - `codex-prd-11-canting-mori.md`: dua keluaran satu mesin: urutan canting di film Hari 3 yang mengikuti gulir (deterministik, mundur menghapus) sampai kain jadi terungkap di gong terakhir film, dan halaman privat `/canting/` untuk membatik sendiri (malam mengalir dan mendingin, celup nila/soga, lorod, simpan PNG). Payoff lama "benang emas = lilin" ditafsir ulang karena benang emas sudah diganti sungai dan lampion (benih: alur sungai tiga hari = garis malam, lampion = cecek).
+   - `codex-prd-12-boarding-pass-3d.md`: tiket 3D di slide `pass` di dalam panggung film (satu konteks WebGL), fisika ditulis sendiri di `src/engine/pass3d/` (deterministik, langkah tetap; dasar prototipe verlet), seret/ayun/sentil/balik, kemiringan HP menggeser gravitasi, nama hanya dari data runtime, DOM `HangingPass` tetap cadangan; home dan Today tetap DOM.
+2. **Kendala:** keputusan bawaan yang diambil Claude tanpa menunggu host (bisa diubah sebelum dikirim ke Codex): Lawu dan canting masuk ke film (bukan halaman sendiri, kecuali `/canting/` untuk membatik bebas); tiket 3D hanya di film; Codex diminta menyerahkan diff untuk berkas lama supaya tidak menimpa `main`.
+3. **Langkah berikutnya:** host meneruskan `codex-prd-bersama.md` + satu PRD tugas ke Codex (sesudah PR berkas ini di-merge, karena Codex bekerja dari `main`). Claude memasang hasilnya seperti diorama (Haiku memindai, Sonnet memindah dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
+
+### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — KODE CODEX DITERIMA, SEDANG DIPASANG
+
+**Kata host, kata demi kata:** "ini prd ku, codex telah mengerjakan nya, jadi kamu cukup memasangnya nanti di lingkunganmu", lalu "pendapat?". Lampiran: `PRD-Diorama-Solo-3D.pdf` (v1.0, 19 Nov 2026, 13 halaman; tidak disalin ke repo).
+Ringkasan PRD:
+- Web interaktif HP + desktop: satu maket di atas alas hijau tua bertepi kuningan, tiga lokasi: Pendhapa Ageng Pura Mangkunegaran (utara), Pasar Gede (tenggara), Kampung Batik Laweyan (barat daya). Dibangun prosedural (TypeScript, Three.js, R3F), tanpa model unduhan, tanpa data OSM.
+- Kamera: orbit 360°, miring 8–85°, geser, zoom (FOV 38° tetap), delapan sudut + Atas; tur kamera 64 dtk enam adegan; Sebelumnya/Berikutnya antarlokasi; Tampilan awal.
+- Mode foto: potret bingkai aktif, atau sembilan sudut sekaligus jadi ZIP PNG (sisi panjang 1920 px).
+- Kinerja: siap ≤ 5 dtk di 10 Mbps, unduhan awal ≤ 3 MB; iPhone 13 / Pixel 6a p95 ≤ 33,4 ms; desktop p95 ≤ 20 ms; ≤ 150 draw call, ≤ 200 rb segitiga, DPR awal 1,5.
+- Aksesibilitas: Tab/Enter, panah memutar, enam pose tur untuk gerak minim.
+Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti diorama versi PRD ini. Claude tidak membangunnya; Claude memasang hasil Codex di repo itinerary sesudah kodenya diterima, dan menilai PRD-nya sekarang.
+- Host `overpass-api.de` yang sempat ditambahkan ke lingkungan tidak dibutuhkan lagi untuk PRD ini.
+- **Pendapat Claude (dikirim di chat):** PRD cocok dengan trip (Pasar Gede Hari 1; Laweyan dan Mangkunegaran Hari 3) dan dengan stack (Three.js + R3F, prosedural). Saran: halaman sendiri `/diorama/` (bukan di kanvas film, karena gestur bentrok), parallax ringan saat diam untuk aturan gerak kamera host, foto sembilan sudut dirender satu per satu (memori Safari), cek versi pustaka dan CSP tanpa WASM, dua bahasa, Calm; Tugas 11 (canting) bisa digabung ke Laweyan.
+- **Permintaan host, kata demi kata:** "berikan file revisi susulan untuk codex".
+  1. **Selesai:** `docs/handoff/codex-diorama-revisi-1.1.md` (dikirim ke host): prompt siap tempel berbahasa Inggris, lalu 12 bagian: lingkungan repo (versi, CSP tanpa WASM, i18n, sesi, Calm), bentuk penyerahan (`src/app/diorama/`, `src/components/diorama/`, `src/engine/diorama/`), letak dan parameter URL, aturan gerak kamera, kinerja, mode foto, bahasa dan penamaan, `DioramaProps`, aksesibilitas, tes, tugas Claude sesudahnya, ringkasan perubahan.
+  2. **Kendala:** dua pilihan dijadikan bawaan di revisi tanpa menunggu jawaban host (halaman `/diorama/`; parallax ringan saat diam); host bisa mengubahnya sebelum diberikan ke Codex.
+  3. **Langkah berikutnya:** host memberikan PRD v1.0 + revisi v1.1 ke Codex; Claude memasang hasil Codex sesudah kodenya diterima (Haiku mendata isi, Sonnet memindahkan dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
+- **Kiriman host berikutnya:** `Diorama-Solo-Itinerary-v1.1.zip` dan `README-diorama.md` dari Codex (tanpa kata-kata; dibuat pada `main` `9065447`, PRD v1.0 + adendum v1.1). Klaim README: tanpa dependensi runtime baru (ZIP memakai fflate bawaan three), kode modul ±53 KB gzip, 493 tes unit lulus (28 tes diorama), 18 skenario Playwright, 33 draw call dan 186.775 segitiga maksimal, belum diuji di perangkat fisik.
+  Tafsir Claude: pasang di branch ini. Langkah: periksa isi ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan, jalankan semua tes, pasang tautan masuk dari film dan Today (bagian Claude di §11), pratinjau foto sembilan sudut dan video tur desktop + HP, lalu PR.
+  1. **Selesai (19 Nov):**
+     - ZIP diperiksa di luar repo: 28 berkas, semuanya baru di jalur adendum (tidak menimpa apa pun). Pindai Haiku: tanpa jaringan luar, `eval`, `innerHTML`, atau WASM; penyimpanan hanya `lakon.calm` (dibaca) dan `dio.orientation` (sessionStorage); impor di luar modul hanya `useRequireSession`, `useI18n`, `e2e/helpers` (ada di repo), dan fflate bawaan three.
+     - Dipasang apa adanya (commit sendiri); README Codex dipindah ke `docs/handoff/README-diorama.md`.
+     - Tes: lint, typecheck, unit 493/493 (28 diorama), content:check, build (`out/diorama/`), e2e diorama 18/18 (desktop + iPhone, termasuk ZIP sembilan sudut di bawah CSP produksi).
+     - Foto desktop dan HP (tampilan awal, Pendhapa, Pasar, Laweyan) dikirim ke host dan dicatat di ledger.
+  2. **Catatan:** judul halaman dari Codex "Ruang Solo" (situs: "A Three-Day Lakon"); label arah kompas di atas bangunan terang agak sulit dibaca saat kamera dekat. Belum diuji di perangkat fisik.
+  3. **Langkah berikutnya:** tautan masuk dari film (slide rute, kartu Pasar Gede/Laweyan/Mangkunegaran) dan Today (Sonnet, sedang), video tur desktop + HP, e2e penuh, PR.
+- **Permintaan host, kata demi kata:** "kamu rapikan, sesuaikan ui/ux nya dengan project kita" (jawaban atas tawaran merapikan judul "Ruang Solo" dan label kompas).
+  Tafsir Claude: antarmuka halaman `/diorama/` disamakan dengan bahasa visual situs (film dan Today): nama situs, bilah atas, tombol, sakelar bahasa, warna dan huruf, gerak; label kompas dibuat terbaca di atas maket. Maket 3D dan logikanya tidak diubah.
+  1. **Selesai (19 Nov, Sonnet mengerjakan, Opus meninjau):**
+     - "Ruang Solo" dan logonya dihapus; judul tab "Diorama · A Three-Day Lakon". Kiri atas: Kembali (`pb--tonal`) dan sakelar Calm (`pb--glass`, menulis `lakon.calm`); kanan atas tetap sakelar bahasa global.
+     - Semua tombol memakai sistem `.pb` situs (Putar tur dan Potret `pb--gold`, Angle `pb--tonal`, ikon `pb--glass`), palet nila/mori/prada, judul Fraunces dengan "in miniature" miring prada.
+     - Kompas, chip status, label lokasi, dan meter FPS di keping kaca nila (terbaca di atas bangunan terang). Dialog di tengah di desktop, sheet dari bawah di HP; gerak memakai `sheet-up`/`fade-in` situs, mati di Calm.
+     - Warna studio kanvas digelapkan ke nila; maket, lampu, dan bayangan tidak diubah. Selektor e2e tidak berubah.
+     - Tes: lint, typecheck, unit 496/496, content:check, build, e2e diorama + tautan 26/26.
+  2. **Catatan:** mode layar penuh menutupi sakelar bahasa global (perilaku lama Codex); Calm karena `prefers-reduced-motion` tidak bisa dimatikan dari sakelar (sama dengan film).
+  3. **Selesai juga:** foto sesudah (desktop + iPhone) dan video tur 64 dtk desktop + HP (`DIO_Q=high`, K 0,03, ±35 menit tiap video) dikirim ke host dan dicatat di ledger (389,6 MB belum di Drive, di bawah 1 GB).
+  4. **Langkah berikutnya:** e2e penuh, PR siap Squash and merge; host meneruskan PRD Tugas 10–12 ke Codex sesudah PR di-merge.
+
+### Revisi host 19 Nov atas UI `/diorama/` (sesudah foto dan video tur) — SELESAI, MENUNGGU TINJAUAN HOST
+
+**Kata host, kata demi kata:**
+1. "itu ada text -3d diorama, hapus. ganti; diorama solox"
+2. "itu ui, text di bawah diorama, versi mobile. "location" dan gambar di bawahnya, revisi. rapikan lagi, buat lebih terstucture"
+
+Tafsir Claude:
+1. Kicker "— 3D DIORAMA" (garis dan teksnya) di atas judul diganti "Diorama Solo". "solox" dibaca sebagai salah ketik "Solo"; mudah diganti bila host memang mau "Solox".
+2. Di HP, bagian di bawah kanvas dirapikan: keterangan lokasi aktif (judul, teks, Sebelumnya/Berikutnya) dan daftar "Locations" (ikon dan nama yang kini berdesakan tiga kolom, subjudul terpotong) dibuat terstruktur: susunan yang jelas, ukuran seragam, teks tidak terpotong. Desktop tidak diubah kecuali perlu.
+
+1. **Selesai (Sonnet mengerjakan, Opus meninjau):**
+   - Kicker "Diorama Solo" (EN dan ID) tanpa garis, di desktop dan HP. Kunci teks baru `kicker`; `model` tetap untuk label panggung.
+   - HP (≤ 690 px): baris judul lokasi + tombol Sebelumnya/Berikutnya, keterangan selebar penuh di bawahnya. "LOCATIONS" dengan tombol Guide di baris yang sama, lalu satu panel nila berisi tiga baris (ubin ikon 56 × 40, nama Fraunces, subjudul, chevron; tinggi ≥ 64 px). Baris aktif: nama prada, latar emas lembut, tepi kiri prada. Tanpa geser menyamping di 320–430 px.
+   - Desktop tetap, kecuali kicker. Satu tombol Guide saja (tidak terduplikasi untuk pembaca layar).
+   - Tes: lint, typecheck, unit 496/496, build, e2e diorama + tautan + smoke 33/33. Foto HP dan desktop dikirim ke host dan dicatat di ledger.
+2. **Catatan:** di lebar 320 px label tombol Kembali tersembunyi (aturan lama ≤ 355 px, tinggal ikon).
+3. **Langkah berikutnya:** host meninjau foto; PR.
+
+### Temuan e2e penuh 19 Nov: tes privasi bundle gagal karena diorama — DIPUTUSKAN HOST, SELESAI
+
+- E2E penuh sesudah diorama dipasang: 316 lulus, 2 gagal.
+  - `stage.spec.ts:173` habis waktu karena beban container; lulus saat diulang sendiri (21,5 dtk).
+  - `smoke.spec.ts` "bundle statis tidak memuat data trip" gagal: teks diorama (`src/engine/diorama/strings.ts`) memuat "Laweyan", salah satu penanda trip. Jadwal, jam, nama tamu, dan penanda lain tidak ada di bundle; "Solo" memang sudah ada sejak dulu.
+- **Pilihan host (kartu tanya):** "Terima, kecualikan diorama". Nama landmark publik di diorama dianggap bukan data trip.
+- **Dikerjakan:** tes hanya mengecualikan literal string utuh (dengan tanda kutip) dari modul teks diorama yang memuat "Laweyan". Penanda lain tetap diperiksa di semua berkas. Dibuktikan dengan berkas tanam berisi `"Batik class in Laweyan at 08:30"`: tes gagal sebagaimana mestinya; tanpa berkas itu lulus.
+
+### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
+
+**Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
+Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).
+- **Isi menurut PRD:** diorama kota Solo bergaya miniatur untuk prolog dan Hari 1. Footprint bangunan, jalan, dan sungai dari OpenStreetMap (ODbL, wajib atribusi di credits); landmark dimodelkan sendiri (Keraton Kasunanan dengan Panggung Songgo Buwono, Pasar Gede, Pura Mangkunegaran, Bengawan Solo, siluet Lawu di timur). Kamera terbang dari keraton ke pasar mengikuti gulir; malam hari jendela dan lampu jalan menyala (bloom selektif), ikut siklus waktu, grading, dan partikel Tugas 8.
+- **Usul langkah (tiap langkah: output dites, foto/video desktop + HP, PR):**
+  - 9.1 Data: skrip OSM → geometri ringkas (target < 300 KB gzip) + tes. Butuh host `overpass-api.de` dibuka di jaringan lingkungan (kartu izin); cadangan: bentuk prosedural tanpa data luar.
+  - 9.2 Diorama dan landmark: geometri digabung/instancing, material miniatur, bayangan kontak; gambar diam dulu untuk disetujui.
+  - 9.3 Shot kamera dan gulir: letak di prolog (slide rute, "3 days · ~20 stops · 1 city") dan Hari 1; parallax, perspective shift, kedalaman ikut gulir.
+  - 9.4 Malam dan beban: lampu jendela/jalan, cek fps tier High iPhone (`/film/?fps`), video.
+- **Bagi tugas:** Haiku mengukur data (jumlah bangunan, ukuran) dan memindai; Sonnet menulis skrip data, geometri, dan tes; Opus merancang gaya, shot, meninjau, dan mengukur beban.
+- **Keputusan host yang dibutuhkan:**
+  1. Data asli OSM (buka `overpass-api.de`) atau prosedural saja?
+  2. Letak: prolog + Hari 1 seperti PRD, atau juga menggantikan lanskap umum di gallery Hari 1?
+  3. Gaya: miniatur (tanah liat/kertas, tilt-shift) atau lebih realistis?
+- **Arahan host, kata demi kata:** "tandai dan lewati semua, lanjut tugas besar dulu".
+  Tafsir Claude: semua butir yang menunggu host ditandai ⏭️ dan dilewati; Tugas 9 dikerjakan sekarang. Tiga keputusan di atas diambil dari PRD tanpa menunggu: (1) data asli OSM, dengan meminta `overpass-api.de` dibuka lewat kartu izin lingkungan, dan cadangan prosedural bila ditolak; (2) letak di prolog dan Hari 1; (3) gaya miniatur. Host bisa mengubahnya kapan saja.
+- **Arahan host berikutnya, kata demi kata:** "tunggu, jangan buat diorama nya dulu".
+  Tafsir Claude: Tugas 9 dihentikan sebelum ada kode. Keadaan saat dihentikan:
+  - host `overpass-api.de` sudah ditambahkan ke jaringan lingkungan "itinerary" (disetujui lewat kartu izin), tetapi permintaan ke sana masih gagal (tunnel proxy tertutup di tengah jalan); belum ada data yang diunduh;
+  - belum ada berkas diorama, skrip data, atau tes.
+  - Menunggu arahan host: apa yang dikerjakan sebelum diorama, dan apakah host `overpass-api.de` dibiarkan atau dihapus lagi.
+- Catatan: sesi lain (branch `claude/gallant-hopper-1jlpo0`) masih hidup dan menyimpan rekaman suara teman host; sebaiknya tidak dua sesi mengerjakan tugas yang sama.
 
 ### MULAI DI SINI (19 Nov pagi)
 
@@ -18,18 +120,16 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
   - Di container baru berkas itu tidak ada: minta host mengunggah `clawd-klip-final.zip` lagi.
 - Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
 
-Menunggu host:
-- merge PR #19 (suara Clawd 39 klip EN, video pratinjau bersuara, gong datar 2,5D; branch `claude/admiring-noether-tbqvap`)
-- dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
-- arahan Tugas 9 (Diorama Solo)
-- Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
-- Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
-- Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
-- keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
-- izin untuk Fable (pembantu yang hanya bekerja atas izin host)
-- penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
-- jawaban soal kaki Clawd 3D yang tertutup kartu gallery
-- uji di iPhone produksi (`/film/?fps`)
+Menunggu host (⏭️ semua dilewati dulu atas arahan host 19 Nov: "tandai dan lewati semua, lanjut tugas besar dulu"; dikerjakan lagi sesudah Tugas 9 atau bila host memintanya):
+- ⏭️ dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
+- ⏭️ Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
+- ⏭️ Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
+- ⏭️ Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
+- ⏭️ keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
+- ⏭️ izin untuk Fable (pembantu yang hanya bekerja atas izin host)
+- ⏭️ penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
+- ⏭️ jawaban soal kaki Clawd 3D yang tertutup kartu gallery
+- ⏭️ uji di iPhone produksi (`/film/?fps`)
 
 ### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — HOST MEMILIH A, GONG BARU SELESAI 19 NOV
 

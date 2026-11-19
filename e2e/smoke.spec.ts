@@ -1,7 +1,25 @@
 import { expect, test } from "@playwright/test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import * as diorama from "../src/engine/diorama/strings";
 import { FUTURE, json, TRIP, tripFixture, VERIFY } from "./helpers";
+
+/**
+ * Pengecualian keputusan host 19 Nov ("Terima, kecualikan diorama"): diorama `/diorama/` memuat nama landmark publik
+ * (Pendhapa Ageng, Pasar Gede, Laweyan) di bundle. Hanya teks diorama yang memuat "Laweyan" yang dikecualikan, diambil
+ * langsung dari modul teksnya, dan hanya sebagai literal string utuh berikut tanda kutipnya (`"Laweyan"` milik diorama
+ * terhapus, `"Batik class in Laweyan"` tidak). Penanda lain tetap diperiksa di semua berkas.
+ */
+const DIORAMA_TEXTS = (() => {
+  const found = new Set<string>();
+  const walk = (v: unknown) => {
+    if (typeof v === "string") {
+      if (v.includes("Laweyan")) found.add(v);
+    } else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  walk(diorama);
+  return [...found].sort((a, b) => b.length - a.length);
+})();
 
 test("gate tampil dan halaman tidak bisa diindeks", async ({ page }) => {
   const res = await page.goto("/");
@@ -51,7 +69,8 @@ test("bundle statis tidak memuat data trip", async ({}, testInfo) => {
   // Penanda dari content/trips/solo/trip.ts. Data trip hanya boleh datang dari Edge Function setelah kode akses diverifikasi.
   const markers = ["Tengkleng", "Kemuning", "Candi Cetho", "Sriwedari", "Laweyan", "TJQ"];
   for (const file of files) {
-    const text = readFileSync(file, "utf8");
+    let text = readFileSync(file, "utf8");
+    for (const t of DIORAMA_TEXTS) text = text.split(JSON.stringify(t)).join("");
     for (const m of markers) expect(text.includes(m), `${m} bocor di ${file}`).toBe(false);
   }
 });
