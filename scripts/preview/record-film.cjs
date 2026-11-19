@@ -131,6 +131,22 @@ const fs = require('fs');
       const find = () => { for (const el of document.querySelectorAll('.clawd-bubble')) if (!seen.has(el)) { seen.add(el); watch(el); } };
       document.addEventListener('DOMContentLoaded', () => { find(); new MutationObserver(find).observe(document.body, { childList: true, subtree: true }); });
     });
+    // Jam audio ikut diperlambat K, seperti performance.now dan Date.now di atas. Tanpa ini, di film 3D (CPU sibuk
+    // menggambar panggung, 1–2 frame/dtk) klip yang selesai dimuat lebih dari VOICE_LATE (0,6 dtk jam audio NYATA)
+    // sesudah diminta dianggap terlambat dan tidak diputar, padahal dalam waktu film jedanya hanya puluhan milidetik.
+    await ctx.addInitScript((k) => {
+      const d = Object.getOwnPropertyDescriptor(BaseAudioContext.prototype, 'currentTime');
+      const starts = new WeakMap();
+      Object.defineProperty(BaseAudioContext.prototype, 'currentTime', {
+        configurable: true,
+        get() {
+          const real = d.get.call(this);
+          if (!starts.has(this)) starts.set(this, real);
+          const s = starts.get(this);
+          return s + (real - s) * k;
+        },
+      });
+    }, K);
   }
   await ctx.route('**/functions/v1/trip-data', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(DATA, 'utf8') }));
   const p = await ctx.newPage();
