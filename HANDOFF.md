@@ -15,6 +15,8 @@ Klaim README Codex (dibuat pada `main` `9065447`, sebelum diorama masuk):
 - Dependensi baru 0 B; DEM 635 KB gzip, chunk dunia 10 KB gzip. 482 tes unit, Playwright Lawu 18/18.
 - Belum tercapai: siap ≤ 5 dtk di 4G untuk masuk langsung (8,8–10,8 dtk tanpa gzip, 4,7–5,7 dtk dengan gzip); fps di iPhone/MacBook belum diukur di perangkat fisik.
 Tafsir Claude: pasang seperti diorama. Periksa ZIP di luar repo (berkas yang disentuh, jaringan, eval, WASM), terapkan di atas `main` terbaru (yang sudah memuat diorama), jalankan semua tes, rekam pratinjau desktop + HP dengan data trip April (nama "Jize"), buat klip suara `tip.mountain.0` bila bisa, lalu PR.
+- **Pertanyaan host di tengah pemasangan, kata demi kata:** "ui nya ga kamu sesuaikan?"
+  Tafsir Claude: seperti diorama ("sesuaikan ui/ux nya dengan project kita"), antarmuka Hari 2 buatan Codex disamakan dengan bahasa visual film: kartu gallery Lawu (Codex memberinya gaya sendiri: kaca hijau tua, lebih kecil, foto mini, kartu lain nyaris hilang) kembali memakai kartu gallery hari lain (kertas, huruf, tombol, ukuran), dengan penyesuaian letak seperlunya supaya candi dan air terjun tetap terlihat; entri credits dan film 2,5D Lawu dicek ikut gaya situs. Dunia 3D dan logikanya tidak diubah.
 
 ### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
