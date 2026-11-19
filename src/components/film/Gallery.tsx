@@ -5,7 +5,7 @@ import type { PanelSlide } from "@/engine/slides/build-slides";
 import type { Phase, StopView, TripView } from "@/lib/trip";
 import { IconStory } from "../Icons";
 import { Benang } from "../motion/Kinetic";
-import { MapsLink } from "../today/DayPlan";
+import { DioramaLink, MapsLink } from "../today/DayPlan";
 import { useLive } from "./Slides";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -104,6 +104,7 @@ const Card = memo(function Card({ data, slide, side, onOpen }: { data: TripView;
               </span>
             </button>
             <MapsLink stop={stop} compact />
+            <DioramaLink stop={stop} />
           </div>
         </div>
       </article>

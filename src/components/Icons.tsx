@@ -50,6 +50,14 @@ export const IconPin = ({ size = 18 }: P) => (
   </svg>
 );
 
+/** Maket: kubus isometrik kecil. */
+export const IconMaket = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M12 3.6 19.6 8v8L12 20.4 4.4 16V8L12 3.6Z" fill="currentColor" fillOpacity="0.14" />
+    <path d="M4.4 8 12 12.4 19.6 8M12 12.4v8" />
+  </svg>
+);
+
 export const IconCopy = ({ size = 18 }: P) => (
   <svg {...base(size)}>
     <rect x="8.6" y="8.6" width="11" height="11" rx="2.4" />
