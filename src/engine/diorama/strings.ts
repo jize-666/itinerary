@@ -92,8 +92,12 @@ export const strings = {
   low: { en: "Low", id: "Rendah" },
   drawCalls: { en: "Draw calls", id: "Panggilan gambar" },
   triangles: { en: "Triangles", id: "Segitiga" },
-  photoHint: { en: "The photo uses your current framing.", id: "Foto mengikuti bingkai kamera saat ini." },
+  photoHint: {
+    en: "The photo uses your current framing.",
+    id: "Foto mengikuti bingkai kamera saat ini.",
+  },
   model: { en: "3D diorama", id: "Diorama 3D" },
+  kicker: { en: "Diorama Solo", id: "Diorama Solo" },
   chooseSide: { en: "Choose an angle", id: "Pilih sudut" },
 } as const satisfies Record<string, Pair>;
 
@@ -102,7 +106,10 @@ export const tr = (lang: Lang, key: StringKey): string => strings[key][lang];
 
 export const locationContent = {
   pendhapa: {
-    name: { en: "Pendhapa Ageng, Pura Mangkunegaran", id: "Pendhapa Ageng, Pura Mangkunegaran" },
+    name: {
+      en: "Pendhapa Ageng, Pura Mangkunegaran",
+      id: "Pendhapa Ageng, Pura Mangkunegaran",
+    },
     short: { en: "Pendhapa Ageng", id: "Pendhapa Ageng" },
     kind: { en: "Pura Mangkunegaran", id: "Pura Mangkunegaran" },
     description: {
@@ -128,7 +135,10 @@ export const locationContent = {
       id: "Intip halaman kerja rekaan di balik gerbang terbuka. Kain indigo pada gawangan kayu bermotif orisinal yang dirancang untuk maket ini.",
     },
   },
-} as const satisfies Record<string, Record<"name" | "short" | "kind" | "description", Pair>>;
+} as const satisfies Record<
+  string,
+  Record<"name" | "short" | "kind" | "description", Pair>
+>;
 
 export const scenes = [
   { en: "View from the south", id: "Pandangan dari selatan" },

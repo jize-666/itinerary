@@ -6,7 +6,11 @@
   min-height: 100svh;
   color: var(--mori);
   background:
-    radial-gradient(ellipse 70% 42% at 12% 0%, rgb(255 178 87 / 0.1), transparent 70%),
+    radial-gradient(
+      ellipse 70% 42% at 12% 0%,
+      rgb(255 178 87 / 0.1),
+      transparent 70%
+    ),
     linear-gradient(180deg, var(--nila-2), var(--nila) 62%);
   background-color: var(--nila);
   color-scheme: dark;
@@ -49,7 +53,8 @@
 /* kiri atas seperti film (.fl-corner); kanan atas milik LangToggle dan SoundToggle global */
 .dio-top {
   min-height: 66px;
-  padding: calc(13px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 0
+  padding: calc(13px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right)) 0
     calc(16px + env(safe-area-inset-left));
 }
 .dio-corner {
@@ -88,11 +93,6 @@
   font: 600 12px/1.2 var(--font-ui);
   letter-spacing: 0.22em;
   text-transform: uppercase;
-}
-.dio-rule {
-  width: 30px;
-  height: 1px;
-  background: var(--prada);
 }
 .dio-intro h1 {
   margin: 20px 0 16px;
@@ -207,6 +207,9 @@
 }
 .dio-root .dio-guide {
   margin-top: 12px;
+}
+.dio-chev {
+  display: none;
 }
 .dio-stage {
   position: relative;
@@ -671,9 +674,6 @@
     grid-column: 1;
     gap: 7px;
   }
-  .dio-rule {
-    width: 18px;
-  }
   .dio-intro h1 {
     font-size: clamp(1.6rem, 5.9vw, 2.5rem);
     margin: 5px 0 0;
@@ -754,51 +754,108 @@
   }
   .dio-caption {
     order: 2;
-    padding: 8px 1px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 16px 2px 0;
+  }
+  .dio-caption > div:first-child {
+    display: contents;
   }
   .dio-caption-title {
-    font-size: 0.94rem;
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 1.05rem;
+  }
+  .dio-caption .dio-steppers {
+    grid-column: 2;
+    grid-row: 1;
   }
   .dio-caption p {
-    font-size: 0.82rem;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
   }
   .dio-locations {
     order: 3;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0 7px;
-    margin-top: 9px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title guide"
+      "list list";
+    align-items: center;
+    gap: 12px 8px;
+    margin-top: 24px;
+    padding: 0 2px max(8px, env(safe-area-inset-bottom));
   }
   .dio-section-title {
-    grid-column: 1/-1;
-    margin: 0 0 6px;
+    grid-area: title;
+    margin: 0;
+  }
+  .dio-places {
+    grid-area: list;
+    overflow: hidden;
+    background: var(--nila-2);
+    border: 1px solid var(--dio-line);
+    border-radius: 18px;
+  }
+  .dio-root .dio-guide {
+    grid-area: guide;
+    margin: 0;
   }
   .dio-root .dio-place {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 9px 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 10px 14px 10px 12px;
+    border-top: 1px solid var(--dio-line);
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+  }
+  .dio-place:first-child {
+    border-top: 0;
+  }
+  .dio-place:last-child {
     border-bottom: 0;
   }
-  .dio-place-copy strong {
-    font-size: 0.95rem;
-  }
-  .dio-place-copy small {
-    font-size: 0.72rem;
+  .dio-root .dio-place[aria-pressed="true"] {
+    border-left-color: var(--prada);
+    background: color-mix(in srgb, var(--prada) 12%, transparent);
   }
   .dio-etching {
-    width: 58px;
-    height: 32px;
+    width: 56px;
+    height: 40px;
   }
   .dio-etching svg {
-    width: 51px;
-    height: 29px;
+    width: 50px;
+    height: 30px;
   }
-  .dio-root .dio-guide {
-    order: 4;
-    align-self: flex-start;
-    margin-top: 3px;
+  .dio-place-copy {
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+  .dio-place-copy strong {
+    font-size: 1.19rem;
+  }
+  .dio-place-copy small {
+    font: 400 0.8125rem/1.35 var(--font-ui);
+  }
+  .dio-chev {
+    display: grid;
+    place-items: center;
+    flex: none;
+    color: var(--dio-muted);
+  }
+  .dio-root .dio-place[aria-pressed="true"] .dio-chev {
+    color: var(--prada);
   }
   .dio-dialog {
     padding: 15px;
