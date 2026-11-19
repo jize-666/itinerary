@@ -5,13 +5,20 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SEDANG DISUSUN
+### Permintaan host 19 Nov: PRD proyek berat yang tersisa untuk Codex — SELESAI, DIKIRIM KE HOST
 
 **Kata host, kata demi kata:** "sekalian project berat apalagi yg belum? biar codex yang mengerjakanya. susun prd, jangan batasi kemampuan design codex, maksimalkan kerjanya."
 Tafsir Claude:
 - Proyek berat yang belum dikerjakan di Daftar tugas: Tugas 10 (Lereng Lawu, kebun teh, Candi Sukuh), Tugas 11 (Canting dan kain mori), Tugas 12 (Boarding pass 3D dengan fisika). Tugas 9 sudah diganti diorama dari Codex (sedang dipasang).
 - Satu PRD per tugas, untuk Codex, dalam Markdown di `docs/handoff/`. Desain dibebaskan: PRD memuat tujuan, rasa, rujukan budaya, letak yang disarankan, batas teknis yang wajib (versi, CSP tanpa WASM kecuali host mengizinkan, aturan gerak kamera host, beban), dan uji penerimaan; bentuk, teknik, dan komposisi diserahkan ke Codex.
 - Bahan faktual dikumpulkan Haiku; PRD disusun Opus.
+1. **Selesai (19 Nov):** empat berkas di `docs/handoff/` (dikirim ke host di chat):
+   - `codex-prd-bersama.md`: aturan bersama ketiga tugas. Isinya: prompt siap tempel EN; semangat "desain dibebaskan" (ruang bebas, lebih baik dari PRD diharapkan, boleh mengusulkan pelonggaran batas); fakta repo (panggung 3D, shader HDR + `COMMON`, tier, `?stage=`, Calm = tanpa WebGL, Clawd, perekam); batas keras (tanpa WASM/asal luar, aturan gerak kamera host, "beban hemat tapi jangan turunkan kualitas", fps iPhone High ≥ 55 dan p95 ≤ 20 ms, privasi nama "Jize", budaya dan lisensi); bentuk serah terima (PR/ZIP per tugas, diff untuk berkas lama, urutan 10 → 11, 12 boleh paralel); uji bersama; pratinjau video; bagian Claude sesudahnya.
+   - `codex-prd-10-lereng-lawu.md`: dunia 3D Hari 2 di lereng Lawu dari DEM (diolah di luar runtime, cadangan prosedural), matahari nyata 9 April 2027 dari balik punggung gunung, kebun teh mengikuti kontur, Cetho dan Sukuh di kabut (relief eksplisit tidak digambar), Grojogan Sewu; lampion tempat singgah tetap ada dalam bentuk lain; sambungan "dunia per bab" yang dipakai ulang Tugas 11.
+   - `codex-prd-11-canting-mori.md`: dua keluaran satu mesin: urutan canting di film Hari 3 yang mengikuti gulir (deterministik, mundur menghapus) sampai kain jadi terungkap di gong terakhir film, dan halaman privat `/canting/` untuk membatik sendiri (malam mengalir dan mendingin, celup nila/soga, lorod, simpan PNG). Payoff lama "benang emas = lilin" ditafsir ulang karena benang emas sudah diganti sungai dan lampion (benih: alur sungai tiga hari = garis malam, lampion = cecek).
+   - `codex-prd-12-boarding-pass-3d.md`: tiket 3D di slide `pass` di dalam panggung film (satu konteks WebGL), fisika ditulis sendiri di `src/engine/pass3d/` (deterministik, langkah tetap; dasar prototipe verlet), seret/ayun/sentil/balik, kemiringan HP menggeser gravitasi, nama hanya dari data runtime, DOM `HangingPass` tetap cadangan; home dan Today tetap DOM.
+2. **Kendala:** keputusan bawaan yang diambil Claude tanpa menunggu host (bisa diubah sebelum dikirim ke Codex): Lawu dan canting masuk ke film (bukan halaman sendiri, kecuali `/canting/` untuk membatik bebas); tiket 3D hanya di film; Codex diminta menyerahkan diff untuk berkas lama supaya tidak menimpa `main`.
+3. **Langkah berikutnya:** host meneruskan `codex-prd-bersama.md` + satu PRD tugas ke Codex (sesudah PR berkas ini di-merge, karena Codex bekerja dari `main`). Claude memasang hasilnya seperti diorama (Haiku memindai, Sonnet memindah dan menulis tes, Opus meninjau, mengukur, merekam pratinjau, PR).
 
 ### Kiriman host 19 Nov: PRD "Diorama Solo 3D" (dikerjakan Codex) — KODE CODEX DITERIMA, SEDANG DIPASANG
 
@@ -40,6 +47,14 @@ Tafsir Claude: Tugas 9 versi PRD lama (diorama kota dari OSM di film) diganti di
   3. **Langkah berikutnya:** tautan masuk dari film (slide rute, kartu Pasar Gede/Laweyan/Mangkunegaran) dan Today (Sonnet, sedang), video tur desktop + HP, e2e penuh, PR.
 - **Permintaan host, kata demi kata:** "kamu rapikan, sesuaikan ui/ux nya dengan project kita" (jawaban atas tawaran merapikan judul "Ruang Solo" dan label kompas).
   Tafsir Claude: antarmuka halaman `/diorama/` disamakan dengan bahasa visual situs (film dan Today): nama situs, bilah atas, tombol, sakelar bahasa, warna dan huruf, gerak; label kompas dibuat terbaca di atas maket. Maket 3D dan logikanya tidak diubah.
+  1. **Selesai (19 Nov, Sonnet mengerjakan, Opus meninjau):**
+     - "Ruang Solo" dan logonya dihapus; judul tab "Diorama · A Three-Day Lakon". Kiri atas: Kembali (`pb--tonal`) dan sakelar Calm (`pb--glass`, menulis `lakon.calm`); kanan atas tetap sakelar bahasa global.
+     - Semua tombol memakai sistem `.pb` situs (Putar tur dan Potret `pb--gold`, Angle `pb--tonal`, ikon `pb--glass`), palet nila/mori/prada, judul Fraunces dengan "in miniature" miring prada.
+     - Kompas, chip status, label lokasi, dan meter FPS di keping kaca nila (terbaca di atas bangunan terang). Dialog di tengah di desktop, sheet dari bawah di HP; gerak memakai `sheet-up`/`fade-in` situs, mati di Calm.
+     - Warna studio kanvas digelapkan ke nila; maket, lampu, dan bayangan tidak diubah. Selektor e2e tidak berubah.
+     - Tes: lint, typecheck, unit 496/496, content:check, build, e2e diorama + tautan 26/26.
+  2. **Catatan:** mode layar penuh menutupi sakelar bahasa global (perilaku lama Codex); Calm karena `prefers-reduced-motion` tidak bisa dimatikan dari sakelar (sama dengan film).
+  3. **Langkah berikutnya:** foto sesudah dikirim ke host; video tur desktop + HP, e2e penuh, PR.
 
 ### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
 
