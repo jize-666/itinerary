@@ -8,6 +8,11 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 ### Pesan host 19 Nov malam sesudah PR #21 di-merge: "daftar planning mana? liat. codex sakit gabisa lanjutin task" — DAFTAR DIKIRIM, MENUNGGU PILIHAN HOST
 
 Tafsir Claude: host minta melihat daftar rencana, dan Codex tidak bisa melanjutkan Tugas 11 (Canting dan kain mori) dan 12 (Boarding pass 3D dengan fisika) yang PRD-nya sudah ada di `docs/handoff/`. Claude menyusun daftar (yang selesai, yang tersisa, yang menunggu host) dan mengusulkan Claude mengambil alih Tugas 11 lalu 12 dari PRD yang sama, dengan pembagian Haiku/Sonnet/Opus. Belum ada kode; menunggu host memilih.
+- **Pesan host berikutnya, kata demi kata:** "kok task 9 ditunda? tandain udah selesai lah. kan udah dipasang kan?"
+  Tafsir Claude: Tugas 9 dianggap selesai karena diorama versi PRD host (dikerjakan Codex) sudah terpasang di `/diorama/` dan PR #20 sudah di-merge. Status "ditunda" di `CLAUDE.md` hanya sisa dari versi PRD lama (diorama kota OSM di film), yang diganti.
+  1. **Selesai:** `CLAUDE.md` Tugas 9 dicentang ✅ 19 Nov 2026; versi lama dicatat sebagai diganti, bukan ditunda.
+  2. **Kendala:** tidak ada.
+  3. **Langkah berikutnya:** menunggu host memilih Tugas 11, 12, atau butir yang menunggu host.
 
 ### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DIPASANG, UI DISAMAKAN; MENUNGGU TINJAUAN HOST
 
@@ -123,7 +128,7 @@ Tafsir Claude:
 - **Pilihan host (kartu tanya):** "Terima, kecualikan diorama". Nama landmark publik di diorama dianggap bukan data trip.
 - **Dikerjakan:** tes hanya mengecualikan literal string utuh (dengan tanda kutip) dari modul teks diorama yang memuat "Laweyan". Penanda lain tetap diperiksa di semua berkas. Dibuktikan dengan berkas tanam berisi `"Batik class in Laweyan at 08:30"`: tes gagal sebagaimana mestinya; tanpa berkas itu lulus.
 
-### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
+### Tugas 9: Diorama Solo — SELESAI 19 NOV (versi PRD host, dipasang di `/diorama/`, PR #20); versi lama di bawah diganti
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
 Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).
