@@ -1,6 +1,3 @@
-Menunggu host (⏭️ semua dilewati dulu atas arahan host 19 Nov: "tandai dan lewati semua, lanjut tugas besar dulu"; dikerjakan lagi sesudah Tugas 9 atau bila host memintanya):
-
-
 # HANDOFF
 
 Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`9065447`, PR #19 di-merge, CI hijau) · **sedang dikerjakan: Tugas 9 (Diorama Solo)** · Jize Zone tayang di https://jize-zone.vercel.app.
@@ -40,17 +37,16 @@ Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggun
   - Di container baru berkas itu tidak ada: minta host mengunggah `clawd-klip-final.zip` lagi.
 - Jize Zone: status terbaru di bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2 ke Supabase". Tinggal URL login di Supabase dan PR `second-brain` #2 (belum dicek dari sesi ini; repo itu tidak ada di sesi).
 
-Menunggu host:
-- dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
-- arahan Tugas 9 (Diorama Solo): tiga keputusan di "Rencana Tugas 9" di bawah
-- Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
-- Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
-- Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
-- keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
-- izin untuk Fable (pembantu yang hanya bekerja atas izin host)
-- penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
-- jawaban soal kaki Clawd 3D yang tertutup kartu gallery
-- uji di iPhone produksi (`/film/?fps`)
+Menunggu host (⏭️ semua dilewati dulu atas arahan host 19 Nov: "tandai dan lewati semua, lanjut tugas besar dulu"; dikerjakan lagi sesudah Tugas 9 atau bila host memintanya):
+- ⏭️ dengar klip Clawd yang tidak bisa dinilai dari transkripsi: `intro.0` ("Claw"), `gong.1` ("song"), `tip.kayon.0` ("gunungang"); bila janggal, kirim ulang rekaman teman host untuk membuat ulang klip itu saja
+- ⏭️ Jize Zone: Site URL `https://jize-zone.vercel.app` dan Redirect URL `https://jize-zone.vercel.app/**` di Supabase (Authentication → URL Configuration), lalu coba login magic link
+- ⏭️ Jize Zone: hapus fungsi `quick-processor` dan `jz-diag` dari dasbor; izin menghapus berkas kunci ingest di scratchpad
+- ⏭️ Jize Zone: hook pencatat kerja hanya terpasang di container ini; pilih dipasang ulang tiap container atau lewat setup script lingkungan
+- ⏭️ keputusan sisa PRD Jize Zone: isi pesan host di log live (sekarang 120 karakter tersaring) dan nasib artifact lama
+- ⏭️ izin untuk Fable (pembantu yang hanya bekerja atas izin host)
+- ⏭️ penilaian video gerbang dimensi versi halus dan kekuatan grading (`GRADE_STRENGTH`)
+- ⏭️ jawaban soal kaki Clawd 3D yang tertutup kartu gallery
+- ⏭️ uji di iPhone produksi (`/film/?fps`)
 
 ### Pertanyaan host 18 Nov malam atas video 2,5D bersuara — HOST MEMILIH A, GONG BARU SELESAI 19 NOV
 
