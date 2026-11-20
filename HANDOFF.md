@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 malam (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `38e179d`, PR #21 di-merge) · **Tugas 11.1 (kain kawung di GPU, studio `/canting/`) selesai dan di-push, foto empat tahap dikirim; belum ada PR; sesi ditutup atas arahan host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 20 Nov 2026 (WIB; skill `find-skills` dipasang, lihat bagian di bawah "MULAI DI SINI") · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `38e179d`, PR #21 di-merge) · **Tugas 11.1 (kain kawung di GPU, studio `/canting/`) selesai dan di-push, foto empat tahap dikirim; belum ada PR; sesi ditutup atas arahan host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -18,6 +18,12 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - 11.2 halaman `/canting/` untuk membatik sendiri: aliran malam dari pointer (lebar menurut kecepatan, tetes saat diam, celup ulang), canting 3D (nyamplung tembaga, cucuk, gagang bambu), Clawd memandu di samping, alat klowong/cecek/tembok, pola tuntunan kawung, urungkan, celup nila/kerok/soga, lorod, simpan PNG `batik-laweyan.png` (≥ 2048 px, Web Share bila ada), penyimpanan lokal, Calm/2,5D, teks dua bahasa dengan konteks sejarah kawung, e2e (`?demo=1`), video desktop + HP. Target malam interaktif butuh lintasan warna bertumpuk (ping-pong) dan peluruhan panas per frame; `Batik` sekarang hanya mode deterministik.
    - 11.3 film Hari 3 (Clawd memegang canting, torehan mengikuti gulir lewat `trace.countAt/tipAt`, dunia bab "batik" di `stage3d/chapters.ts`, lorod dan prada di gong terakhir), lalu 11.4 (suara, kain tamu di epilog).
    - Butir lama yang menunggu host tetap di daftar ⏭️ dan di `CLAUDE.md` (uji iPhone Lawu, klip `tip.mountain.0`, kartu Hari 2 ringkas di HP pendek, dan lain-lain).
+
+### Permintaan host 20 Nov: "skills.sh/vercel-labs/skills/find-skills, download ini dan pasang skills ini" — SELESAI
+
+1. **Selesai:** `SKILL.md` diunduh dari `github.com/vercel-labs/skills` (commit `57217cf`, folder `skills/find-skills`), dibaca dulu (isinya hanya panduan memakai `npx skills find/add`, tanpa skrip), lalu dipasang sebagai skill proyek `.claude/skills/find-skills/SKILL.md` (ikut repo, jadi ada di sesi berikutnya). Salinan global `~/.claude/skills/` hanya hidup di container sesi ini. Atas izin host, environment pribadi "itinerary" kini mengizinkan `skills.sh` dan `www.skills.sh` (sebelumnya proxy menolak dengan 403).
+2. **Tes / kendala:** skill terbaca (`find-skills` dan `itinerary:find-skills` muncul di daftar skill). `npx skills@1.9.0 find react performance` memberi hasil hanya bila dijalankan dengan `NODE_USE_ENV_PROXY=1`. Tanpa itu `fetch` bawaan Node tidak lewat proxy dan CLI diam-diam menjawab "No skills found". Catatannya ada di `CLAUDE.md`. Skill yang dipasang dengan `-g` hilang saat container ditutup; untuk skill yang mau dipertahankan, pasang di tingkat proyek (`npx skills add <owner/repo@skill> -a claude-code -y`, tanpa `-g`) lalu commit.
+3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" di atas (tanggapan host atas foto 11.1, lalu 11.2). Bila host mau, pasang juga di repo `second-brain`.
 
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
 
