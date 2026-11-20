@@ -40,7 +40,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 2. **Tes / kendala:** skill terbaca sebagai `systematic-debugging`. `pnpm lint` dan `pnpm typecheck` lulus dengan contoh `.ts` di folder itu (impor `~/threads/...` di contoh tidak ada di repo ini, tapi folder itu tidak ikut diperiksa). Skill yang sama juga sudah ada sebagai `anthropic-skills:systematic-debugging`. Rujukannya ke `superpowers:test-driven-development` dan `superpowers:verification-before-completion` di sini bernama `anthropic-skills:...`.
 3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
 
-### Permintaan host 20 Nov: "time to debugging! dari awal sampai akhir, usut sampai tuntas!" — SELESAI, MENUNGGU UJI HOST DI IPHONE
+### Permintaan host 20 Nov: "time to debugging! dari awal sampai akhir, usut sampai tuntas!" — SELESAI, PR #22, MENUNGGU UJI HOST DI IPHONE
 
 Tafsiran Claude (host tidak menyebut bug tertentu): jalankan semua cek repo (lint, typecheck, unit, content, build, e2e), telusuri situs di browser dari home sampai credits film (juga Today, `/diorama/`, `/canting/`) sambil menangkap error konsol, error halaman, dan permintaan gagal, lalu usut tiap temuan sampai akar masalahnya dengan skill `systematic-debugging` (tidak ada perbaikan sebelum akar masalah terbukti).
 
@@ -61,7 +61,7 @@ Temuan CI sebelum laporan itu: run 456 (commit dokumen saja) gagal di e2e "kunan
 2. **Tes:** lint, typecheck, unit 533/533, content, build lulus; e2e penuh di build baru 344 lulus, 34 dilewati, 0 gagal (20,6 mnt; 10 tes baru). Belum bisa dibuktikan dari container: apa yang memuat ulang halaman di iPhone host "di fase tertentu". Dugaan terkuat: iOS memuat ulang tab di fase 3D yang berat karena memori (film terasa terulang atau berkedip di saat itu). Perbaikan tombol berlaku apa pun pemicunya; bila host melihat film terulang, itu masalah memori yang perlu diukur di perangkat.
 3. **Langkah berikutnya:**
    - Host menguji di iPhone produksi sesudah PR di-merge: tombol suara sesudah tab dimuat ulang (dan apakah film ikut terulang di fase itu), dialog izin gerak di film (geser dulu lalu ketuk), Today, dan diorama.
-   - PR: branch ini juga memuat Tugas 11.1 (studio `/canting/`) yang belum ditinjau host; tanya host apakah PR dibuka sekarang (perbaikan cepat sampai produksi) atau menunggu 11.2.
+   - PR #22 dibuka atas permintaan host ("mana pr nya", 20 Nov): https://github.com/jize-666/itinerary/pull/22, termasuk Tugas 11.1 (studio `/canting/`, privat, belum ditautkan). Tanpa konflik dengan `main` (`38e179d`). Pratinjau Vercel branch ini: https://kulonuwun-solo-git-claude-admiring-noether-tbqvap-jixx1.vercel.app (host bisa menguji di iPhone sebelum merge). Host yang klik Squash and merge.
    - Kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
 
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
