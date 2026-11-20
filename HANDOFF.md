@@ -32,7 +32,13 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - Sudah terpasang lewat paket `anthropic-skills`: `obra/superpowers@systematic-debugging` (340 rb, ★322 rb) dan `addyosmani/agent-skills@debugging-and-error-recovery` (79 rb, ★119 rb), juga `browser-testing-with-devtools`.
    - Tidak direkomendasikan: `ChromeDevTools/chrome-devtools-mcp@chrome-devtools` (resmi, ★58 rb, tapi butuh server MCP chrome-devtools yang tidak ada di sini; yang ada Playwright MCP), `wshobson/agents@debugging-strategies` (★43 rb, umum, tumpang tindih), `lllllllama/rigorpilot-skills@safe-debug` (362 rb instalasi tapi repo ★489, angkanya mencurigakan).
 2. **Tes / kendala:** tidak ada kode yang diubah. Tanpa `NODE_USE_ENV_PROXY=1` pencarian kosong (sudah dicatat di `CLAUDE.md`).
-3. **Langkah berikutnya:** bila host setuju, pasang `diagnosing-bugs` di tingkat proyek (`NODE_USE_ENV_PROXY=1 npx skills add mattpocock/skills@diagnosing-bugs -a claude-code -y`, tanpa `-g`), baca lagi berkas yang terpasang, lalu commit. Sesudah itu kembali ke "MULAI DI SINI".
+3. **Langkah berikutnya:** host memilih yang lain (lihat bagian berikut). Bila host setuju, pasang `diagnosing-bugs` di tingkat proyek (`NODE_USE_ENV_PROXY=1 npx skills add mattpocock/skills@diagnosing-bugs -a claude-code -y`, tanpa `-g`), baca lagi berkas yang terpasang, lalu commit. Sesudah itu kembali ke "MULAI DI SINI".
+
+### Permintaan host 20 Nov: "pasang yang 340rb instalasi" (`obra/superpowers@systematic-debugging`) — SELESAI
+
+1. **Selesai:** folder `skills/systematic-debugging` dari `github.com/obra/superpowers` (commit `22f0b46`) disalin apa adanya ke `.claude/skills/systematic-debugging/` (ikut repo). Enam berkasnya dibaca dulu: `SKILL.md` (empat fase: cari akar masalah, cari pola, uji satu hipotesis, perbaiki dengan tes gagal dulu; berhenti dan pertanyakan arsitektur sesudah 3 perbaikan gagal), `root-cause-tracing.md`, `defense-in-depth.md`, `condition-based-waiting.md`, contoh `condition-based-waiting-example.ts`, dan `find-polluter.sh` (mencari tes yang meninggalkan berkas; menjalankan `npm test` per berkas). Tidak ada yang mengunduh atau mengirim data.
+2. **Tes / kendala:** skill terbaca sebagai `systematic-debugging`. `pnpm lint` dan `pnpm typecheck` lulus dengan contoh `.ts` di folder itu (impor `~/threads/...` di contoh tidak ada di repo ini, tapi folder itu tidak ikut diperiksa). Skill yang sama juga sudah ada sebagai `anthropic-skills:systematic-debugging`. Rujukannya ke `superpowers:test-driven-development` dan `superpowers:verification-before-completion` di sini bernama `anthropic-skills:...`.
+3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
 
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
 
