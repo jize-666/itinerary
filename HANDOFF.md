@@ -25,6 +25,15 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 2. **Tes / kendala:** skill terbaca (`find-skills` dan `itinerary:find-skills` muncul di daftar skill). `npx skills@1.9.0 find react performance` memberi hasil hanya bila dijalankan dengan `NODE_USE_ENV_PROXY=1`. Tanpa itu `fetch` bawaan Node tidak lewat proxy dan CLI diam-diam menjawab "No skills found". Catatannya ada di `CLAUDE.md`. Skill yang dipasang dengan `-g` hilang saat container ditutup; untuk skill yang mau dipertahankan, pasang di tingkat proyek (`npx skills add <owner/repo@skill> -a claude-code -y`, tanpa `-g`) lalu commit.
 3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" di atas (tanggapan host atas foto 11.1, lalu 11.2). Bila host mau, pasang juga di repo `second-brain`.
 
+### Permintaan host 20 Nov: "pakai skills itu untuk mencari skills untuk debugging" — HASIL DIKIRIM, MENUNGGU PILIHAN HOST
+
+1. **Selesai:** `npx skills find` dengan enam kata kunci (debugging, debug, systematic debugging, root cause, browser debugging, webgl debug). Kandidat diperiksa: jumlah instalasi, bintang GitHub (lewat `gh api search/repositories`; `api.github.com` langsung diblokir proxy), dan isi `SKILL.md` dibaca.
+   - `mattpocock/skills@diagnosing-bugs`: 952 rb instalasi, repo ★328 rb. Inti skill: bangun dulu satu perintah yang bisa merah untuk bug itu, lalu perkecil kasusnya, uji 3–5 hipotesis, pasang log bertanda `[DEBUG-xxxx]`, ukur dulu untuk masalah performa, dan tulis tes regresi. Skripnya hanya template tanya-jawab terminal. **Satu-satunya yang direkomendasikan**, belum dipasang.
+   - Sudah terpasang lewat paket `anthropic-skills`: `obra/superpowers@systematic-debugging` (340 rb, ★322 rb) dan `addyosmani/agent-skills@debugging-and-error-recovery` (79 rb, ★119 rb), juga `browser-testing-with-devtools`.
+   - Tidak direkomendasikan: `ChromeDevTools/chrome-devtools-mcp@chrome-devtools` (resmi, ★58 rb, tapi butuh server MCP chrome-devtools yang tidak ada di sini; yang ada Playwright MCP), `wshobson/agents@debugging-strategies` (★43 rb, umum, tumpang tindih), `lllllllama/rigorpilot-skills@safe-debug` (362 rb instalasi tapi repo ★489, angkanya mencurigakan).
+2. **Tes / kendala:** tidak ada kode yang diubah. Tanpa `NODE_USE_ENV_PROXY=1` pencarian kosong (sudah dicatat di `CLAUDE.md`).
+3. **Langkah berikutnya:** bila host setuju, pasang `diagnosing-bugs` di tingkat proyek (`NODE_USE_ENV_PROXY=1 npx skills add mattpocock/skills@diagnosing-bugs -a claude-code -y`, tanpa `-g`), baca lagi berkas yang terpasang, lalu commit. Sesudah itu kembali ke "MULAI DI SINI".
+
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
 
 **Pertanyaan host:** "boleh tau konsepnya kaya gimana canting sama mori nya?" Claude menjelaskan konsep dari PRD `docs/handoff/codex-prd-11-canting-mori.md` (film Hari 3 mengikuti gulir + halaman `/canting/`, satu mesin) dan menanyakan tiga hal.
