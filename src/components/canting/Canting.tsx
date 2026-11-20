@@ -111,7 +111,9 @@ export function Canting({ lang, calm, quality, showFps = false, demo = false }: 
     const insets = () => {
       const h = root.clientHeight;
       const top = topRef.current?.getBoundingClientRect().bottom ?? 0;
-      const dock = dockRef.current?.getBoundingClientRect().top ?? h;
+      // isi panel "Pola dan lainnya" yang terbuka menutupi kain sementara, tidak menggeser letak kain dan Clawd
+      const body = dockRef.current?.querySelector<HTMLElement>(".cnt-more[open] .cnt-more-body");
+      const dock = (dockRef.current?.getBoundingClientRect().top ?? h) + (body ? body.getBoundingClientRect().height + 10 : 0);
       return { top: Math.max(0, top), bottom: Math.max(0, h - dock) };
     };
     const guide = createCantingGuide(root, {

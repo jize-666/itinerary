@@ -159,12 +159,18 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
   clothRig.add(cloth);
   scene.add(clothRig);
 
-  // ---- bak celup, tetes, uap ----
-  const bathMat = new MeshStandardMaterial({ color: DYE.nila, roughness: 0.18, metalness: 0, transparent: true, opacity: 0, depthWrite: false });
-  const bath = new Mesh(new PlaneGeometry(2.8, 1.6), bathMat);
-  bath.rotation.x = -Math.PI / 2;
-  bath.renderOrder = 2;
-  scene.add(bath);
+  // ---- jambangan celup (dinding depan + permukaan cairan selebar kain), tetes, uap ----
+  // Dinding depan menghadap kamera dan naik bersama cairan: bagian bawah kain tertutup, terbaca sebagai kain dicelup.
+  const bathMat = new MeshStandardMaterial({ color: DYE.nila, roughness: 0.16, metalness: 0, transparent: true, opacity: 0, depthWrite: false });
+  const wallMat = new MeshStandardMaterial({ color: new Color(0.13, 0.075, 0.05), roughness: 0.55, metalness: 0, transparent: true, opacity: 0 });
+  const plane = new PlaneGeometry(1, 1);
+  const liquid = new Mesh(plane, bathMat);
+  liquid.rotation.x = -Math.PI / 2;
+  const wall = new Mesh(plane, wallMat);
+  const vat = new Group();
+  vat.add(liquid, wall);
+  vat.renderOrder = 2;
+  scene.add(vat);
   const DRIPS = 70;
   const drip = { pos: new Float32Array(DRIPS * 3), vel: new Float32Array(DRIPS), life: new Float32Array(DRIPS) };
   const dripGeo = new BufferGeometry();
@@ -200,6 +206,8 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
   const focus = new Vector3();
   let portrait = false;
   let clothBottom = -0.45;
+  let vatFront = 0.25;
+  let vatWidth = ASPECT * 1.1;
   const saved = opts.demo ? null : readSaved();
   if (saved) {
     const h = StrokeHistory.decode(saved.strokes, ASPECT);
@@ -262,7 +270,8 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     pan.group.position.copy(camera.position).addScaledVector(dir, (zPlane - camera.position.z) / dir.z);
     const halfH = (portrait ? ASPECT : 1) / 2;
     clothBottom = -halfH * Math.cos(CLOTH_TILT);
-    bath.position.set(0, clothBottom - 0.05, 0.1);
+    vatFront = halfH * Math.sin(CLOTH_TILT) + 0.05;
+    vatWidth = (portrait ? 1 : ASPECT) * 1.1;
   };
   resize();
   const observer = new ResizeObserver(resize);
@@ -380,7 +389,8 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     persist();
     if (!cooledOnce && !calm) {
       cooledOnce = true;
-      coolTimer = setTimeout(() => cb.event("cool"), 2600);
+      // hanya selagi masih menggambar (bukan saat kain sudah dicelup)
+      coolTimer = setTimeout(() => proc.stage === "malam" && !proc.busy && cb.event("cool"), 2600);
     }
     pushView(true);
   };
@@ -632,16 +642,24 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     const dipping = proc.busy === "nila" || proc.busy === "soga";
     const dipK = dipping ? Math.min(1, Math.max(0, (now - proc.since) / proc.dur)) : 0;
     const sink = dipping ? bump(dipK) : 0;
-    // permukaan bak naik menutupi bagian bawah kain lalu surut (kain hanya sedikit turun)
+    // cairan naik menutupi bagian bawah kain lalu surut (kain hanya sedikit turun)
     clothRig.position.y = -0.05 * sink;
-    bath.position.y = clothBottom - 0.05 + sink * (portrait ? 0.62 : 0.4);
+    const level = clothBottom - 0.04 + sink * (portrait ? 0.62 : 0.4);
+    const floor = clothBottom - 0.45;
+    liquid.scale.set(vatWidth, 0.7, 1);
+    liquid.position.set(0, level, vatFront - 0.35);
+    wall.scale.set(vatWidth, level - floor, 1);
+    wall.position.set(0, (level + floor) / 2, vatFront);
     if (dipping) {
       bathMat.color.copy(proc.busy === "nila" ? DYE.nila : DYE.soga);
       dripMat.color.copy(bathMat.color);
       wetness = Math.max(wetness, Math.min(1, dipK * 3));
     } else wetness = Math.max(0, wetness - dt / 6);
-    bathMat.opacity = calm ? 0 : Math.min(1, dipping ? Math.min(dipK, 1 - dipK) * 8 : 0) * 0.9;
-    bath.visible = bathMat.opacity > 0.01;
+    const vatAlpha = calm ? 0 : Math.min(1, dipping ? Math.min(dipK, 1 - dipK) * 8 : 0);
+    bathMat.opacity = vatAlpha * 0.92;
+    wallMat.opacity = vatAlpha;
+    wallMat.depthWrite = vatAlpha > 0.98;
+    vat.visible = vatAlpha > 0.01;
     // tetes dari tepi bawah kain saat naik dari bak
     const spawn = !calm && dipping && dipK > 0.72;
     for (let i = 0; i < DRIPS; i++) {
@@ -851,8 +869,9 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
       wax.dispose();
       clothGeo.dispose();
       clothMat.dispose();
-      bath.geometry.dispose();
+      plane.dispose();
       bathMat.dispose();
+      wallMat.dispose();
       dripGeo.dispose();
       dripMat.dispose();
       steamGeo.dispose();
