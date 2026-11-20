@@ -422,6 +422,30 @@
       "sent": "2026-11-19",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "tombol-suara-film-hp.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/preview/tombol-suara-film-hp.png",
+      "size": 3417981,
+      "sent": "2026-11-20",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tombol-suara-today-hp.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/preview/tombol-suara-today-hp.png",
+      "size": 1553318,
+      "sent": "2026-11-20",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tombol-suara-film-desktop.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/preview/tombol-suara-film-desktop.png",
+      "size": 2253181,
+      "sent": "2026-11-20",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
