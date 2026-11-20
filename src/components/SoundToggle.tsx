@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { audioStatus } from "@/engine/audio/status";
 import { CHROME } from "@/engine/i18n/chrome";
 import { useLang } from "@/engine/i18n/useLang";
@@ -41,9 +42,18 @@ export function SoundButton({ on, onToggle }: { on: boolean; onToggle: () => voi
   );
 }
 
-/** Toggle mute global, setelah lakon dimulai. Sebelum mulai, sambutan memakai SoundButton dengan preferensi. */
+/**
+ * Toggle mute global. Di gerbang (home) sebelum mulai, sambutan memakai SoundButton dengan preferensi; di halaman
+ * lain selalu tampil, juga bila halaman dibuka tanpa gerbang (tab dimuat ulang, tautan langsung, Home Screen):
+ * mati sampai diketuk, lalu ketukan itu menyalakan gendhing (laporan host 20 Nov: tombol sempat hilang).
+ */
 export function SoundToggle() {
   const { started, enabled } = useAudioState();
-  if (!started) return null;
+  const path = usePathname();
+  const show = started || path !== "/";
+  useEffect(() => {
+    if (show) audioStatus.warm();
+  }, [show]);
+  if (!show) return null;
   return <SoundButton on={enabled} onToggle={() => audioStatus.setEnabled(!enabled)} />;
 }

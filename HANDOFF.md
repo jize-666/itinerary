@@ -40,6 +40,22 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 2. **Tes / kendala:** skill terbaca sebagai `systematic-debugging`. `pnpm lint` dan `pnpm typecheck` lulus dengan contoh `.ts` di folder itu (impor `~/threads/...` di contoh tidak ada di repo ini, tapi folder itu tidak ikut diperiksa). Skill yang sama juga sudah ada sebagai `anthropic-skills:systematic-debugging`. Rujukannya ke `superpowers:test-driven-development` dan `superpowers:verification-before-completion` di sini bernama `anthropic-skills:...`.
 3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
 
+### Permintaan host 20 Nov: "time to debugging! dari awal sampai akhir, usut sampai tuntas!" — SEDANG DIKERJAKAN
+
+Tafsiran Claude (host tidak menyebut bug tertentu): jalankan semua cek repo (lint, typecheck, unit, content, build, e2e), telusuri situs di browser dari home sampai credits film (juga Today, `/diorama/`, `/canting/`) sambil menangkap error konsol, error halaman, dan permintaan gagal, lalu usut tiap temuan sampai akar masalahnya dengan skill `systematic-debugging` (tidak ada perbaikan sebelum akar masalah terbukti).
+
+Laporan host di tengah debugging (20 Nov, iPhone produksi, dengan tangkapan layar hero prolog 3D: bar atas hanya Today, ≈, EN/ID), kata demi kata: "nih yang sering gagal; tombol sounds sering menghilang ketika masuk fase tertentu. izin akses gerakan sering tidak muncul." Dua bug ini didahulukan.
+
+Temuan CI sebelum laporan itu: run 456 (commit dokumen saja) gagal di e2e "kunang-kunang sungguh tampak di gong penutup" (desktop, tier High, mulai `#day-2`): ArrowUp di indeks 17 tidak memindah slide dalam 5 dtk, dua kali.
+
+**Status (20 Nov, titik aman pertama):**
+1. **Selesai, akar masalah terbukti lalu diperbaiki dengan tes merah dulu:**
+   - **Tombol suara hilang.** Status audio hidup di modul halaman dan baru `started` sesudah Begin di gerbang; tombol hanya bisa hilang bila dokumen dimuat ulang (iOS memuat ulang tab berat, tautan langsung, Home Screen), dan sesudah itu tidak ada jalan menyalakan suara. Kini tombol selalu tampil di luar gerbang, mati sampai diketuk; ketukan menyalakan gendhing keraton dan bunyi adegan. Mesin audio (kode saja) dipanaskan di waktu senggang supaya ketukan pertama tetap di dalam gesture iOS. `SoundToggle.tsx`, `engine/audio/status.ts`, `AudioEngine.ts`; 3 e2e baru di `sound.spec.ts` (merah 6/6 di build lama).
+   - **Izin sensor gerak tidak muncul.** Sumber WebKit (`DeviceOrientationEvent.cpp`): tanpa gesture sah janji ditolak `NotAllowedError` tanpa dialog. `look.ts` (film, Today, canting) menandai "sudah ditanya" sebelum jawaban dan menelan penolakan → tidak pernah diminta lagi; izin hilang sesudah film → Today; pendengar bocor bila jawaban telat; ganti halaman saat menunggu jawaban → halaman baru tak pernah mendengarkan. Diorama meminta di `pointerdown` (bukan pemicu aktivasi menurut spesifikasi HTML) → kini `touchend`. 6 tes unit `tests/unit/look.test.ts` + 2 e2e `e2e/motion-permission.spec.ts` (tiruan aturan WebKit; merah di build lama).
+   - **E2E flaky CI.** Bukan dunia Lawu (hipotesis pertama gugur: dunia sudah siap saat ditekan). `data-index` berubah saat commit; di tier High yang digambar CPU satu frame ±0,5 dtk (longgar) s.d. ±1,5 dtk (2 core berbagi), jadi commit 3,6 dtk (longgar) dan 8–9 dtk (`taskset -c 0,1` + satu loop sibuk, meniru runner 2 vCPU). Kegagalan "Expected: not 17" direproduksi di kondisi itu. `step()` dan `settled()` kini memakai `WAIT` seperti penantian lain di berkas itu; lulus 2× di kondisi yang sama.
+2. **Tes:** lint, typecheck, unit 533/533, build lulus; `sound.spec` + `motion-permission.spec` 24 lulus di build baru. E2E penuh di build lama (pembanding): 336 lulus, 32 dilewati, 0 gagal (20,5 mnt). Catatan CI: batas job 35 mnt, run 456 makan 32 mnt (e2e 30,6) — ruang tipis. Peringatan "Node.js 20 is deprecated" di CI tidak berdampak (GitHub sudah memaksa Node 24); action v5–v7 tersedia bila host ingin merapikan.
+3. **Berikutnya:** penelusuran browser home → film 2,5D dan 3D sampai akhir → Today → diorama → canting (desktop + HP, data trip April) dan e2e penuh di build baru; lalu PR.
+
 ### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
 
 **Pertanyaan host:** "boleh tau konsepnya kaya gimana canting sama mori nya?" Claude menjelaskan konsep dari PRD `docs/handoff/codex-prd-11-canting-mori.md` (film Hari 3 mengikuti gulir + halaman `/canting/`, satu mesin) dan menanyakan tiga hal.

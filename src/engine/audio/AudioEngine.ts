@@ -43,6 +43,9 @@ class AudioEngine {
 
   constructor() {
     if (typeof window !== "undefined") (window as AudioWindow).__lakonAudio = { debug: () => this.debug() };
+    // daftar ke UI global sejak dibuat: tombol speaker bisa langsung memanggil setEnabled di dalam ketukan
+    // (halaman yang dibuka tanpa gerbang, mis. tab yang dimuat ulang iOS), tanpa menunggu modul ini diunduh
+    audioStatus.publish(this.state, this);
   }
 
   // ---- status untuk React (useSyncExternalStore) ----
@@ -76,7 +79,8 @@ class AudioEngine {
   /** Toggle speaker. HARUS dipanggil langsung dari handler klik. */
   setEnabled(on: boolean) {
     writeSoundPref(on ? "on" : "off");
-    this.set({ enabled: on });
+    // menyalakan dari tombol speaker juga memulai lakon bersuara (halaman tanpa gerbang): bunyi adegan ikut hidup
+    this.set(on ? { started: true, enabled: true } : { enabled: false });
     if (on) {
       if (!this.unlock()) return;
       this.rampMaster(1, 0.35);

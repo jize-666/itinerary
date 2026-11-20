@@ -518,13 +518,9 @@ export class DioramaController {
       opts = { signal: this.gestures.signal };
     el.tabIndex = 0;
     el.style.touchAction = "none";
-    window.addEventListener(
-      "pointerdown",
-      (e) => {
-        if (e.pointerType === "touch") void this.enableSensor();
-      },
-      { ...opts, capture: true },
-    );
+    // izin sensor gerak (iPhone) hanya boleh diminta di dalam gesture yang sah: untuk sentuhan itu touchend, bukan
+    // pointerdown (spesifikasi HTML; WebKit menolak tanpa dialog). Laporan host 20 Nov: izin sering tidak muncul.
+    window.addEventListener("touchend", () => void this.enableSensor(), { ...opts, capture: true, passive: true });
     const points = () => [...this.active.values()];
     el.addEventListener(
       "pointerdown",

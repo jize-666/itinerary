@@ -38,6 +38,18 @@ let state: AudioState = INITIAL_AUDIO;
 let control: AudioControl | null = null;
 const listeners = new Set<() => void>();
 
+/**
+ * Mesin audio diunduh saat dibutuhkan. Halaman yang dibuka tanpa gerbang (tab dimuat ulang iOS, tautan langsung,
+ * Today dari Home Screen) memanaskannya di waktu senggang supaya ketukan speaker pertama tetap di dalam gesture
+ * (kebijakan autoplay iOS). Hanya kodenya: berkas suara baru diunduh setelah suara dinyalakan.
+ */
+let loading: Promise<AudioControl> | null = null;
+function loadEngine(): Promise<AudioControl> {
+  loading ??= import("./AudioEngine").then((m) => m.getAudio());
+  loading.catch(() => (loading = null)); // luring: coba lagi nanti
+  return loading;
+}
+
 export const audioStatus = {
   get: () => state,
   getServer: () => INITIAL_AUDIO,
@@ -52,7 +64,16 @@ export const audioStatus = {
     for (const fn of listeners) fn();
   },
   setEnabled(on: boolean) {
-    control?.setEnabled(on);
+    if (control) control.setEnabled(on);
+    // belum sempat dipanaskan: muat lalu nyalakan (di iOS bisa butuh ketukan kedua untuk membuka konteks)
+    else if (on) void loadEngine().then((c) => c.setEnabled(true), () => {});
+  },
+  /** Panaskan mesin audio di waktu senggang (tombol speaker tampil tanpa mesin). */
+  warm() {
+    if (control || loading || typeof window === "undefined") return;
+    const go = () => void loadEngine().catch(() => {});
+    if ("requestIdleCallback" in window) window.requestIdleCallback(go, { timeout: 2000 });
+    else setTimeout(go, 300);
   },
   /** Bunyi klik: hanya setelah lakon dimulai dan gamelan menyala; di-mute → hening. */
   click(sound: ClickSound) {

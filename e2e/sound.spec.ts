@@ -91,6 +91,64 @@ test("klik tombol berbunyi saat gamelan menyala (click/tok), hening setelah di-m
   expect((await audioDebug(page))?.lastSfx).toBe("ui-tok");
 });
 
+/**
+ * Laporan host 20 Nov (iPhone produksi): "tombol sounds sering menghilang ketika masuk fase tertentu". Status audio
+ * hidup di modul halaman, jadi tombol hanya bisa hilang bila dokumen dimuat ulang (tab dimuat ulang iOS, tautan
+ * langsung, Today dari Home Screen). Tombol harus tetap ada di dalam lakon dan ketukannya menyalakan gendhing.
+ */
+test.describe("tombol suara tetap ada sesudah halaman dimuat ulang (laporan host 20 Nov)", () => {
+  test("tab dimuat ulang di tengah film: tombol suara tetap ada (mati); ketuk → gendhing menyala lagi", async ({ page }) => {
+    await page.route(TRIP, (r) => json(r, 200, filmFixture("guest")));
+    await page.goto("/");
+    await page.getByRole("button", { name: "Begin the lakon" }).click();
+    await expect(page).toHaveURL(/\/film\/$/);
+    const toggle = page.getByRole("button", { name: "Gamelan sound" });
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await page.reload();
+    await expect(page.locator("main.film")).toBeVisible();
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false"); // jujur: belum berbunyi sebelum diketuk
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await audioDebug(page))?.ctx, { timeout: 10_000 }).toBe("running");
+    await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("keraton");
+    expect(await pref(page)).toBe("on");
+  });
+
+  test("film dibuka langsung tanpa Begin di tab ini: tombol suara ada; ketuk → gendhing dan bunyi gong hero", async ({ page }) => {
+    await page.route(TRIP, (r) => json(r, 200, filmFixture("guest")));
+    await page.goto("/film/");
+    const film = page.locator("main.film");
+    await expect(film).toBeVisible();
+    const toggle = page.getByRole("button", { name: "Gamelan sound" });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect((await audioDebug(page))?.ctx ?? "none").toBe("none"); // belum diketuk: tidak ada konteks audio
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await audioDebug(page))?.ctx, { timeout: 10_000 }).toBe("running");
+    await expect.poll(async () => (await audioDebug(page))?.bed, { timeout: 15_000 }).toBe("keraton");
+    // bunyi adegan ikut hidup (status "sudah dimulai"), bukan hanya gendhing
+    await expect(film).toHaveAttribute("data-slide", "hero");
+    await page.keyboard.press("ArrowDown");
+    await expect(film).toHaveAttribute("data-beat", "out");
+    await expect.poll(async () => (await audioDebug(page))?.lastSfx, { timeout: 10_000 }).toBe("gong");
+  });
+
+  test("Today dibuka langsung: tombol suara ada, tetapi berkas suara tidak diunduh sebelum diketuk", async ({ page }) => {
+    const audioRequests: string[] = [];
+    page.on("request", (r) => {
+      if (r.url().includes("/audio/")) audioRequests.push(r.url());
+    });
+    await page.goto("/today/");
+    const toggle = page.getByRole("button", { name: "Gamelan sound" });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await page.waitForTimeout(600);
+    expect(audioRequests).toEqual([]);
+  });
+});
+
 test("tahap gong di hero prolog (Tugas 7b): langkah pertama menabuh gong dengan bunyinya", async ({ page }) => {
   await page.route(TRIP, (r) => json(r, 200, filmFixture("guest")));
   await page.goto("/");
