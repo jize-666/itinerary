@@ -82,7 +82,7 @@ float bKerok(vec2 p, float k) {
 }
 `;
 
-const quadVs = /* glsl */ `
+export const QUAD_VS = /* glsl */ `
 varying vec2 vUv;
 void main() {
   vUv = uv;
@@ -148,8 +148,11 @@ void main() {
   gl_FragColor = vec4(uLayer < 0.5 ? 1.0 : 0.0, uLayer < 0.5 ? 0.0 : 1.0, hot, 0.0);
 }`;
 
-/** Warna yang terserap kain, dari target malam dan kadar tiap tahap. */
-const dyeFs = /* glsl */ `
+/**
+ * Warna yang terserap kain, dari target malam dan kadar tiap tahap. Kanal A = malam mbironi (/canting/: malam yang
+ * ditorehkan sesudah nila): hanya menahan soga. Di film kanal A selalu 0.
+ */
+export const DYE_FS = /* glsl */ `
 varying vec2 vUv;
 uniform sampler2D tWax;
 uniform float uNila;
@@ -172,7 +175,7 @@ void main() {
   float crackB = bCracks(p * 58.0 + 3.7) * (0.55 + 0.45 * bNoise(p * 13.0 + 2.0));
   float waxA = clamp(wax.r + wax.g, 0.0, 1.0);
   float nila = dip(uNila, vUv, 0.0) * mix(1.0, crackA * 0.8, waxA);
-  float waxB = clamp(wax.r + wax.g * (1.0 - bKerok(p, uKerok)), 0.0, 1.0);
+  float waxB = clamp(wax.r + wax.g * (1.0 - bKerok(p, uKerok)) + wax.a, 0.0, 1.0);
   float soga = dip(uSoga, vUv, 2.3) * mix(1.0, crackB * 0.6, waxB);
   // serat mori tidak menyerap rata: sedikit belang
   float mottle = 0.96 + 0.04 * bNoise(p * vec2(34.0, 24.0)) - 0.03 * bNoise(p * 4.0);
@@ -281,8 +284,8 @@ export class Batik {
     this.dyeQuad = new Mesh(
       new PlaneGeometry(2, 2),
       new ShaderMaterial({
-        vertexShader: quadVs,
-        fragmentShader: dyeFs,
+        vertexShader: QUAD_VS,
+        fragmentShader: DYE_FS,
         uniforms: {
           tWax: { value: this.wax.texture },
           uNila: { value: 0 },
