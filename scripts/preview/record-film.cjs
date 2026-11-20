@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting]
+// canting = halaman membatik /canting/ (Tugas 11.2): menggambar bebas (klowong, cecek, tembok, mbleber), celup canting,
+// mulai lagi dengan pola kawung yang ditorehkan canting, nila, mbironi, soga, lorod, simpan. CANT_Q=high|medium|low
+// (bawaan high), DIO_LANG=en|id. Di HP goresan memakai sentuhan jari (CDP).
 // lawu = eleven Day 2 stops, frame-stepped on desktop 1440×900 or phone 1080×1920 at 24 fps (record-lawu.cjs).
 // Use the April client-data fixture. Optional PREVIEW_BROWSER selects a locally installed headless Chromium.
 // diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, VOICE diabaikan): DIO_Q=high|medium|low (bawaan high)
@@ -63,7 +66,8 @@ const fs = require('fs');
   const dpr = phone ? 3 : 1.5;
   const base = device === 'hp916' ? { ...devices['iPhone 14 Pro'], viewport: { width: 360, height: 640 }, screen: { width: 360, height: 640 } } : phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
   const dio = tour === 'diorama';
-  const VOICE = dio ? '' : process.env.VOICE || '';
+  const cant = tour === 'canting';
+  const VOICE = dio || cant ? '' : process.env.VOICE || '';
   const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
@@ -199,14 +203,15 @@ const fs = require('fs');
   };
 
   await p.goto('about:blank');
-  rolling = dio ? false : VOICE ? false : !STAGE || STAGE === 'static';
+  rolling = dio || cant ? false : VOICE ? false : !STAGE || STAGE === 'static';
   await cdp.send('Animation.enable');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
-  if (dio) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); } catch {} }, process.env.DIO_LANG || 'en');
+  if (dio || cant) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); localStorage.removeItem('lakon.canting.v1'); } catch {} }, process.env.DIO_LANG || 'en');
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
   const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : '';
   const dioQuery = ['tur=1', `q=${process.env.DIO_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
-  const filmUrl = dio ? `/diorama/?${dioQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
+  const cantQuery = [`q=${process.env.CANT_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
+  const filmUrl = dio ? `/diorama/?${dioQuery}` : cant ? `/canting/?${cantQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
   if (VOICE) {
     // bersuara: mulai dari beranda dan tekan "Begin the lakon" seperti tamu (itu yang menyalakan suara). Navigasi
     // klien ke /film/ membuang query dan hash, jadi pushState/replaceState menambahkannya kembali.
@@ -234,8 +239,8 @@ const fs = require('fs');
     await p.goto(`${BASE}${filmUrl}`, { waitUntil: 'commit' });
     await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   }
-  if (!dio) await p.waitForSelector('.film');
-  if (!dio && STAGE && STAGE !== 'static') {
+  if (!dio && !cant) await p.waitForSelector('.film');
+  if (!dio && !cant && STAGE && STAGE !== 'static') {
     // tunggu kanvas 3D tampil penuh, lalu mulai video dari sini (bukan dari layar muat)
     await p.waitForSelector('.film[data-stage="on"]', { timeout: 600000 });
     rolling = true;
@@ -251,6 +256,85 @@ const fs = require('fs');
     console.log(JSON.stringify({ frame_video: written, detik: (written / FPS).toFixed(1), keluaran: out }));
     await b.close();
   };
+
+  if (cant) {
+    // halaman membatik /canting/ (Tugas 11.2): menggambar bebas, celup canting, pola kawung, nila, mbironi, soga,
+    // lorod, simpan. Semua jeda dalam waktu virtual, jadi kejadian pointer rapat seperti tangan sungguhan.
+    await p.waitForSelector('.cnt-root[data-ready="true"]', { timeout: 600000 });
+    rolling = true;
+    p.on('dialog', (d) => d.accept()); // "Mulai lagi?"
+    const box = async () => {
+      const c = await p.locator('.cnt-canvas').boundingBox();
+      const top = (await p.locator('.cnt-top').boundingBox()) || { y: 0, height: 0 };
+      const dock = (await p.locator('.cnt-dock').boundingBox()) || { y: c.height };
+      const y0 = top.y + top.height, y1 = dock.y;
+      return { x: c.x + c.width / 2, y: (y0 + y1) / 2, w: Math.min(c.width * 0.8, (y1 - y0) * 1.5), h: (y1 - y0) * 0.8 };
+    };
+    const at = (b, u, v) => [b.x + u * b.w * 0.5, b.y + v * b.h * 0.5]; // u, v: −1..1 di area kain
+    const stroke = async (pts, hold = 0) => {
+      if (phone) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pts[0][0], y: pts[0][1] }] });
+        for (const [x, y] of pts) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y }] }); await w(16); }
+        if (hold) await w(hold);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      } else {
+        await p.mouse.move(pts[0][0], pts[0][1]);
+        await p.mouse.down();
+        for (const [x, y] of pts) { await p.mouse.move(x, y); await w(16); }
+        if (hold) await w(hold);
+        await p.mouse.up();
+      }
+    };
+    const ring = (b, cu, cv, ru, rv, n = 90) => Array.from({ length: n + 1 }, (_, i) => at(b, cu + ru * Math.cos((i / n) * Math.PI * 2), cv + rv * Math.sin((i / n) * Math.PI * 2)));
+    const button = (name) => p.getByRole('button', { name }).first();
+    const radio = (name) => p.getByRole('radio', { name, exact: true }).first();
+    await w(3200); // Clawd menyapa
+    let b = await box();
+    // klowong: empat kelopak kawung di tengah, satu lingkaran, satu gelombang yang berakhir diam (mbleber)
+    for (const [cu, cv] of [[-0.18, 0], [0.18, 0], [0, -0.28], [0, 0.28]]) await stroke(ring(b, cu, cv, 0.15, 0.22, 70));
+    await w(600);
+    await stroke(Array.from({ length: 120 }, (_, i) => at(b, -0.85 + (i / 119) * 1.7, 0.72 + 0.08 * Math.sin(i / 8))), 1600);
+    await w(2500); // malam mendingin dari bening ke krem
+    // cecek: titik di sekeliling
+    await tap(radio('Cecek'), 400);
+    b = await box();
+    for (let i = 0; i < 16; i++) {
+      await stroke([at(b, 0.5 * Math.cos((i / 16) * Math.PI * 2), 0.62 * Math.sin((i / 16) * Math.PI * 2))]);
+      await w(90);
+    }
+    // tembok: menutup pusat
+    await tap(radio('Tembok'), 400);
+    b = await box();
+    await stroke(Array.from({ length: 60 }, (_, i) => at(b, -0.06 + 0.12 * (i % 2 ? 1 : 0) + (i % 2 ? -0.01 : 0.01), -0.08 + (i / 59) * 0.16)));
+    await w(800);
+    // celup canting ke wajan
+    await tap(p.locator('.cnt-dip'), 2200);
+    // mulai lagi dengan pola pensil kawung, lalu canting menorehkannya sendiri
+    await tap(p.locator('.cnt-more summary'), 900);
+    await tap(p.getByRole('button', { name: /Start over|Mulai dari awal/ }).first(), 1200);
+    await tap(radio('Kawung'), 1500);
+    await tap(button(/Let the canting trace it|menelusurinya/i), 0);
+    await p.waitForSelector('.cnt-root[data-tracing]', { timeout: 20000 / K }).catch(() => {});
+    await p.waitForSelector('.cnt-root:not([data-tracing])', { timeout: 120000 / K });
+    await w(1800);
+    await tap(p.locator('.cnt-more summary'), 600); // tutup panel pola
+    // nila → kerok → biru; mbironi: dua goresan sesudah nila
+    await tap(button(/Dip in indigo|Celup nila/), 0);
+    await p.waitForSelector('.cnt-root[data-stage="biru"]', { timeout: 60000 / K });
+    await w(2600);
+    await tap(radio('Klowong'), 300);
+    b = await box();
+    await stroke(ring(b, 0, 0, 0.32, 0.46, 110));
+    await w(1200);
+    await tap(button(/Dip in soga|Celup soga/), 0);
+    await p.waitForSelector('.cnt-root[data-stage="coklat"]', { timeout: 60000 / K });
+    await w(1500);
+    await tap(button(/Boil off the wax|Lorod/), 0);
+    await p.waitForSelector('.cnt-root[data-png="true"]', { timeout: 90000 / K });
+    await w(2500);
+    await tap(button(/Save my batik|Simpan batikku/), 3500);
+    return finish();
+  }
 
   if (dio) {
     // mulai saat mesin maket hidup dan tur berjalan (kanvas sudah menggambar), bukan dengan waktu tetap

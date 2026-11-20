@@ -305,8 +305,14 @@
     letter-spacing: 0.1em;
   }
 }
+@media (max-width: 640px) {
+  .cnt-more-body {
+    max-height: 26vh;
+  }
+}
 @media (max-width: 400px) {
-  .cnt-seg-opt span {
+  /* alat canting: ikon saja (nama tetap di aria dan title); pilihan pola tetap berlabel */
+  .cnt-seg:not(.cnt-seg--guide) .cnt-seg-opt span {
     display: none;
   }
 }

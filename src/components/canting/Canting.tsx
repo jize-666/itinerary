@@ -281,6 +281,8 @@ export function Canting({ lang, calm, quality, showFps = false, demo = false }: 
       data-busy={v?.busy ?? ""}
       data-tool={v?.tool ?? "klowong"}
       data-png={v?.png ? "true" : "false"}
+      data-tracing={v?.tracing ? "" : undefined}
+      data-dabs-ready={v?.hasWax ? "" : undefined}
       data-calm={calm ? "" : undefined}
     >
       <canvas ref={canvasRef} className="cnt-canvas" role="img" aria-label={t("title")} />
@@ -310,6 +312,7 @@ export function Canting({ lang, calm, quality, showFps = false, demo = false }: 
                 role="radio"
                 aria-checked={v?.tool === tool}
                 className="cnt-seg-opt"
+                aria-label={t(`tool.${tool}` as CantingTextKey)}
                 title={t(`tool.${tool}.hint` as CantingTextKey)}
                 disabled={!drawStage}
                 onClick={() => s?.setTool(tool)}
