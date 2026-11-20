@@ -5,6 +5,18 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 11.2: halaman `/canting/` interaktif — DIKERJAKAN SEJAK 20 NOV
+
+**Kata host, kata demi kata:** "sudah merge, apa task selanjutnya" (PR #22 di-merge 20 Nov 06.27 UTC, `main` = `00b6cc9`), lalu "kerjakan, lanjut tugas 11.2" (tanpa catatan atas foto 11.1, jadi desain kain 11.1 dianggap diterima apa adanya). Branch kerja dimulai ulang dari `main` `00b6cc9`.
+
+Rencana (PRD `docs/handoff/codex-prd-11-canting-mori.md` §4 dan §8; tiap irisan dengan tes, lalu commit):
+1. Mesin murni `src/engine/canting/`: model aliran malam (lebar menurut kecepatan, malam di nyamplung, suhu; tetes dan mbleber saat diam; malam habis → celup ulang), urutan tahap (gambar → nila → kerok → mbironi → soga → lorod → simpan; lorod hanya bila ada malam dan sudah dicelup), riwayat goresan (urungkan, mulai lagi, simpan lokal), pola tuntunan (kawung, parang, satu motif orisinal), teks dua bahasa.
+2. GPU: kanvas malam interaktif (dab bertambah per frame dengan campuran MAX, panas mendingin lewat lintasan kurang, bangun ulang dari riwayat saat urungkan, kanal A untuk malam mbironi yang hanya menahan soga, target pola tuntunan).
+3. Canting 3D (nyamplung tembaga, cucuk, gagang bambu beruas) yang mengikuti kursor atau jari, dan wajan malam untuk celup ulang.
+4. Halaman: alat klowong/cecek/tembok, pola tuntunan, urungkan, mulai lagi, takaran malam, tahap celup dengan kain yang dicelup dan menetes, lorod dengan waktu dan cahaya, simpan PNG `batik-laweyan.png` (sisi panjang ≥ 2048 px, Web Share bila ada), zoom roda/dua jari, parallax saat tidak menggambar, papan ketik, Calm, `?demo=1`, `?fps`.
+5. Clawd memandu di samping kain (badan CSS 3D 2,5D yang sama dengan film).
+6. E2E, video desktop + HP (data trip April, nama Jize), dokumen, PR.
+
 ### MULAI DI SINI (sesi berikutnya, sesudah 19 Nov malam)
 
 **Kata host, kata demi kata:** "dah cukup, update handoff dan istirahat" (sesudah foto empat tahap 11.1 dikirim). Sesi ditutup tanpa mulai 11.2.
