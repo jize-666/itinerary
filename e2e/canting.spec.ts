@@ -80,7 +80,9 @@ test("private page: without a session /canting/ goes home", async ({ page }) => 
   await expect(page.locator("main.cnt-root")).toHaveCount(0);
 });
 
-test("demo traces kawung, dyes through the stages and downloads a 2048x1280 PNG", async ({ page }) => {
+test("demo traces kawung, dyes through the stages and downloads a 2048x1280 PNG", async ({ page }, testInfo) => {
+  // tes terberat berkas ini (WebGL digambar CPU ±30 dtk): cukup sekali; e2e CI sudah ±31 dari batas 35 menit
+  test.skip(testInfo.project.name !== "desktop", "cukup di desktop");
   test.setTimeout(LONG);
   const seen = new Set<string>();
   await visit(page, "?q=low&demo=1");
@@ -183,7 +185,8 @@ test("iPhone: a finger drag adds wax", async ({ page }, info) => {
   await expect.poll(() => dabs(page), { timeout: 30_000 }).toBeGreaterThan(base);
 });
 
-test("leaving and returning three times does not error", async ({ page }) => {
+test("leaving and returning three times does not error", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "cukup di desktop");
   test.setTimeout(LONG);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));

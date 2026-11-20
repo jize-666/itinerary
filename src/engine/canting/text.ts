@@ -106,8 +106,8 @@ export const CANTING_TEXT = {
   },
   "about.title": { en: "About batik tulis", id: "Tentang batik tulis" },
   "about.body": {
-    en: "Batik tulis is drawn by hand: a canting lays hot wax (malam) on cloth, the cloth is dyed, and the wax is boiled off (nglorod). UNESCO recognised Indonesian batik in 2009. Laweyan, in Solo, was the old batik merchants' quarter; its merchants were behind Sarekat Dagang Islam, founded in 1905. Kawung, four ovals around a centre, is one of the oldest motifs, and was once a larangan pattern reserved for the courts of Yogyakarta and Surakarta. This page is a digital play, not a real batik tulis.",
-    id: "Batik tulis digambar dengan tangan: canting menorehkan malam panas di atas kain, kain dicelup warna, lalu malamnya dilorod. UNESCO mengakui batik Indonesia pada 2009. Laweyan di Solo dulu kampung para saudagar batik; merekalah yang mendirikan Sarekat Dagang Islam pada 1905. Kawung, empat bulatan lonjong mengelilingi satu titik pusat, termasuk motif tertua dan dulu pola larangan yang hanya boleh dipakai keraton Yogyakarta dan Surakarta. Halaman ini permainan digital, bukan batik tulis sungguhan.",
+    en: "Batik tulis is drawn by hand: a canting lays hot wax (malam) on cloth, the cloth is dyed, and the wax is boiled off (nglorod). UNESCO recognised Indonesian batik in 2009. In Solo, the batik merchants of the old quarter were behind Sarekat Dagang Islam, founded in 1905. Kawung, four ovals around a centre, is one of the oldest motifs, and was once a larangan pattern reserved for the courts of Yogyakarta and Surakarta. This page is a digital play, not a real batik tulis.",
+    id: "Batik tulis digambar dengan tangan: canting menorehkan malam panas di atas kain, kain dicelup warna, lalu malamnya dilorod. UNESCO mengakui batik Indonesia pada 2009. Di Solo, para saudagar batik dari kampung lama mendirikan Sarekat Dagang Islam pada 1905. Kawung, empat bulatan lonjong mengelilingi satu titik pusat, termasuk motif tertua dan dulu pola larangan yang hanya boleh dipakai keraton Yogyakarta dan Surakarta. Halaman ini permainan digital, bukan batik tulis sungguhan.",
   },
 
   "process.nyorek": {
@@ -205,6 +205,8 @@ export const CANTING_TEXT = {
   },
 } as const satisfies Record<string, { en: string; id: string }>;
 
+// Nama tempat singgah itinerary (mis. Laweyan) tidak ditulis di sini: bundle statis tidak boleh memuat data trip
+// (e2e smoke "bundle statis tidak memuat data trip"); data trip hanya datang dari Edge Function sesudah kode diverifikasi.
 export type CantingTextKey = keyof typeof CANTING_TEXT;
 
 export function ct(key: CantingTextKey, lang: CantingLang): string {

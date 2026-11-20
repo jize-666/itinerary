@@ -446,6 +446,22 @@
       "sent": "2026-11-20",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "canting-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/video/canting-desktop.mp4",
+      "size": 15930180,
+      "sent": "2026-11-20",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "canting-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/video/canting-hp.mp4",
+      "size": 14796006,
+      "sent": "2026-11-20",
+      "drive": null,
+      "driveId": null
     }
   ]
 }

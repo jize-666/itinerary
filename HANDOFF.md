@@ -23,7 +23,12 @@ Rencana (PRD `docs/handoff/codex-prd-11-canting-mori.md` §4 dan §8; tiap irisa
    - GPU `components/canting/wax.ts` (kanvas malam interaktif), `studio.ts` (adegan, input, celup, lorod, simpan lokal, PNG), `tool3d.ts` (canting dan wajan, Sonnet), `guide.ts` (Clawd), `Canting.tsx` + `canting.css` (antarmuka), `CantingPhoto.tsx` (studio foto 11.1 `?tahap=`).
    - Temuan saat menguji: garis seperti manik karena kejadian pointer sampai 77–112 ms terlambat di renderer CPU sehingga malam mbleber palsu; diam kini dihitung dari saat kejadian diproses (tes merah dulu). Wajan dan bak celup sempat tertutup panel alat; wajan kini diletakkan dari posisi layar dan permukaan bak naik menutupi kain.
    - E2E `e2e/canting.spec.ts` (Sonnet), tur perekam `canting` di `record-film.cjs`.
-2. **Tes:** typecheck, lint, unit (semua berkas canting), build lulus; `e2e/canting.spec.ts` 12 lulus / 6 dilewati sesuai proyek (3,7 mnt). Demo di iPhone: kawung ditorehkan, nila, soga, lorod, `batik-laweyan.png` 2048 × 1280 terunduh (±32 dtk). Fps di container hanya renderer CPU (±10 fps di 1080p); iPhone belum diukur.
+2. **Tes:** lint, typecheck, unit 604/604, content, build lulus. E2E penuh pertama: 351 lulus, 5 gagal. Rinciannya:
+   - Tes privasi "bundle statis tidak memuat data trip": teks sejarah canting menyebut nama tempat singgah itinerary; kalimat diubah tanpa nama tempat (pengecualian privasi hanya host yang memutuskan, seperti untuk diorama).
+   - Empat tes panggung film habis batas 30 dtk lokal karena tes canting yang berat (WebGL digambar CPU) berjalan bersamaan; keempatnya lulus saat dijalankan sendiri (1,5 mnt). Demo dan bolak-balik halaman di `canting.spec.ts` kini hanya di desktop (e2e CI sudah ±31 dari batas job 35 menit).
+   - Sesudahnya: `smoke.spec` + `canting.spec` 17 lulus / 9 dilewati sesuai proyek.
+   - Demo di iPhone: kawung ditorehkan, nila, soga, lorod, `batik-laweyan.png` 2048 × 1280 terunduh (±32 dtk). Fps di container hanya renderer CPU (±10 fps di 1080p); iPhone belum diukur.
+   - Video dikirim dan dicatat di ledger: `canting-desktop.mp4` (126 dtk), `canting-hp.mp4` (HP 9:16, 108 dtk); 474,1 MB belum di Drive, di bawah 1 GB.
 3. **Berikutnya:** host meninjau video dan mencoba `/canting/` di iPhone (menggambar dengan jari, celup ke wajan, nila, soga, lorod, simpan lewat Share); lalu 11.3 film Hari 3 (Clawd memegang canting, torehan mengikuti gulir, tautan "Batik sendiri" dari film, Today, dan diorama), 11.4 suara dan kain tamu di epilog.
 
 ### MULAI DI SINI (sesi berikutnya, sesudah 19 Nov malam)
