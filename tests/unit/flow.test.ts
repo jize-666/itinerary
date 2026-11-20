@@ -60,6 +60,16 @@ describe("aliran malam canting", () => {
     expect(Math.max(...again.dabs.map((d) => d.r), 0)).toBeLessThanOrEqual(r0 * FLOW.spreadMax * 1.01 + FLOW.dripR);
   });
 
+  it("kejadian pointer diproses terlambat (main thread sibuk): diam dihitung dari saat diproses, bukan waktu kejadian", () => {
+    // diukur 20 Nov di Chromium tanpa GPU: kejadian sampai ke handler 77–112 ms sesudah waktunya
+    let s = press(createFlow(0), 0.5, 0.5, 1000, "klowong").state;
+    for (let i = 1; i <= 10; i++) s = move(s, 0.5 + i * 0.01, 0.5, 1000 + i * 40, 1000 + i * 40 + 110).state;
+    // dua frame sesudah gerakan terakhir diproses (±60 ms): tangan belum diam selama stillMs
+    const out = hold(s, 1000 + 10 * 40 + 110 + 60);
+    expect(out.dabs).toHaveLength(0);
+    expect(out.events).not.toContain("spread");
+  });
+
   it("bergerak lagi sesudah diam: tidak melebar terus di titik lama", () => {
     let s = press(createFlow(0), 0.5, 0.5, 1000, "klowong").state;
     s = hold(s, 1000 + FLOW.stillMs + 200).state;

@@ -7,6 +7,8 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import { readCantingOptions } from "@/engine/canting/options";
 
 const Canting = dynamic(() => import("@/components/canting/Canting").then((m) => m.Canting), { ssr: false });
+// studio foto 11.1 (`?tahap=`): kain dari torehan kawung yang ditentukan, untuk pratinjau
+const CantingPhoto = dynamic(() => import("@/components/canting/CantingPhoto").then((m) => m.CantingPhoto), { ssr: false });
 
 function subscribe(listener: () => void) {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -38,7 +40,8 @@ export default function CantingPage() {
     () => window.location.search,
     () => "",
   );
-  const { quality, tahap, draw, showFps } = readCantingOptions(search);
+  const { quality, tahap, draw, showFps, demo } = readCantingOptions(search);
   if (!session) return null;
-  return <Canting lang={lang} calm={calm} quality={quality} tahap={tahap} draw={draw} showFps={showFps} />;
+  if (tahap) return <CantingPhoto lang={lang} calm={calm} quality={quality} tahap={tahap} draw={draw} showFps={showFps} />;
+  return <Canting lang={lang} calm={calm} quality={quality} showFps={showFps} demo={demo} />;
 }

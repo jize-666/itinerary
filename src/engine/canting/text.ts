@@ -80,6 +80,30 @@ export const CANTING_TEXT = {
     id: "Tanpa mouse atau layar sentuh? Pilih pola pensil lalu biarkan canting menelusurinya.",
   },
 
+  "hint.locked": {
+    en: "The cloth has been dyed. Boil off the wax, or start again.",
+    id: "Kain sudah dicelup. Lorod malamnya, atau mulai lagi.",
+  },
+  "hint.pickGuide": {
+    en: "Choose a pencil guide first.",
+    id: "Pilih pola pensil dulu.",
+  },
+  "tools.label": {
+    en: "Canting tools",
+    id: "Jenis canting",
+  },
+  "stage.label": {
+    en: "Steps",
+    id: "Tahap",
+  },
+  "more": {
+    en: "Guide and more",
+    id: "Pola dan lainnya",
+  },
+  "about.open": {
+    en: "About batik",
+    id: "Tentang batik",
+  },
   "about.title": { en: "About batik tulis", id: "Tentang batik tulis" },
   "about.body": {
     en: "Batik tulis is drawn by hand: a canting lays hot wax (malam) on cloth, the cloth is dyed, and the wax is boiled off (nglorod). UNESCO recognised Indonesian batik in 2009. Laweyan, in Solo, was the old batik merchants' quarter; its merchants were behind Sarekat Dagang Islam, founded in 1905. Kawung, four ovals around a centre, is one of the oldest motifs, and was once a larangan pattern reserved for the courts of Yogyakarta and Surakarta. This page is a digital play, not a real batik tulis.",

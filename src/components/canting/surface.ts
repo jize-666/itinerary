@@ -6,7 +6,7 @@
  * Warna dihitung linear. Versi halaman /canting/ (`surfaceMaterial`) memakai cahaya sendiri dan mengubah ke sRGB di
  * akhir; film Hari 3 (11.3) memakai potongan `BATIK_SURFACE` yang sama dengan cahaya panggung.
  */
-import { Color, type Texture, Vector2, Vector3, ShaderMaterial, DoubleSide } from "three";
+import { Color, DataTexture, type Texture, Vector2, Vector3, ShaderMaterial, DoubleSide } from "three";
 import { BATIK_NOISE } from "./batik";
 
 /** Warna linear dasar (sRGB: mori #efe3c8, nila #2b3550, soga #8a5530). */
@@ -41,7 +41,8 @@ float batikWax(vec2 uv) {
   vec4 w = texture2D(tWax, uv);
   vec2 p = batikP(uv);
   float temp = w.g * (1.0 - bKerok(p, uKerok));
-  return clamp(w.r + temp, 0.0, 1.0) * (1.0 - batikLorod(p));
+  // kanal A: malam mbironi (/canting/), 0 di film
+  return clamp(w.r + temp + w.a, 0.0, 1.0) * (1.0 - batikLorod(p));
 }
 float batikHot(vec2 uv) { return texture2D(tWax, uv).b * (1.0 - batikLorod(batikP(uv))); }
 
@@ -128,9 +129,18 @@ uniform vec3 uLightDir;
 uniform vec3 uLightColor;
 uniform vec3 uAmbient;
 uniform vec3 uPool;
+uniform sampler2D tGuide;
+uniform float uGuide;
+uniform float uWet;
+uniform float uEncode;
 ${BATIK_SURFACE}
 void main() {
   vec3 albedo = batikAlbedo(vUv);
+  // garis pensil pola tuntunan (nyorek): abu-abu grafit tipis, tertutup malam
+  float pencil = texture2D(tGuide, vUv).r * uGuide * (1.0 - batikWax(vUv) * 0.85);
+  albedo = mix(albedo, albedo * vec3(0.52, 0.53, 0.58), pencil * 0.7);
+  // kain basah sesudah dicelup: lebih gelap dan berkilap
+  albedo *= 1.0 - 0.18 * uWet;
   vec3 nt = batikNormal(vUv);
   vec3 N = normalize(vTangent * nt.x + vBitangent * nt.y + vNormal * nt.z);
   if (!gl_FrontFacing) N = -N;
@@ -138,7 +148,7 @@ void main() {
   vec3 V = normalize(cameraPosition - vWorld);
   vec3 H = normalize(L + V);
   float diff = max(dot(N, L), 0.0);
-  float gloss = batikGloss(vUv);
+  float gloss = max(batikGloss(vUv), uWet * 0.22);
   float spec = pow(max(dot(N, H), 0.0), mix(24.0, 110.0, gloss)) * gloss * 0.9;
   // genangan cahaya lampu di atas kain: terang di tengah, meredup ke tepi
   float pool = 1.0 - smoothstep(uPool.z * 0.35, uPool.z, length(vWorld.xy - uPool.xy));
@@ -147,9 +157,15 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  // ekspor PNG: target render dianggap linear oleh three, jadi sRGB dienkode di sini (tanpa kehilangan gelap)
+  if (uEncode > 0.5) gl_FragColor = sRGBTransferOETF(gl_FragColor);
 }`;
 
-export type SurfaceTargets = { wax: Texture; dye: Texture; width: number; height: number; aspect: number };
+export type SurfaceTargets = { wax: Texture; dye: Texture; width: number; height: number; aspect: number; guide?: Texture };
+
+/** Tekstur hitam 1×1: pengganti target pensil bila tidak ada. */
+const BLACK = new DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+BLACK.needsUpdate = true;
 
 /** Materi kain untuk halaman /canting/: cahaya kunci + sekitar, keluaran sRGB. */
 export function surfaceMaterial(t: SurfaceTargets) {
@@ -172,6 +188,10 @@ export function surfaceMaterial(t: SurfaceTargets) {
       uSize: { value: new Vector2(t.aspect, 1) },
       // pusat genangan cahaya (x, y dunia) dan jari-jarinya
       uPool: { value: new Vector3(-0.1, 0.12, 1.15) },
+      tGuide: { value: t.guide ?? BLACK },
+      uGuide: { value: 0 },
+      uWet: { value: 0 },
+      uEncode: { value: 0 },
     },
   });
 }

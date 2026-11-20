@@ -5,12 +5,16 @@ export { EMPTY_STATE };
 export type Tahap = "malam" | "nila" | "soga" | "lorod";
 export type CantingQuality = "high" | "medium" | "low";
 
-/** Opsi dari query string: `?q=high|medium|low`, `?tahap=malam|nila|soga|lorod`, `?draw=0..1`, `?fps`. */
+/**
+ * Opsi dari query string: `?q=high|medium|low`, `?tahap=malam|nila|soga|lorod` (studio foto), `?draw=0..1`, `?fps`,
+ * `?demo=1` (halaman interaktif membatik sendiri: pola kawung ditorehkan, dicelup, dilorod, disimpan).
+ */
 export function readCantingOptions(search: string): {
   quality?: CantingQuality;
   tahap?: Tahap;
   draw?: number;
   showFps: boolean;
+  demo: boolean;
 } {
   const p = new URLSearchParams(search);
   const q = p.get("q");
@@ -22,6 +26,7 @@ export function readCantingOptions(search: string): {
     tahap: t === "malam" || t === "nila" || t === "soga" || t === "lorod" ? t : undefined,
     draw: Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : undefined,
     showFps: p.has("fps"),
+    demo: p.get("demo") === "1",
   };
 }
 

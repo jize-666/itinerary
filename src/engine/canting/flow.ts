@@ -155,8 +155,12 @@ function markEmpty(s: FlowState, events: FlowEvent[]) {
   return events;
 }
 
-/** Pointer bergerak selagi menempel: dab di sepanjang lintasan, rapat tanpa celah. */
-export function move(s0: FlowState, x: number, y: number, t: number): FlowOut {
+/**
+ * Pointer bergerak selagi menempel: dab di sepanjang lintasan, rapat tanpa celah. `t` = waktu kejadian (untuk
+ * kecepatan); `seen` = saat kejadian diproses (bawaan `t`). Tangan dianggap diam sejak `seen`: kejadian yang sampai
+ * terlambat karena main thread sibuk tidak boleh membuat malam mbleber.
+ */
+export function move(s0: FlowState, x: number, y: number, t: number, seen = t): FlowOut {
   if (!s0.down) return { state: s0, dabs: [], events: [] };
   const dx = x - s0.x;
   const dy = y - s0.y;
@@ -203,7 +207,7 @@ export function move(s0: FlowState, x: number, y: number, t: number): FlowOut {
   }
   carry += dist - walked;
   return {
-    state: { ...s0, x, y, t, heat, speed, carry, malam, emptied, fasted, stillSince: t, spread: 0, dripped: false, grew: false },
+    state: { ...s0, x, y, t, heat, speed, carry, malam, emptied, fasted, stillSince: Math.max(seen, t), spread: 0, dripped: false, grew: false },
     dabs,
     events,
   };
