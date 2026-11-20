@@ -2,8 +2,9 @@
  * Sumber arah pandang film, satu untuk panggung 3D dan film 2,5D (aturan host 13 Nov: kamera parallax di semua
  * objek): kursor mouse di desktop, kemiringan HP (giroskop) di HP. Hasilnya dihaluskan dan bebas laju frame.
  *
- * - Di iPhone, izin sensor gerak hanya boleh diminta dari sentuhan: diminta sekali pada sentuhan pertama di film.
- *   Ditolak atau tidak ada sensor: arah pandang tetap 0 (hanya kursor, bila ada).
+ * - Di iPhone, izin sensor gerak hanya boleh diminta dari sentuhan: diminta pada sentuhan, sampai tamu menjawab.
+ *   Sentuhan yang ditolak Safari sebagai bukan gesture (geser) tidak dihitung; jawaban tamu diingat selama halaman
+ *   hidup, juga saat pindah film → Today. Ditolak atau tidak ada sensor: arah pandang tetap 0 (hanya kursor).
  * - Getar tangan di bawah `VIEW.still` tidak dianggap gerak, jadi panggung boleh beristirahat saat HP diam.
  * - Mouse lebih diutamakan: selama kursor baru bergerak, kemiringan diabaikan.
  * - `prefers-reduced-motion: reduce` = tanpa parallax.
@@ -31,7 +32,12 @@ const state = {
   lastStep: 0,
 };
 let users = 0;
-let asked = false;
+/** Jawaban tamu atas izin sensor gerak; bertahan selama halaman hidup (juga saat pindah film → Today). */
+let permission: "granted" | "denied" | null = null;
+/** Permintaan izin sedang menunggu jawaban (dua sentuhan cepat = satu permintaan). */
+let asking = false;
+/** Penerima jawaban izin: pemasangan yang hidup saat jawaban datang (bisa berganti film → Today selama menunggu). */
+let answered: ((granted: boolean) => void) | null = null;
 let unbind: (() => void) | null = null;
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -62,24 +68,38 @@ function bind(): () => void {
     target(l.x, l.y, now);
   };
   const listenTilt = () => window.addEventListener("deviceorientation", onTilt, { passive: true });
-  // iPhone: izin diminta dari sentuhan pertama; lainnya: langsung didengarkan
+  // iPhone: izin diminta dari sentuhan; lainnya: langsung didengarkan
   const api = (typeof DeviceOrientationEvent !== "undefined" ? DeviceOrientationEvent : undefined) as unknown as PermissionApi | undefined;
   const needsAsk = typeof api?.requestPermission === "function";
-  const onFirstTouch = () => {
-    if (asked) return;
-    asked = true;
-    window.removeEventListener("touchend", onFirstTouch);
-    api!.requestPermission!()
-      .then((s) => s === "granted" && listenTilt())
-      .catch(() => {});
+  const onTouch = () => {
+    if (permission || asking) return;
+    asking = true;
+    api!.requestPermission!().then(
+      (s) => {
+        asking = false;
+        permission = s === "granted" ? "granted" : "denied";
+        answered?.(permission === "granted");
+      },
+      // Safari menolak tanpa dialog bila sentuhan itu bukan gesture yang sah (mis. geser slide):
+      // jangan dianggap jawaban tamu, minta lagi di sentuhan berikutnya (laporan host 20 Nov)
+      () => {
+        asking = false;
+      },
+    );
   };
-  if (needsAsk && !asked) window.addEventListener("touchend", onFirstTouch, { passive: true });
-  else if (!needsAsk) listenTilt();
+  const onAnswer = (granted: boolean) => {
+    window.removeEventListener("touchend", onTouch);
+    if (granted) listenTilt();
+  };
+  answered = onAnswer;
+  if (!needsAsk || permission === "granted") listenTilt();
+  else if (!permission) window.addEventListener("touchend", onTouch, { passive: true });
   window.addEventListener("pointermove", onPointer, { passive: true });
   return () => {
+    if (answered === onAnswer) answered = null;
     window.removeEventListener("pointermove", onPointer);
     window.removeEventListener("deviceorientation", onTilt);
-    window.removeEventListener("touchend", onFirstTouch);
+    window.removeEventListener("touchend", onTouch);
   };
 }
 

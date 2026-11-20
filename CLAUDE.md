@@ -4,6 +4,7 @@
 - Untuk tugas aktif, pakai `query_graph` dari Graphify dulu buat mencari file dan fungsi yang relevan. Buka bagian kode yang diperlukan saja dan cek perubahan lokal sebelum mengedit.
 - **Setiap menyelesaikan satu tugas, kecil maupun besar, wajib memperbarui `HANDOFF.md` dan rencana pekerjaan berikutnya** (aturan host, 11 Nov 2026). Isinya 3 poin: yang selesai, hasil tes atau kendala, dan langkah berikutnya. Jangan menunggu akhir sesi; perbarui begitu tugasnya selesai, lalu commit.
 - Permintaan baru dari host di tengah sesi dicatat dulu di `HANDOFF.md` sebelum kodenya dikerjakan.
+- Skill `find-skills` (`.claude/skills/`): di container cloud, jalankan `npx skills ...` dengan `NODE_USE_ENV_PROXY=1`. Tanpa itu pencarian selalu kosong. Pasang skill baru di tingkat proyek (tanpa `-g`) lalu commit, karena `~/.claude/skills` hilang bersama container.
 - **Bagi tugas** (arahan host 18 Nov: "jangan lupa bagi tugas. haiku untuk task paling ringan, sonnet untuk task sedang, dan kamu opus, otaknya"): pekerjaan paling ringan (mengukur, mencocokkan, mendaftar, memindai) ke subagen Haiku; pekerjaan sedang (mengubah kode atau dokumen dengan arahan jelas, menulis tes) ke subagen Sonnet; Opus merencanakan, memutuskan, meninjau hasil subagen, dan menggabungkan. Fable hanya atas izin host.
 
 ## Kalau host bilang "lanjut tugas, baca isi claude.md"
@@ -24,7 +25,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 19 Nov 2026 (PR #12–#20 di-merge; Tugas 8 selesai; Tugas 10 dari Codex dipasang, menunggu host). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) ditunda atas arahan host, lalu diganti diorama dari Codex yang dipasang 19 Nov di `/diorama/`. Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 19 Nov 2026 (PR #12–#21 di-merge; Tugas 1–10 selesai; Tugas 11–12 belum, Codex tidak bisa melanjutkan). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -46,6 +47,13 @@ Diperbarui 19 Nov 2026 (PR #12–#20 di-merge; Tugas 8 selesai; Tugas 10 dari Co
   - Uji di iPhone asli: izin sensor gerak diminta sekali dari sentuhan pertama; scroll-driven animation butuh Safari 26 ke atas (di bawahnya kartu diam, parallax tetap).
 
 - [x] **4c. Audit host 1–5.** ✅ 14 Nov 2026. Arahan host: "perbaiki audit 1-5, step by step, per audit wajib cek point di handoff.md". Dua belas butir di `HANDOFF.md` bagian 0 ("Audit host 1–5") dicentang satu per satu dengan bukti tes, satu commit per audit. Isinya: segi delapan hitam di blencong, gunungan, dan kelir (NaN di shader: `pow` berdasar negatif, `atan(0, 0)` di pusat lampu balik kelir, `sqrt` negatif, `smoothstep` terbalik; plus saringan NaN di rantai post), sheet SOS dan seluruh Today berdesain baru (tombol tanpa tebal, boarding pass home di Today dan film lewat `src/components/pass/`, hitung mundur angka besar, medali hari, kartu stop, tanpa garis punggung bukit), bingkai prolog headline di HP tegak, bidang gelap teks film yang tembus saat HP dimiringkan, dan hemat bandwidth GPU di tier High. Dikonfirmasi host di iPhone produksi 14 Nov 19.11 WIB ("fps aman, ga berat. done"): `high ×1 (paksa)` bertahan, segi delapan tidak terlihat di blencong, fase gong 40 fps (sebelumnya 30), intro prolog rata-rata 42. Cadangan fps (efek tembus pandang ke target tanpa MSAA) tidak dikerjakan; tetap tercatat di `HANDOFF.md` bagian 0 sebagai pilihan.
+
+- [x] **Debug menyeluruh (permintaan host 20 Nov, di luar urutan: "time to debugging! dari awal sampai akhir, usut sampai tuntas!").** ✅ 20 Nov 2026, dengan skill `systematic-debugging` (`.claude/skills/`). Laporan host di tengahnya: "tombol sounds sering menghilang ketika masuk fase tertentu. izin akses gerakan sering tidak muncul." Yang diperbaiki, masing-masing dengan tes merah dulu:
+  - Tombol suara hilang setiap dokumen dimuat ulang (iOS memuat ulang tab berat, tautan langsung, Home Screen): kini selalu ada di luar gerbang, ketukannya menyalakan gendhing.
+  - Izin sensor gerak: penolakan WebKit tanpa dialog (sentuhan yang bukan gesture sah) tidak lagi menghabiskan kesempatan; izin diingat antarhalaman; diorama meminta di `touchend`.
+  - E2E flaky CI (kunang-kunang, run 456): `step()`/`settled()` di `stage.spec.ts` memakai `WAIT`.
+
+  Penelusuran browser home → film 2,5D/3D sampai credits → Today → diorama → canting (desktop + HP, data April) bersih. Rinciannya: `docs/design/decisions.md` bagian "Tombol suara dan izin sensor gerak" dan `HANDOFF.md` bagian 0. Sisa: uji di iPhone produksi (tombol suara sesudah tab dimuat ulang; dialog izin gerak di film, Today, diorama).
 
 ### Panggung 3D (arahan host 12 Nov 2026, prioritas tinggi)
 
@@ -118,14 +126,17 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     - tinjauan video gerbang dimensi versi halus;
     - jawaban soal kaki Clawd 3D yang tertutup kartu gallery;
     - uji di iPhone produksi (`/film/?fps`), termasuk sungai dan gerbang di `high ×1 (paksa)`.
-- [ ] **9. Diorama Solo.** ⏸️ Ditunda 19 Nov sebelum ada kode (host: "tunggu, jangan buat diorama nya dulu"); menunggu arahan host. Sempat dimulai 19 Nov (host: "tandai dan lewati semua, lanjut tugas besar dulu"). Mengikuti PRD: data OSM, prolog + Hari 1, gaya miniatur; langkah 9.1–9.4 dan statusnya di `HANDOFF.md` bagian 0. Sisa pekerjaan yang menunggu host di tugas-tugas sebelumnya ditandai ⏭️ dan dilewati dulu.
-  - Diorama versi PRD host dikerjakan Codex dan **dipasang 19 Nov** sebagai halaman privat `/diorama/` (bukan di film), dengan tautan masuk dari film dan Today. UI-nya disamakan dengan situs. Video tur desktop dan HP sudah dikirim. Rinciannya di `HANDOFF.md` bagian 0, "Kiriman host 19 Nov: PRD Diorama Solo 3D".
+- [x] **9. Diorama Solo.** ✅ 19 Nov 2026 (host: "tandain udah selesai lah. kan udah dipasang kan?"). Diorama versi PRD host dikerjakan Codex dan dipasang sebagai halaman privat `/diorama/` (bukan di film), dengan tautan masuk dari film dan Today; UI-nya disamakan dengan situs; PR #20 di-merge host. Video tur desktop dan HP sudah dikirim. Rinciannya di `HANDOFF.md` bagian 0, "Kiriman host 19 Nov: PRD Diorama Solo 3D".
+  - Versi PRD lama (diorama kota dari data OSM di prolog dan Hari 1 film, gaya miniatur) diganti versi ini, bukan ditunda; langkah 9.1–9.4 lama tidak dikerjakan.
+  - Sisa pekerjaan: uji di perangkat fisik (iPhone 13 / Pixel 6a p95 ≤ 33,4 ms; desktop p95 ≤ 20 ms). Butir lain yang menunggu host di tugas-tugas sebelumnya tetap ditandai ⏭️ di `HANDOFF.md`.
 - [x] **10. Lereng Lawu.** ✅ 19 Nov 2026 (dipasang; menunggu tinjauan host). PRD untuk Codex: `docs/handoff/codex-prd-bersama.md` + `codex-prd-10-lereng-lawu.md`. Hasil Codex (README `docs/handoff/README-10-lereng-lawu.md`) dipasang di atas `main` yang sudah memuat diorama (host: "dah gw merge, ni tugas lanjutan"): Hari 2 di film menjadi dunia 3D lereng Lawu dari DEM SRTM, matahari nyata 9 April 2027 (cahaya pertama di Kemuning 06.15 WIB), kebun teh Kemuning, Cetho, Sukuh, Grojogan Sewu, pulang senja; satu cahaya per tempat singgah; registry dunia per bab untuk Tugas 11. Kartu Hari 2 disamakan dengan kartu film (host: "ui nya ga kamu sesuaikan?"). Rinciannya: `docs/design/decisions.md` bagian "Lereng Lawu" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
   - Uji di iPhone produksi dan MacBook (`/film/?stage=high&fps#day-2`, fungsi ukur di README Codex): target ≥ 55 fps, p95 ≤ 20 ms.
   - Klip suara EN `tip.mountain.0` (butuh rekaman teman host; sampai ada, gelembung tanpa suara).
   - Siap ≤ 5 dtk saat dibuka langsung di 4G belum tercapai tanpa gzip (8,8–10,8 dtk di server statis repo).
   - Temuan beban: dunia dibangun sekaligus di main thread (±130–300 ms di High) di akhir Hari 1; diperbaiki bila host melihat patah.
-- [ ] **11. Canting dan kain mori.** 📝 PRD Codex: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`).
+- [ ] **11. Canting dan kain mori.** 🔨 Dikerjakan Claude sejak 19 Nov (Codex tidak bisa melanjutkan). PRD: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`). Keputusan host 19 Nov: motif **kawung** (Claude memilih arah kawung ukel dari referensi host), **Clawd memegang canting**, `/canting/` dulu lalu film. Langkah 11.1–11.4 dan statusnya di `HANDOFF.md` bagian 0.
+  - [x] **11.1 Motif kawung dan kain.** ✅ 19 Nov 2026: motif kawung ukel orisinal (`engine/canting/motif.ts`), urutan torehan deterministik (`trace.ts`), kain batik di GPU (malam, nila, kerok, soga, lorod, remukan; `components/canting/batik.ts`, `surface.ts`), studio foto `/canting/?tahap=`; foto empat tahap desktop + HP dikirim, menunggu tinjauan host.
+  - [ ] 11.2 halaman `/canting/` interaktif · [ ] 11.3 film Hari 3 · [ ] 11.4 suara dan epilog.
 - [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.

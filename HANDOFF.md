@@ -1,9 +1,103 @@
 # HANDOFF
 
-Diperbarui 19 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap`, dimulai ulang dari `main` (`71e97cd`, PR #20 diorama di-merge host) · **Tugas 10 (Lereng Lawu) dari Codex dipasang, kartu Hari 2 disamakan dengan film; menunggu tinjauan host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 20 Nov 2026 (WIB; skill `find-skills` dipasang, lihat bagian di bawah "MULAI DI SINI") · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `38e179d`, PR #21 di-merge) · **Tugas 11.1 (kain kawung di GPU, studio `/canting/`) selesai dan di-push, foto empat tahap dikirim; belum ada PR; sesi ditutup atas arahan host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### MULAI DI SINI (sesi berikutnya, sesudah 19 Nov malam)
+
+**Kata host, kata demi kata:** "dah cukup, update handoff dan istirahat" (sesudah foto empat tahap 11.1 dikirim). Sesi ditutup tanpa mulai 11.2.
+1. **Keadaan:**
+   - Branch `claude/admiring-noether-tbqvap` = `main` `38e179d` + commit Tugas 11.1 (motif, urutan torehan, kain GPU, studio `/canting/`, 14 tes unit, ledger). Semua sudah di-push; working tree bersih. **Belum ada PR** untuk Tugas 11: rencananya PR dibuka saat 11.2 jadi (atau lebih awal bila host minta).
+   - Foto yang dikirim ke host dan dicatat di ledger: `kawung-4-tahap-desktop.jpg`, `kawung-4-tahap-hp.jpg`, `kawung-dekat-nila.jpg`, `kawung-lorod-desktop.png` (437,9 MB belum di Drive, di bawah 1 GB).
+   - Rincian 11.1 di bagian "Tugas 11: Canting dan kain mori" di bawah. Catatan sumber budaya (kawung, canting, sogan, prada) hanya ada di scratchpad sesi ini; ringkasannya: kawung tercatat museum (Google Arts & Culture) sebagai motif larangan keraton Yogyakarta dan Surakarta; urutan sogan nglowong → ngisen → nembok → medel → ngerok → nyoga → nglorod; prada = emas pada kain upacara. Tulis ulang ke README/decisions saat 11.2.
+2. **Tes:** typecheck, lint, unit 527/527, build lulus. E2E belum ada untuk `/canting/` (dibuat di 11.2). Foto direkam di Chromium + SwiftShader.
+3. **Langkah berikutnya (urut):**
+   - Tunggu tanggapan host atas foto 11.1 (warna soga, kepadatan motif, bentuk ukel). Pertanyaan terakhir Claude: "ada bagian yang mau diubah dulu?"
+   - 11.2 halaman `/canting/` untuk membatik sendiri: aliran malam dari pointer (lebar menurut kecepatan, tetes saat diam, celup ulang), canting 3D (nyamplung tembaga, cucuk, gagang bambu), Clawd memandu di samping, alat klowong/cecek/tembok, pola tuntunan kawung, urungkan, celup nila/kerok/soga, lorod, simpan PNG `batik-laweyan.png` (≥ 2048 px, Web Share bila ada), penyimpanan lokal, Calm/2,5D, teks dua bahasa dengan konteks sejarah kawung, e2e (`?demo=1`), video desktop + HP. Target malam interaktif butuh lintasan warna bertumpuk (ping-pong) dan peluruhan panas per frame; `Batik` sekarang hanya mode deterministik.
+   - 11.3 film Hari 3 (Clawd memegang canting, torehan mengikuti gulir lewat `trace.countAt/tipAt`, dunia bab "batik" di `stage3d/chapters.ts`, lorod dan prada di gong terakhir), lalu 11.4 (suara, kain tamu di epilog).
+   - Butir lama yang menunggu host tetap di daftar ⏭️ dan di `CLAUDE.md` (uji iPhone Lawu, klip `tip.mountain.0`, kartu Hari 2 ringkas di HP pendek, dan lain-lain).
+
+### Permintaan host 20 Nov: "skills.sh/vercel-labs/skills/find-skills, download ini dan pasang skills ini" — SELESAI
+
+1. **Selesai:** `SKILL.md` diunduh dari `github.com/vercel-labs/skills` (commit `57217cf`, folder `skills/find-skills`), dibaca dulu (isinya hanya panduan memakai `npx skills find/add`, tanpa skrip), lalu dipasang sebagai skill proyek `.claude/skills/find-skills/SKILL.md` (ikut repo, jadi ada di sesi berikutnya). Salinan global `~/.claude/skills/` hanya hidup di container sesi ini. Atas izin host, environment pribadi "itinerary" kini mengizinkan `skills.sh` dan `www.skills.sh` (sebelumnya proxy menolak dengan 403).
+2. **Tes / kendala:** skill terbaca (`find-skills` dan `itinerary:find-skills` muncul di daftar skill). `npx skills@1.9.0 find react performance` memberi hasil hanya bila dijalankan dengan `NODE_USE_ENV_PROXY=1`. Tanpa itu `fetch` bawaan Node tidak lewat proxy dan CLI diam-diam menjawab "No skills found". Catatannya ada di `CLAUDE.md`. Skill yang dipasang dengan `-g` hilang saat container ditutup; untuk skill yang mau dipertahankan, pasang di tingkat proyek (`npx skills add <owner/repo@skill> -a claude-code -y`, tanpa `-g`) lalu commit.
+3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" di atas (tanggapan host atas foto 11.1, lalu 11.2). Bila host mau, pasang juga di repo `second-brain`.
+
+### Permintaan host 20 Nov: "pakai skills itu untuk mencari skills untuk debugging" — HASIL DIKIRIM, MENUNGGU PILIHAN HOST
+
+1. **Selesai:** `npx skills find` dengan enam kata kunci (debugging, debug, systematic debugging, root cause, browser debugging, webgl debug). Kandidat diperiksa: jumlah instalasi, bintang GitHub (lewat `gh api search/repositories`; `api.github.com` langsung diblokir proxy), dan isi `SKILL.md` dibaca.
+   - `mattpocock/skills@diagnosing-bugs`: 952 rb instalasi, repo ★328 rb. Inti skill: bangun dulu satu perintah yang bisa merah untuk bug itu, lalu perkecil kasusnya, uji 3–5 hipotesis, pasang log bertanda `[DEBUG-xxxx]`, ukur dulu untuk masalah performa, dan tulis tes regresi. Skripnya hanya template tanya-jawab terminal. **Satu-satunya yang direkomendasikan**, belum dipasang.
+   - Sudah terpasang lewat paket `anthropic-skills`: `obra/superpowers@systematic-debugging` (340 rb, ★322 rb) dan `addyosmani/agent-skills@debugging-and-error-recovery` (79 rb, ★119 rb), juga `browser-testing-with-devtools`.
+   - Tidak direkomendasikan: `ChromeDevTools/chrome-devtools-mcp@chrome-devtools` (resmi, ★58 rb, tapi butuh server MCP chrome-devtools yang tidak ada di sini; yang ada Playwright MCP), `wshobson/agents@debugging-strategies` (★43 rb, umum, tumpang tindih), `lllllllama/rigorpilot-skills@safe-debug` (362 rb instalasi tapi repo ★489, angkanya mencurigakan).
+2. **Tes / kendala:** tidak ada kode yang diubah. Tanpa `NODE_USE_ENV_PROXY=1` pencarian kosong (sudah dicatat di `CLAUDE.md`).
+3. **Langkah berikutnya:** host memilih yang lain (lihat bagian berikut). Bila host setuju, pasang `diagnosing-bugs` di tingkat proyek (`NODE_USE_ENV_PROXY=1 npx skills add mattpocock/skills@diagnosing-bugs -a claude-code -y`, tanpa `-g`), baca lagi berkas yang terpasang, lalu commit. Sesudah itu kembali ke "MULAI DI SINI".
+
+### Permintaan host 20 Nov: "pasang yang 340rb instalasi" (`obra/superpowers@systematic-debugging`) — SELESAI
+
+1. **Selesai:** folder `skills/systematic-debugging` dari `github.com/obra/superpowers` (commit `22f0b46`) disalin apa adanya ke `.claude/skills/systematic-debugging/` (ikut repo). Enam berkasnya dibaca dulu: `SKILL.md` (empat fase: cari akar masalah, cari pola, uji satu hipotesis, perbaiki dengan tes gagal dulu; berhenti dan pertanyakan arsitektur sesudah 3 perbaikan gagal), `root-cause-tracing.md`, `defense-in-depth.md`, `condition-based-waiting.md`, contoh `condition-based-waiting-example.ts`, dan `find-polluter.sh` (mencari tes yang meninggalkan berkas; menjalankan `npm test` per berkas). Tidak ada yang mengunduh atau mengirim data.
+2. **Tes / kendala:** skill terbaca sebagai `systematic-debugging`. `pnpm lint` dan `pnpm typecheck` lulus dengan contoh `.ts` di folder itu (impor `~/threads/...` di contoh tidak ada di repo ini, tapi folder itu tidak ikut diperiksa). Skill yang sama juga sudah ada sebagai `anthropic-skills:systematic-debugging`. Rujukannya ke `superpowers:test-driven-development` dan `superpowers:verification-before-completion` di sini bernama `anthropic-skills:...`.
+3. **Langkah berikutnya:** kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
+
+### Permintaan host 20 Nov: "time to debugging! dari awal sampai akhir, usut sampai tuntas!" — SELESAI, PR #22, MENUNGGU UJI HOST DI IPHONE
+
+Tafsiran Claude (host tidak menyebut bug tertentu): jalankan semua cek repo (lint, typecheck, unit, content, build, e2e), telusuri situs di browser dari home sampai credits film (juga Today, `/diorama/`, `/canting/`) sambil menangkap error konsol, error halaman, dan permintaan gagal, lalu usut tiap temuan sampai akar masalahnya dengan skill `systematic-debugging` (tidak ada perbaikan sebelum akar masalah terbukti).
+
+Laporan host di tengah debugging (20 Nov, iPhone produksi, dengan tangkapan layar hero prolog 3D: bar atas hanya Today, ≈, EN/ID), kata demi kata: "nih yang sering gagal; tombol sounds sering menghilang ketika masuk fase tertentu. izin akses gerakan sering tidak muncul." Dua bug ini didahulukan.
+
+Temuan CI sebelum laporan itu: run 456 (commit dokumen saja) gagal di e2e "kunang-kunang sungguh tampak di gong penutup" (desktop, tier High, mulai `#day-2`): ArrowUp di indeks 17 tidak memindah slide dalam 5 dtk, dua kali.
+
+**Status (20 Nov, titik aman pertama):**
+1. **Selesai, akar masalah terbukti lalu diperbaiki dengan tes merah dulu:**
+   - **Tombol suara hilang.** Status audio hidup di modul halaman dan baru `started` sesudah Begin di gerbang; tombol hanya bisa hilang bila dokumen dimuat ulang (iOS memuat ulang tab berat, tautan langsung, Home Screen), dan sesudah itu tidak ada jalan menyalakan suara. Kini tombol selalu tampil di luar gerbang, mati sampai diketuk; ketukan menyalakan gendhing keraton dan bunyi adegan. Mesin audio (kode saja) dipanaskan di waktu senggang supaya ketukan pertama tetap di dalam gesture iOS. `SoundToggle.tsx`, `engine/audio/status.ts`, `AudioEngine.ts`; 3 e2e baru di `sound.spec.ts` (merah 6/6 di build lama).
+   - **Izin sensor gerak tidak muncul.** Sumber WebKit (`DeviceOrientationEvent.cpp`): tanpa gesture sah janji ditolak `NotAllowedError` tanpa dialog. `look.ts` (film, Today, canting) menandai "sudah ditanya" sebelum jawaban dan menelan penolakan → tidak pernah diminta lagi; izin hilang sesudah film → Today; pendengar bocor bila jawaban telat; ganti halaman saat menunggu jawaban → halaman baru tak pernah mendengarkan. Diorama meminta di `pointerdown` (bukan pemicu aktivasi menurut spesifikasi HTML) → kini `touchend`. 6 tes unit `tests/unit/look.test.ts` + 2 e2e `e2e/motion-permission.spec.ts` (tiruan aturan WebKit; merah di build lama).
+   - **E2E flaky CI.** Bukan dunia Lawu (hipotesis pertama gugur: dunia sudah siap saat ditekan). `data-index` berubah saat commit; di tier High yang digambar CPU satu frame ±0,5 dtk (longgar) s.d. ±1,5 dtk (2 core berbagi), jadi commit 3,6 dtk (longgar) dan 8–9 dtk (`taskset -c 0,1` + satu loop sibuk, meniru runner 2 vCPU). Kegagalan "Expected: not 17" direproduksi di kondisi itu. `step()` dan `settled()` kini memakai `WAIT` seperti penantian lain di berkas itu; lulus 2× di kondisi yang sama.
+2. **Tes:** lint, typecheck, unit 533/533, build lulus; `sound.spec` + `motion-permission.spec` 24 lulus di build baru. E2E penuh di build lama (pembanding): 336 lulus, 32 dilewati, 0 gagal (20,5 mnt). Catatan CI: batas job 35 mnt, run 456 makan 32 mnt (e2e 30,6) — ruang tipis. Peringatan "Node.js 20 is deprecated" di CI tidak berdampak (GitHub sudah memaksa Node 24); action v5–v7 tersedia bila host ingin merapikan.
+3. **Berikutnya:** lihat "Status akhir" di bawah.
+
+**Status akhir (20 Nov):**
+1. **Selesai:** tiga perbaikan di atas (commit `4afbe1f`). Penelusuran browser dengan data trip April (`scratchpad/scripts/walk.cjs`, desktop dan iPhone 14 Pro): home (gerbang kode) → film 2,5D 57 langkah dan film 3D low 59 langkah sampai credits → Today → `/diorama/` → `/canting/`. Tidak ada error halaman, `console.error`, permintaan gagal, respons ≥ 400, atau permintaan ke luar localhost. Peringatan yang tersisa sudah diusut dan bukan bug kita: preload CSS (prefetch `next/link` antara film dan Today), `THREE.Clock` deprecated (dari `@react-three/fiber`), "GPU stall due to ReadPixels" (pesan driver SwiftShader; tidak ada `readPixels` di `src/`). Tombol suara tampil rapi di Today, diorama, canting, dan film yang dibuka langsung. Pratinjau dikirim dan dicatat di ledger: `tombol-suara-film-hp.png`, `tombol-suara-today-hp.png`, `tombol-suara-film-desktop.png` (444,8 MB belum di Drive, di bawah 1 GB).
+2. **Tes:** lint, typecheck, unit 533/533, content, build lulus; e2e penuh di build baru 344 lulus, 34 dilewati, 0 gagal (20,6 mnt; 10 tes baru). Belum bisa dibuktikan dari container: apa yang memuat ulang halaman di iPhone host "di fase tertentu". Dugaan terkuat: iOS memuat ulang tab di fase 3D yang berat karena memori (film terasa terulang atau berkedip di saat itu). Perbaikan tombol berlaku apa pun pemicunya; bila host melihat film terulang, itu masalah memori yang perlu diukur di perangkat.
+3. **Langkah berikutnya:**
+   - Host menguji di iPhone produksi sesudah PR di-merge: tombol suara sesudah tab dimuat ulang (dan apakah film ikut terulang di fase itu), dialog izin gerak di film (geser dulu lalu ketuk), Today, dan diorama.
+   - PR #22 dibuka atas permintaan host ("mana pr nya", 20 Nov): https://github.com/jize-666/itinerary/pull/22, termasuk Tugas 11.1 (studio `/canting/`, privat, belum ditautkan). Tanpa konflik dengan `main` (`38e179d`). Pratinjau Vercel branch ini: https://kulonuwun-solo-git-claude-admiring-noether-tbqvap-jixx1.vercel.app (host bisa menguji di iPhone sebelum merge). Host yang klik Squash and merge.
+   - Kembali ke "MULAI DI SINI" (tanggapan host atas foto 11.1, lalu 11.2).
+
+### Tugas 11: Canting dan kain mori — DIKERJAKAN CLAUDE (Codex tidak bisa melanjutkan), DIMULAI 19 NOV MALAM
+
+**Pertanyaan host:** "boleh tau konsepnya kaya gimana canting sama mori nya?" Claude menjelaskan konsep dari PRD `docs/handoff/codex-prd-11-canting-mori.md` (film Hari 3 mengikuti gulir + halaman `/canting/`, satu mesin) dan menanyakan tiga hal.
+**Jawaban host, kata demi kata:** "gw pilih; 1. kawung, prefrensi gw kirim, lu pilih 2. clawd yg pegang 3. setuju". Lampiran: empat tangkapan layar pencarian gambar batik kawung (Vecteezy, Shutterstock, Pngtree, Magnific; gambar stok berlisensi, tidak disalin, tidak masuk repo).
+Tafsir Claude:
+1. **Motif = kawung.** Claude memilih arah **kawung ukel**: medalion empat arah dengan daun soga yang memancar, ukel krem keemasan, isian cecek, di atas bidang kawung kecil (empat lonjong mengelilingi pusat). Palet = hasil asli batik sogan Solo: dasar hampir hitam (nila + soga), daun cokelat soga, garis dan titik krem mori, aksen prada emas. Motif digambar sendiri di kode (orisinal), referensi hanya arah rasa.
+2. **Clawd memegang canting** di film (meniup cucuk, menorehkan malam). Di `/canting/` canting mengikuti tangan tamu; Clawd memandu di sampingnya.
+3. **Urutan kerja:** `/canting/` dulu (mesin malam dan pewarnaan), baru urutan di film.
+Proses yang dimodelkan (sogan Solo, disederhanakan): nglowong + ngisen-iseni (garis dan cecek, malam tetap sampai lorod) → nembok bidang daun → medel (nila) → ngerok (malam tembok dikerok) → nyoga (soga) → nglorod. Hasil: garis dan titik krem, daun cokelat soga, dasar hitam kecokelatan.
+**Rencana langkah (tiap langkah: tes, pratinjau desktop + HP, commit; PR di akhir atau per tonggak):**
+- 11.1 Motif kawung dan kain: generator motif (garis, cecek, tembok dalam koordinat kain), model malam deterministik, pewarna kain di GPU (render target malam/warna, tenunan mori, kilap malam, remukan); foto diam empat tahap (malam, nila, soga, lorod) untuk disetujui host.
+- 11.2 Halaman `/canting/`: menggambar dengan mouse/jari (aliran malam, tetes, celup ulang), canting 3D, Clawd memandu, alat klowong/cecek/tembok, pola tuntunan kawung, celup nila/soga, lorod, simpan PNG, Calm, e2e, video.
+- 11.3 Film Hari 3: dunia bab "batik" lewat `stage3d/chapters.ts`; Clawd memegang canting dan menorehkan kawung mengikuti gulir; celup mengikuti jam; lorod dan pendar prada di gong terakhir; versi 2,5D; tes; video.
+- 11.4 (P1) suara malam/celup/lorod, kain buatan tamu di epilog, kalimat Clawd.
+**Bagi tugas:** Haiku memeriksa sumber budaya (kawung, istilah proses) dan memindai; Sonnet menulis kode dengan arahan jelas dan tes; Opus merancang motif, shader, alur, meninjau, merekam.
+
+**11.1 Motif kawung dan kain — SELESAI 19 NOV, FOTO DIKIRIM, MENUNGGU TINJAUAN HOST**
+1. **Selesai:**
+   - `src/engine/canting/motif.ts` (Opus): kawung ukel orisinal, 852 guratan (167 garis, 522 cecek, 163 bidang): inti kawung, empat daun soga bertulang dan bercecek, empat lira ukel berpita (tebal di tengah, meruncing ke gulungan) dengan kuncup soga dan tetes cecek, renda cecek, bidang kawung miring 45° bersimetri empat arah, pinggiran garis ganda dan cecek.
+   - `src/engine/canting/trace.ts` (Opus): ±72 ribu dab berwaktu (nglowong 0–61 %, ngisen-iseni sampai 92 %, nembok sampai 100 %), `countAt`, `tipAt`; deterministik maju-mundur.
+   - `src/components/canting/batik.ts` + `surface.ts` (Opus): target malam (keep, temp, panas) dan warna (nila, soga, remukan) di GPU; mori bertenun, malam berelief dan mengilap, kerok, lorod, prada; kain melendut di gawangan dengan genangan cahaya.
+   - `/canting/` sementara (Sonnet, ditinjau Opus): studio foto `?tahap=malam|nila|soga|lorod&draw=&q=`; kain diputar 90° di layar tegak; parallax kursor/kemiringan (mati di Calm); opsi, `fitDistance`, dan 14 tes unit baru.
+   - Sumber budaya (Haiku): catatan di scratchpad untuk README; kawung tercatat museum sebagai motif larangan keraton Yogyakarta dan Surakarta, jadi teks `/canting/` menceritakannya sebagai sejarah.
+2. **Tes dan kendala:** typecheck, lint, unit 527/527, build (`/canting` terekspor). Bug yang ditemukan dan diperbaiki: semua segitiga target malam terbuang oleh backface culling (ruang kain y ke bawah membalik urutan sudut), jadi materi target dibuat dua sisi.
+3. **Langkah berikutnya:** host meninjau foto empat tahap; lalu 11.2 (menggambar dengan mouse/jari, canting 3D, Clawd memandu, celup, lorod, simpan PNG, Calm/2,5D, e2e, video).
+
+### Pesan host 19 Nov malam sesudah PR #21 di-merge: "daftar planning mana? liat. codex sakit gabisa lanjutin task" — DAFTAR DIKIRIM, MENUNGGU PILIHAN HOST
+
+Tafsir Claude: host minta melihat daftar rencana, dan Codex tidak bisa melanjutkan Tugas 11 (Canting dan kain mori) dan 12 (Boarding pass 3D dengan fisika) yang PRD-nya sudah ada di `docs/handoff/`. Claude menyusun daftar (yang selesai, yang tersisa, yang menunggu host) dan mengusulkan Claude mengambil alih Tugas 11 lalu 12 dari PRD yang sama, dengan pembagian Haiku/Sonnet/Opus. Belum ada kode; menunggu host memilih.
+- **Pesan host berikutnya, kata demi kata:** "kok task 9 ditunda? tandain udah selesai lah. kan udah dipasang kan?"
+  Tafsir Claude: Tugas 9 dianggap selesai karena diorama versi PRD host (dikerjakan Codex) sudah terpasang di `/diorama/` dan PR #20 sudah di-merge. Status "ditunda" di `CLAUDE.md` hanya sisa dari versi PRD lama (diorama kota OSM di film), yang diganti.
+  1. **Selesai:** `CLAUDE.md` Tugas 9 dicentang ✅ 19 Nov 2026; versi lama dicatat sebagai diganti, bukan ditunda.
+  2. **Kendala:** tidak ada.
+  3. **Langkah berikutnya:** menunggu host memilih Tugas 11, 12, atau butir yang menunggu host.
 
 ### Kiriman host 19 Nov: hasil Codex untuk Tugas 10 (Lereng Lawu) — DIPASANG, UI DISAMAKAN; MENUNGGU TINJAUAN HOST
 
@@ -119,7 +213,7 @@ Tafsir Claude:
 - **Pilihan host (kartu tanya):** "Terima, kecualikan diorama". Nama landmark publik di diorama dianggap bukan data trip.
 - **Dikerjakan:** tes hanya mengecualikan literal string utuh (dengan tanda kutip) dari modul teks diorama yang memuat "Laweyan". Penanda lain tetap diperiksa di semua berkas. Dibuktikan dengan berkas tanam berisi `"Batik class in Laweyan at 08:30"`: tes gagal sebagaimana mestinya; tanpa berkas itu lulus.
 
-### Tugas 9: Diorama Solo — DITUNDA, MENUNGGU ARAHAN HOST (19 Nov)
+### Tugas 9: Diorama Solo — SELESAI 19 NOV (versi PRD host, dipasang di `/diorama/`, PR #20); versi lama di bawah diganti
 
 **Kata host, kata demi kata:** "planning?" (sesudah PR #19 di-merge 19 Nov 12.48 WIB; CI hijau, termasuk e2e).
 Dasar: `docs/PRD.md` (bagian diorama, FR-27, sumber data OSM) dan aturan panggung 3D di `CLAUDE.md` (gerak pandang di semua objek, hemat tanpa menurunkan kualitas, video tiap langkah).

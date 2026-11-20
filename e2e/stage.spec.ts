@@ -19,7 +19,7 @@ test.slow(CI, "panggung 3D digambar CPU di runner CI tanpa GPU");
 
 const film = (page: Page) => page.locator("main.film");
 const canvas = (page: Page) => page.locator(".fl-canvas canvas");
-const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "");
+const settled = (page: Page) => expect(film(page)).not.toHaveAttribute("data-moving", "", { timeout: WAIT });
 type Stats = { tier: string; bloom: string; frames: number; calls: number; triangles: number; camera: [number, number, number]; fov: number; index: number; moving: boolean; strikes: number; gate: { end: "head" | "tail" | null; planted: number; face: "agung" | "murka" }; grade: { phase: "night" | "dawn" | "day" | "dusk" | "gate"; sat: number }; particles: Record<"lamp" | "dew" | "motes" | "fireflies", number> };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __lakonStage?: Stats }).__lakonStage ?? null);
 /** Tunggu frame baru tergambar sesudah saat ini (loop 3D berjalan). */
@@ -75,12 +75,20 @@ async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" 
   if (gate === "open" && !hash) await openGate(page);
 }
 
-/** Satu langkah yang memindah slide (langkah maju di judul/hero melewati tahap gongnya dulu). */
+/**
+ * Satu langkah yang memindah slide (langkah maju di judul/hero melewati tahap gongnya dulu).
+ *
+ * `data-index` baru berubah saat transisi selesai (commit), dan selama transisi panggung terus menggambar. Di tier
+ * High yang digambar CPU satu frame ±0,5 dtk (mesin longgar) sampai ±1,5 dtk (dua core berbagi), jadi ArrowUp dari
+ * #day-2 ke gong penutup Hari 1 baru commit sesudah 3,6 dtk di mesin longgar dan 8–9 dtk di kondisi seperti CI
+ * (diukur 20 Nov). Karena itu penantiannya memakai WAIT seperti penantian lain di berkas ini, bukan 5 dtk bawaan
+ * (CI run 456 gagal di sini: "Expected: not 17", dua kali).
+ */
 async function step(page: Page, key = "ArrowDown") {
   if (key === "ArrowDown" || key === "ArrowRight" || key === "PageDown") await release(page);
   const before = Number(await film(page).getAttribute("data-index"));
   await page.keyboard.press(key);
-  await expect.poll(async () => Number(await film(page).getAttribute("data-index"))).not.toBe(before);
+  await expect.poll(async () => Number(await film(page).getAttribute("data-index")), { timeout: WAIT }).not.toBe(before);
   await settled(page);
 }
 
