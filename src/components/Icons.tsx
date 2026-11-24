@@ -58,6 +58,15 @@ export const IconMaket = ({ size = 18 }: P) => (
   </svg>
 );
 
+/** Canting: kuas malam dengan tetes. */
+export const IconCanting = ({ size = 18 }: P) => (
+  <svg {...base(size)}>
+    <path d="M14.6 4.2a2.2 2.2 0 0 1 3.1 3.1L9.4 15.6l-4 .9.9-4 8.3-8.3Z" fill="currentColor" fillOpacity="0.14" />
+    <path d="m13 5.8 3.2 3.2" />
+    <path d="M6 19.6c1.6 0 2.4-.8 3.2-1.6" />
+  </svg>
+);
+
 export const IconCopy = ({ size = 18 }: P) => (
   <svg {...base(size)}>
     <rect x="8.6" y="8.6" width="11" height="11" rx="2.4" />

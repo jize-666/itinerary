@@ -27,7 +27,9 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - **Gong terakhir:** kain jadi tergantung di pendapa di balik gong, dilorod mengikuti gulir, prada menyala tiap pukulan.
    - **Registry bab:** bab yang memuat slide didahulukan; tanpa itu jangkauan muat-awal Lawu menahan pembuka Hari 3 (temuan saat menguji).
 2. **Tes:** unit 626/626 (baru: `batik-stage.test.ts`, 21 tes), lint, typecheck, build. E2E baru `batik.spec.ts` (maju-mundur, gong terakhir dipukul, Calm) + `lawu.spec.ts` (harapan Hari 3 kini `batik`, tidak pernah `lawu`): 22/22 desktop + HP. Foto kerja desktop + HP (data April) di scratchpad, belum dikirim.
-3. **Langkah berikutnya:** film 2,5D Hari 3 (Calm/Static), tombol "Draw your own" ke `/canting/` dari kartu Laweyan di film, Today, maket; video desktop + HP; dokumen; PR.
+   - **Irisan 2 (24 Nov):** film 2,5D Hari 3 `BatikLayers` (kain SVG dari motif bersungai yang sama: sungai tergores lewat `stroke-dashoffset`, lampion menyala dari kiri, kawung terbuka dari medalion, malam amber di atas mori lalu krem sesudah nila, kain menggelap nila dan soga; parallax, perspective shift, kedalaman ikut gulir). Tombol "Draw your own batik" / "Membatik sendiri" ke `/canting/` dari kartu Laweyan di film, stop Laweyan di Today, dan panel Laweyan di maket (Sonnet, ditinjau Opus; `engine/slides/canting-link.ts`, `CantingLink`, ikon `IconCanting`). Tur perekam `batik` di `record-film.cjs`. Catatan desain: `docs/design/decisions.md` bagian "Canting di film Hari 3".
+   - **Tes irisan 2:** unit 629/629, lint, typecheck, content, build; e2e `batik.spec` (+ kain 2,5D Calm: sungai di panel 1, kawung dan nila di panel 2, mundur kembali sama) dan `canting-links.spec` 12/12; `smoke.spec` (privasi bundle) 7 lulus 1 dilewati; Sonnet: `canting-links`, `diorama-links`, `today` 67 lulus 1 dilewati.
+3. **Langkah berikutnya:** video desktop + HP (tur `batik`, STAGE=high, data April) dikirim dan dicatat di ledger; PR 11.3.
 
 ### MULAI DI SINI (sesudah PR #23 di-merge, 24 Nov)
 

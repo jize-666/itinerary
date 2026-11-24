@@ -74,14 +74,27 @@ test("dunia batik hidup di pembuka dan gallery Hari 3, maju dan mundur; gong ter
   expect(errors).toEqual([]);
 });
 
-test("Calm: Hari 3 tetap utuh tanpa panggung 3D", async ({ page }) => {
+test("Calm: Hari 3 tetap utuh tanpa panggung 3D, kain 2,5D mengikuti letak hari", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("lakon.calm", "1"));
   const f = await prep(page);
   await page.goto("/film/?stage=low#day-3");
   await expect(f).toHaveAttribute("data-slide", "day-3/title");
+  await expect(page.locator(".batik-layers")).toHaveCount(0);
   await step(page);
+  const cloth = page.locator(".batik-layers");
+  await expect(cloth).toHaveAttribute("data-draw", "0.00");
   await step(page);
   await expect(f).toHaveAttribute("data-slide", "day-3/timlo");
   await expect(page.locator(".fl-canvas canvas")).toHaveCount(0);
   await expect(f).not.toHaveAttribute("data-world", /.+/);
+  // panel pertama: sungai dan lampion sudah tergores (3 panel: kawung selesai di panel kedua, lalu nila)
+  await expect(cloth).toHaveAttribute("data-draw", "0.10");
+  const river = () => cloth.evaluate((el) => getComputedStyle(el).getPropertyValue("--bt-river").trim());
+  expect(Number(await river())).toBeCloseTo(1, 3);
+  await step(page);
+  await expect(cloth).toHaveAttribute("data-draw", "1.00");
+  expect(Number(await cloth.evaluate((el) => getComputedStyle(el).getPropertyValue("--bt-nila").trim()))).toBeCloseTo(1, 3);
+  // mundur: kain kembali seperti semula (deterministik)
+  await step(page, -1);
+  await expect(cloth).toHaveAttribute("data-draw", "0.10");
 });

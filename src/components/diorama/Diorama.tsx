@@ -17,7 +17,9 @@ import {
   initialState,
   type ViewerState,
 } from "./controller";
-import { IconCalm } from "@/components/Icons";
+import { IconCalm, IconCanting } from "@/components/Icons";
+import { CurtainLink } from "@/components/motion/Curtain";
+import { CANTING_HREF } from "@/engine/slides/canting-link";
 import { Icon, LandmarkIcon, type IconName } from "./Icons";
 import type { SurfaceMode } from "./artwork";
 import { Viewer } from "./Viewer";
@@ -503,6 +505,14 @@ export function Diorama({
                   : text("view") + " · " + directions[side]![lang]}
             </span>
             {selected && <p>{selected.description[lang]}</p>}
+            {state.location === "laweyan" && (
+              <CurtainLink className="pb pb--tonal pb--sm dio-canting" href={CANTING_HREF} data-canting="">
+                <span className="pb-face">
+                  <IconCanting size={18} />
+                  <span>{text("canting")}</span>
+                </span>
+              </CurtainLink>
+            )}
           </div>
           <div className="dio-steppers">
             <Tool
