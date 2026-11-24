@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket]
+// maket = perbaikan bug maket (PR #23): kartu Pasar Gede di gallery Hari 1 → "See it in the miniature" → maket terbuka
+// tanpa macet → "Back" → film kembali ke kartu asal. Pakai STAGE=high (film 3D) atau STAGE=static.
 // batik = Hari 3 di film (Tugas 11.3): judul, pembuka hari, sembilan panel (sungai, kawung oleh Clawd, nila, soga,
 // malam), lalu gong terakhir dengan kain jadi di pendapa; pakai STAGE=high (atau STAGE=static untuk kain 2,5D).
 // canting = halaman membatik /canting/ (Tugas 11.2): menggambar bebas (klowong, cecek, tembok, mbleber), celup canting,
@@ -254,7 +256,7 @@ const fs = require('fs');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
   if (dio || cant) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); localStorage.removeItem('lakon.canting.v1'); } catch {} }, process.env.DIO_LANG || 'en');
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
-  const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : tour === 'batik' ? '#day-3' : '';
+  const hash = ['gallery', 'judul', 'kitar', 'dimensi', 'maket'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : tour === 'batik' ? '#day-3' : '';
   const dioQuery = ['tur=1', `q=${process.env.DIO_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const cantQuery = [`q=${process.env.CANT_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const filmUrl = dio ? `/diorama/?${dioQuery}` : cant ? `/canting/?${cantQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
@@ -691,6 +693,36 @@ const fs = require('fs');
       await finger('touchEnd', 0, 0);
       await w(2200);
     } else await advance(2600);
+    await finish();
+    return;
+  }
+
+  if (tour === 'maket') {
+    // PR #23: masuk maket dari kartu film tanpa macet, lalu "Back" melanjutkan film di kartu asal
+    const want = 'day-1/pasar-gede';
+    await w(2400); // judul hari
+    for (let i = 0; i < 14 && (await slide()) !== want; i++) await advance(i < 2 ? 2600 : 1800);
+    await w(2400);
+    const link = p.locator(".fl-layer[data-pos='cur'] .gal-card[data-cur] a[data-diorama]");
+    await tap(link, 0);
+    await p.waitForURL(/\/diorama\//, { timeout: 60000 / K, waitUntil: 'commit' });
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: K }).catch(() => {});
+    await p.waitForSelector('.curtain[data-state="open"]', { timeout: 60000 / K });
+    await p.waitForSelector('.dio-root[data-ready="true"]', { timeout: 600000 });
+    await w(2600);
+    if (!phone) {
+      const { width: vw, height: vh } = p.viewportSize();
+      for (let k = 1; k <= 40; k++) { await p.mouse.move(vw * (0.5 + 0.25 * Math.sin((k / 40) * Math.PI * 2)), vh * (0.5 - 0.12 * Math.sin((k / 40) * Math.PI))); await w(40); }
+    } else {
+      await p.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
+      await w(2200); // digulir: bilah atas dengan "Back" tetap menempel
+    }
+    await w(1600);
+    await tap(p.locator('.dio-back'), 0);
+    await p.waitForURL(/\/film\//, { timeout: 60000 / K, waitUntil: 'commit' });
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: K }).catch(() => {});
+    await p.waitForSelector(`main.film[data-slide="${want}"]`, { timeout: 600000 });
+    await w(3600); // film berlanjut di kartu Pasar Gede
     await finish();
     return;
   }
