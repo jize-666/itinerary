@@ -1,19 +1,20 @@
 # HANDOFF
 
-Diperbarui 20 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `00b6cc9`, PR #22 di-merge) · **Tugas 11.2 (halaman `/canting/` interaktif) selesai, video dikirim, PR menunggu host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `00b6cc9`, PR #22 di-merge) · **PR #23: Tugas 11.2 (`/canting/`) + perbaikan bug maket 24 Nov, menunggu host** (Squash and merge) · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — DIPERBAIKI, E2E PENUH BERJALAN
+### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — SELESAI, DI PR #23, MENUNGGU UJI HOST DI IPHONE
 
 **Kata host, kata demi kata:** "aku menemukan beberapa bug, 1. ketika mau masuk "diorama" itu macet/freeze, dan harus restart web baru bisa masuk ke dioroma. 2. ketika masuk ke diorama, tidak ada tombol balik ke alur sebelumnya."
 
 1. **Selesai** (skill `systematic-debugging`; rincian di `docs/design/decisions.md` bagian "Masuk dan keluar maket"):
    - **Macet.** `DioramaLink` memakai `CurtainLink` (tirai ditutup, lalu pindah halaman di klien), tetapi hanya film dan Today yang membuka tirai lagi (`useCurtainOpen`). Di `/diorama/` tirai tetap `closed` dan menangkap semua ketukan; muat ulang memulai tirai dari `open`. Kini `Curtain` membuka tirai sendiri setiap pathname berganti (`Curtain.tsx`).
    - **Tidak ada jalan kembali.** Tombol "Kembali" ada, tetapi di HP ikut tergulir hilang, dan sakelar suara/bahasa menimpa tombol "Angle". Kini `.dio-top` menempel dengan tabir seperti Today (`diorama.css`). Film mencatat slide terakhir saat ditinggalkan lewat tautan (`sessionStorage` `lakon.film.resume`) dan melanjutkannya bila tamu kembali ke bab yang sama (`resumeIndex` di `build-slides.ts`); muat ulang tetap ke awal bab.
-2. **Tes:** merah dulu, lalu hijau: e2e `diorama-links.spec.ts` (tirai terbuka dan Kembali ke kartu asal dari film, Kembali ke Today, Kembali tetap terlihat sesudah digulir) 12/12 di desktop + HP; tes unit `resumeIndex` 17/17. Dengan `Film.tsx` lama, Kembali mendarat di `day-1/title`. Lint, typecheck, unit, content, build lulus; e2e penuh sedang berjalan.
-3. **Langkah berikutnya:** hasil e2e penuh, foto pratinjau desktop + HP (data April), perbarui deskripsi PR #23, lalu host mencoba di iPhone: film → "See it in the miniature" → maket → gulir → Kembali.
+2. **Tes:** merah dulu, lalu hijau: e2e `diorama-links.spec.ts` (tirai terbuka dan Kembali ke kartu asal dari film, Kembali ke Today, Kembali tetap terlihat sesudah digulir) 12/12 di desktop + HP; tes unit `resumeIndex` 17/17. Dengan `Film.tsx` lama, Kembali mendarat di `day-1/title`. Cek penuh 24 Nov: lint, typecheck, unit 605/605, content, build lulus; **e2e penuh lokal 358 lulus, 0 gagal, 42 dilewati (24,1 mnt)**.
+   - Foto dikirim dan dicatat di ledger (data April, nama Jize): `maket-kembali-hp.jpg` (kartu Pasar Gede → maket → digulir, Back tetap di atas → kembali ke kartu yang sama) dan `maket-kembali-desktop.jpg`. 475,0 MB belum di Drive, di bawah 1 GB.
+3. **Langkah berikutnya:** host mencoba di iPhone (sesudah merge, atau di pratinjau Vercel PR #23): film → "See it in the miniature" → maket (tidak macet) → gulir → Back → kartu yang sama; juga Today → maket → Back. Lalu lanjut Tugas 11.3.
 
 ### PR #23 (Tugas 11.2): run e2e lokal kedua dan CI
 
