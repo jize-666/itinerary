@@ -518,6 +518,30 @@
       "sent": "2026-11-24",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "canting-suara-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/e4c57aaf-3f2e-400a-bbc8-99d856adf08e/scratchpad/rec/canting-suara-desktop.mp4",
+      "size": 18051086,
+      "sent": "2026-11-24",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "hari3-suara-epilog-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/e4c57aaf-3f2e-400a-bbc8-99d856adf08e/scratchpad/rec/hari3-suara-epilog-desktop.mp4",
+      "size": 44044951,
+      "sent": "2026-11-24",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "hari3-suara-epilog-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/e4c57aaf-3f2e-400a-bbc8-99d856adf08e/scratchpad/rec/hari3-suara-epilog-hp.mp4",
+      "size": 31892870,
+      "sent": "2026-11-24",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
