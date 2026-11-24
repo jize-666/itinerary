@@ -59,12 +59,17 @@ test("every stop lights in sequence, reverses, and keeps the two neighbouring ch
     await next(page, -1);
     await expect(f).toHaveAttribute("data-stop-lights", String(i + 1));
   }
-  for (const ch of ["day-1", "day-3"]) {
+  // bab tetangga tidak pernah memakai dunia Lawu: Hari 1 di panggung bersama, Hari 3 di dunianya sendiri (batik, 11.3)
+  for (const [ch, own] of [
+    ["day-1", "shared"],
+    ["day-3", "batik"],
+  ] as const) {
     await page.goto("/film/?stage=low#" + ch);
     await expect(f).toHaveAttribute("data-world", "shared", { timeout: 25000 });
     await next(page);
     await next(page);
-    await expect(f).toHaveAttribute("data-world", "shared");
+    await expect(f).toHaveAttribute("data-world", own, { timeout: 25000 });
+    await expect(f).not.toHaveAttribute("data-world-ready", "lawu");
   }
   expect(errors).toEqual([]);
 });

@@ -13,6 +13,7 @@ import { type PerspectiveCamera, type Scene, Vector3 } from "three";
 import { createBubble } from "@/components/mascot/bubble";
 import { BODY_FRAC, contextOf, createSession } from "@/components/mascot/session";
 import type { BubbleSide } from "@/engine/mascot/guide";
+import type { Hold } from "./chapters";
 import { createMascot } from "./mascot";
 import type { Shared } from "./shared";
 
@@ -30,6 +31,8 @@ export type GuideFrame = {
   /** Pusat gong dan jari-jarinya (dunia). */
   gong: Vector3;
   gongRadius: number;
+  /** Clawd memegang alat dunia per bab (canting Hari 3): berdiri di samping gagang, tangan di gagang. */
+  hold?: Hold | null;
 };
 
 /** Jarak Clawd dari kamera (m). */
@@ -38,6 +41,16 @@ const NEAR = 3.4;
 const KAYON_SPOT = { wide: [0.5, -0.42], tall: [0.52, -0.5] } as const;
 /** Parallax Clawd (NDC per satuan pandang) dan seberapa jauh wajahnya ikut menoleh. */
 const PARALLAX = { x: 0.035, y: 0.025, turn: 0.6 } as const;
+/**
+ * Memegang canting (Hari 3): tinggi badan di dunia (m) dan letak tengah badan dari gagang, dalam ukuran badan, menurut
+ * sumbu kamera (kanan, atas, ke kamera). Clawd di kanan gagang, sedikit di bawah, sedikit lebih dekat ke penonton.
+ */
+const HOLD = { size: 0.32, right: 0.95, up: -0.15, above: { wide: 0.8, tall: 0.3 }, near: 0.45 } as const;
+/**
+ * Batas letak Clawd yang memegang canting di layar (NDC): tidak terpotong tepi atau tertutup bilah bawah. Di HP tegak
+ * kartu gallery memenuhi lebar layar, jadi Clawd boleh turun lebih dekat ke pita sungai di bawah kartu.
+ */
+const HOLD_EDGE = { x: 0.82, top: 0.72, bottom: { wide: -0.62, tall: -0.74 } } as const;
 
 export function createStageGuide({ shared, scene, host, touch }: { shared: Shared; scene: Scene; host: () => HTMLElement | null; touch: boolean }) {
   const rig = createMascot(shared);
@@ -136,8 +149,25 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
         [x, y] = side ?? (tall ? [0.62, -0.63] : [0.76, -0.5]);
         bubbleSide = side?.[2] ?? "above";
       }
+      // memegang canting: tempat dihitung di dunia (di samping gagang), lalu dibawa ke ruang kamera
+      const holding = !!f.hold && spot !== "gong" && spot !== "kayon";
+      if (holding) {
+        const h = f.hold!;
+        // gagang di pita bawah layar (sungai): Clawd naik ke atas gagang, bukan terpotong tepi bawah
+        const low = v.copy(h.grip).project(camera).y < -0.35;
+        v.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(HOLD.size * HOLD.right * h.side);
+        goal.copy(h.grip).add(v);
+        v.setFromMatrixColumn(camera.matrixWorld, 1).multiplyScalar(HOLD.size * (low ? HOLD.above[tall ? "tall" : "wide"] : HOLD.up));
+        goal.add(v);
+        v.setFromMatrixColumn(camera.matrixWorld, 2).multiplyScalar(HOLD.size * HOLD.near);
+        goal.add(v).applyMatrix4(camera.matrixWorldInverse);
+        // tetap di dalam bingkai (lengan memanjang ke gagang bila perlu)
+        const reach = Math.tan((camera.fov * Math.PI) / 360) * -goal.z;
+        goal.x = Math.max(-HOLD_EDGE.x * reach * camera.aspect, Math.min(HOLD_EDGE.x * reach * camera.aspect, goal.x));
+        goal.y = Math.max(HOLD_EDGE.bottom[tall ? "tall" : "wide"] * reach, Math.min(HOLD_EDGE.top * reach, goal.y));
+      }
       // parallax: Clawd lebih dekat ke kamera daripada panggung, jadi bergeser berlawanan arah pandang lebih jauh
-      fromNdc(camera, x - f.look.x * PARALLAX.x, y + f.look.y * PARALLAX.y, d, goal);
+      else fromNdc(camera, x - f.look.x * PARALLAX.x, y + f.look.y * PARALLAX.y, d, goal);
       if (!placed) {
         local.copy(goal);
         placed = true;
@@ -151,10 +181,12 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
 
       // tinggi badan: bagian tetap dari sisi layar terpendek, berapa pun jaraknya; kedalaman ikut gulir = mendekat
       const tv = Math.tan((camera.fov * Math.PI) / 360);
-      const size = BODY_FRAC[tall ? "tall" : "wide"] * 2 * -local.z * tv * Math.min(1, camera.aspect) * (1 + 0.6 * f.depth);
-      // menghadap kamera (wajah ikut menoleh ke arah pandang); saat menjelaskan gong separuh berpaling ke gong
+      const size = holding ? HOLD.size : BODY_FRAC[tall ? "tall" : "wide"] * 2 * -local.z * tv * Math.min(1, camera.aspect) * (1 + 0.6 * f.depth);
+      // menghadap kamera (wajah ikut menoleh ke arah pandang); saat menjelaskan gong separuh berpaling ke gong;
+      // saat membatik separuh ke ujung canting
       faceAt.set(f.look.x * PARALLAX.turn, -f.look.y * PARALLAX.turn * 0.6, 0).applyQuaternion(camera.quaternion).add(camera.position);
       if (spot === "gong") faceAt.lerp(f.gong, 0.35);
+      if (holding) faceAt.lerp(f.hold!.tip, 0.5);
       rig.update({
         t: f.t,
         dt: f.dt,
@@ -166,6 +198,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
         mood: frame.mood,
         motion: frame.motion,
         motionSince: frame.motionSince / 1000,
+        grip: holding && far < 0.35 ? f.hold!.grip : null,
       });
 
       // ---- lapisan DOM: gelembung di atas kepala atau di samping, tombol di atas badan ----

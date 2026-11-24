@@ -24,7 +24,7 @@ export type FillStroke = { kind: "fill"; tool: "tembok"; layer: Layer; poly: Pt[
 export type Stroke = (LineStroke | DotStroke | FillStroke) & { part: Part };
 
 /** Bagian motif, untuk urutan torehan dan uji. */
-export type Part = "core" | "leaf" | "ukel" | "ring" | "field" | "border";
+export type Part = "core" | "leaf" | "ukel" | "ring" | "field" | "border" | "river";
 
 export type Motif = {
   aspect: number;
@@ -42,7 +42,20 @@ export type MotifOptions = {
   spacing?: number;
   /** Jari-jari medalion. */
   radius?: number;
+  /**
+   * Film Hari 3 (11.3): pinggiran bawah menjadi Bengawan Solo yang berkelok, dengan `lanterns` lampion (cincin dan
+   * cecek) di sepanjang alurnya: sungai dan lampion tiga hari film ternyata garis malam. Tanpa opsi ini kain sama
+   * dengan 11.1/11.2.
+   */
+  river?: { lanterns: number };
 };
+
+/**
+ * Sungai di tepi bawah kain (satuan tinggi kain): garis tengah di tepi (`y`), simpangan kelok (`swing`), garis
+ * tengah di bawah medalion (`dip`; cincin cecek luar medalion turun sampai ±0,94, jadi sungai menukik melingkarinya),
+ * lebar tukikan (`spread`, pecahan lebar kain), dan setengah lebar alur (`half`).
+ */
+export const RIVER_BAND = { y: 0.912, swing: 0.018, dip: 0.966, spread: 0.13, half: 0.011 } as const;
 
 const TAU = Math.PI * 2;
 
@@ -399,7 +412,10 @@ export function kawungUkel(opts: MotifOptions = {}): Motif {
   fieldStars.length = 0;
   fieldStars.push(...fStars);
 
-  // ---- 6. pinggiran: dua garis sejajar dan deret cecek di keempat tepi ----
+  // ---- 6. pinggiran: dua garis sejajar dan deret cecek di keempat tepi (dengan sungai: tepi bawah = sungai) ----
+  const river = opts.river;
+  // dengan sungai, pinggiran samping berhenti di atas pita sungai
+  const sideEnd = river ? RIVER_BAND.y - RIVER_BAND.swing * 1.3 - RIVER_BAND.half - 0.012 : 1 - margin * 0.55;
   const edge = (y: number) => {
     const pts: Pt[] = [];
     for (let i = 0; i <= 40; i++) pts.push([lerp(margin * 0.55, aspect - margin * 0.55, i / 40), y]);
@@ -407,20 +423,21 @@ export function kawungUkel(opts: MotifOptions = {}): Motif {
   };
   const edgeV = (x: number) => {
     const pts: Pt[] = [];
-    for (let i = 0; i <= 26; i++) pts.push([x, lerp(margin * 0.55, 1 - margin * 0.55, i / 26)]);
+    for (let i = 0; i <= 26; i++) pts.push([x, lerp(margin * 0.55, sideEnd, i / 26)]);
     return pts;
   };
-  for (const y of [margin * 0.55, margin * 0.85, 1 - margin * 0.85, 1 - margin * 0.55]) line("border", edge(y), WIDTH.line);
+  for (const y of river ? [margin * 0.55, margin * 0.85] : [margin * 0.55, margin * 0.85, 1 - margin * 0.85, 1 - margin * 0.55]) line("border", edge(y), WIDTH.line);
   for (const x of [margin * 0.55, margin * 0.85, aspect - margin * 0.85, aspect - margin * 0.55]) line("border", edgeV(x), WIDTH.line);
   const step = 0.022;
   for (let x = margin * 0.7 + step; x < aspect - margin * 0.7; x += step) {
     dot("border", [x, margin * 0.7], 0.0042);
-    dot("border", [x, 1 - margin * 0.7], 0.0042);
+    if (!river) dot("border", [x, 1 - margin * 0.7], 0.0042);
   }
-  for (let y = margin * 0.7 + step; y < 1 - margin * 0.7; y += step) {
+  for (let y = margin * 0.7 + step; y < (river ? sideEnd : 1 - margin * 0.7); y += step) {
     dot("border", [margin * 0.7, y], 0.0042);
     dot("border", [aspect - margin * 0.7, y], 0.0042);
   }
+  if (river) riverStrokes(aspect, margin * 0.55, Math.max(1, Math.round(river.lanterns)), line, dot);
 
   // ---- 7. isian: krem tetap (keep) dulu, lalu tembok sementara (temp) ----
   fill("core", coreStar, "keep");
@@ -434,4 +451,58 @@ export function kawungUkel(opts: MotifOptions = {}): Motif {
   for (const f of fieldFills) fill("field", f, "temp");
 
   return { aspect, center, radius: R, strokes };
+}
+
+/**
+ * Garis tengah sungai: dua setengah kelok sepanjang tepi bawah kain (ditambah riak kecil), menukik ke bawah medalion
+ * di tengah kain.
+ */
+export function riverCenter(x: number, aspect: number): number {
+  const u = x / aspect;
+  const far = RIVER_BAND.y + RIVER_BAND.swing * Math.sin(TAU * 2.5 * u + 0.6) + RIVER_BAND.swing * 0.3 * Math.sin(TAU * 5.7 * u + 1.9);
+  const w = Math.exp(-(((u - 0.5) / RIVER_BAND.spread) ** 2));
+  return far + (RIVER_BAND.dip - far) * w;
+}
+
+/**
+ * Bengawan Solo di tepi bawah kain: tepi kiri→kanan, tepi seberang kanan→kiri (canting kembali), lalu lampion
+ * kiri→kanan (cincin klowong dan cecek di tengahnya), berjarak sama sepanjang alur. Urutan dorongan = urutan torehan.
+ */
+function riverStrokes(
+  aspect: number,
+  inset: number,
+  lanterns: number,
+  line: (part: Part, pts: Pt[], width: number, closed?: boolean) => void,
+  dot: (part: Part, at: Pt, r: number) => void,
+) {
+  const N = 220;
+  const xs = Array.from({ length: N + 1 }, (_, i) => lerp(inset, aspect - inset, i / N));
+  const slope = (x: number) => (riverCenter(x + 1e-4, aspect) - riverCenter(x - 1e-4, aspect)) / 2e-4;
+  const bank = (off: number): Pt[] =>
+    xs.map((x) => {
+      const k = slope(x);
+      const n = Math.hypot(k, 1);
+      return [x - (off * k) / n, riverCenter(x, aspect) + off / n];
+    });
+  line("river", bank(-RIVER_BAND.half), WIDTH.line);
+  line("river", bank(RIVER_BAND.half).reverse(), WIDTH.line);
+  // lampion pada jarak sama di sepanjang garis tengah (jarak tepi = setengah jarak antar-lampion)
+  const mid = xs.map((x): Pt => [x, riverCenter(x, aspect)]);
+  const total = polylineLength(mid);
+  const gap = total / lanterns;
+  let next = gap / 2;
+  let walked = 0;
+  for (let i = 1; i < mid.length && next <= total; i++) {
+    const a = mid[i - 1]!;
+    const b = mid[i]!;
+    const seg = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    while (next <= walked + seg) {
+      const u = (next - walked) / seg;
+      const c: Pt = [lerp(a[0], b[0], u), lerp(a[1], b[1], u)];
+      line("river", ellipse(c, 0.0068, 0.0068, 0, 18), WIDTH.fine, true);
+      dot("river", c, 0.0032);
+      next += gap;
+    }
+    walked += seg;
+  }
 }

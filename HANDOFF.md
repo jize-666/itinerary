@@ -15,6 +15,20 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - **Hasil CI `c29dfc8` (batas 45 mnt):** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 18 mnt 6 dtk dan 26 mnt 35 dtk; `e2e (2/2)` 9–11 mnt. PR #23 `mergeable_state: clean`, menunggu host.
 3. **Langkah berikutnya:** PR #23 di-merge host (24 Nov 04.35 UTC); branch dimulai ulang dari `main` `790f93e`. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
 
+### Tugas 11.3: canting di film Hari 3 — DIMULAI 24 NOV
+
+**Kata host, kata demi kata:** "dah gw merge, lanjut 11.3". Pertanyaan Claude soal payoff ("sungai itu ternyata garis malam") tidak dijawab; dikerjakan dengan usulan itu dan bisa diganti bila host keberatan sesudah melihat video.
+
+1. **Selesai (irisan 1, 24 Nov):**
+   - **Dunia batik** (`stage3d/batik/world.ts`, loader `batik` di `chapters.ts`): kain mori 3,84 × 2,4 m di gawangan bambu, lantai ubin terakota, tembok kapur saudagar bergenteng dan pintu kayu, wajan malam di atas anglo. Kain memakai `Batik` + `BATIK_SURFACE` 11.1/11.2 dengan cahaya panggung (`COMMON`); cahaya kunci dari depan kain dan diredam (`KEY_GAIN`), warnanya tetap mengikuti jam slide.
+   - **Mesin murni** `engine/stage/batik.ts`: `batikTravel` (letak hari dari kursor), `processAt` (sungai selama pembuka hari → panel 1, kawung sampai sepertiga hari, nila, kerok, soga sampai senja), `gongCloth` (kain jadi di pendapa, lorod saat gong terakhir didekati), `batikShot` (bidikan lebar di pembuka hari, gallery menyusuri kain; parallax, perspective shift, kedalaman ikut gulir).
+   - **Sungai = garis malam:** `kawungUkel({ river: { lanterns } })` mengganti pinggiran bawah dengan Bengawan Solo berkelok yang menukik di bawah medalion; satu lampion (cincin + cecek) per tempat singgah tiga hari (29 di trip April). `traceMotif` menggores sungai paling awal (`phases.river` ≈ 9,5 %). Tanpa opsi, motif 11.1/11.2 tidak berubah (tes).
+   - **Clawd memegang canting** selama torehan: dunia mengembalikan `hold` (gagang, cucuk, sisi); pemandu meletakkan Clawd di sisi gagang yang dekat tengah bidikan (dengan tunda), naik bila gagang di pita sungai, dijepit di dalam bingkai; lengan diarahkan dan dipanjangkan ke gagang (`mascot.ts` `grip`).
+   - **Gong terakhir:** kain jadi tergantung di pendapa di balik gong, dilorod mengikuti gulir, prada menyala tiap pukulan.
+   - **Registry bab:** bab yang memuat slide didahulukan; tanpa itu jangkauan muat-awal Lawu menahan pembuka Hari 3 (temuan saat menguji).
+2. **Tes:** unit 626/626 (baru: `batik-stage.test.ts`, 21 tes), lint, typecheck, build. E2E baru `batik.spec.ts` (maju-mundur, gong terakhir dipukul, Calm) + `lawu.spec.ts` (harapan Hari 3 kini `batik`, tidak pernah `lawu`): 22/22 desktop + HP. Foto kerja desktop + HP (data April) di scratchpad, belum dikirim.
+3. **Langkah berikutnya:** film 2,5D Hari 3 (Calm/Static), tombol "Draw your own" ke `/canting/` dari kartu Laweyan di film, Today, maket; video desktop + HP; dokumen; PR.
+
 ### MULAI DI SINI (sesudah PR #23 di-merge, 24 Nov)
 
 1. **Keadaan:** `main` `790f93e` memuat Tugas 11.2, perbaikan bug maket, dan CI e2e dua job. Branch kerja dimulai ulang dari situ.
