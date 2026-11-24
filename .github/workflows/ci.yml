@@ -8,9 +8,7 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    # e2e panggung 3D digambar CPU (runner tanpa GPU); sejak Clawd (M3–M4) tesnya lebih banyak dan tiap frame 3D
-    # menggambar Clawd juga, jadi e2e ±17–20 menit. Batas 20 menit memotong run PR yang berjalan bersamaan run push.
-    timeout-minutes: 35
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,5 +22,25 @@ jobs:
       - run: pnpm test
       - run: pnpm content:check
       - run: pnpm build
+
+  # e2e panggung 3D digambar CPU (runner tanpa GPU). Satu job dengan 400 tes makan 29–34 menit, dan 24 Nov satu run
+  # dibatalkan di batas 35 menit tanpa tes yang gagal. Dibagi dua job paralel (±15 menit masing-masing) supaya ada
+  # ruang untuk tes baru. Server tes membangun situs sendiri (webServer di playwright.config.ts).
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    name: e2e (${{ matrix.shard }}/2)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e --trace off
+      - run: pnpm test:e2e --trace off --shard=${{ matrix.shard }}/2

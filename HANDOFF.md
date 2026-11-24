@@ -5,6 +5,13 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — DIPERBAIKI, MENUNGGU CI
+
+1. **Temuan:** di commit `1739047` (PR #23) ada dua job `check` (push dan pull_request). Satu lulus (29,2 mnt). Yang lain dibatalkan GitHub di 35 mnt 13 dtk, tepat di `timeout-minutes: 35`, saat e2e baru ±320 dari 400 tes. Tidak ada tes yang gagal; semua tanda di lognya lulus atau dilewati. Akar masalah: e2e satu job (2 worker, WebGL digambar CPU) kini 29–34 mnt, jadi runner yang sedikit lebih lambat melewati batas, dan suite akan bertambah di 11.3, 11.4, 12.
+2. **Rencana:** e2e dibagi dua job paralel (`--shard=1/2`, `2/2`), masing-masing ±15 mnt; job `check` tetap untuk lint, typecheck, unit, content, build. Sesuai arahan host, tidak menjalankan e2e penuh lokal; cukup cek pembagian tes (`--list --shard`) dan hasil CI.
+   - **Dikerjakan:** `.github/workflows/ci.yml` kini punya job `check` (lint, typecheck, unit, content, build; batas 15 mnt) dan job `e2e (1/2)`, `e2e (2/2)` paralel (batas 30 mnt). `--list --shard`: 200 + 200 tes, `stage.spec` 58 + 58 per shard.
+3. **Langkah berikutnya:** lihat hasil CI di PR #23. Bila ada tes yang gagal, jalankan lokal hanya tes itu.
+
 ### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — SELESAI, DI PR #23, MENUNGGU UJI HOST DI IPHONE
 
 **Kata host, kata demi kata:** "aku menemukan beberapa bug, 1. ketika mau masuk "diorama" itu macet/freeze, dan harus restart web baru bisa masuk ke dioroma. 2. ketika masuk ke diorama, tidak ada tombol balik ke alur sebelumnya."
