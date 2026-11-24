@@ -27,6 +27,8 @@ import type { Shared } from "./shared";
 
 /** Tinggi badan kit (satuan kit; lebar badan 2). */
 const BODY_H = DIMENSIONS.body[1];
+/** Panjang lengan kit (pivot → ujung tangan). */
+const ARM_LEN = DIMENSIONS.arm[0];
 const CENTER_Y = DIMENSIONS.bodyCenter[1];
 /** Titik tumpu regang dan lentur: dasar badan (di bawah tengah badan sejauh setengah tinggi). */
 const ANCHOR = BODY_H / 2;
@@ -57,6 +59,11 @@ export type MascotInput = {
   motionSince: number;
   /** Mode gerak dikurangi (brief kit: `still`, tanpa kedip). */
   still?: boolean;
+  /**
+   * Titik dunia yang digenggam (gagang canting Hari 3): lengan di sisi titik itu diarahkan dan dipanjangkan sampai
+   * tangannya tepat di sana. Tanpa ini lengan mengikuti pose.
+   */
+  grip?: Vector3 | null;
 };
 
 
@@ -104,6 +111,7 @@ export function createMascot(shared: Shared) {
   const euler = new Euler(0, 0, 0, "YXZ");
   const mRot = new Matrix4();
   const mFlex = new Matrix4();
+  const mInv = new Matrix4();
   let yaw = 0;
 
   const v = new Vector3();
@@ -140,6 +148,25 @@ export function createMascot(shared: Shared) {
     hemi.groundColor.copy(shared.uAmbGround.value).multiplyScalar(soft);
     flat.color.copy(FILL_FLAT).multiplyScalar(soft / 0.8);
     fill.color.copy(FILL_CAM).multiplyScalar(soft / 0.8);
+  };
+
+  /** Arahkan lengan di sisi `grip` ke titik itu (dunia) dan panjangkan sampai tangannya di sana. */
+  const gripLocal = new Vector3();
+  const reachFor = (grip: Vector3) => {
+    root.updateMatrixWorld();
+    gripLocal.copy(grip).applyMatrix4(mInv.copy(bodyRig.matrixWorld).invert());
+    const i = gripLocal.x >= 0 ? 1 : 0;
+    const arm = arms[i]!;
+    const d = gripLocal.sub(arm.position);
+    const len = d.length();
+    if (len < 1e-5) return;
+    d.divideScalar(len);
+    // lengan menjulur di sumbu X lokal (+X kanan, −X kiri); Euler XYZ dengan x = 0: arah = R(y) R(z) · (±1, 0, 0)
+    const s = i ? 1 : -1;
+    const z = Math.asin(Math.max(-1, Math.min(1, s * d.y)));
+    const y = Math.atan2(-s * d.z, s * d.x);
+    arm.rotation.set(0, y, z);
+    arm.scale.set(Math.max(0.6, Math.min(3, len / ARM_LEN)), 1, 1);
   };
 
   return {
@@ -201,6 +228,7 @@ export function createMascot(shared: Shared) {
       arms[0]!.scale.set(pose.reach[0], 1, 1);
       arms[1]!.scale.set(pose.reach[1], 1, 1);
       legs.forEach((l, i) => l.rotation.set(-m.legs[i]!, 0, 0));
+      if (input.grip) reachFor(input.grip);
       batch.pose();
 
       root.updateMatrixWorld();

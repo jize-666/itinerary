@@ -139,7 +139,19 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 - [ ] **11. Canting dan kain mori.** 🔨 Dikerjakan Claude sejak 19 Nov (Codex tidak bisa melanjutkan). PRD: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`). Keputusan host 19 Nov: motif **kawung** (Claude memilih arah kawung ukel dari referensi host), **Clawd memegang canting**, `/canting/` dulu lalu film. Langkah 11.1–11.4 dan statusnya di `HANDOFF.md` bagian 0.
   - [x] **11.1 Motif kawung dan kain.** ✅ 19 Nov 2026: motif kawung ukel orisinal (`engine/canting/motif.ts`), urutan torehan deterministik (`trace.ts`), kain batik di GPU (malam, nila, kerok, soga, lorod, remukan; `components/canting/batik.ts`, `surface.ts`), studio foto `/canting/?tahap=`; foto empat tahap desktop + HP dikirim, menunggu tinjauan host.
   - [x] **11.2 Halaman `/canting/` interaktif.** ✅ 20 Nov 2026 (host: "kerjakan, lanjut tugas 11.2"): tamu membatik sendiri dengan mouse atau jari (aliran malam menurut kecepatan, takaran nyamplung dan celup ke wajan, mbleber dan tetes), canting 3D dan wajan, klowong/cecek/tembok, pola pensil kawung/parang/bengawan dan auto-trace, urungkan, celup nila lalu kerok, mbironi, soga, lorod, simpan PNG 2048 × 1280 (Web Share/unduh), simpan lokal, Clawd memandu, Calm, `?demo=1`, `?fps`. Rinciannya: `docs/design/decisions.md` bagian "Halaman `/canting/` interaktif" dan `HANDOFF.md` bagian 0. Sisa: uji di iPhone (fps, jari, Share), tinjauan host atas video.
-  - [ ] 11.3 film Hari 3 · [ ] 11.4 suara dan epilog.
+  - [x] **11.3 Canting di film Hari 3.** ✅ 24 Nov 2026 (host: "dah gw merge, lanjut 11.3"):
+    - Hari 3 di panggung 3D menjadi dunia batik: kain mori di gawangan di halaman tembok saudagar Laweyan.
+    - Proses kain mengikuti gulir dan bisa dimundurkan: sungai, kawung, nila, kerok, soga.
+    - Sungai Bengawan dan lampion tiga hari jadi garis malam yang digores paling awal, satu lampion per tempat singgah.
+    - Clawd memegang canting.
+    - Kain jadi dilorod di pendapa saat gong terakhir, dan prada menyala tiap pukulan.
+    - Film 2,5D Hari 3 (`BatikLayers`).
+    - Tombol "Draw your own batik" ke `/canting/` dari kartu Laweyan di film, Today, dan maket.
+
+    Rinciannya: `docs/design/decisions.md` bagian "Canting di film Hari 3" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+    - Host meninjau video. Usulan "sungai = garis malam" tidak dijawab host, jadi dikerjakan dengan usulan itu.
+    - Uji di iPhone produksi (`/film/?fps#day-3`): fps saat kain digores mengikuti gulir di `high ×1 (paksa)`, dan Clawd memegang canting.
+  - [ ] 11.4 suara dan epilog.
 - [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.

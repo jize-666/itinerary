@@ -19,8 +19,11 @@ export type Trace = {
   dabs: Float32Array;
   count: number;
   fills: TraceFill[];
-  /** Batas fase: akhir nglowong, akhir ngisen-iseni (sesudahnya nembok sampai 1). */
-  phases: { lines: number; isen: number };
+  /**
+   * Batas fase: akhir sungai (0 bila motif tanpa sungai; sungai digores paling awal, garis lalu lampion), akhir
+   * nglowong, akhir ngisen-iseni (sesudahnya nembok sampai 1).
+   */
+  phases: { river: number; lines: number; isen: number };
   /** Letak ujung cucuk (dan apakah sedang menempel di kain) pada progres `p`. */
   tipAt(p: number): { at: Pt; down: boolean };
   /** Banyak dab dengan t ≤ p (pencarian biner). */
@@ -34,7 +37,7 @@ export type TraceOptions = {
   lift?: number;
 };
 
-const PART_ORDER: readonly Part[] = ["core", "leaf", "ukel", "ring", "field", "border"];
+const PART_ORDER: readonly Part[] = ["river", "core", "leaf", "ukel", "ring", "field", "border"];
 
 /** Bilangan semu-acak deterministik 0–1 dari satu bilangan bulat (untuk getar lebar garis). */
 export function hash01(n: number) {
@@ -56,7 +59,10 @@ export function traceMotif(motif: Motif, opts: TraceOptions = {}): Trace {
   const spacing = opts.spacing ?? 0.35;
   const lift = opts.lift ?? 0.05;
   const byPart = (a: Stroke, b: Stroke) => PART_ORDER.indexOf(a.part) - PART_ORDER.indexOf(b.part);
-  const strokes = motif.strokes.map((s, index) => ({ s, index }));
+  const all = motif.strokes.map((s, index) => ({ s, index }));
+  // sungai (film Hari 3) mendahului semuanya, dalam urutan yang ditulis motif: tepi, tepi seberang, lampion
+  const lead = all.filter((x) => x.s.part === "river");
+  const strokes = all.filter((x) => x.s.part !== "river");
   const lines = strokes.filter((x) => x.s.kind === "line").sort((a, b) => byPart(a.s, b.s) || a.index - b.index);
   const isen = strokes
     .filter((x) => x.s.kind === "dot" || (x.s.kind === "fill" && x.s.layer === "keep"))
@@ -70,6 +76,8 @@ export function traceMotif(motif: Motif, opts: TraceOptions = {}): Trace {
     else if (s.kind === "dot") jobs.push({ kind: "dot", stroke: s, work: 0.012, move: lift * 0.4, index });
     else jobs.push({ kind: "fill", stroke: s, work: polygonArea(s.poly) * 9, move: lift, index });
   };
+  lead.forEach(push);
+  const nLead = jobs.length;
   lines.forEach(push);
   const nLines = jobs.length;
   isen.forEach(push);
@@ -82,6 +90,7 @@ export function traceMotif(motif: Motif, opts: TraceOptions = {}): Trace {
   // titik-titik lintasan ujung canting (untuk tipAt): [t, x, y, ikutiDab]; pasangan (awal, akhir) per guratan
   const path: number[] = [];
   let clock = 0;
+  let phaseRiver = 0;
   let phaseLines = 0;
   let phaseIsen = 0;
   jobs.forEach((job, k) => {
@@ -126,6 +135,8 @@ export function traceMotif(motif: Motif, opts: TraceOptions = {}): Trace {
       const c = poly.reduce<[number, number]>((a, p) => [a[0] + p[0] / poly.length, a[1] + p[1] / poly.length], [0, 0]);
       path.push(t0, poly[0]![0], poly[0]![1], 0, t1, c[0], c[1], 0);
     }
+    // sungai selesai saat cucuk selesai menorehkan lampion terakhir (sebelum canting diangkat ke guratan berikutnya)
+    if (k === nLead - 1) phaseRiver = (clock + job.work) / total;
     clock += job.work + job.move;
     if (k === nLines - 1) phaseLines = clock / total;
     if (k === nIsen - 1) phaseIsen = clock / total;
@@ -174,5 +185,5 @@ export function traceMotif(motif: Motif, opts: TraceOptions = {}): Trace {
     return { at: [path[(n - 1) * 4 + 1]!, path[(n - 1) * 4 + 2]!] as Pt, down: false };
   };
 
-  return { dabs: packed, count, fills, phases: { lines: phaseLines, isen: phaseIsen }, tipAt, countAt };
+  return { dabs: packed, count, fills, phases: { river: phaseRiver, lines: phaseLines, isen: phaseIsen }, tipAt, countAt };
 }

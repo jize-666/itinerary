@@ -119,6 +119,9 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * w;
 }`;
 
+/** Vertex shader kain di gawangan (lendut dan gelombang, normal analitis); dipakai juga kain film Hari 3. */
+export const CLOTH_VS = vs;
+
 const fs = /* glsl */ `
 varying vec2 vUv;
 varying vec3 vWorld;

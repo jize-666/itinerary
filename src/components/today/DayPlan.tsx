@@ -5,7 +5,8 @@ import { fmtDay, fmtSpan } from "@/engine/today/format";
 import { timeline, type TodayState } from "@/engine/today/schedule";
 import type { DayView, StopView } from "@/lib/trip";
 import { dioramaFor, dioramaHref } from "@/engine/slides/diorama-link";
-import { IconCheck, IconCopy, IconMaket, IconPin, IconUmbrella } from "../Icons";
+import { cantingFor, CANTING_HREF } from "@/engine/slides/canting-link";
+import { IconCanting, IconCheck, IconCopy, IconMaket, IconPin, IconUmbrella } from "../Icons";
 import { CurtainLink } from "../motion/Curtain";
 import { copyText } from "./hooks";
 
@@ -56,6 +57,20 @@ export function DioramaLink({ stop }: { stop?: StopView }) {
       <span className="pb-face">
         <IconMaket size={18} />
         <span>{label}</span>
+      </span>
+    </CurtainLink>
+  );
+}
+
+/** Tautan ke halaman membatik (/canting/): hanya tampil di tempat singgah yang dipetakan (bengkel batik). */
+export function CantingLink({ stop }: { stop: StopView }) {
+  const { t } = useI18n();
+  if (!cantingFor(stop.id)) return null;
+  return (
+    <CurtainLink className="pb pb--tonal" href={CANTING_HREF} data-canting="">
+      <span className="pb-face">
+        <IconCanting size={18} />
+        <span>{t("film.canting")}</span>
       </span>
     </CurtainLink>
   );
@@ -215,10 +230,11 @@ function Stop({ stop, i, rain, state, onCopied }: { stop: StopView; i: number; r
             )}
           </p>
         )}
-        {(mapsUrl(stop) || address || dioramaFor(stop.id)) && (
+        {(mapsUrl(stop) || address || dioramaFor(stop.id) || cantingFor(stop.id)) && (
           <div className="tl-acts">
             <MapsLink stop={stop} />
             <DioramaLink stop={stop} />
+            <CantingLink stop={stop} />
             {address && <CopyButton text={address} label={t("today.copyFor", { place: tx(stop.title) })} onCopied={onCopied} />}
           </div>
         )}

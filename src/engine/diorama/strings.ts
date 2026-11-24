@@ -56,6 +56,7 @@ export const strings = {
   clay: { en: "Clay model", id: "Maket polos" },
   wire: { en: "Wireframe", id: "Kerangka" },
   labels: { en: "Location labels", id: "Penanda lokasi" },
+  canting: { en: "Draw your own batik", id: "Membatik sendiri" },
   calm: { en: "Calm", id: "Tenang" },
   selectPose: { en: "Choose a tour pose", id: "Pilih pose tur" },
   pose: { en: "Tour pose", id: "Pose tur" },

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik]
+// batik = Hari 3 di film (Tugas 11.3): judul, pembuka hari, sembilan panel (sungai, kawung oleh Clawd, nila, soga,
+// malam), lalu gong terakhir dengan kain jadi di pendapa; pakai STAGE=high (atau STAGE=static untuk kain 2,5D).
 // canting = halaman membatik /canting/ (Tugas 11.2): menggambar bebas (klowong, cecek, tembok, mbleber), celup canting,
 // mulai lagi dengan pola kawung yang ditorehkan canting, nila, mbironi, soga, lorod, simpan. CANT_Q=high|medium|low
 // (bawaan high), DIO_LANG=en|id. Di HP goresan memakai sentuhan jari (CDP).
@@ -208,7 +210,7 @@ const fs = require('fs');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
   if (dio || cant) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); localStorage.removeItem('lakon.canting.v1'); } catch {} }, process.env.DIO_LANG || 'en');
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
-  const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : '';
+  const hash = ['gallery', 'judul', 'kitar', 'dimensi'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : tour === 'batik' ? '#day-3' : '';
   const dioQuery = ['tur=1', `q=${process.env.DIO_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const cantQuery = [`q=${process.env.CANT_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const filmUrl = dio ? `/diorama/?${dioQuery}` : cant ? `/canting/?${cantQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
@@ -618,6 +620,21 @@ const fs = require('fs');
       await finger('touchEnd', 0, 0);
       await w(2200);
     } else await advance(2600);
+    await finish();
+    return;
+  }
+
+  if (tour === 'batik') {
+    // Tugas 11.3: Hari 3 dari judul sampai gong terakhir. Kain di gawangan: sungai dan lampion tergores di pembuka hari,
+    // Clawd menorehkan kawung dengan canting, nila, soga, malam; kain jadi dilorod di pendapa saat gong terakhir
+    await w(2600); // judul hari
+    await advance(3800); // pembuka hari: halaman Laweyan, sungai mulai tergores saat bergeser ke panel pertama
+    await advance(3200); // sarapan: sungai dan lampion selesai
+    await advance(3400); // Laweyan: Clawd menorehkan kawung
+    await advance(3000); // museum: kawung selesai
+    for (let i = 0; i < 8 && (await kind()) === 'panel'; i++) await advance(2600); // nila, kerok, soga, senja, malam
+    await w(3200); // gong terakhir: kain jadi dilorod, gong dipukul sendiri
+    await tap(p.locator('.fl-layer[data-pos="cur"] .fs-strike'), 3400); // pukul lagi: prada menyala
     await finish();
     return;
   }

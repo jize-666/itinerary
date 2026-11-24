@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `00b6cc9`, PR #22 di-merge) · **PR #23: Tugas 11.2 (`/canting/`) + perbaikan bug maket 24 Nov, menunggu host** (Squash and merge) · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `790f93e`, PR #23 di-merge) · **Tugas 11.3 (canting di film Hari 3) selesai, video dikirim, PR menunggu host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -12,7 +12,43 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - **Dikerjakan:** `.github/workflows/ci.yml` kini punya job `check` (lint, typecheck, unit, content, build; batas 15 mnt) dan job `e2e (1/2)`, `e2e (2/2)` paralel (batas 30 mnt). `--list --shard`: 200 + 200 tes, `stage.spec` 58 + 58 per shard.
    - **Hasil CI `eeeabe5`:** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 26 mnt 40 dtk dan 23 mnt 11 dtk; `e2e (2/2)` 9 mnt 43 dtk dan 10 mnt 56 dtk. Pembagiannya timpang: `stage.spec.ts` memakai `test.describe.configure({ mode: "default" })` (sengaja, tes 3D satu per satu), jadi 58 tes desktopnya satu kelompok ±20 mnt yang tidak bisa dibelah `--shard` (`--shard=2/2 e2e/stage.spec.ts` kosong). Batas 30 mnt terlalu mepet, jadi batas job e2e dinaikkan ke 45 mnt.
    - Host bertanya kenapa tidak memakai beberapa subagen untuk e2e. Jawaban: subagen berbagi 4 inti CPU container yang sama, dan e2e sudah memakai CPU penuh (WebGL digambar CPU); menjalankannya bersamaan justru memicu habis waktu seperti 5 tes panggung 20 Nov. Yang mempercepat adalah mesin terpisah (shard di runner CI). Ke depan: Haiku membaca log CI dan menjalankan ulang tes yang gagal, Sonnet untuk tes/dokumen dengan arahan jelas.
-3. **Langkah berikutnya:** lihat hasil CI commit ini. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
+   - **Hasil CI `c29dfc8` (batas 45 mnt):** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 18 mnt 6 dtk dan 26 mnt 35 dtk; `e2e (2/2)` 9–11 mnt. PR #23 `mergeable_state: clean`, menunggu host.
+3. **Langkah berikutnya:** PR #23 di-merge host (24 Nov 04.35 UTC); branch dimulai ulang dari `main` `790f93e`. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
+
+### Tugas 11.3: canting di film Hari 3 — SELESAI 24 NOV (menunggu tinjauan host atas video dan uji iPhone)
+
+**Kata host, kata demi kata:** "dah gw merge, lanjut 11.3". Pertanyaan Claude soal payoff ("sungai itu ternyata garis malam") tidak dijawab; dikerjakan dengan usulan itu dan bisa diganti bila host keberatan sesudah melihat video.
+
+1. **Selesai (irisan 1, 24 Nov):**
+   - **Dunia batik** (`stage3d/batik/world.ts`, loader `batik` di `chapters.ts`): kain mori 3,84 × 2,4 m di gawangan bambu, lantai ubin terakota, tembok kapur saudagar bergenteng dan pintu kayu, wajan malam di atas anglo. Kain memakai `Batik` + `BATIK_SURFACE` 11.1/11.2 dengan cahaya panggung (`COMMON`); cahaya kunci dari depan kain dan diredam (`KEY_GAIN`), warnanya tetap mengikuti jam slide.
+   - **Mesin murni** `engine/stage/batik.ts`: `batikTravel` (letak hari dari kursor), `processAt` (sungai selama pembuka hari → panel 1, kawung sampai sepertiga hari, nila, kerok, soga sampai senja), `gongCloth` (kain jadi di pendapa, lorod saat gong terakhir didekati), `batikShot` (bidikan lebar di pembuka hari, gallery menyusuri kain; parallax, perspective shift, kedalaman ikut gulir).
+   - **Sungai = garis malam:** `kawungUkel({ river: { lanterns } })` mengganti pinggiran bawah dengan Bengawan Solo berkelok yang menukik di bawah medalion; satu lampion (cincin + cecek) per tempat singgah tiga hari (29 di trip April). `traceMotif` menggores sungai paling awal (`phases.river` ≈ 9,5 %). Tanpa opsi, motif 11.1/11.2 tidak berubah (tes).
+   - **Clawd memegang canting** selama torehan: dunia mengembalikan `hold` (gagang, cucuk, sisi); pemandu meletakkan Clawd di sisi gagang yang dekat tengah bidikan (dengan tunda), naik bila gagang di pita sungai, dijepit di dalam bingkai; lengan diarahkan dan dipanjangkan ke gagang (`mascot.ts` `grip`).
+   - **Gong terakhir:** kain jadi tergantung di pendapa di balik gong, dilorod mengikuti gulir, prada menyala tiap pukulan.
+   - **Registry bab:** bab yang memuat slide didahulukan; tanpa itu jangkauan muat-awal Lawu menahan pembuka Hari 3 (temuan saat menguji).
+2. **Tes:** unit 626/626 (baru: `batik-stage.test.ts`, 21 tes), lint, typecheck, build. E2E baru `batik.spec.ts` (maju-mundur, gong terakhir dipukul, Calm) + `lawu.spec.ts` (harapan Hari 3 kini `batik`, tidak pernah `lawu`): 22/22 desktop + HP. Foto kerja desktop + HP (data April) di scratchpad, belum dikirim.
+   - **Irisan 2 (24 Nov):** film 2,5D Hari 3 `BatikLayers` (kain SVG dari motif bersungai yang sama: sungai tergores lewat `stroke-dashoffset`, lampion menyala dari kiri, kawung terbuka dari medalion, malam amber di atas mori lalu krem sesudah nila, kain menggelap nila dan soga; parallax, perspective shift, kedalaman ikut gulir). Tombol "Draw your own batik" / "Membatik sendiri" ke `/canting/` dari kartu Laweyan di film, stop Laweyan di Today, dan panel Laweyan di maket (Sonnet, ditinjau Opus; `engine/slides/canting-link.ts`, `CantingLink`, ikon `IconCanting`). Tur perekam `batik` di `record-film.cjs`. Catatan desain: `docs/design/decisions.md` bagian "Canting di film Hari 3".
+   - **Tes irisan 2:** unit 629/629, lint, typecheck, content, build; e2e `batik.spec` (+ kain 2,5D Calm: sungai di panel 1, kawung dan nila di panel 2, mundur kembali sama) dan `canting-links.spec` 12/12; `smoke.spec` (privasi bundle) 7 lulus 1 dilewati; Sonnet: `canting-links`, `diorama-links`, `today` 67 lulus 1 dilewati.
+   - **Irisan 3 (24 Nov):** video desktop pertama memperlihatkan seluruh layar memucat abu kebiruan ±0,5 dtk saat panel terakhir → gong terakhir (kabut perpindahan dunia per bab berwarna tetap, dibuat untuk awan Lawu). Kini tiap dunia memilih tirainya (`veil`): Lawu kabut, batik meredup gelap. Tes batik + Lawu 22/22. Video direkam ulang.
+   - **Pratinjau dikirim dan dicatat di ledger:** foto `hari3-proses-desktop.jpg`, `hari3-laweyan-gong-desktop.jpg`, `hari3-hp.jpg`; video `hari3-batik-desktop.mp4` (46 dtk) dan `hari3-batik-hp.mp4` (9:16, 45 dtk). 532 MB belum di Drive, di bawah 1 GB.
+3. **Langkah berikutnya:** host meninjau video dan PR 11.3, lalu menguji di iPhone produksi (`/film/?fps#day-3`). Sesudah itu 11.4 (suara malam/celup/lorod, kain tamu dari `/canting/` di epilog).
+
+### MULAI DI SINI (sesudah PR #23 di-merge, 24 Nov)
+
+1. **Keadaan:** `main` `790f93e` memuat Tugas 11.2, perbaikan bug maket, dan CI e2e dua job. Branch kerja dimulai ulang dari situ.
+2. **Menunggu host:**
+   - aba-aba mulai 11.3;
+   - jawaban usulan Claude untuk payoff Hari 3: garis Bengawan Solo di pita bawah kartu gallery Hari 3 digoreskan cucuk canting di depan perahu lampion ("sungai itu ternyata garis malam");
+   - uji iPhone: maket (masuk, gulir, Back) dan `/canting/` (jari, celup, Share).
+3. **Rencana 11.3** (PRD `codex-prd-11-canting-mori.md` §5):
+   - dunia bab "batik" di registry `stage3d/chapters.ts`: kain mori di belakang gallery Hari 3, Clawd memegang canting;
+   - torehan kawung mengikuti gulir, deterministik (`trace.countAt/tipAt`), maju-mundur;
+   - nila → soga → lorod sepanjang hari; kain jadi terungkap di gong penutup Hari 3 (gong terakhir film) dengan prada;
+   - tombol "Draw your own" ke `/canting/` dari kartu Laweyan di film, Today, dan maket;
+   - Calm/2,5D tetap utuh; aturan gerak kamera host;
+   - tes unit determinisme, e2e `#day-3`, Calm, bolak-balik film ⇄ canting; video desktop + HP (data April).
+   - Pembagian: Opus desain dan panggung; Sonnet tautan, e2e, dokumen; Haiku log CI dan ukur fps.
+4. **Sesudahnya:** 11.4 (suara, kain tamu di epilog), lalu Tugas 12 dalam empat tahap yang diusulkan ke host 24 Nov: 12.1 mesin fisika murni, 12.2 tiket 3D di panggung, 12.3 interaksi (seret, sentil, balik, kemiringan HP, angin), 12.4 P1 (suara, reaksi Clawd, epilog, 2,5D pegas CSS).
 
 ### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — SELESAI, DI PR #23, MENUNGGU UJI HOST DI IPHONE
 

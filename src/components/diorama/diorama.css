@@ -412,6 +412,9 @@
   line-height: 1.5;
   color: var(--dio-muted);
 }
+.dio-canting {
+  margin-top: 10px;
+}
 .dio-steppers {
   flex: none;
 }
@@ -794,6 +797,12 @@
   .dio-caption .dio-steppers {
     grid-column: 2;
     grid-row: 1;
+  }
+  .dio-caption .dio-canting {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
+    margin-top: 6px;
   }
   .dio-caption p {
     grid-column: 1 / -1;

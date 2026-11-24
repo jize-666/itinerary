@@ -141,7 +141,7 @@ export type Runtime = {
 
 export function createRuntime({ gl, scene, advance, film, root, spec, governor, stats, hooks }: RuntimeOptions): Runtime {
   const shared = createShared();
-  const chapters = chapterWorlds(scene, shared, spec, film, root);
+  const chapters = chapterWorlds(scene, shared, spec, film, root, gl);
   const sky = createSky(shared);
   const shape0 = TERRAIN_DEFAULT;
   const terrain = createTerrain(shared, shape0);
@@ -374,7 +374,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.rotateZ(kick.roll);
     }
     gl.getDrawingBufferSize(buf);
-    const chapter = chapters.update({ camera, cursor, look: lk, t, pixels: buf.y });
+    const chapter = chapters.update({ camera, cursor, look: lk, t, pixels: buf.y, strikes: hit.count });
     inChapter = chapter.visible;
     const forced = stats.cam;
     if (forced && forced.length >= 7) {
@@ -384,7 +384,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.lookAt(look.set(forced[3]!, forced[4]!, forced[5]!));
     }
     camera.updateMatrixWorld();
-    clawd?.update({ camera, t, dt, moving: cue.moving, depth: cue.moving ? scrollDepth(cursor.p) : 0, look: lk, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE });
+    clawd?.update({ camera, t, dt, moving: cue.moving, depth: cue.moving ? scrollDepth(cursor.p) : 0, look: lk, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE, hold: chapter.hold });
 
     // slide gong, judul hari, hero: letak gong di layar ditulis ke lapisan DOM tiap frame (bidang sentuh tombol pukul
     // di slide gong, arah huruf yang tersedot di judul), teks memudar saat gong didekati atau dikitari, dan cubit di
@@ -484,7 +484,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const dofAt = dofHeld ? dofHeld[1]! : inChapter ? chapter.focus : dofFocus(cursor.p, inner);
     post.render(scene, camera, {
       exposure: mood.exposure,
-      dim: inChapter ? 0.03 : shot.dim,
+      dim: Math.max(inChapter ? 0.03 : shot.dim, chapter.shade),
       mist: chapter.mist,
       time: t,
       dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },

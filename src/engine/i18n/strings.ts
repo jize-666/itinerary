@@ -62,6 +62,7 @@ export const STRINGS = {
   "film.stops": { en: "{n} stops", id: "{n} tempat" },
   "film.diorama": { en: "Explore Solo in miniature", id: "Jelajahi Solo dalam miniatur" },
   "film.dioramaAt": { en: "See it in the miniature", id: "Lihat di maket" },
+  "film.canting": { en: "Draw your own batik", id: "Membatik sendiri" },
   "film.dioramaFor": { en: "See it in the miniature: {place}", id: "Lihat di maket: {place}" },
   "film.story": { en: "The story", id: "Ceritanya" },
   "film.storyFor": { en: "The story: {place}", id: "Ceritanya: {place}" },

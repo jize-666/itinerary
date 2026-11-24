@@ -1944,3 +1944,84 @@ html.film-on body {
 }
 
 .film:has(.lawu-layers) .fl-sunbox, .film:has(.lawu-layers) .fl-hills {visibility:hidden;}
+
+/* ---- Hari 3 di film 2,5D (Tugas 11.3): kain mori di halaman Laweyan, proses mengikuti letak hari ---- */
+.batik-layers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 900px;
+  --bt-river: 0;
+  --bt-nila: 0;
+  --bt-soga: 0;
+  --bt-depth: 0;
+}
+/* tembok kapur saudagar di belakang kain, bergeser paling sedikit */
+.bt-wall {
+  position: absolute;
+  inset: 8% -6% 0;
+  background: linear-gradient(180deg, #4a1d12 0 2.4%, #b9a888 2.4% 88%, #3a2e25 88%);
+  opacity: 0.55;
+  transform: translate3d(calc(var(--lx, 0) * -4px), calc(var(--ly, 0) * -2px), -20px);
+}
+/* kain: bergeser lebih jauh dari tembok dan sedikit berputar (perspective shift), mendekat selama geseran */
+.bt-cloth {
+  position: absolute;
+  inset: 4% -4% 4%;
+  width: 108%;
+  height: 92%;
+  transform: translate3d(calc(var(--lx, 0) * -12px), calc(var(--ly, 0) * -6px), calc(var(--bt-depth) * 40px))
+    rotateY(calc(var(--lx, 0) * -0.8deg)) rotateX(calc(var(--ly, 0) * 0.5deg));
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.35));
+}
+.bt-mori {
+  fill: #efe3c8;
+}
+.bt-nila {
+  fill: #2b3550;
+  mix-blend-mode: multiply;
+  opacity: calc(var(--bt-nila) * 0.95);
+}
+.bt-soga {
+  fill: #8a5530;
+  mix-blend-mode: multiply;
+  opacity: calc(var(--bt-soga) * 0.9);
+}
+/* malam di atas mori: amber bening (krem di atas krem tidak terbaca); krem begitu kain dicelup nila */
+.batik-layers {
+  --bt-wax-ink: color-mix(in srgb, #f4e9cf calc(var(--bt-nila) * 100%), #b88a45);
+}
+.bt-wax path {
+  fill: none;
+  stroke: var(--bt-wax-ink);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.bt-wax circle,
+.bt-lanterns circle:not([fill="none"]) {
+  fill: var(--bt-wax-ink);
+}
+.bt-lanterns circle[fill="none"] {
+  stroke: var(--bt-wax-ink);
+}
+/* sungai tergores dari kiri ke kanan mengikuti torehan (pathLength = 1) */
+.bt-river path {
+  fill: none;
+  stroke: var(--bt-wax-ink);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--bt-river));
+}
+.film:has(.batik-layers) .fl-sunbox,
+.film:has(.batik-layers) .fl-hills {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bt-cloth,
+  .bt-wall {
+    transform: none;
+  }
+}
+
