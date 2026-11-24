@@ -5,12 +5,14 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — DIPERBAIKI, MENUNGGU CI
+### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — SELESAI (CI hijau), batas e2e dilonggarkan
 
 1. **Temuan:** di commit `1739047` (PR #23) ada dua job `check` (push dan pull_request). Satu lulus (29,2 mnt). Yang lain dibatalkan GitHub di 35 mnt 13 dtk, tepat di `timeout-minutes: 35`, saat e2e baru ±320 dari 400 tes. Tidak ada tes yang gagal; semua tanda di lognya lulus atau dilewati. Akar masalah: e2e satu job (2 worker, WebGL digambar CPU) kini 29–34 mnt, jadi runner yang sedikit lebih lambat melewati batas, dan suite akan bertambah di 11.3, 11.4, 12.
 2. **Rencana:** e2e dibagi dua job paralel (`--shard=1/2`, `2/2`), masing-masing ±15 mnt; job `check` tetap untuk lint, typecheck, unit, content, build. Sesuai arahan host, tidak menjalankan e2e penuh lokal; cukup cek pembagian tes (`--list --shard`) dan hasil CI.
    - **Dikerjakan:** `.github/workflows/ci.yml` kini punya job `check` (lint, typecheck, unit, content, build; batas 15 mnt) dan job `e2e (1/2)`, `e2e (2/2)` paralel (batas 30 mnt). `--list --shard`: 200 + 200 tes, `stage.spec` 58 + 58 per shard.
-3. **Langkah berikutnya:** lihat hasil CI di PR #23. Bila ada tes yang gagal, jalankan lokal hanya tes itu.
+   - **Hasil CI `eeeabe5`:** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 26 mnt 40 dtk dan 23 mnt 11 dtk; `e2e (2/2)` 9 mnt 43 dtk dan 10 mnt 56 dtk. Pembagiannya timpang: `stage.spec.ts` memakai `test.describe.configure({ mode: "default" })` (sengaja, tes 3D satu per satu), jadi 58 tes desktopnya satu kelompok ±20 mnt yang tidak bisa dibelah `--shard` (`--shard=2/2 e2e/stage.spec.ts` kosong). Batas 30 mnt terlalu mepet, jadi batas job e2e dinaikkan ke 45 mnt.
+   - Host bertanya kenapa tidak memakai beberapa subagen untuk e2e. Jawaban: subagen berbagi 4 inti CPU container yang sama, dan e2e sudah memakai CPU penuh (WebGL digambar CPU); menjalankannya bersamaan justru memicu habis waktu seperti 5 tes panggung 20 Nov. Yang mempercepat adalah mesin terpisah (shard di runner CI). Ke depan: Haiku membaca log CI dan menjalankan ulang tes yang gagal, Sonnet untuk tes/dokumen dengan arahan jelas.
+3. **Langkah berikutnya:** lihat hasil CI commit ini. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
 
 ### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — SELESAI, DI PR #23, MENUNGGU UJI HOST DI IPHONE
 
