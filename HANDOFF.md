@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` dimulai ulang dari `main` `790f93e` (**PR #23 di-merge host 24 Nov 04.35 UTC**: Tugas 11.2 `/canting/`, bug maket, CI e2e dua job) · **berikutnya Tugas 11.3, menunggu aba-aba host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `790f93e`, PR #23 di-merge) · **Tugas 11.3 (canting di film Hari 3) selesai, video dikirim, PR menunggu host** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -15,7 +15,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - **Hasil CI `c29dfc8` (batas 45 mnt):** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 18 mnt 6 dtk dan 26 mnt 35 dtk; `e2e (2/2)` 9–11 mnt. PR #23 `mergeable_state: clean`, menunggu host.
 3. **Langkah berikutnya:** PR #23 di-merge host (24 Nov 04.35 UTC); branch dimulai ulang dari `main` `790f93e`. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
 
-### Tugas 11.3: canting di film Hari 3 — DIMULAI 24 NOV
+### Tugas 11.3: canting di film Hari 3 — SELESAI 24 NOV (menunggu tinjauan host atas video dan uji iPhone)
 
 **Kata host, kata demi kata:** "dah gw merge, lanjut 11.3". Pertanyaan Claude soal payoff ("sungai itu ternyata garis malam") tidak dijawab; dikerjakan dengan usulan itu dan bisa diganti bila host keberatan sesudah melihat video.
 
