@@ -43,6 +43,10 @@
 // Sesudahnya: python3 -I scripts/preview/mix-voice.py . <video.mp4> <suara.json> <keluaran.mp4>. Web Audio halaman
 // berjalan dengan jam nyata (tidak ikut diperlambat), jadi hanya saat start dan stop eksplisit yang dipakai.
 // Contoh: STAGE=static VOICE=suara.json node scripts/preview/record-film.cjs data.json film.mp4 desktop 0.25 clawd
+// Suara membatik (Tugas 11.4): SOUND=<batik.json> menyalakan sakelar suara sebelum kamera berjalan dan mencatat kadar dan
+// bunyi sekali dari batik-sound.ts (waktu VIDEO); sesudahnya node scripts/preview/mix-batik.cjs <video> <batik.json> <keluaran>.
+// KEEP_OUT=<kain.jpg> (tur canting) menyimpan salinan kain jadi dari IndexedDB; CLOTH=<kain.jpg> menaruhnya di
+// perangkat rekaman film, dan tur batik lalu berlanjut ke epilog yang memperlihatkan kain itu.
 // Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
@@ -70,7 +74,8 @@ const fs = require('fs');
   const dio = tour === 'diorama';
   const cant = tour === 'canting';
   const VOICE = dio || cant ? '' : process.env.VOICE || '';
-  const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
+  const SOUND = process.env.SOUND || '';
+  const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE || SOUND ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
   await ctx.addInitScript((k) => {
     sessionStorage.setItem('lakon.session', JSON.stringify({ token: 'e2e.guest-token-123', role: 'guest', exp: 4102444800 }));
@@ -163,6 +168,44 @@ const fs = require('fs');
       });
     }, K);
   }
+  /**
+   * Suara membatik (Tugas 11.4, SOUND=<batik.json>): kadar dan bunyi sekali dari batik-sound.ts dicatat dengan jam
+   * dinding nyata lalu diubah ke waktu VIDEO seperti suara Clawd; mix-batik.cjs membangkitkannya ulang. Sakelar suara
+   * dinyalakan sebelum kamera berjalan.
+   */
+  const soundEvents = [];
+  let soundDumpAt = 0;
+  const dumpSound = (force) => {
+    if (!SOUND || t0 === null) return;
+    if (!force && Date.now() - soundDumpAt < 3000) return;
+    soundDumpAt = Date.now();
+    const events = soundEvents.map(({ tw, kind, args }) => ({ t: +((tw - t0) * K).toFixed(4), kind, args }));
+    fs.writeFileSync(SOUND, JSON.stringify({ K, fps: FPS, events }));
+  };
+  if (SOUND) {
+    await ctx.exposeFunction('__batikSoundTap', (kind, ...args) => {
+      soundEvents.push({ tw: Date.now() / 1000, kind, args });
+      dumpSound(false);
+    });
+  }
+  // CLOTH=<kain.jpg>: kain buatan tamu di perangkat (keepsake IndexedDB, lib/keepsake.ts), untuk epilog film
+  if (process.env.CLOTH) {
+    await ctx.addInitScript((b64) => {
+      try {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const req = indexedDB.open('lakon', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('keepsake');
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction('keepsake', 'readwrite');
+          tx.objectStore('keepsake').put({ v: 1, type: 'image/jpeg', bytes: bytes.buffer, width: 1280, height: 800, at: Date.now() }, 'batik');
+          tx.oncomplete = () => db.close();
+        };
+      } catch {}
+    }, fs.readFileSync(process.env.CLOTH).toString('base64'));
+  }
   await ctx.route('**/functions/v1/trip-data', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(DATA, 'utf8') }));
   const p = await ctx.newPage();
   const cdp = await ctx.newCDPSession(p);
@@ -170,6 +213,7 @@ const fs = require('fs');
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
   if (VOICE) ff.on('close', () => dumpVoice(true));
+  if (SOUND) ff.on('close', () => dumpSound(true));
   /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
   let rolling = true;
   const emitUntil = (tv) => { while (last && tick / FPS <= tv) { ff.stdin.write(last); tick++; written++; } };
@@ -242,6 +286,12 @@ const fs = require('fs');
     await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   }
   if (!dio && !cant) await p.waitForSelector('.film');
+  const soundOn = async () => {
+    const t = p.locator('.sound-toggle').first();
+    await t.waitFor({ timeout: 60000 / K });
+    if ((await t.getAttribute('aria-pressed')) !== 'true') await t.click();
+  };
+  if (SOUND && !VOICE && !cant) await soundOn();
   if (!dio && !cant && STAGE && STAGE !== 'static') {
     // tunggu kanvas 3D tampil penuh, lalu mulai video dari sini (bukan dari layar muat)
     await p.waitForSelector('.film[data-stage="on"]', { timeout: 600000 });
@@ -263,6 +313,7 @@ const fs = require('fs');
     // halaman membatik /canting/ (Tugas 11.2): menggambar bebas, celup canting, pola kawung, nila, mbironi, soga,
     // lorod, simpan. Semua jeda dalam waktu virtual, jadi kejadian pointer rapat seperti tangan sungguhan.
     await p.waitForSelector('.cnt-root[data-ready="true"]', { timeout: 600000 });
+    if (SOUND) await soundOn();
     rolling = true;
     p.on('dialog', (d) => d.accept()); // "Mulai lagi?"
     const box = async () => {
@@ -335,6 +386,26 @@ const fs = require('fs');
     await p.waitForSelector('.cnt-root[data-png="true"]', { timeout: 90000 / K });
     await w(2500);
     await tap(button(/Save my batik|Simpan batikku/), 3500);
+    // KEEP_OUT=<kain.jpg>: salinan kain jadi untuk epilog (dipakai CLOTH di rekaman film)
+    if (process.env.KEEP_OUT) {
+      const b64 = await p.evaluate(() => new Promise((res) => {
+        const r = indexedDB.open('lakon', 1);
+        r.onerror = () => res(null);
+        r.onsuccess = () => {
+          const g = r.result.transaction('keepsake').objectStore('keepsake').get('batik');
+          g.onerror = () => res(null);
+          g.onsuccess = () => {
+            if (!g.result) return res(null);
+            const u8 = new Uint8Array(g.result.bytes);
+            let s = '';
+            for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+            res(btoa(s));
+          };
+        };
+      }));
+      if (b64) fs.writeFileSync(process.env.KEEP_OUT, Buffer.from(b64, 'base64'));
+      else console.error('kain jadi tidak ada di IndexedDB');
+    }
     return finish();
   }
 
@@ -635,6 +706,21 @@ const fs = require('fs');
     for (let i = 0; i < 8 && (await kind()) === 'panel'; i++) await advance(2600); // nila, kerok, soga, senja, malam
     await w(3200); // gong terakhir: kain jadi dilorod, gong dipukul sendiri
     await tap(p.locator('.fl-layer[data-pos="cur"] .fs-strike'), 3400); // pukul lagi: prada menyala
+    if (process.env.CLOTH) {
+      // Tugas 11.4: epilog dengan kain buatan tamu dari /canting/; di desktop kursor menggerakkan pandang
+      await advance(3600);
+      if (!phone) {
+        const { width: vw, height: vh } = p.viewportSize();
+        const path = [[0.5, 0.5], [0.85, 0.35], [0.85, 0.7], [0.15, 0.7], [0.15, 0.3], [0.5, 0.45]];
+        for (let i = 1; i < path.length; i++)
+          for (let k = 1; k <= 30; k++) {
+            const [x0, y0] = path[i - 1], [x1, y1] = path[i];
+            await p.mouse.move(vw * (x0 + ((x1 - x0) * k) / 30), vh * (y0 + ((y1 - y0) * k) / 30));
+            await w(26);
+          }
+      }
+      await w(2400);
+    }
     await finish();
     return;
   }

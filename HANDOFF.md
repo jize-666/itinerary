@@ -1,9 +1,24 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `790f93e`, PR #23 di-merge) · **Tugas 11.3 (canting di film Hari 3) selesai, video dikirim, PR menunggu host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `39450eb`, PR #24 di-merge) · **Tugas 11.4 (suara malam/celup/lorod, kain tamu di epilog) sedang dikerjakan** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Tugas 11.4: suara malam, celup, lorod, dan kain tamu di epilog — DICATAT 24 NOV, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "sudah merge, lanjutkan tugas 11.4: suara malam, celup, dan lorod, plus kain buatanmu sendiri dari /canting/ muncul di epilog." PR #24 (11.3) di-merge 24 Nov 09.05 UTC; branch kerja dimulai ulang dari `main` `39450eb`.
+
+1. **Lingkup** (PRD `codex-prd-11-canting-mori.md` §5.2 dan §5.3):
+   - suara prosedural yang ikut sakelar suara: desis malam saat menorehkan, gemericik saat kain dicelup, gelembung saat lorod; di `/canting/` dan di film Hari 3 (torehan mengikuti gulir, celup nila/soga, lorod di gong terakhir);
+   - kain yang dibatik tamu di `/canting/` muncul di epilog film, hanya dari penyimpanan lokal perangkat, tanpa server; tanpa kain, film tetap utuh.
+2. **Status (24 Nov, sore):**
+   - **Suara selesai:** `engine/canting/sound.ts` (kadar murni: laju proses film → desis/gemericik/didih; tangan, amplop celup dan lorod di `/canting/`), `components/canting/batik-sound.ts` (pembangkit Web Audio prosedural, tanpa berkas audio; buffer per konteks dibangkitkan di waktu senggang), `sound-link.ts` (ikut sakelar suara dan tab latar), sambungan di `studio.ts` (desis tangan, tetes/mbleber, nyamplung ke wajan, ombak dan tetes celup, didih lorod) dan `film/BatikSound.tsx` (Hari 3, mengikuti gulir, 3D dan 2,5D).
+   - **Kain tamu di epilog selesai:** `lib/keepsake.ts` (IndexedDB, Sonnet, ditinjau), salinan JPEG 1280 × 800 saat kain jadi (juga untuk kain yang jadi sebelum fitur ini), `film/GuestCloth.tsx` + gaya `.fs-cloth*` (gawangan bambu, dua tali emas, parallax, perspective shift, ayunan; Clawd menghindari kain).
+   - **Spektrum diperiksa** (tidak bisa didengar di container): desis 60 % di 3–8 kHz, gemericik 1–3 kHz, didih 300–1000 Hz (gemuruh di bawah 300 Hz dibuat tipis supaya terdengar di speaker HP).
+   - **Tes:** unit `keepsake` 9/9, `batik-sound` 15/15 (Sonnet); e2e `batik-sound.spec.ts` 4/4 desktop (demo `/canting/` bersuara → kain di IndexedDB → epilog; epilog tanpa kain; Hari 3 bersuara; Hari 3 hening tanpa sakelar).
+   - **Perekam:** `record-film.cjs` `SOUND=`, `KEEP_OUT=`, `CLOTH=`; `scripts/preview/mix-batik.cjs` membangkitkan ulang suara di OfflineAudioContext dan mencampurnya ke video.
+3. **Langkah berikutnya:** cek penuh (Haiku), video bersuara `/canting/` desktop dan film Hari 3 → gong → epilog (desktop + HP, data April), ledger, PR.
 
 ### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — SELESAI (CI hijau), batas e2e dilonggarkan
 

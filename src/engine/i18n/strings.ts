@@ -78,6 +78,8 @@ export const STRINGS = {
   "film.kayon": { en: "Turn the gunungan", id: "Balik gunungannya" },
   "film.tomorrow": { en: "Tomorrow", id: "Besok" },
   "film.lastGong": { en: "The last gong of the lakon", id: "Gong terakhir lakon ini" },
+  "film.cloth.caption": { en: "Your own batik", id: "Batik buatanmu sendiri" },
+  "film.cloth.alt": { en: "The batik you drew with the canting", id: "Batik yang kamu gambar dengan canting" },
   "film.messageHost": { en: "Message your host", id: "Kabari host" },
   "film.credits": { en: "Credits", id: "Kredit" },
   "film.credits.with": { en: "With", id: "Bersama" },

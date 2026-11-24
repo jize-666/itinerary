@@ -16,6 +16,7 @@ import { CurtainLink } from "../motion/Curtain";
 import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/Kinetic";
 import { HangingPass } from "../pass/Pass";
 import { DioramaLink } from "../today/DayPlan";
+import { GuestCloth } from "./GuestCloth";
 import { useTitleStrike } from "./TitleStrike";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -407,6 +408,7 @@ function Epilogue({ data }: Ctx) {
   const epi = data.trip.epilogue;
   return (
     <div className="fl-body fl-body--center fs-epilogue">
+      <GuestCloth />
       <h2 className="fs-display">
         <Bayang key={tx(epi?.title)} text={tx(epi?.title)} delay={300} />
       </h2>
