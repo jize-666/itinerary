@@ -24,6 +24,11 @@ export interface ChapterWorld {
    * terakhir). Dunia sendiri yang mengatur tampil-tidaknya di `update`.
    */
   extra?: Object3D;
+  /**
+   * Cara menutup perpindahan antara dunia ini dan panggung bersama (saat kadarnya melewati separuh): `mist` = kabut
+   * pucat (awan lereng Lawu, bawaan), `shade` = meredup ke gelap sebentar (halaman batik Hari 3, juga malam hari).
+   */
+  veil?: "mist" | "shade";
   dispose(): void;
 }
 /**
@@ -120,6 +125,8 @@ export function chapterWorlds(scene: Scene, shared: Shared, spec: TierSpec, film
       if (active && mountedAt < 0) mountedAt = f.t;
       const state = active?.update({ ...f, readyFraction: Math.min(1, Math.max(0, (f.t - mountedAt) / 0.42)) });
       const visible = Boolean(state && state.amount >= 0.5);
+      // tirai perpindahan: puncak saat dunia dan panggung bersama bertukar (kadar 0,5)
+      const veil = state && state.amount < 1 ? Math.max(0, 1 - Math.abs(2 * state.amount - 1)) ** 1.7 : 0;
       if (active) active.group.visible = visible;
       status(
         active ? key : "",
@@ -132,7 +139,8 @@ export function chapterWorlds(scene: Scene, shared: Shared, spec: TierSpec, film
         visible,
         ground: visible ? active?.ground : null,
         focus: state?.focus ?? 30,
-        mist: state && state.amount < 1 ? Math.max(0, 1 - Math.abs(2 * state.amount - 1)) ** 1.7 : 0,
+        mist: active?.veil !== "shade" ? veil : 0,
+        shade: active?.veil === "shade" ? veil * 0.85 : 0,
         hold: visible ? (state?.hold ?? null) : null,
       };
     },

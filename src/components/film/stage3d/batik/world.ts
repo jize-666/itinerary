@@ -258,6 +258,8 @@ export function createBatikWorld(shared: Shared, spec: TierSpec, film: Film, gl:
     group,
     ground,
     extra: hall,
+    // halaman batik dan pendapa bertukar lewat redup gelap, bukan kabut gunung Lawu
+    veil: "shade",
     source: "procedural",
     update({ camera, cursor, look, t, readyFraction = 1, strikes = 0 }) {
       const travel = batikTravel(film, cursor);

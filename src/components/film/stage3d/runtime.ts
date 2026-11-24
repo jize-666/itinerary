@@ -484,7 +484,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const dofAt = dofHeld ? dofHeld[1]! : inChapter ? chapter.focus : dofFocus(cursor.p, inner);
     post.render(scene, camera, {
       exposure: mood.exposure,
-      dim: inChapter ? 0.03 : shot.dim,
+      dim: Math.max(inChapter ? 0.03 : shot.dim, chapter.shade),
       mist: chapter.mist,
       time: t,
       dof: { amount: dofAmount, focus: dofAt, aperture: DOF.aperture },
