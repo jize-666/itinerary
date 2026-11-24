@@ -25,7 +25,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 19 Nov 2026 (PR #12–#21 di-merge; Tugas 1–10 selesai; Tugas 11–12 belum, Codex tidak bisa melanjutkan). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 24 Nov 2026 (PR #12–#24 di-merge; Tugas 1–11 selesai, 11.4 di PR #25 menunggu host; Tugas 12 belum, Codex tidak bisa melanjutkan). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -136,7 +136,7 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
   - Klip suara EN `tip.mountain.0` (butuh rekaman teman host; sampai ada, gelembung tanpa suara).
   - Siap ≤ 5 dtk saat dibuka langsung di 4G belum tercapai tanpa gzip (8,8–10,8 dtk di server statis repo).
   - Temuan beban: dunia dibangun sekaligus di main thread (±130–300 ms di High) di akhir Hari 1; diperbaiki bila host melihat patah.
-- [ ] **11. Canting dan kain mori.** 🔨 Dikerjakan Claude sejak 19 Nov (Codex tidak bisa melanjutkan). PRD: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`). Keputusan host 19 Nov: motif **kawung** (Claude memilih arah kawung ukel dari referensi host), **Clawd memegang canting**, `/canting/` dulu lalu film. Langkah 11.1–11.4 dan statusnya di `HANDOFF.md` bagian 0.
+- [x] **11. Canting dan kain mori.** ✅ 24 Nov 2026 (11.1–11.4). Dikerjakan Claude sejak 19 Nov (Codex tidak bisa melanjutkan). PRD: `codex-prd-11-canting-mori.md` (urutan di film Hari 3 + halaman `/canting/`). Keputusan host 19 Nov: motif **kawung** (Claude memilih arah kawung ukel dari referensi host), **Clawd memegang canting**, `/canting/` dulu lalu film. Langkah 11.1–11.4 dan statusnya di `HANDOFF.md` bagian 0.
   - [x] **11.1 Motif kawung dan kain.** ✅ 19 Nov 2026: motif kawung ukel orisinal (`engine/canting/motif.ts`), urutan torehan deterministik (`trace.ts`), kain batik di GPU (malam, nila, kerok, soga, lorod, remukan; `components/canting/batik.ts`, `surface.ts`), studio foto `/canting/?tahap=`; foto empat tahap desktop + HP dikirim, menunggu tinjauan host.
   - [x] **11.2 Halaman `/canting/` interaktif.** ✅ 20 Nov 2026 (host: "kerjakan, lanjut tugas 11.2"): tamu membatik sendiri dengan mouse atau jari (aliran malam menurut kecepatan, takaran nyamplung dan celup ke wajan, mbleber dan tetes), canting 3D dan wajan, klowong/cecek/tembok, pola pensil kawung/parang/bengawan dan auto-trace, urungkan, celup nila lalu kerok, mbironi, soga, lorod, simpan PNG 2048 × 1280 (Web Share/unduh), simpan lokal, Clawd memandu, Calm, `?demo=1`, `?fps`. Rinciannya: `docs/design/decisions.md` bagian "Halaman `/canting/` interaktif" dan `HANDOFF.md` bagian 0. Sisa: uji di iPhone (fps, jari, Share), tinjauan host atas video.
   - [x] **11.3 Canting di film Hari 3.** ✅ 24 Nov 2026 (host: "dah gw merge, lanjut 11.3"):
@@ -151,7 +151,14 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     Rinciannya: `docs/design/decisions.md` bagian "Canting di film Hari 3" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
     - Host meninjau video. Usulan "sungai = garis malam" tidak dijawab host, jadi dikerjakan dengan usulan itu.
     - Uji di iPhone produksi (`/film/?fps#day-3`): fps saat kain digores mengikuti gulir di `high ×1 (paksa)`, dan Clawd memegang canting.
-  - [ ] 11.4 suara dan epilog.
+  - [x] **11.4 Suara dan epilog.** ✅ 24 Nov 2026 (host: "sudah merge, lanjutkan tugas 11.4: suara malam, celup, dan lorod, plus kain buatanmu sendiri dari /canting/ muncul di epilog"), PR #25:
+    - Suara membatik prosedural, tanpa berkas audio dan ikut sakelar suara: desis malam, gemericik celupan, didih lorod, ditambah tetes, ombak, nyamplung ke wajan, dan malam yang menetes.
+    - Di `/canting/` suara mengikuti tangan dan tahap. Di film Hari 3 (3D dan 2,5D) suara mengikuti gulir.
+    - Kain jadi dari `/canting/` disimpan di perangkat (IndexedDB) dan tergantung di gawangan bambu di epilog film. Tanpa kain, epilog tetap utuh.
+
+    Rinciannya: `docs/design/decisions.md` bagian "Suara membatik dan kain tamu di epilog" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+    - Host mendengar video bersuara. Suaranya belum pernah didengar di perangkat; di container hanya spektrumnya yang diperiksa.
+    - Uji di iPhone produksi: suara di `/canting/` dan Hari 3, serta kain di epilog sesudah membatik.
 - [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
