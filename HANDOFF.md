@@ -1,11 +1,11 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `39450eb`, PR #24 di-merge) · **Tugas 11.4 (suara malam/celup/lorod, kain tamu di epilog) sedang dikerjakan** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `39450eb`, PR #24 di-merge) · **Tugas 11.4 selesai di PR #25, menunggu host** (dengar video bersuara, uji iPhone) · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 11.4: suara malam, celup, lorod, dan kain tamu di epilog — DICATAT 24 NOV, SEDANG DIKERJAKAN
+### Tugas 11.4: suara malam, celup, lorod, dan kain tamu di epilog — SELESAI 24 NOV, DI PR #25, MENUNGGU HOST
 
 **Kata host, kata demi kata:** "sudah merge, lanjutkan tugas 11.4: suara malam, celup, dan lorod, plus kain buatanmu sendiri dari /canting/ muncul di epilog." PR #24 (11.3) di-merge 24 Nov 09.05 UTC; branch kerja dimulai ulang dari `main` `39450eb`.
 
@@ -18,7 +18,19 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
    - **Spektrum diperiksa** (tidak bisa didengar di container): desis 60 % di 3–8 kHz, gemericik 1–3 kHz, didih 300–1000 Hz (gemuruh di bawah 300 Hz dibuat tipis supaya terdengar di speaker HP).
    - **Tes:** unit `keepsake` 9/9, `batik-sound` 15/15 (Sonnet); e2e `batik-sound.spec.ts` 4/4 desktop (demo `/canting/` bersuara → kain di IndexedDB → epilog; epilog tanpa kain; Hari 3 bersuara; Hari 3 hening tanpa sakelar).
    - **Perekam:** `record-film.cjs` `SOUND=`, `KEEP_OUT=`, `CLOTH=`; `scripts/preview/mix-batik.cjs` membangkitkan ulang suara di OfflineAudioContext dan mencampurnya ke video.
-3. **Langkah berikutnya:** cek penuh (Haiku), video bersuara `/canting/` desktop dan film Hari 3 → gong → epilog (desktop + HP, data April), ledger, PR.
+   - **Cek penuh (Haiku):** `pnpm lint`, `typecheck`, `content:check`, `build` lulus; unit 653/653; e2e terdampak (`batik-sound`, `batik`, `canting`, `smoke`, `sound`) 46 lulus, 13 dilewati sesuai proyek. Satu tes gong `sound.spec.ts:187` [iphone] gagal sekali karena waktu lalu lulus saat diulang; tes itu tidak menyentuh 11.4.
+   - **Video bersuara (data April, nama Jize):** `canting-suara-desktop.mp4` (129 dtk: demo membatik dengan desis, tetes 17, nyamplung, ombak 4, didih lorod; kain jadi disimpan), `hari3-suara-epilog-desktop.mp4` (59 dtk, panggung 3D High: desis 9–27 dtk saat kain digores dan dicelup, didih lorod di gong terakhir ±36 dtk, epilog dengan kain tamu "Your own batik"), `hari3-suara-epilog-hp.mp4` (HP 9:16). Jalur suara hanya berisi suara membatik; gendhing, gong, dan suara Clawd tidak dicampur. Dikirim ke host dan dicatat di ledger.
+3. **Langkah berikutnya:** host mendengar video dan meninjau PR #25 (Squash and merge). Uji iPhone produksi: suara `/canting/` (desis mengikuti jari, celup, lorod), suara Hari 3 mengikuti gulir, kain di epilog sesudah membatik. Sesudah 11.4, daftar tugas tinggal Tugas 12: tanya host sebelum mulai (lihat "MULAI DI SINI" di bawah).
+
+### MULAI DI SINI (sesudah 11.4, 24 Nov)
+
+1. **Keadaan:** PR #25 (11.4) menunggu host. Branch kerja `claude/admiring-noether-tbqvap` dari `main` `39450eb`. Kalau PR #25 sudah di-merge, mulai ulang branch dari `main` terbaru.
+2. **Menunggu host:** dengar tiga video bersuara 11.4; uji iPhone (maket, `/canting/`, Hari 3, epilog); aba-aba Tugas 12.
+3. **Tugas 12** (boarding pass 3D dengan fisika, PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md`, fisika ditulis sendiri tanpa WASM), empat tahap yang diusulkan ke host 24 Nov: 12.1 mesin fisika murni, 12.2 tiket 3D di panggung, 12.3 interaksi (seret, sentil, balik, kemiringan HP, angin), 12.4 P1 (suara, reaksi Clawd, epilog, 2,5D pegas CSS). Aturan CLAUDE.md: "Sesudah daftar ini habis, tanya host sebelum lanjut" — Tugas 12 masih di daftar, jadi mulai begitu host memberi aba-aba.
+
+### Permintaan host 24 Nov (di tengah 11.4): kirim ulang pratinjau desktop PR #23 — DICATAT
+
+**Kata host, kata demi kata:** "kalo udah sekalian kirim preview desktop yg gw merge sebelumnya (#23) tadi ke hapus". Pratinjau desktop PR #23 di chat terhapus. Berkasnya masih ada di scratchpad sesi: `canting-desktop.mp4` (11.2, 20 Nov) dan `maket-kembali-desktop.jpg` (bug maket, 24 Nov), keduanya sudah di ledger. Dikirim ulang bersama video 11.4 tanpa dicatat dua kali di ledger. — SELESAI 24 NOV.
 
 ### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — SELESAI (CI hijau), batas e2e dilonggarkan
 
