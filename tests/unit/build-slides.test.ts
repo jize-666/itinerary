@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Trip } from "@content/schema";
 import { trip as soloInput } from "@content/trips/solo/trip";
-import { axisBetween, buildFilm, chapterAt, dayPanels, daySlug, indexForHash, type PanelSlide, transitionKind } from "@/engine/slides/build-slides";
+import { axisBetween, buildFilm, chapterAt, dayPanels, daySlug, indexForHash, type PanelSlide, resumeIndex, transitionKind } from "@/engine/slides/build-slides";
 import type { DayView, StopView, TripView } from "@/lib/trip";
 
 const L = (en: string, id = en) => ({ en, id });
@@ -153,6 +153,17 @@ describe("hash bab & jenis transisi", () => {
     expect(indexForHash(film, "credits")).toBe(at("credits"));
     expect(indexForHash(film, "#nope")).toBeNull();
     expect(indexForHash(film, "")).toBeNull();
+  });
+
+  // laporan host 24 Nov: "tidak ada tombol balik ke alur sebelumnya" → Kembali dari maket melanjutkan film di slide asal
+  it("kembali ke bab yang sama melanjutkan slide asal; bab lain, prolog, atau slide asing → tidak", () => {
+    expect(resumeIndex(film, "#day-1", "day-1/lake")).toBe(at("day-1/lake"));
+    expect(resumeIndex(film, "#DAY-1", "day-1/lake")).toBe(at("day-1/lake"));
+    expect(resumeIndex(film, "#day-2", "day-1/lake")).toBeNull();
+    expect(resumeIndex(film, "", "day-1/lake")).toBeNull();
+    expect(resumeIndex(film, "", film.slides[1]!.id)).toBeNull();
+    expect(resumeIndex(film, "#day-1", "day-9/hilang")).toBeNull();
+    expect(resumeIndex(film, "#day-1", null)).toBeNull();
   });
 
   it("di dalam gallery bergerak menyamping, selain itu vertikal", () => {

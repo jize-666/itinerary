@@ -5,6 +5,25 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — DIPERBAIKI, E2E PENUH BERJALAN
+
+**Kata host, kata demi kata:** "aku menemukan beberapa bug, 1. ketika mau masuk "diorama" itu macet/freeze, dan harus restart web baru bisa masuk ke dioroma. 2. ketika masuk ke diorama, tidak ada tombol balik ke alur sebelumnya."
+
+1. **Selesai** (skill `systematic-debugging`; rincian di `docs/design/decisions.md` bagian "Masuk dan keluar maket"):
+   - **Macet.** `DioramaLink` memakai `CurtainLink` (tirai ditutup, lalu pindah halaman di klien), tetapi hanya film dan Today yang membuka tirai lagi (`useCurtainOpen`). Di `/diorama/` tirai tetap `closed` dan menangkap semua ketukan; muat ulang memulai tirai dari `open`. Kini `Curtain` membuka tirai sendiri setiap pathname berganti (`Curtain.tsx`).
+   - **Tidak ada jalan kembali.** Tombol "Kembali" ada, tetapi di HP ikut tergulir hilang, dan sakelar suara/bahasa menimpa tombol "Angle". Kini `.dio-top` menempel dengan tabir seperti Today (`diorama.css`). Film mencatat slide terakhir saat ditinggalkan lewat tautan (`sessionStorage` `lakon.film.resume`) dan melanjutkannya bila tamu kembali ke bab yang sama (`resumeIndex` di `build-slides.ts`); muat ulang tetap ke awal bab.
+2. **Tes:** merah dulu, lalu hijau: e2e `diorama-links.spec.ts` (tirai terbuka dan Kembali ke kartu asal dari film, Kembali ke Today, Kembali tetap terlihat sesudah digulir) 12/12 di desktop + HP; tes unit `resumeIndex` 17/17. Dengan `Film.tsx` lama, Kembali mendarat di `day-1/title`. Lint, typecheck, unit, content, build lulus; e2e penuh sedang berjalan.
+3. **Langkah berikutnya:** hasil e2e penuh, foto pratinjau desktop + HP (data April), perbarui deskripsi PR #23, lalu host mencoba di iPhone: film → "See it in the miniature" → maket → gulir → Kembali.
+
+### PR #23 (Tugas 11.2): run e2e lokal kedua dan CI
+
+- Run e2e penuh lokal kedua (20 Nov): 349 lulus, 5 gagal, 42 dilewati. Kelimanya tes panggung film desktop yang habis batas 30 dtk (`stage.spec.ts` baris 181, 202, 341, 538, 768).
+- Dugaan sesi lalu, bahwa penyebabnya halaman canting menggambar ulang tiap frame, **tidak terbukti**:
+  - tes canting berjalan di urutan 1–9 dan 158–167, sedangkan kelima tes itu mulai di urutan 106–255;
+  - run penuh 19 Nov, sebelum ada e2e canting, juga gagal di 5 tes panggung desktop yang serupa.
+  - Jadi ini beban CPU container lokal (SwiftShader, 4 inti, 2 worker), bukan regresi 11.2. Perbaikan canting tidak dipasang.
+- CI PR #23 (job `check`, 20 Nov): 354 lulus, 42 dilewati, tanpa flaky, 28,5 menit (batas job 35).
+
 ### Tugas 11.2: halaman `/canting/` interaktif — SELESAI 20 NOV (menunggu tinjauan host atas video dan uji iPhone)
 
 **Kata host, kata demi kata:** "sudah merge, apa task selanjutnya" (PR #22 di-merge 20 Nov 06.27 UTC, `main` = `00b6cc9`), lalu "kerjakan, lanjut tugas 11.2" (tanpa catatan atas foto 11.1, jadi desain kain 11.1 dianggap diterima apa adanya). Branch kerja dimulai ulang dari `main` `00b6cc9`.

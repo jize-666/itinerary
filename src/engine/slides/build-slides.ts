@@ -192,6 +192,20 @@ export function indexForHash(film: Film, hash: string): number | null {
   return film.chapters.find((c) => c.id === id)?.first ?? null;
 }
 
+/** Kunci sessionStorage: slide terakhir saat film ditinggalkan lewat tautan (ke maket, Today). */
+export const RESUME_KEY = "lakon.film.resume";
+
+/**
+ * Slide asal saat tamu kembali ke film (mis. "Kembali" dari maket ke `#day-1`): hanya bila hash menyebut bab slide itu.
+ * Prolog tanpa hash tidak dilanjutkan, jadi gunungan pembuka tetap menyambut. null → pakai `indexForHash`.
+ */
+export function resumeIndex(film: Film, hash: string, slideId: string | null): number | null {
+  const first = indexForHash(film, hash);
+  if (first === null || !slideId) return null;
+  const i = film.slides.findIndex((s) => s.id === slideId);
+  return i >= 0 && chapterAt(film, i) === chapterAt(film, first) ? i : null;
+}
+
 /** Sumbu perpindahan antara dua slide: menyamping di dalam satu scene (gallery), selain itu vertikal. */
 export const axisBetween = (a: Slide | undefined, b: Slide | undefined): "x" | "y" => (a && b && a.scene === b.scene ? "x" : "y");
 

@@ -6,7 +6,7 @@ import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { DEPTH, prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Beat } from "@/engine/slides/beat";
-import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, type Slide } from "@/engine/slides/build-slides";
+import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, RESUME_KEY, resumeIndex, type Slide } from "@/engine/slides/build-slides";
 import { createLiveStore } from "@/engine/slides/live";
 import { skyCovered, skyPath, skyState, STILL } from "@/engine/slides/sky";
 import { styleAt } from "@/engine/slides/timeline";
@@ -42,6 +42,24 @@ const readFlag = (key: string): string | null => {
   } catch {
     return null;
   }
+};
+/** Slide asal di tab ini (sessionStorage); kosong bila belum ada atau penyimpanan diblokir. */
+const resumeStore = {
+  read(): string | null {
+    try {
+      return sessionStorage.getItem(RESUME_KEY);
+    } catch {
+      return null;
+    }
+  },
+  write(slideId: string | null) {
+    try {
+      if (slideId) sessionStorage.setItem(RESUME_KEY, slideId);
+      else sessionStorage.removeItem(RESUME_KEY);
+    } catch {
+      /* tidak diingat: kembali ke awal bab */
+    }
+  },
 };
 const writeFlag = (key: string, value: string) => {
   try {
@@ -278,7 +296,12 @@ function Stage({ data }: { data: TripView }) {
   const film = useMemo(() => buildFilm(data), [data]);
   const root = useRef<HTMLElement>(null);
   const label = useChapterLabel();
-  const [initial] = useState(() => indexForHash(film, window.location.hash) ?? 0);
+  // Kembali dari maket/Today ke bab yang sama melanjutkan slide asal (laporan host 24 Nov: "balik ke alur sebelumnya").
+  // Dibaca di sini tanpa dihapus (penginisialisasi state harus murni); dihapus saat film terpasang.
+  const [initial] = useState(() => {
+    const hash = window.location.hash;
+    return resumeIndex(film, hash, resumeStore.read()) ?? indexForHash(film, hash) ?? 0;
+  });
   const [view, setView] = useState<FilmView>({ index: initial, moving: null, beat: 0 });
   const [live] = useState(createLiveStore);
   const [calm, setCalm] = useState(() => (readFlag(CALM_KEY) ?? (prefersReducedMotion() ? "1" : "0")) === "1");
@@ -331,7 +354,10 @@ function Stage({ data }: { data: TripView }) {
       if (to !== null) d.jump(to);
     };
     window.addEventListener("hashchange", onHash);
+    resumeStore.write(null);
     return () => {
+      // film ditinggalkan lewat tautan (navigasi di dalam situs melepas komponen; muat ulang tidak)
+      resumeStore.write(d.film.slides[d.index]?.id ?? null);
       window.removeEventListener("hashchange", onHash);
       cancelLive?.();
       detach();
