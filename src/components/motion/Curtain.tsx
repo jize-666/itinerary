@@ -1,12 +1,21 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { type ComponentProps, type MouseEvent, useEffect, useSyncExternalStore } from "react";
 import { curtain } from "@/engine/motion/curtain";
 
-/** Bilah letterbox di atas segalanya. Tidak menangkap klik saat terbuka. */
+/**
+ * Bilah letterbox di atas segalanya. Tidak menangkap klik saat terbuka.
+ * Tirai membuka sendiri begitu rute berganti. Sebelumnya hanya halaman yang memanggil `useCurtainOpen` (film, Today)
+ * yang membukanya; /diorama/ tidak, jadi tirai tertutup menutupi seluruh layar dan halaman tampak macet sampai dimuat
+ * ulang (laporan host 24 Nov).
+ */
 export function Curtain() {
   const st = useSyncExternalStore(curtain.subscribe, curtain.get, curtain.getServer);
+  const path = usePathname();
+  useEffect(() => {
+    void curtain.open();
+  }, [path]);
   return (
     <div className="curtain" data-state={st} aria-hidden="true">
       <span className="curtain-bar curtain-bar--top" />
@@ -21,7 +30,8 @@ export function useCurtainNav() {
   const router = useRouter();
   return async (href: string, delay = 0) => {
     if (delay) await new Promise((r) => setTimeout(r, delay));
-    await curtain.close();
+    // rute yang sama tidak mengganti pathname, jadi tidak ada yang membuka tirai lagi: tanpa tirai
+    if (new URL(href, window.location.href).pathname !== window.location.pathname) await curtain.close();
     router.push(href);
   };
 }

@@ -91,12 +91,15 @@ describe("traceMotif", () => {
 
 describe("options", () => {
   it("reads query options", () => {
-    expect(readCantingOptions("")).toEqual({ quality: undefined, tahap: undefined, draw: undefined, showFps: false });
+    expect(readCantingOptions("")).toEqual({ quality: undefined, tahap: undefined, draw: undefined, showFps: false, demo: false });
+    expect(readCantingOptions("?demo=1").demo).toBe(true);
+    expect(readCantingOptions("?demo=yes").demo).toBe(false);
     expect(readCantingOptions("?q=medium&tahap=soga&draw=0.4&fps")).toEqual({
       quality: "medium",
       tahap: "soga",
       draw: 0.4,
       showFps: true,
+      demo: false,
     });
   });
   it("clamps draw and ignores junk", () => {

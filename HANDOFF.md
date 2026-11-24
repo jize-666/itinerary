@@ -1,9 +1,64 @@
 # HANDOFF
 
-Diperbarui 20 Nov 2026 (WIB; skill `find-skills` dipasang, lihat bagian di bawah "MULAI DI SINI") · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `38e179d`, PR #21 di-merge) · **Tugas 11.1 (kain kawung di GPU, studio `/canting/`) selesai dan di-push, foto empat tahap dikirim; belum ada PR; sesi ditutup atas arahan host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `00b6cc9`, PR #22 di-merge) · **PR #23: Tugas 11.2 (`/canting/`) + perbaikan bug maket 24 Nov, menunggu host** (Squash and merge) · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — SELESAI (CI hijau), batas e2e dilonggarkan
+
+1. **Temuan:** di commit `1739047` (PR #23) ada dua job `check` (push dan pull_request). Satu lulus (29,2 mnt). Yang lain dibatalkan GitHub di 35 mnt 13 dtk, tepat di `timeout-minutes: 35`, saat e2e baru ±320 dari 400 tes. Tidak ada tes yang gagal; semua tanda di lognya lulus atau dilewati. Akar masalah: e2e satu job (2 worker, WebGL digambar CPU) kini 29–34 mnt, jadi runner yang sedikit lebih lambat melewati batas, dan suite akan bertambah di 11.3, 11.4, 12.
+2. **Rencana:** e2e dibagi dua job paralel (`--shard=1/2`, `2/2`), masing-masing ±15 mnt; job `check` tetap untuk lint, typecheck, unit, content, build. Sesuai arahan host, tidak menjalankan e2e penuh lokal; cukup cek pembagian tes (`--list --shard`) dan hasil CI.
+   - **Dikerjakan:** `.github/workflows/ci.yml` kini punya job `check` (lint, typecheck, unit, content, build; batas 15 mnt) dan job `e2e (1/2)`, `e2e (2/2)` paralel (batas 30 mnt). `--list --shard`: 200 + 200 tes, `stage.spec` 58 + 58 per shard.
+   - **Hasil CI `eeeabe5`:** hijau di run push dan PR. `check` 1 mnt; `e2e (1/2)` 26 mnt 40 dtk dan 23 mnt 11 dtk; `e2e (2/2)` 9 mnt 43 dtk dan 10 mnt 56 dtk. Pembagiannya timpang: `stage.spec.ts` memakai `test.describe.configure({ mode: "default" })` (sengaja, tes 3D satu per satu), jadi 58 tes desktopnya satu kelompok ±20 mnt yang tidak bisa dibelah `--shard` (`--shard=2/2 e2e/stage.spec.ts` kosong). Batas 30 mnt terlalu mepet, jadi batas job e2e dinaikkan ke 45 mnt.
+   - Host bertanya kenapa tidak memakai beberapa subagen untuk e2e. Jawaban: subagen berbagi 4 inti CPU container yang sama, dan e2e sudah memakai CPU penuh (WebGL digambar CPU); menjalankannya bersamaan justru memicu habis waktu seperti 5 tes panggung 20 Nov. Yang mempercepat adalah mesin terpisah (shard di runner CI). Ke depan: Haiku membaca log CI dan menjalankan ulang tes yang gagal, Sonnet untuk tes/dokumen dengan arahan jelas.
+3. **Langkah berikutnya:** lihat hasil CI commit ini. Pilihan bila CI perlu lebih cepat: pecah `stage.spec.ts` jadi 2–3 berkas (masing-masing tetap satu per satu) dan beri tiap berkas job sendiri; perkiraan job terlama ±12–14 mnt.
+
+### Laporan bug host 24 Nov: masuk diorama macet, dan tidak ada jalan kembali — SELESAI, DI PR #23, MENUNGGU UJI HOST DI IPHONE
+
+**Kata host, kata demi kata:** "aku menemukan beberapa bug, 1. ketika mau masuk "diorama" itu macet/freeze, dan harus restart web baru bisa masuk ke dioroma. 2. ketika masuk ke diorama, tidak ada tombol balik ke alur sebelumnya."
+
+1. **Selesai** (skill `systematic-debugging`; rincian di `docs/design/decisions.md` bagian "Masuk dan keluar maket"):
+   - **Macet.** `DioramaLink` memakai `CurtainLink` (tirai ditutup, lalu pindah halaman di klien), tetapi hanya film dan Today yang membuka tirai lagi (`useCurtainOpen`). Di `/diorama/` tirai tetap `closed` dan menangkap semua ketukan; muat ulang memulai tirai dari `open`. Kini `Curtain` membuka tirai sendiri setiap pathname berganti (`Curtain.tsx`).
+   - **Tidak ada jalan kembali.** Tombol "Kembali" ada, tetapi di HP ikut tergulir hilang, dan sakelar suara/bahasa menimpa tombol "Angle". Kini `.dio-top` menempel dengan tabir seperti Today (`diorama.css`). Film mencatat slide terakhir saat ditinggalkan lewat tautan (`sessionStorage` `lakon.film.resume`) dan melanjutkannya bila tamu kembali ke bab yang sama (`resumeIndex` di `build-slides.ts`); muat ulang tetap ke awal bab.
+2. **Tes:** merah dulu, lalu hijau: e2e `diorama-links.spec.ts` (tirai terbuka dan Kembali ke kartu asal dari film, Kembali ke Today, Kembali tetap terlihat sesudah digulir) 12/12 di desktop + HP; tes unit `resumeIndex` 17/17. Dengan `Film.tsx` lama, Kembali mendarat di `day-1/title`. Cek penuh 24 Nov: lint, typecheck, unit 605/605, content, build lulus; **e2e penuh lokal 358 lulus, 0 gagal, 42 dilewati (24,1 mnt)**.
+   - Foto dikirim dan dicatat di ledger (data April, nama Jize): `maket-kembali-hp.jpg` (kartu Pasar Gede → maket → digulir, Back tetap di atas → kembali ke kartu yang sama) dan `maket-kembali-desktop.jpg`. 475,0 MB belum di Drive, di bawah 1 GB.
+3. **Langkah berikutnya:** host mencoba di iPhone (sesudah merge, atau di pratinjau Vercel PR #23): film → "See it in the miniature" → maket (tidak macet) → gulir → Back → kartu yang sama; juga Today → maket → Back. Lalu lanjut Tugas 11.3.
+
+### PR #23 (Tugas 11.2): run e2e lokal kedua dan CI
+
+- Run e2e penuh lokal kedua (20 Nov): 349 lulus, 5 gagal, 42 dilewati. Kelimanya tes panggung film desktop yang habis batas 30 dtk (`stage.spec.ts` baris 181, 202, 341, 538, 768).
+- Dugaan sesi lalu, bahwa penyebabnya halaman canting menggambar ulang tiap frame, **tidak terbukti**:
+  - tes canting berjalan di urutan 1–9 dan 158–167, sedangkan kelima tes itu mulai di urutan 106–255;
+  - run penuh 19 Nov, sebelum ada e2e canting, juga gagal di 5 tes panggung desktop yang serupa.
+  - Jadi ini beban CPU container lokal (SwiftShader, 4 inti, 2 worker), bukan regresi 11.2. Perbaikan canting tidak dipasang.
+- CI PR #23 (job `check`, 20 Nov): 354 lulus, 42 dilewati, tanpa flaky, 28,5 menit (batas job 35).
+
+### Tugas 11.2: halaman `/canting/` interaktif — SELESAI 20 NOV (menunggu tinjauan host atas video dan uji iPhone)
+
+**Kata host, kata demi kata:** "sudah merge, apa task selanjutnya" (PR #22 di-merge 20 Nov 06.27 UTC, `main` = `00b6cc9`), lalu "kerjakan, lanjut tugas 11.2" (tanpa catatan atas foto 11.1, jadi desain kain 11.1 dianggap diterima apa adanya). Branch kerja dimulai ulang dari `main` `00b6cc9`.
+
+Rencana (PRD `docs/handoff/codex-prd-11-canting-mori.md` §4 dan §8; tiap irisan dengan tes, lalu commit):
+1. Mesin murni `src/engine/canting/`: model aliran malam (lebar menurut kecepatan, malam di nyamplung, suhu; tetes dan mbleber saat diam; malam habis → celup ulang), urutan tahap (gambar → nila → kerok → mbironi → soga → lorod → simpan; lorod hanya bila ada malam dan sudah dicelup), riwayat goresan (urungkan, mulai lagi, simpan lokal), pola tuntunan (kawung, parang, satu motif orisinal), teks dua bahasa.
+2. GPU: kanvas malam interaktif (dab bertambah per frame dengan campuran MAX, panas mendingin lewat lintasan kurang, bangun ulang dari riwayat saat urungkan, kanal A untuk malam mbironi yang hanya menahan soga, target pola tuntunan).
+3. Canting 3D (nyamplung tembaga, cucuk, gagang bambu beruas) yang mengikuti kursor atau jari, dan wajan malam untuk celup ulang.
+4. Halaman: alat klowong/cecek/tembok, pola tuntunan, urungkan, mulai lagi, takaran malam, tahap celup dengan kain yang dicelup dan menetes, lorod dengan waktu dan cahaya, simpan PNG `batik-laweyan.png` (sisi panjang ≥ 2048 px, Web Share bila ada), zoom roda/dua jari, parallax saat tidak menggambar, papan ketik, Calm, `?demo=1`, `?fps`.
+5. Clawd memandu di samping kain (badan CSS 3D 2,5D yang sama dengan film).
+6. E2E, video desktop + HP (data trip April, nama Jize), dokumen, PR.
+
+**Status (20 Nov):**
+1. **Selesai** (rincian: `docs/design/decisions.md` bagian "Halaman `/canting/` interaktif"):
+   - Mesin murni `engine/canting/`: `flow.ts` dan `process.ts` (Opus), `strokes.ts`, `guides.ts`, `text.ts` (Sonnet, ditinjau; SDI ditulis sebagai karya saudagar Laweyan menurut sumber Haiku).
+   - GPU `components/canting/wax.ts` (kanvas malam interaktif), `studio.ts` (adegan, input, celup, lorod, simpan lokal, PNG), `tool3d.ts` (canting dan wajan, Sonnet), `guide.ts` (Clawd), `Canting.tsx` + `canting.css` (antarmuka), `CantingPhoto.tsx` (studio foto 11.1 `?tahap=`).
+   - Temuan saat menguji: garis seperti manik karena kejadian pointer sampai 77–112 ms terlambat di renderer CPU sehingga malam mbleber palsu; diam kini dihitung dari saat kejadian diproses (tes merah dulu). Wajan dan bak celup sempat tertutup panel alat; wajan kini diletakkan dari posisi layar dan permukaan bak naik menutupi kain.
+   - E2E `e2e/canting.spec.ts` (Sonnet), tur perekam `canting` di `record-film.cjs`.
+2. **Tes:** lint, typecheck, unit 604/604, content, build lulus. E2E penuh pertama: 351 lulus, 5 gagal. Rinciannya:
+   - Tes privasi "bundle statis tidak memuat data trip": teks sejarah canting menyebut nama tempat singgah itinerary; kalimat diubah tanpa nama tempat (pengecualian privasi hanya host yang memutuskan, seperti untuk diorama).
+   - Empat tes panggung film habis batas 30 dtk lokal karena tes canting yang berat (WebGL digambar CPU) berjalan bersamaan; keempatnya lulus saat dijalankan sendiri (1,5 mnt). Demo dan bolak-balik halaman di `canting.spec.ts` kini hanya di desktop (e2e CI sudah ±31 dari batas job 35 menit).
+   - Sesudahnya: `smoke.spec` + `canting.spec` 17 lulus / 9 dilewati sesuai proyek.
+   - Demo di iPhone: kawung ditorehkan, nila, soga, lorod, `batik-laweyan.png` 2048 × 1280 terunduh (±32 dtk). Fps di container hanya renderer CPU (±10 fps di 1080p); iPhone belum diukur.
+   - Video dikirim dan dicatat di ledger: `canting-desktop.mp4` (126 dtk), `canting-hp.mp4` (HP 9:16, 108 dtk); 474,1 MB belum di Drive, di bawah 1 GB.
+3. **Berikutnya:** host meninjau video dan mencoba `/canting/` di iPhone (menggambar dengan jari, celup ke wajan, nila, soga, lorod, simpan lewat Share); lalu 11.3 film Hari 3 (Clawd memegang canting, torehan mengikuti gulir, tautan "Batik sendiri" dari film, Today, dan diorama), 11.4 suara dan kain tamu di epilog.
 
 ### MULAI DI SINI (sesi berikutnya, sesudah 19 Nov malam)
 

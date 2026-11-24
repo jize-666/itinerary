@@ -51,15 +51,37 @@
   min-width: 44px;
 }
 /* kiri atas seperti film (.fl-corner); kanan atas milik LangToggle dan SoundToggle global */
+/* Menempel saat digulir (laporan host 24 Nov: di HP "Kembali" ikut tergulir hilang). Isi lewat di bawah tabir
+   seperti tepi atas Today, jadi tidak bertumpuk dengan sakelar suara dan bahasa yang tetap di tempat. */
 .dio-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   min-height: 66px;
   padding: calc(13px + env(safe-area-inset-top))
     calc(16px + env(safe-area-inset-right)) 0
     calc(16px + env(safe-area-inset-left));
+  pointer-events: none;
+}
+.dio-top::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: calc(92px + env(safe-area-inset-top));
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--nila-2) 97%, transparent) 58%,
+    transparent
+  );
+  pointer-events: none;
 }
 .dio-corner {
   display: flex;
   gap: 8px;
+}
+.dio-corner > * {
+  pointer-events: auto;
 }
 .dio-calm[aria-pressed="true"] {
   --face: #c29a52;

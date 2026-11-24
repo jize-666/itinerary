@@ -72,6 +72,46 @@ test.describe("tautan ke maket", () => {
     await expect(page.locator(".fl-layer[data-pos='cur'] .gal-card[data-cur] .gal-acts")).toBeVisible();
   });
 
+  // Laporan host 24 Nov: "ketika mau masuk diorama itu macet/freeze, dan harus restart web baru bisa masuk";
+  // "ketika masuk ke diorama, tidak ada tombol balik ke alur sebelumnya".
+  test("film → maket: tirai terbuka lagi, tombol Kembali terlihat dan membawa ke kartu asal di film", async ({ page }) => {
+    await openFilm(page, "#day-1");
+    await goTo(page, "day-1/mangkunegaran");
+    await page.locator(".fl-layer[data-pos='cur'] .gal-card[data-cur] a[data-diorama]").click();
+    await expect(page).toHaveURL(/\/diorama\/\?lokasi=pendhapa$/);
+    await expect(page.locator(".curtain")).toHaveAttribute("data-state", "open", { timeout: 5_000 });
+    const back = page.locator(".dio-back");
+    await expect(back).toBeInViewport();
+    await back.click();
+    await expect(page).toHaveURL(/\/film\/#day-1$/);
+    // kembali ke kartu asal, bukan ke awal bab
+    await expect(film(page)).toHaveAttribute("data-slide", "day-1/mangkunegaran");
+    await expect(page.locator(".curtain")).toHaveAttribute("data-state", "open", { timeout: 5_000 });
+  });
+
+  test("maket digulir sampai bawah: Kembali tetap terlihat, tidak tertutup isi, dan isi tidak bertumpuk di bawah sakelar", async ({ page }, info) => {
+    // di desktop 1280 × 720 maket muat satu layar; laptop pendek yang menggulir
+    if (info.project.name === "desktop") await page.setViewportSize({ width: 1280, height: 520 });
+    await seedSession(page);
+    await page.goto("/diorama/");
+    await expect(page.locator(".dio-root")).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+    const back = page.locator(".dio-back");
+    await expect(back).toBeInViewport();
+    const box = (await back.boundingBox())!;
+    const hit = await page.evaluate(([x, y]) => !!document.elementFromPoint(x!, y!)?.closest(".dio-back"), [box.x + box.width / 2, box.y + box.height / 2]);
+    expect(hit).toBe(true);
+    // isi yang lewat di bawah sakelar bahasa tertutup tabir (seperti Today), bukan bertumpuk dengan tombol maket
+    const toggle = (await page.locator(".lang-toggle").boundingBox())!;
+    const scrim = await page.locator(".dio-top").evaluate((el) => {
+      const cs = getComputedStyle(el, "::before");
+      return { h: el.getBoundingClientRect().top + parseFloat(cs.height), pos: getComputedStyle(el).position };
+    });
+    expect(scrim.pos).toBe("sticky");
+    expect(scrim.h).toBeGreaterThan(toggle.y + toggle.height + 16);
+  });
+
   test("Today: stop yang punya lokasi membawa ke maket, stop lain tidak", async ({ page }) => {
     await page.clock.setFixedTime(wib("2027-04-08T10:45:00"));
     await seedSession(page);
@@ -83,5 +123,8 @@ test.describe("tautan ke maket", () => {
     await expect(page.locator(".tl-stop", { hasText: "Cloth market" }).locator("a[data-diorama]")).toHaveCount(0);
     await links.click();
     await expect(page).toHaveURL(/\/diorama\/\?lokasi=laweyan$/);
+    await expect(page.locator(".curtain")).toHaveAttribute("data-state", "open", { timeout: 5_000 });
+    await page.locator(".dio-back").click();
+    await expect(page).toHaveURL(/\/today\/$/);
   });
 });
