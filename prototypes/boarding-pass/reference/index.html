@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ticket reference (Task 12)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #04050b; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #ann { position: fixed; inset: 0; pointer-events: none; }
+  #ann text { font: 600 13px/1 Manrope, system-ui, sans-serif; letter-spacing: 0.04em; fill: #f2e6cf; }
+  #ann .k { font-weight: 800; letter-spacing: 0.16em; font-size: 11px; fill: #d2ab62; }
+</style>
+<!-- Disajikan dari akar repo: node prototypes/boarding-pass/reference/render.cjs -->
+<script type="importmap">
+  { "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<svg id="ann"></svg>
+<script type="module" src="./scene.js"></script>
+</body>
+</html>

@@ -1,9 +1,25 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `39450eb`, PR #24 di-merge) · **Tugas 11.4 selesai di PR #25, menunggu host** (dengar video bersuara, uji iPhone) · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 25 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `9805c53`, PR #25 di-merge) · **Tugas 12 dibagi dua: 12a (Codex) prompt + gambar referensi terkirim, menunggu output Codex; 12b dikerjakan Claude sesudahnya** · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Permintaan host 25 Nov: prompt Codex + gambar referensi three.js untuk Tugas 12 — SELESAI 25 NOV, MENUNGGU OUTPUT CODEX
+
+**Kata host, kata demi kata:** "berikan gw prompt untuk diberikan ke codex (dia ga masuk repo) Tugas 12, boarding pass 3D dengan fisika. bebas dia mau bikin pake blender atau trheejs, pokoknya penting bisa ke sambung ke itinerary. jangan terlalu batasin kemampuan codex, buat lebih flexibel. tugaslu (gambar prefrensi tugas 12 menggunakan trhee js, untuk di berikan ke codex, lalu beserta prompt nya) note: jika tugas 12 adalah tugas yang panjang, codex kerjakan setengah nya saja. sisanya lu, setelah output codex."
+
+PR #25 (11.4) sudah di-merge 25 Nov 16.32 UTC; branch kerja dimulai ulang dari `main` `9805c53`.
+
+1. **Rencana:** Codex tidak punya akses repo, jadi prompt harus berdiri sendiri (fakta teknis, batas CSP, kontrak sambungan). Tugas 12 panjang (empat tahap), jadi dibagi dua:
+   - **Codex (setengah pertama, di luar repo):** mesin fisika murni + tes, tiket 3D (three.js atau Blender → GLB tanpa Draco/KTX2), interaksi (seret, sentil, balik, kemiringan, angin) di halaman sandbox sendiri, README.
+   - **Claude (setengah kedua, sesudah output Codex):** pasang di panggung film (satu konteks WebGL, HDR + `COMMON`, post, tier), shot `pass` + aturan gerak kamera host, gestur vs film, cadangan DOM dan a11y, Clawd, suara, epilog, 2,5D pegas CSS, e2e, video, dokumen, PR.
+2. **Gambar referensi three.js** (adegan di `prototypes/boarding-pass/reference/`, gambar di scratchpad, tidak masuk repo): hero, detail makro, belakang, studi gerak fisika, komposisi HP 9:16, storyboard, lembar spesifikasi muka depan/belakang. Nama di gambar = "Jize".
+3. **Hasil (25 Nov):**
+   - Prompt Codex berbahasa Inggris dan berdiri sendiri: `docs/handoff/codex-prompt-12-boarding-pass.md`. Isinya: konteks film, pembagian kerja (tabel), kebebasan Codex (alat, desain, metode fisika, feel), tujuh batas keras (three 0.187 tanpa React, CSP tanpa WASM/eval/asal luar, satu konteks WebGL, fisika murni deterministik, privasi nama, dua bahasa, anggaran), sambungan yang Claude butuhkan (engine, event, render, lighting seam dengan nama uniform `COMMON`, kontroler input yang mengembalikan "bukan milikku" untuk swipe film, konten sebagai data, nama satu baris, satuan meter), daftar gambar, bentuk serahan (ZIP `pass3d/{engine,render,interaction,assets,sandbox,tests}` + README, sandbox dengan `?name ?lang ?quality ?debug ?demo`, uji mount/unmount ×20), uji penerimaan setengah pertama, dan daftar yang bukan tugas Codex. Fakta teknisnya dicocokkan Haiku dengan repo (versi three, uniform, urutan slide, fon, tier, CSP): cocok.
+   - Gambar (`render.cjs`, Chromium + SwiftShader, DPR 2/3): `ref-01-hero`, `ref-02-macro`, `ref-03-back`, `ref-04-motion` (anotasi seret, ayun, putar, gravitasi miring, angin), `ref-05-phone` (zona UI film dan Clawd), `ref-06-storyboard` (turun, diam, tarik, sentil, belakang, parallax), `ref-07-spec` (muka datar, ukuran, palet, fon, aturan isi). Dikirim ke host sebagai JPEG + ZIP `codex-12-boarding-pass.zip` (prompt + gambar) dan dicatat di ledger; yang belum di Drive kini 70 berkas, 631,1 MB (di bawah 1 GB).
+   - Pose diatur langsung, bukan simulasi; kartu, tali pilin dua, mata ayam, dan muka depan/belakang dibuat ulang dari prototipe lama dengan bentuk luggage tag 74 × 150 mm, takik sobekan, dan foil timbul.
+4. **Langkah berikutnya:** host meneruskan prompt + ZIP ke Codex. Saat output Codex datang: tinjau, pasang (12b, lihat `CLAUDE.md`), lalu video desktop + HP dengan data April dan nama Jize.
 
 ### Tugas 11.4: suara malam, celup, lorod, dan kain tamu di epilog — SELESAI 24 NOV, DI PR #25, MENUNGGU HOST
 
