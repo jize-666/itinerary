@@ -1,9 +1,36 @@
 # HANDOFF
 
-Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `790f93e`, PR #23 di-merge) · **Tugas 11.3 (canting di film Hari 3) selesai, video dikirim, PR menunggu host** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 24 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `39450eb`, PR #24 di-merge) · **Tugas 11.4 selesai di PR #25, menunggu host** (dengar video bersuara, uji iPhone) · Jize Zone tayang di https://jize-zone.vercel.app.
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Tugas 11.4: suara malam, celup, lorod, dan kain tamu di epilog — SELESAI 24 NOV, DI PR #25, MENUNGGU HOST
+
+**Kata host, kata demi kata:** "sudah merge, lanjutkan tugas 11.4: suara malam, celup, dan lorod, plus kain buatanmu sendiri dari /canting/ muncul di epilog." PR #24 (11.3) di-merge 24 Nov 09.05 UTC; branch kerja dimulai ulang dari `main` `39450eb`.
+
+1. **Lingkup** (PRD `codex-prd-11-canting-mori.md` §5.2 dan §5.3):
+   - suara prosedural yang ikut sakelar suara: desis malam saat menorehkan, gemericik saat kain dicelup, gelembung saat lorod; di `/canting/` dan di film Hari 3 (torehan mengikuti gulir, celup nila/soga, lorod di gong terakhir);
+   - kain yang dibatik tamu di `/canting/` muncul di epilog film, hanya dari penyimpanan lokal perangkat, tanpa server; tanpa kain, film tetap utuh.
+2. **Status (24 Nov, sore):**
+   - **Suara selesai:** `engine/canting/sound.ts` (kadar murni: laju proses film → desis/gemericik/didih; tangan, amplop celup dan lorod di `/canting/`), `components/canting/batik-sound.ts` (pembangkit Web Audio prosedural, tanpa berkas audio; buffer per konteks dibangkitkan di waktu senggang), `sound-link.ts` (ikut sakelar suara dan tab latar), sambungan di `studio.ts` (desis tangan, tetes/mbleber, nyamplung ke wajan, ombak dan tetes celup, didih lorod) dan `film/BatikSound.tsx` (Hari 3, mengikuti gulir, 3D dan 2,5D).
+   - **Kain tamu di epilog selesai:** `lib/keepsake.ts` (IndexedDB, Sonnet, ditinjau), salinan JPEG 1280 × 800 saat kain jadi (juga untuk kain yang jadi sebelum fitur ini), `film/GuestCloth.tsx` + gaya `.fs-cloth*` (gawangan bambu, dua tali emas, parallax, perspective shift, ayunan; Clawd menghindari kain).
+   - **Spektrum diperiksa** (tidak bisa didengar di container): desis 60 % di 3–8 kHz, gemericik 1–3 kHz, didih 300–1000 Hz (gemuruh di bawah 300 Hz dibuat tipis supaya terdengar di speaker HP).
+   - **Tes:** unit `keepsake` 9/9, `batik-sound` 15/15 (Sonnet); e2e `batik-sound.spec.ts` 4/4 desktop (demo `/canting/` bersuara → kain di IndexedDB → epilog; epilog tanpa kain; Hari 3 bersuara; Hari 3 hening tanpa sakelar).
+   - **Perekam:** `record-film.cjs` `SOUND=`, `KEEP_OUT=`, `CLOTH=`; `scripts/preview/mix-batik.cjs` membangkitkan ulang suara di OfflineAudioContext dan mencampurnya ke video.
+   - **Cek penuh (Haiku):** `pnpm lint`, `typecheck`, `content:check`, `build` lulus; unit 653/653; e2e terdampak (`batik-sound`, `batik`, `canting`, `smoke`, `sound`) 46 lulus, 13 dilewati sesuai proyek. Satu tes gong `sound.spec.ts:187` [iphone] gagal sekali karena waktu lalu lulus saat diulang; tes itu tidak menyentuh 11.4.
+   - **Video bersuara (data April, nama Jize):** `canting-suara-desktop.mp4` (129 dtk: demo membatik dengan desis, tetes 17, nyamplung, ombak 4, didih lorod; kain jadi disimpan), `hari3-suara-epilog-desktop.mp4` (59 dtk, panggung 3D High: desis 9–27 dtk saat kain digores dan dicelup, didih lorod di gong terakhir ±36 dtk, epilog dengan kain tamu "Your own batik"), `hari3-suara-epilog-hp.mp4` (HP 9:16). Jalur suara hanya berisi suara membatik; gendhing, gong, dan suara Clawd tidak dicampur. Ketiganya dikirim ke host dan dicatat di ledger; yang belum di Drive kini 62 berkas, 621,9 MB (di bawah 1 GB, belum perlu mengingatkan host).
+3. **Langkah berikutnya:** host mendengar video dan meninjau PR #25 (Squash and merge). Uji iPhone produksi: suara `/canting/` (desis mengikuti jari, celup, lorod), suara Hari 3 mengikuti gulir, kain di epilog sesudah membatik. Sesudah 11.4, daftar tugas tinggal Tugas 12: tanya host sebelum mulai (lihat "MULAI DI SINI" di bawah).
+
+### MULAI DI SINI (sesudah 11.4, 24 Nov)
+
+1. **Keadaan:** PR #25 (11.4) menunggu host. Branch kerja `claude/admiring-noether-tbqvap` dari `main` `39450eb`. Kalau PR #25 sudah di-merge, mulai ulang branch dari `main` terbaru.
+2. **Menunggu host:** dengar tiga video bersuara 11.4; uji iPhone (maket, `/canting/`, Hari 3, epilog); aba-aba Tugas 12.
+3. **Tugas 12** (boarding pass 3D dengan fisika, PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md`, fisika ditulis sendiri tanpa WASM), empat tahap yang diusulkan ke host 24 Nov: 12.1 mesin fisika murni, 12.2 tiket 3D di panggung, 12.3 interaksi (seret, sentil, balik, kemiringan HP, angin), 12.4 P1 (suara, reaksi Clawd, epilog, 2,5D pegas CSS). Aturan CLAUDE.md: "Sesudah daftar ini habis, tanya host sebelum lanjut" — Tugas 12 masih di daftar, jadi mulai begitu host memberi aba-aba.
+
+### Permintaan host 24 Nov (di tengah 11.4): kirim ulang pratinjau desktop PR #23 — DICATAT
+
+**Kata host, kata demi kata:** "kalo udah sekalian kirim preview desktop yg gw merge sebelumnya (#23) tadi ke hapus". Pratinjau desktop PR #23 di chat terhapus. Berkasnya masih ada di scratchpad sesi: `canting-desktop.mp4` (11.2, 20 Nov) dan `maket-kembali-desktop.jpg` (bug maket, 24 Nov), keduanya sudah di ledger. Lanjutan host: "foto doang video nya mana yg #23". `canting-desktop.mp4` dikirim ulang (sudah di ledger 20 Nov, tidak dicatat dua kali). Host lalu meluruskan: "bukan yang canting, sesudah nya". Yang dimaksud video sesudah canting, `hari3-batik-desktop.mp4` (11.3), dan video itu dikirim ulang (sudah di ledger, tidak dicatat dua kali). Video perbaikan maket tidak jadi direkam. Tur `maket` di `record-film.cjs` (kartu Pasar Gede Hari 1 → "See it in the miniature" → maket → "Back" → kartu asal) tetap ada bila host memintanya. — SELESAI 24 NOV.
 
 ### Permintaan host 24 Nov: "cek, ada failed satu, gausa tes e2e semuanya ketika sudah, cukup tes yang gagal aja" — SELESAI (CI hijau), batas e2e dilonggarkan
 

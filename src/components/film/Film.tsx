@@ -27,6 +27,7 @@ import { Gallery } from "./Gallery";
 import { LiveContext, SlideContent, useLive } from "./Slides";
 import { startLook, stepLook } from "./look";
 import { BatikLayers } from "./BatikLayers";
+import { BatikSound } from "./BatikSound";
 import { LawuLayers, LawuSound } from "./LawuLayers";
 import { StageMount, type StagePhase } from "./StageMount";
 import { HILLS, hillShift, sunPlace } from "./transitions";
@@ -537,6 +538,7 @@ function Stage({ data }: { data: TripView }) {
       {slide?.theme === "batik" && (slide.kind === "panel" || slide.kind === "dayintro") && stage !== "on" && (
         <BatikLayers film={film} slide={slide} probe={probe} moving={!!view.moving} calm={calm} />
       )}
+      {slide?.theme === "batik" && <BatikSound film={film} probe={probe} />}
       <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
       {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
       {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}

@@ -41,9 +41,12 @@ import { createFlow, dip as dipFlow, hold, move, press, release, type FlowEvent,
 import { guide as guideOf, guideDabs, type GuideKind } from "@/engine/canting/guides";
 import type { Tool } from "@/engine/canting/motif";
 import { advance, allowed, createProcess, layerFor, start, type Anim, type Process, type Stage } from "@/engine/canting/process";
+import { DYE_SPLASH, dyeEnvelope, handWax, lorodEnvelope } from "@/engine/canting/sound";
 import { STORE_LIMIT, StrokeHistory } from "@/engine/canting/strokes";
+import { readCloth, saveCloth } from "@/lib/keepsake";
 import { startLook, stepLook } from "@/components/film/look";
 import type { BatikQuality } from "./batik";
+import { linkBatikSound } from "./sound-link";
 import { surfaceMaterial } from "./surface";
 import { createCanting, createWaxPan } from "./tool3d";
 import { WaxCanvas } from "./wax";
@@ -54,6 +57,8 @@ const MARGIN = 0.05;
 const STORE_KEY = "lakon.canting.v1";
 /** Ukuran PNG simpanan (sisi panjang ≥ 2048 px, PRD §4). */
 export const PNG_SIZE = { w: 2048, h: Math.round(2048 / ASPECT) } as const;
+/** Salinan kain jadi untuk epilog film (Tugas 11.4): JPEG kecil di perangkat (`lib/keepsake.ts`). */
+export const KEEP_SIZE = { w: 1280, h: Math.round(1280 / ASPECT) } as const;
 /** Normal kain (dunia): kain miring `CLOTH_TILT`, sisi atas menjauh. */
 const NORMAL = new Vector3(0, Math.sin(CLOTH_TILT), Math.cos(CLOTH_TILT));
 /** Arah gagang saat menggambar: condong ke kanan atas supaya tidak menutupi ujung cucuk. */
@@ -224,6 +229,15 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
   };
   applyGuide();
 
+  // ---- suara membatik (Tugas 11.4): desis malam, gemericik celup, gelembung lorod; ikut sakelar suara ----
+  const sound = linkBatikSound();
+  /** Jarak tempuh cucuk di kain sejak frame lalu (satuan tinggi kain) dan lajunya yang dihaluskan. */
+  let handDist = 0;
+  let handSpeed = 0;
+  let lastHand: { x: number; y: number } | null = null;
+  let lastDrip = 0;
+  let prevDipK = 0;
+
   // ---- simpan lokal ----
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   const persist = () => {
@@ -309,7 +323,16 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
   };
 
   const emitFlow = (events: FlowEvent[]) => {
-    for (const e of events) cb.event(e);
+    for (const e of events) {
+      // setetes malam panas jatuh (tetes) atau melebar (mbleber) di kain
+      if (e === "drip") sound.get()?.sizzle(0.8);
+      else if (e === "spread") sound.get()?.sizzle(0.4);
+      cb.event(e);
+    }
+  };
+  const trackHand = () => {
+    if (lastHand) handDist += Math.hypot(hit.x - lastHand.x, hit.y - lastHand.y);
+    lastHand = { x: hit.x, y: hit.y };
   };
   const deposit = (dabs: { x: number; y: number; r: number }[], layer: number) => {
     if (!dabs.length) return;
@@ -345,6 +368,8 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     }
     canvas.setPointerCapture?.(e.pointerId);
     drawing = e.pointerId;
+    lastHand = null;
+    trackHand();
     const layer = layerFor(proc, tool_);
     history.begin(tool_, layer);
     const out = press(flow, hit.x, hit.y, performance.now(), tool_);
@@ -367,6 +392,7 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
       const samples = typeof e.getCoalescedEvents === "function" ? e.getCoalescedEvents() : [];
       for (const s of samples.length ? samples : [e]) {
         if (!clothHit(s.clientX, s.clientY)) continue;
+        trackHand();
         const out = move(flow, hit.x, hit.y, s.timeStamp || performance.now(), performance.now());
         if (out.dabs.length) movedFrame = true;
         flow = out.state;
@@ -521,6 +547,7 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     // baris dibalik: piksel target mulai dari bawah
     for (let y = 0; y < h; y++) img.data.set(px.subarray((h - 1 - y) * w * 4, (h - y) * w * 4), y * w * 4);
     ctx.putImageData(img, 0, 0);
+    keepCopy(c);
     c.toBlob((b) => {
       pngJob = false;
       if (!b) return;
@@ -528,6 +555,27 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
       cb.event("png");
       pushView(true);
     }, "image/png");
+  };
+
+  /**
+   * Kain jadi disimpan di perangkat untuk epilog film (hanya di sini, tanpa server); menimpa kain sebelumnya. Demo
+   * ikut menyimpan (pratinjau dan e2e); kain yang tamu mulai lagi tetap ada sampai kain baru jadi.
+   */
+  const keepCopy = (src: HTMLCanvasElement) => {
+    try {
+      const k = document.createElement("canvas");
+      k.width = KEEP_SIZE.w;
+      k.height = KEEP_SIZE.h;
+      const g = k.getContext("2d");
+      if (!g) return;
+      g.imageSmoothingQuality = "high";
+      g.drawImage(src, 0, 0, KEEP_SIZE.w, KEEP_SIZE.h);
+      k.toBlob((b) => {
+        if (b) void saveCloth(b, KEEP_SIZE.w, KEEP_SIZE.h).then((ok) => (debug.kept = ok));
+      }, "image/jpeg", 0.88);
+    } catch {
+      /* tanpa salinan: epilog tetap utuh tanpa kain */
+    }
   };
 
   // ---- tampilan untuk React (dibatasi) ----
@@ -568,7 +616,7 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
   let frames = 0;
   const frameMs: number[] = [];
   let statsAt = last;
-  const debug = { frames: 0, dabs: 0, stage: proc.stage as Stage, busy: null as Anim | null, malam: 1, tool: tool_, ready: false, png: 0, sample: (from: number, n: number) => Array.from(history.flat().subarray(from * 4, (from + n) * 4)) };
+  const debug = { frames: 0, dabs: 0, stage: proc.stage as Stage, busy: null as Anim | null, malam: 1, tool: tool_, ready: false, png: 0, kept: false, sample: (from: number, n: number) => Array.from(history.flat().subarray(from * 4, (from + n) * 4)) };
   (window as Window & { __lakonCanting?: typeof debug }).__lakonCanting = debug;
   const toolPos = new Vector3();
   const toolGoal = new Vector3();
@@ -629,6 +677,7 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
       if (!dipAnim.dipped && k > 0.45) {
         dipAnim.dipped = true;
         flow = dipFlow(flow, now);
+        sound.get()?.blub();
         pushView(true);
       }
       if (k >= 1) {
@@ -670,6 +719,11 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
         drip.pos.set([pt.x, pt.y, pt.z], i * 3);
         drip.vel[i] = 0;
         drip.life[i] = 1;
+        // tetes jatuh ke bak sesaat kemudian (dibatasi, supaya tidak menjadi derau)
+        if (now - lastDrip > 70) {
+          lastDrip = now;
+          sound.get()?.drip(0.25 + Math.random() * 0.3, 0.4 + Math.random() * 0.6);
+        }
       }
       if (drip.life[i]! > 0) {
         drip.vel[i] = drip.vel[i]! + dt * 2.2;
@@ -698,6 +752,24 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
       }
       steamGeo.attributes.position!.needsUpdate = true;
     }
+    // suara: malam mengikuti tangan (auto-trace = tangan sedang), celup dan lorod mengikuti animasi tahapnya
+    handSpeed += ((dt > 0 ? handDist / dt : 0) - handSpeed) * (1 - Math.exp(-dt / 0.08));
+    handDist = 0;
+    if (drawing === null) lastHand = null;
+    const voices = sound.get();
+    if (voices) {
+      const heat = Math.exp(-Math.max(0, now - flow.dippedAt) / 1000 / 45);
+      // Calm: bak tidak digambar (tahap berganti dengan pudar), jadi tanpa gemericik
+      const wetK = dipping && !proc.calm ? dipK : 0;
+      if (prevDipK < DYE_SPLASH.enter && wetK >= DYE_SPLASH.enter) voices.splash(1);
+      if (prevDipK < DYE_SPLASH.lift && wetK >= DYE_SPLASH.lift) voices.splash(0.6);
+      voices.set({
+        wax: trace ? handWax(true, 0.3, 1, 1) * 0.8 : handWax(drawing !== null, handSpeed, heat, flow.malam),
+        water: dyeEnvelope(wetK),
+        boil: lorodding ? lorodEnvelope(Math.min(1, lk)) : 0,
+      });
+    }
+    prevDipK = dipping && !proc.calm ? dipK : 0;
     pradaPulse = Math.max(0, pradaPulse - dt / 3.5);
     const u = clothMat.uniforms;
     u.uKerok!.value = a.kerok;
@@ -765,6 +837,11 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     if (!ready) {
       ready = true;
       debug.ready = true;
+      // kain yang sudah jadi sebelum ada epilog (atau salinannya hilang): salinan dan PNG dibuat lagi dari kain di layar
+      if (proc.stage === "jadi" && !opts.demo)
+        void readCloth().then((c) => {
+          if (!c && proc.stage === "jadi") makePng();
+        });
       cb.event("hello");
       pushView(true);
     }
@@ -856,6 +933,7 @@ export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts:
     resize,
     dispose() {
       cancelAnimationFrame(raf);
+      sound.dispose();
       if (saveTimer) clearTimeout(saveTimer);
       if (coolTimer) clearTimeout(coolTimer);
       observer.disconnect();

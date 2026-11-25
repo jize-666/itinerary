@@ -36,6 +36,8 @@ export function blocksOf(el: HTMLElement): Block[] {
   add(".fl-layer[data-pos='cur'] :is(button, a[href], [role='button']), .fl-chrome :is(button, a[href])", BLOCK_WEIGHT.control);
   add(".fl-layer[data-pos='cur'] :is(h1, h2, h3, p, li)", BLOCK_WEIGHT.text);
   add(".fl-layer[data-pos='cur'] .gal-card", BLOCK_WEIGHT.card);
+  // kain buatan tamu di epilog (Tugas 11.4): seberat teks, supaya Clawd berdiri di sampingnya, bukan di atasnya
+  add(".fl-layer[data-pos='cur'] .fs-cloth-sheet", BLOCK_WEIGHT.text);
   return out;
 }
 
