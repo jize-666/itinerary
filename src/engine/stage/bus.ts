@@ -53,7 +53,49 @@ let orbitShown = 0;
 let orbitFrom = 0;
 let orbiting = false;
 
+/**
+ * Tiket 3D (Tugas 12b): pegangan pointer dan tombol dari lapisan film diteruskan ke panggung, yang menembakkan sinar ke
+ * kartu dan talinya. true = dipakai tiket (film tidak menggeser slide). Sampel memakai NDC (+1 = kanan/atas) dan detik.
+ */
+export type PassSample = { id: number; x: number; y: number; time: number; viewportWidth: number; viewportHeight: number };
+type PassHandlers = {
+  down(p: PassSample): boolean;
+  move(p: PassSample): boolean;
+  up(p: PassSample, cancelled: boolean): boolean;
+  key(key: string, repeat: boolean): boolean;
+};
+/** Kejadian fisika tiket (dipegang, dilepas, dibalik, mata ayam terketuk, laju ayunan, diam) untuk suara dan Clawd. */
+export type PassSignal =
+  | { type: "grab"; kind: "card" | "thread" }
+  | { type: "release"; speed: number }
+  | { type: "flip"; back: boolean }
+  | { type: "eyelet-knock"; strength: number }
+  | { type: "swing-speed"; speed: number; angularSpeed: number }
+  | { type: "rest"; back: boolean };
+let passHandlers: PassHandlers | null = null;
+const passListeners = new Set<(e: PassSignal) => void>();
+
 export const stageBus = {
+  // ---- tiket 3D (Tugas 12b) ----
+  bindPass(h: PassHandlers): () => void {
+    passHandlers = h;
+    return () => {
+      if (passHandlers === h) passHandlers = null;
+    };
+  },
+  passDown: (p: PassSample) => passHandlers?.down(p) ?? false,
+  passMove: (p: PassSample) => passHandlers?.move(p) ?? false,
+  passUp: (p: PassSample, cancelled: boolean) => passHandlers?.up(p, cancelled) ?? false,
+  passKey: (key: string, repeat: boolean) => passHandlers?.key(key, repeat) ?? false,
+  passEvent(e: PassSignal) {
+    for (const fn of passListeners) fn(e);
+  },
+  onPass(fn: (e: PassSignal) => void): () => void {
+    passListeners.add(fn);
+    return () => {
+      passListeners.delete(fn);
+    };
+  },
   /** Panggung 3D: daftarkan gong. Mengembalikan pembatal. */
   bindGong(fn: Striker): () => void {
     striker = fn;

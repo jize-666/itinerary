@@ -9,6 +9,7 @@
  * Untuk uji dan pratinjau: `?stage=high|medium|low|static` memaksa tier (pengatur FPS hanya mengukur),
  * `?fps` menampilkan overlay FPS.
  */
+import type { PassContent } from "./stage3d/pass3d/content";
 import { type ComponentType, type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Film } from "@/engine/slides/build-slides";
@@ -25,6 +26,8 @@ type Props = {
   probe: () => Cursor;
   root: RefObject<HTMLElement | null>;
   calm: boolean;
+  /** Isi tiket 3D (Tugas 12b); null = tidak ada tiket 3D. */
+  pass?: PassContent | null;
   onPhase: (phase: StagePhase) => void;
   /**
    * Panggung 3D akan dipakai (true) atau tidak (false: 2,5D, Calm, gagal). Dikabarkan sebelum efek biasa Film
@@ -71,7 +74,7 @@ function choose(): Choice {
   return { tier: guessTier(caps), locked: false, debug, pinned: pinnedHigh(caps) };
 }
 
-export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props) {
+export function StageMount({ film, probe, root, calm, pass = null, onPhase, onIntent }: Props) {
   const [reduced] = useState(prefersReducedMotion);
   const flat = calm || reduced;
   const choice = useMemo((): Choice => flat ? { tier: "static", locked: true, debug: false, pinned: false } : choose(), [flat]);
@@ -134,5 +137,5 @@ export function StageMount({ film, probe, root, calm, onPhase, onIntent }: Props
   }, [shown, live, onPhase]);
 
   if (!shown || choice.tier === "static") return null;
-  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} pinned={choice.pinned} debug={choice.debug} onLive={onLive} onFail={onFail} />;
+  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} pinned={choice.pinned} debug={choice.debug} pass={pass} onLive={onLive} onFail={onFail} />;
 }

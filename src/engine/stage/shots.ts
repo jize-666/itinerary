@@ -8,6 +8,7 @@
  * shot "vista" berdiri di tepi belakang pendapa dan memandang lanskap (latar gallery).
  */
 import { galleryDrift, type Slide, type TransitionKind } from "@/engine/slides/build-slides";
+import { passShot } from "./pass";
 
 export type Vec3 = readonly [x: number, y: number, z: number];
 
@@ -193,7 +194,8 @@ export function shotFor(slide: Slide, frame: Frame): Shot {
     case "epilogue":
       return orbitShot({ az: 0, el: 14, r: 11, look: [0, 1.8, 0], fov: 36, lamp: 0.8, dim: 0.12, width: 7 }, aspect);
     case "pass":
-      return orbitShot({ az: 0, el: 0, r: 6, look: [0, 2.2, 0], fov: 30, lamp: 1, dim: 0.1, width: 2.4 }, aspect);
+      // tiket 3D bertali (Tugas 12b): kamera dekat di depan kartu, gong di belakangnya
+      return passShot(aspect);
     case "credits":
       // mendongak ke bintang, membelakangi pendapa
       return vistaShot({ drift: 0.5, horizon: 1.5, fov: 46, lamp: 0.4, dim: 0.1 }, aspect);

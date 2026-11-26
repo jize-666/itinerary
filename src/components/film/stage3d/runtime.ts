@@ -28,6 +28,8 @@ import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
 import { createGong } from "./gong";
 import { createGunungan } from "./gunungan";
+import type { PassContent } from "./pass3d/content";
+import { createPassStage } from "./pass3d/stage";
 import { createStageGuide } from "./guide";
 import { createPendapa } from "./pendapa";
 import { StagePost } from "./post";
@@ -107,6 +109,8 @@ export type StageHooks = {
   onRung(r: Rung): void;
   /** Sesudah tiap frame (overlay FPS). */
   onStats?(): void;
+  /** Isi tiket 3D (nama tamu dari data privat + label dua bahasa); null = tidak ada tiket. Dibaca tiap frame. */
+  pass?(): PassContent | null;
 };
 
 export type RuntimeOptions = {
@@ -182,6 +186,21 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       if (!ok) stageBus.gateDisarm();
     },
   });
+  // tiket 3D bertali (Tugas 12b): dipasang dekat slide tiket, digerakkan fisika milik modul tiket
+  const pass = createPassStage({ scene, shared, spec, onEvent: (e) => stageBus.passEvent(e) });
+  /** HP: kemiringan HP menggeser gravitasi tiket sedikit (di desktop kursor hanya menggeser kamera). */
+  const touchLook = isMobile();
+  const passIndex = film.slides.findIndex((s) => s.kind === "pass");
+  let passContent: PassContent | null = null;
+  let passShown: string | null = null;
+  let passAtShown = "";
+  const passProj = new Vector3();
+  const unbindPass = stageBus.bindPass({
+    down: (p) => pass.pointerDown(p),
+    move: (p) => pass.pointerMove(p),
+    up: (p, cancelled) => pass.pointerUp(p, cancelled),
+    key: (k, repeat) => pass.key(k, repeat),
+  });
   /** Isi panggung di belakang gunungan: tidak digambar selama kelir menutup seluruh layar. */
   const world = [terrain.mesh, pendapa.group, gong.group, blencong.group, village.points, river.mesh, larung.group, dust.points, sky.mesh];
   let worldHidden = false;
@@ -222,6 +241,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let spotEl: HTMLElement | null = null;
   let spotKey = "";
   const stopLook = startLook();
+  let heldLook = { x: 0, y: 0 };
 
   const layout = () => {
     const el = root();
@@ -320,7 +340,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // (maju di tengah perpindahan slide, mengikuti kemajuan gulir). Di slide gong penutup, judul hari, dan hero
     // ditambah zoom dan kamera yang mengitari gong (seret ke kiri/kanan, ±90°). Gunungan pembuka yang tertancap
     // menutup gong, jadi selama itu keduanya tidak berlaku.
-    const lk = stepLook();
+    // tiket 3D dipegang: pandangan ditahan (kamera yang ikut kursor akan menggeser kartu di bawah jari)
+    const lk = pass.holding() ? heldLook : (heldLook = stepLook());
     const spot = placeOf(film.slides[cursor.from]?.kind);
     const here = !cue.moving && planted === 0 ? spot : null;
     stageBus.setGongHere(here);
@@ -353,7 +374,9 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     camera.position.set(px, shot.pos[1], pz);
     // makin dekat ke gong, titik bidik berpindah dari bingkai slide (yang memberi ruang teks) ke pusat gong
     camera.lookAt(look.set(lx, shot.look[1], lz).lerp(GONG_CENTER, Math.min(1, zoomed * 1.4)));
-    const reach = shot.rig === "orbit" ? 1 : 0.6;
+    // bidikan dekat (tiket 3D, ±0,4 m dari kartu): geseran parallax diperkecil sebanding jaraknya, supaya perspektif
+    // tetap bergeser tanpa kartu terlempar keluar layar
+    const reach = (shot.rig === "orbit" ? 1 : 0.6) * Math.min(1, shot.focus / 3.2);
     // jarak ke objek: bidikan lanskap berfokus jauh (40 m), jadi dorongannya dibatasi seperti di bidikan pendapa
     const dist = Math.min(shot.focus, 12);
     camera.translateX((Math.sin(t * 0.21) * 0.035 + lk.x * VIEW.shiftX) * reach);
@@ -384,6 +407,36 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       camera.lookAt(look.set(forced[3]!, forced[4]!, forced[5]!));
     }
     camera.updateMatrixWorld();
+    const nextPass = hooks().pass?.() ?? null;
+    if (nextPass !== passContent) {
+      passContent = nextPass;
+      pass.setContent(nextPass);
+    }
+    pass.update({ camera, cursor, index: passIndex, t, dt, tilt: touchLook ? lk : null });
+    const passState = pass.state();
+    // letak kartu di layar (persen dari akar film): untuk uji e2e dan pratinjau yang perlu memegang kartunya
+    const passAt = pass.center();
+    let passXY = "";
+    if (passAt) {
+      passProj.copy(passAt).project(camera);
+      passXY = `${((passProj.x * 0.5 + 0.5) * 100).toFixed(1)},${((0.5 - passProj.y * 0.5) * 100).toFixed(1)}`;
+    }
+    if (passXY !== passAtShown) {
+      passAtShown = passXY;
+      const el = root();
+      if (el) {
+        if (passXY) el.dataset.passAt = passXY;
+        else delete el.dataset.passAt;
+      }
+    }
+    if (passState !== passShown) {
+      passShown = passState;
+      const el = root();
+      if (el) {
+        if (passState) el.dataset.pass3d = passState;
+        else delete el.dataset.pass3d;
+      }
+    }
     clawd?.update({ camera, t, dt, moving: cue.moving, depth: cue.moving ? scrollDepth(cursor.p) : 0, look: lk, strikes: hit.count, gong: GONG_CENTER, gongRadius: GONG.radius * GONG_SCALE, hold: chapter.hold });
 
     // slide gong, judul hari, hero: letak gong di layar ditulis ke lapisan DOM tiap frame (bidang sentuh tombol pukul
@@ -554,7 +607,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     const now = performance.now();
     const zoomGoal = stageBus.zoomHere() ? stageBus.gongZoom() : 0;
     const orbitGoal = stageBus.zoomHere() ? stageBus.orbitGoal() : 0;
-    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || Math.abs(orbitNow - orbitGoal) > 0.01 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1) || !!clawd?.busy();
+    const active = c.to !== c.from || lookMoving(now) || Math.abs(zoomNow - zoomGoal) > 0.001 || Math.abs(orbitNow - orbitGoal) > 0.01 || now - born < 1500 || gong.busy() || stageBus.gate.busy(stageBus.clock()) || (kayonFade > 0 && kayonFade < 1) || !!clawd?.busy() || pass.busy();
     if (!active && !stale && spec.idleEvery > 1 && n % spec.idleEvery !== 0) return;
     stale = false;
     const dt = last ? ts - last : 0;
@@ -586,6 +639,14 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   const dispose = () => {
     cancelAnimationFrame(raf);
     unbindGong();
+    unbindPass();
+    {
+      const el = root();
+      if (el) {
+        delete el.dataset.pass3d;
+        delete el.dataset.passAt;
+      }
+    }
     stageBus.setKayon(false);
     stageBus.gateReady(false);
     stopLook();
@@ -606,6 +667,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     blencong.dispose();
     gong.dispose();
     gunungan.dispose();
+    pass.dispose();
     clawd?.dispose();
     dust.dispose();
     river.dispose();

@@ -4,6 +4,8 @@ import { type CSSProperties, memo, type RefObject, useCallback, useEffect, useLa
 import { flushSync } from "react-dom";
 import { audioStatus } from "@/engine/audio/status";
 import { useI18n } from "@/engine/i18n/useI18n";
+import { buildPassContent } from "../pass/content";
+import { PassSound } from "./PassSound";
 import { DEPTH, prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Beat } from "@/engine/slides/beat";
 import { buildFilm, chapterAt, type Film as FilmData, galleryDrift, indexForHash, type PanelSlide, RESUME_KEY, resumeIndex, type Slide } from "@/engine/slides/build-slides";
@@ -294,8 +296,10 @@ function ClawdFlat({ root, probe, calm }: { root: RefObject<HTMLElement | null>;
 }
 
 function Stage({ data }: { data: TripView }) {
-  const { t, tx } = useI18n();
+  const { t, tx, lang } = useI18n();
   const film = useMemo(() => buildFilm(data), [data]);
+  /** Isi tiket 3D (nama tamu dari data privat runtime + label bahasa aktif); null = tiket DOM saja. */
+  const passContent = useMemo(() => buildPassContent(data, lang), [data, lang]);
   const root = useRef<HTMLElement>(null);
   const label = useChapterLabel();
   // Kembali dari maket/Today ke bab yang sama melanjutkan slide asal (laporan host 24 Nov: "balik ke alur sebelumnya").
@@ -539,7 +543,8 @@ function Stage({ data }: { data: TripView }) {
         <BatikLayers film={film} slide={slide} probe={probe} moving={!!view.moving} calm={calm} />
       )}
       {slide?.theme === "batik" && <BatikSound film={film} probe={probe} />}
-      <StageMount film={film} probe={probe} root={root} calm={calm} onPhase={setStage} onIntent={onIntent} />
+      {stage === "on" && <PassSound />}
+      <StageMount film={film} probe={probe} root={root} calm={calm} pass={passContent} onPhase={setStage} onIntent={onIntent} />
       {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
       {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}
       <div className="fl-grain" aria-hidden="true" />

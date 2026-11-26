@@ -7,11 +7,11 @@ import { easeCss, type EaseName, SLIDE } from "@/engine/motion/tokens";
 import { type Beat, beatStep } from "@/engine/slides/beat";
 import { axisBetween, type Film } from "@/engine/slides/build-slides";
 import { createSlideStore, type Dir, type SlideEffect, type SlideStore } from "@/engine/slides/controller";
-import { type Axis, bindInput } from "@/engine/slides/input";
+import { type Axis, bindInput, type PointerSample } from "@/engine/slides/input";
 import type { LiveStore } from "@/engine/slides/live";
 import { Timeline } from "@/engine/slides/timeline";
 import type { Cursor } from "@/engine/stage/cue";
-import { stageBus } from "@/engine/stage/bus";
+import { type PassSample, stageBus } from "@/engine/stage/bus";
 import { type Plan, planTransition, scrubSpan } from "./transitions";
 
 /** `beat` = tahap slide `index` (beat.ts): 1 = teks judul sudah keluar dan gong sudah ditabuh. */
@@ -23,6 +23,16 @@ type Hooks = {
   /** Tiba di slide baru (hash bab, petunjuk, fokus). */
   arrived(index: number, from: number): void;
 };
+
+/** Pointer film → sampel tiket 3D: NDC (+1 = kanan/atas) dan ukuran layar dalam px CSS. */
+const passSample = (p: PointerSample): PassSample => ({
+  id: p.id,
+  x: (p.x / Math.max(1, p.width)) * 2 - 1,
+  y: 1 - (p.y / Math.max(1, p.height)) * 2,
+  time: p.time,
+  viewportWidth: p.width,
+  viewportHeight: p.height,
+});
 
 export class Director {
   readonly store: SlideStore;
@@ -152,6 +162,11 @@ export class Director {
       orbitStart: () => !this.calm && stageBus.orbitStart(),
       orbit: (dx, width) => stageBus.orbitDrag(dx, width),
       orbitEnd: () => stageBus.orbitEnd(),
+      // tiket 3D bertali (Tugas 12b): kartu atau talinya dipegang, diayun, disentil; ketukan atau Enter membaliknya
+      grabStart: (p) => !this.calm && stageBus.passDown(passSample(p)),
+      grabMove: (p) => void stageBus.passMove(passSample(p)),
+      grabEnd: (p, cancelled) => void stageBus.passUp(passSample(p), cancelled),
+      grabKey: (key, repeat) => !this.calm && stageBus.passKey(key, repeat),
     });
     return () => {
       this.unbind?.();

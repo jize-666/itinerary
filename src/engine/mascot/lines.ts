@@ -30,8 +30,13 @@ export const WELCOME_BACK: readonly Text[] = [{ en: "Welcome back! Clawd here.",
  * menghapus semua text pemandu yang lama, seperti \"click the gong\" dll."). Tiap petunjuk diucapkan sekali per
  * perangkat, saat tamu pertama kali tiba di tempatnya.
  */
-export type TipId = "kayon" | "beat" | "zoom" | "gallery" | "phrases" | "gong" | "credits" | "mountain";
+export type TipId = "kayon" | "beat" | "zoom" | "gallery" | "phrases" | "gong" | "credits" | "mountain" | "pass";
 export const TIPS: Readonly<Record<TipId, readonly Text[]>> = {
+  // tiket 3D bertali di slide tiket (Tugas 12b); belum ada klip suara, jadi gelembung tanpa suara
+  pass: [
+    { en: "This ticket is yours. Grab it and give it a swing.", id: "Tiket ini milikmu. Pegang, lalu ayunkan." },
+    { en: "Tap it to see the back.", id: "Ketuk untuk melihat baliknya." },
+  ],
   mountain: [
     {en:"Look along the rows. The first warm light has to clear the ridge.",id:"Coba lihat barisan teh itu. Cahaya pagi baru sampai setelah melewati punggung bukit."},
   ],

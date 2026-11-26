@@ -4,6 +4,11 @@ import { defaultPassSky, passLightingChunk, passWorldVertex, stageUniformDeclara
 import type { StageLighting } from './lighting';
 
 export interface PassShaderOptions {
+  /**
+   * Film: deklarasi uniform panggung dan `skyColor` milik panggung itu sendiri (`COMMON` di stage3d/shared.ts),
+   * menggantikan deklarasi dan langit bawaan modul ini. Uniform panggung dibagi lewat `lighting` dan `extraUniforms`.
+   */
+  prelude?: string;
   /** Optional replacement defining vec3 skyColor(vec3 dir) in the stage's linear working space. */
   skyGLSL?: string;
   /** Attach uniforms used by the replacement sky function. Declare them in skyGLSL. */
@@ -92,7 +97,7 @@ function buildMaterial(lighting: StageLighting, options: PassShaderOptions, shad
     uniforms: { ...lighting, ...options.extraUniforms, ...uniforms },
     defines,
     vertexShader: passWorldVertex,
-    fragmentShader: stageUniformDeclarations + common + (options.skyGLSL ?? defaultPassSky) + passLightingChunk + shader,
+    fragmentShader: (options.prelude ?? stageUniformDeclarations + (options.skyGLSL ?? defaultPassSky)) + common + passLightingChunk + shader,
     toneMapped: false,
   });
 }

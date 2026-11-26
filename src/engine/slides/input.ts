@@ -309,7 +309,20 @@ export type InputHandlers = {
   orbitStart?(): boolean;
   orbit?(dx: number, width: number): void;
   orbitEnd?(): void;
+  /**
+   * Benda yang bisa dipegang langsung (tiket 3D bertali di slide tiket): pointer yang mendarat di bendanya dipakai
+   * benda itu sampai dilepas (slide tidak tergeser, tidak ada kitar). true = dipakai. Pointer di tombol dan tautan
+   * tidak ditawarkan. Ketukan tanpa seret di bendanya juga milik benda (membalik tiket), bukan klik.
+   */
+  grabStart?(p: PointerSample): boolean;
+  grabMove?(p: PointerSample): void;
+  grabEnd?(p: PointerSample, cancelled: boolean): void;
+  /** Enter di luar tombol: dipakai benda di slide ini (membalik tiket)? */
+  grabKey?(key: string, repeat: boolean): boolean;
 };
+
+/** Pointer untuk benda yang dipegang: letak di layar (px, relatif terhadap akar film) dan waktu (dtk). */
+export type PointerSample = { id: number; x: number; y: number; width: number; height: number; time: number };
 
 const CONTROL = "a[href], button, input, select, textarea, summary, [role='button'], [contenteditable='true']";
 /** Area yang di-scroll biasa (sheet detail, credits): geseran di dalamnya bukan untuk pindah slide. */
@@ -320,6 +333,34 @@ const within = (target: EventTarget | null, selector: string) => target instance
 /** Pasang semua pendengar pada `root`. Mengembalikan fungsi pelepas. */
 export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   const wheel = new WheelGestures();
+  // ---- benda yang dipegang langsung (tiket 3D): didahulukan sebelum geser, cubit, dan kitar ----
+  let grab: number | null = null;
+  const sample = (e: PointerEvent): PointerSample => {
+    const r = root.getBoundingClientRect();
+    return { id: e.pointerId, x: e.clientX - r.left, y: e.clientY - r.top, width: r.width, height: r.height, time: e.timeStamp / 1000 };
+  };
+  const onGrabDown = (e: PointerEvent) => {
+    if (!h.grabStart || grab !== null || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+    if (h.paused() || within(e.target, SCROLLER) || within(e.target, CONTROL)) return;
+    if (!h.grabStart(sample(e))) return;
+    grab = e.pointerId;
+    try {
+      root.setPointerCapture(e.pointerId);
+    } catch {
+      /* pointer sudah dilepas */
+    }
+  };
+  const onGrabMove = (e: PointerEvent) => {
+    if (grab === e.pointerId) h.grabMove?.(sample(e));
+  };
+  const onGrabUp = (e: PointerEvent, cancelled: boolean) => {
+    if (grab !== e.pointerId) return;
+    grab = null;
+    swallowUntil = e.timeStamp + 350; // ketukan/seret di tiket bukan klik pada elemen di bawahnya
+    h.grabEnd?.(sample(e), cancelled);
+  };
+  const onGrabRelease = (e: PointerEvent) => onGrabUp(e, false);
+  const onGrabCancel = (e: PointerEvent) => onGrabUp(e, true);
   /** Geser dua jari trackpad mendatar yang sedang mengitari objek: jarak terkumpul (px) dan pengakhirnya. */
   let wheelOrbit: { dx: number; timer: ReturnType<typeof setTimeout> | null } | null = null;
   const endWheelOrbit = () => {
@@ -361,6 +402,10 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
       if (h.zoom?.("key", e.key === "-" || e.key === "_" ? -1 : 1)) e.preventDefault();
       return;
     }
+    if (e.key === "Enter" && !within(e.target, CONTROL) && h.grabKey?.(e.key, e.repeat)) {
+      e.preventDefault();
+      return;
+    }
     const action = keyAction(e, within(e.target, CONTROL));
     if (!action) return;
     e.preventDefault();
@@ -386,7 +431,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
   };
   const onFinger = (e: PointerEvent) => {
-    if (e.pointerType === "mouse" || h.paused()) return;
+    if (e.pointerType === "mouse" || h.paused() || grab !== null) return;
     fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (fingers.size !== 2 || pinch || !h.pinchStart) return;
     if (!h.pinchStart()) return;
@@ -408,7 +453,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   };
 
   const onDown = (e: PointerEvent) => {
-    if (e.pointerType === "mouse" || !e.isPrimary || touch || pinch || h.paused() || within(e.target, SCROLLER)) return;
+    if (e.pointerType === "mouse" || !e.isPrimary || touch || pinch || grab !== null || h.paused() || within(e.target, SCROLLER)) return;
     touch = { id: e.pointerId, tracker: new TouchTracker(e.clientX, e.clientY, e.timeStamp), scrubbing: false, dragged: false, orbiting: false, x0: e.clientX };
   };
 
@@ -455,7 +500,7 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   // ---- seret mouse mendatar: mengitari objek (slide yang punya). Klik tanpa seret tetap klik. ----
   let mouse: { id: number; x0: number; y0: number; orbiting: boolean } | null = null;
   const onMouseDown = (e: PointerEvent) => {
-    if (e.pointerType !== "mouse" || e.button !== 0 || h.paused() || within(e.target, SCROLLER) || within(e.target, "a[href], input, select, textarea")) return;
+    if (e.pointerType !== "mouse" || e.button !== 0 || grab !== null || h.paused() || within(e.target, SCROLLER) || within(e.target, "a[href], input, select, textarea")) return;
     mouse = { id: e.pointerId, x0: e.clientX, y0: e.clientY, orbiting: false };
   };
   const onMouseMove = (e: PointerEvent) => {
@@ -501,6 +546,10 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
 
   root.addEventListener("wheel", onWheel, { passive: false });
   window.addEventListener("keydown", onKey);
+  root.addEventListener("pointerdown", onGrabDown, { passive: true });
+  root.addEventListener("pointermove", onGrabMove, { passive: true });
+  root.addEventListener("pointerup", onGrabRelease, { passive: true });
+  root.addEventListener("pointercancel", onGrabCancel, { passive: true });
   root.addEventListener("pointerdown", onDown, { passive: true });
   root.addEventListener("pointermove", onMove, { passive: true });
   root.addEventListener("pointerdown", onFinger, { passive: true });
@@ -523,6 +572,10 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
     root.removeEventListener("pointercancel", onMouseUp);
     root.removeEventListener("wheel", onWheel);
     window.removeEventListener("keydown", onKey);
+    root.removeEventListener("pointerdown", onGrabDown);
+    root.removeEventListener("pointermove", onGrabMove);
+    root.removeEventListener("pointerup", onGrabRelease);
+    root.removeEventListener("pointercancel", onGrabCancel);
     root.removeEventListener("pointerdown", onDown);
     root.removeEventListener("pointermove", onMove);
     root.removeEventListener("pointerdown", onFinger);

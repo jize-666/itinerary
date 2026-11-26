@@ -11,6 +11,7 @@ import { type RefObject, useEffect, useRef, useState } from "react";
 import type { PerspectiveCamera } from "three";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
+import type { PassContent } from "./pass3d/content";
 import { createGovernor, type Governor, LADDER, type Rung, rungOf, type Tier, TIER, type TierSpec } from "@/engine/stage/tier";
 import { createRuntime, type Runtime, type StageHooks, type StageStats } from "./runtime";
 
@@ -29,6 +30,8 @@ export type Stage3DProps = {
   pinned?: boolean;
   /** Tampilkan overlay FPS. */
   debug: boolean;
+  /** Isi tiket 3D (Tugas 12b); null = tidak ada tiket 3D. */
+  pass?: PassContent | null;
   /** Frame pertama sudah tergambar. */
   onLive: () => void;
   /** Tidak bisa lanjut (konteks WebGL hilang, atau terlalu berat bahkan di tier terendah): kembali ke film 2,5D. */
@@ -85,7 +88,7 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
 
 const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, orbit: 0, kayon: false, bloom: "", gate: { end: null, planted: 0, face: "agung" }, time: 0, dof: { amount: 0, focus: 0, drawn: false }, portal: 0, grade: { phase: "gate", sat: 1 }, particles: { lamp: 1, dew: 0, motes: 0, fireflies: 0 } });
 
-export default function Stage3D({ film, probe, root, tier, locked, pinned = false, debug, onLive, onFail }: Stage3DProps) {
+export default function Stage3D({ film, probe, root, tier, locked, pinned = false, debug, pass = null, onLive, onFail }: Stage3DProps) {
   const [rung, setRung] = useState<Rung>(() => LADDER[rungOf(tier)]!);
   const [governor] = useState(() => createGovernor(tier, performance.now(), locked, pinned));
   const stats = useRef<StageStats>(blankStats(tier));
@@ -121,6 +124,11 @@ export default function Stage3D({ film, probe, root, tier, locked, pinned = fals
       delete window.__lakonStage;
     };
   }, [rung, probe, onLive, onFail, governor]);
+
+  // isi tiket 3D dibaca panggung tiap frame (tidak membangun ulang dunia saat bahasa berganti)
+  useEffect(() => {
+    hooks.current.pass = () => pass;
+  }, [pass, rung, probe, onLive, onFail, governor]);
 
   if (rung.tier === "static") return null;
   const spec = TIER[rung.tier];
