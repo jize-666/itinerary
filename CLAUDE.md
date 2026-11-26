@@ -25,7 +25,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 26 Nov 2026 (PR #12–#26 di-merge; Tugas 1–12 selesai semuanya, PR #26 di-merge host 26 Nov 10.34 UTC; daftar habis, tanya host sebelum lanjut). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 26 Nov 2026 (PR #12–#26 di-merge; Tugas 1–12 selesai, sisa P1 Tugas 12 dan biip Clawd di PR #27 menunggu host; daftar habis, tanya host sebelum lanjut). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -171,7 +171,13 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
 
     Rinciannya: `docs/design/decisions.md` bagian "Tiket 3D bertali di slide tiket" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
     - Host menonton video dan menguji di iPhone produksi: fps saat diseret, jari, kemiringan, suara.
-    - Belum dikerjakan (P1, menunggu host): tiket juga di epilog, reaksi Clawd saat tiket dipegang/dibalik, versi 2,5D berpegas CSS, klip suara EN `tip.pass.0/1`.
+  - [x] **12 sisa (P1).** ✅ 26 Nov 2026 (host: "kerjakan sisa tugas 12"), PR #27 menunggu host:
+    - tiket tamu tergantung di samping gunungan penutup saat ditancapkan kembali, lalu berbalik ke "Matur nuwun" dengan gong;
+    - tiket 2,5D berpegas: seret, ketuk/Enter untuk membalik, ikut kemiringan dan kursor;
+    - Clawd bereaksi saat tiket dipegang, dilempar, dibalik.
+
+    Rinciannya: `docs/design/decisions.md` bagian "Sisa Tugas 12" dan `HANDOFF.md` bagian 0. Sisa pekerjaan: uji iPhone produksi (penutup, tiket 2,5D di Safari).
+- [x] **Suara Clawd diganti biip (permintaan host 26 Nov, di luar urutan: "ilangin suara clawd, ganti dengan \"biip\"").** ✅ 26 Nov 2026, di PR #27. Klip suara teman host dihapus. Gantinya biip prosedural per kata, nadanya ikut suasana, juga untuk film ID. Rinciannya: `docs/design/decisions.md` bagian "Biip Clawd". Sisa: host mendengar contoh dan video.
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 
