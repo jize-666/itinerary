@@ -5,6 +5,13 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Tugas 12b: output Codex dipasang di film — DICATAT 26 NOV, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "@pass3d.zip hasil task 12 codex. pr 26 blm gw merge gabungin sama ini aja". Jadi 12b dikerjakan di branch yang sama dan masuk PR #26 (bersama prompt dan gambar referensi 12a).
+
+1. **Kiriman Codex** (`pass3d.zip`, 52 berkas, dibongkar di scratchpad): `engine/` (fisika badan kaku + tali 16 ruas, 240 Hz, deterministik, event), `render/` (kartu, tali pilin, muka depan/belakang di kanvas runtime, material HDR dengan uniform panggung), `interaction/` (pointer + Enter/Space, mengembalikan "bukan milikku"), `sandbox/`, `tests/` (Vitest fisika + uji nama di browser), README. Modul ±14,3 KB gzip, 5 draw call, fisika 0,1–0,2 ms.
+2. **Rencana 12b:** salin ke `src/engine/pass3d/` dan `src/components/film/stage3d/pass3d/`; pasang di `runtime.ts` (dibuat dekat slide `pass`, dilepas saat jauh), sambungkan uniform `COMMON`; shot `pass` baru + aturan gerak kamera host (parallax, perspective shift, tiket turun mengikuti gulir); gestur tiket vs swipe film; isi tiket dari data trip + i18n; DOM `HangingPass` tersembunyi visual saat 3D siap, tetap untuk Static/Calm; `data-pass3d`; Clawd tidak menutupi tiket + reaksi; suara prosedural; tes unit + e2e; video desktop + HP (data April, Jize); dokumen.
+
 ### Permintaan host 25 Nov: prompt Codex + gambar referensi three.js untuk Tugas 12 — SELESAI 25 NOV, MENUNGGU OUTPUT CODEX
 
 **Kata host, kata demi kata:** "berikan gw prompt untuk diberikan ke codex (dia ga masuk repo) Tugas 12, boarding pass 3D dengan fisika. bebas dia mau bikin pake blender atau trheejs, pokoknya penting bisa ke sambung ke itinerary. jangan terlalu batasin kemampuan codex, buat lebih flexibel. tugaslu (gambar prefrensi tugas 12 menggunakan trhee js, untuk di berikan ke codex, lalu beserta prompt nya) note: jika tugas 12 adalah tugas yang panjang, codex kerjakan setengah nya saja. sisanya lu, setelah output codex."
