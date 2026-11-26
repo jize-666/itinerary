@@ -1,5 +1,5 @@
 "use client";
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, type Ref, useId } from "react";
 import type { Lang } from "@/engine/i18n/lang";
 import { useI18n } from "@/engine/i18n/useI18n";
 import type { TripView } from "@/lib/trip";
@@ -17,10 +17,10 @@ export const hasPass = (data: TripView) => !!data.private?.party?.name && (data.
  * Lapisan kartu tiket: bayangan jauh di belakang, tebal, alas bertepi emas (kertas kawung + kilau), mata tali, dan isi
  * yang melayang di atas alas. Saat kartu miring (--mx / --my) ketiganya bergeser satu terhadap yang lain.
  */
-export function Card({ children }: { children: ReactNode }) {
+export function Card({ children, shadow = true }: { children: ReactNode; shadow?: boolean }) {
   return (
     <div className="hm-card">
-      <span className="hm-card-shadow" aria-hidden="true" />
+      {shadow && <span className="hm-card-shadow" aria-hidden="true" />}
       <span className="hm-card-back" aria-hidden="true" />
       <span className="hm-card-base" aria-hidden="true">
         <i className="hm-sheen" />
@@ -82,13 +82,99 @@ export function PassFace({ data }: { data: TripView }) {
   );
 }
 
+/** Inisial tamu (maks. 2 huruf) dari nama di data privat; dihitung saat render, tidak tertanam di bundle. */
+const initialsOf = (name: string) =>
+  name
+    .normalize("NFC")
+    .trim()
+    .split(/\s+/u)
+    .map((w) => [...w][0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toLocaleUpperCase();
+
+/**
+ * Punggung kartu (mode `toy`): kertas nila berpola kawung berlapis foil emas, monogram inisial tamu, "Matur nuwun" dan
+ * keterangan terima kasih. Sepadan dengan punggung tiket 3D (stage3d/pass3d/faces.ts). Dekoratif: isi tiket ada di muka depan.
+ */
+function PassBack({ name }: { name: string }) {
+  const { t } = useI18n();
+  const id = useId();
+  return (
+    <div className="pass-back" aria-hidden="true">
+      <span className="pass-back-base" />
+      <svg className="pass-kawung" width="100%" height="100%" focusable="false">
+        <defs>
+          <linearGradient id={`${id}f`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f1dca6" />
+            <stop offset="0.5" stopColor="#b48a42" />
+            <stop offset="1" stopColor="#e8cf92" />
+          </linearGradient>
+          <pattern id={`${id}p`} width="36" height="36" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke={`url(#${id}f)`} strokeWidth="1">
+              <ellipse cx="18" cy="9" rx="5" ry="9" />
+              <ellipse cx="18" cy="27" rx="5" ry="9" />
+              <ellipse cx="9" cy="18" rx="9" ry="5" />
+              <ellipse cx="27" cy="18" rx="9" ry="5" />
+            </g>
+            <circle cx="18" cy="18" r="1.6" fill={`url(#${id}f)`} />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${id}p)`} />
+      </svg>
+      <div className="pass-back-body">
+        <span className="pass-mono">{initialsOf(name)}</span>
+        <p className="pass-thanks" lang="jv">
+          Matur nuwun
+        </p>
+        <p className="pass-caption">{t("ticket.thanksCaption")}</p>
+      </div>
+      <i className="hm-sheen" />
+    </div>
+  );
+}
+
 /**
  * Boarding pass yang tergantung di benang emas pendek (Today, film): berayun masuk sekali setelah `delay` ms, lalu
  * miring mengikuti arah pandang halaman. Di home, kartu yang sama tergantung di benang panjang (home/Scene.tsx Hang).
  */
-export function HangingPass({ data, delay = 0, width, thread, className }: { data: TripView; delay?: number; width?: number; thread?: number; className?: string }) {
+export function HangingPass({
+  data,
+  delay = 0,
+  width,
+  thread,
+  className,
+  toy,
+  holdRef,
+}: {
+  data: TripView;
+  delay?: number;
+  width?: number;
+  thread?: number;
+  className?: string;
+  /** Kartu dua muka yang digerakkan pengendali (film 2,5D, film/pass-toy.ts): ayun, putar, balik. Today dan home tidak memakainya. */
+  toy?: boolean;
+  holdRef?: Ref<HTMLDivElement>;
+}) {
   if (!hasPass(data)) return null;
   const style = { "--d": `${delay}ms`, ...(width ? { "--card-w": `${width}px` } : {}), ...(thread ? { "--thread": `${thread}px` } : {}) } as CSSProperties;
+  if (toy) {
+    // bayangan jauh di luar putaran: tetap di belakang kartu di semua sudut yaw; muka depan dan belakang di dalamnya
+    return (
+      <div ref={holdRef} className={`pass-hold pass-toy${className ? ` ${className}` : ""}`} style={style}>
+        <div className="pass-swing">
+          <span className="hm-card-shadow" aria-hidden="true" />
+          <span className="pass-thread" aria-hidden="true" />
+          <div className="pass-turn">
+            <Card shadow={false}>
+              <PassFace data={data} />
+            </Card>
+            <PassBack name={data.private?.party?.name ?? ""} />
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`pass-hold${className ? ` ${className}` : ""}`} style={style}>
       <div className="pass-swing">

@@ -327,6 +327,8 @@ export type PointerSample = { id: number; x: number; y: number; width: number; h
 const CONTROL = "a[href], button, input, select, textarea, summary, [role='button'], [contenteditable='true']";
 /** Area yang di-scroll biasa (sheet detail, credits): geseran di dalamnya bukan untuk pindah slide. */
 const SCROLLER = "[data-scroll], dialog";
+/** Kontrol yang tetap boleh jadi awal pegangan tiket 3D (tombol gunungan di atas kelir). */
+const GRAB_OK = ".fl-kayon";
 
 const within = (target: EventTarget | null, selector: string) => target instanceof Element && target.closest(selector) !== null;
 
@@ -343,7 +345,8 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   };
   const onGrabDown = (e: PointerEvent) => {
     if (!h.grabStart || grab !== null || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
-    if (h.paused() || within(e.target, SCROLLER) || within(e.target, CONTROL)) return;
+    // tombol gunungan penutup tetap ditawarkan: sinar 3D yang memutuskan, dan bila tiket yang kena, klik ditelan
+    if (h.paused() || within(e.target, SCROLLER) || (within(e.target, CONTROL) && !within(e.target, GRAB_OK))) return;
     if (!h.grabStart(sample(e))) return;
     grab = e.pointerId;
     try {

@@ -3,6 +3,7 @@
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
 //   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket|tiket]
 // tiket = tiket 3D bertali (Tugas 12b): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
+//   lalu credits: gunungan penutup tertancap dan tiket tamu tergantung di sampingnya,
 //   kartu diseret lalu dilepas (berayun), disentil (berputar di tali), diketuk (dibalik ke belakang) dan diketuk lagi,
 //   lalu di desktop kursor menggerakkan pandang (parallax, perspective shift). Pakai STAGE=high.
 // maket = perbaikan bug maket (PR #23): kartu Pasar Gede di gallery Hari 1 → "See it in the miniature" → maket terbuka
@@ -816,6 +817,18 @@ const fs = require('fs');
           await w(28);
         }
       await w(1600);
+    }
+    // penutup: credits → gunungan tertancap lagi; tiket turun di sampingnya dan berbalik ke "Matur nuwun"
+    await advance(3000); // credits
+    await p.waitForSelector('.film[data-gate="tail"]', { timeout: 30000 });
+    await w(5200); // mendarat + ±3 dtk
+    c = await card();
+    if (c) {
+      await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); // ketuk: muka depan lagi
+      await w(3600);
+      c = await card();
+      if (c) { await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); } // ketuk lagi
+      await w(3200);
     }
     await finish();
     return;

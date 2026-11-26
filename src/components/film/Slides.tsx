@@ -17,6 +17,7 @@ import { Bayang, Benang, Canting, CountUp, Gamelan, Gunungan } from "../motion/K
 import { HangingPass } from "../pass/Pass";
 import { DioramaLink } from "../today/DayPlan";
 import { GuestCloth } from "./GuestCloth";
+import { usePassToy } from "./pass-toy";
 import { useTitleStrike } from "./TitleStrike";
 
 type Var = CSSProperties & Record<`--${string}`, string | number>;
@@ -419,15 +420,17 @@ function Epilogue({ data }: Ctx) {
   );
 }
 
-function Pass({ data }: Ctx) {
+function Pass({ data, pos }: Ctx) {
   const { t } = useI18n();
+  const hold = useRef<HTMLDivElement>(null);
+  usePassToy(hold, pos);
   const guide = useRef<HTMLDialogElement>(null);
   const host = (data.private?.contacts ?? []).find((c) => waNumber(c.whatsapp));
   const short = guestShortName(data);
   const message = data.role === "team" ? t("today.waTeam") : short ? t("today.waGuest", { name: short }) : t("today.waGuestNoName");
   return (
     <div className="fl-body fl-body--center fs-pass">
-      <HangingPass data={data} delay={200} width={560} thread={30} className="fs-ticket" />
+      <HangingPass data={data} delay={200} width={560} thread={30} className="fs-ticket" toy holdRef={hold} />
       <p className="sr-only fs-ticket-hint">{t("ticket.label3d")}</p>
       <div className="fs-actions f-rise" style={d(700)}>
         <CurtainLink className="pb pb--gold pb--kawung pb--lg" data-haptic="" href="/today/">

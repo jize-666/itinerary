@@ -73,6 +73,10 @@ export type PassSignal =
   | { type: "swing-speed"; speed: number; angularSpeed: number }
   | { type: "rest"; back: boolean };
 let passHandlers: PassHandlers | null = null;
+/** Tiket DOM film 2,5D (prioritas lebih rendah dari tiket 3D). */
+let flatHandlers: PassHandlers | null = null;
+/** Pegangan yang menerima `down` terakhir: gerak dan lepas hanya ke pemiliknya. */
+let passOwner: PassHandlers | null = null;
 const passListeners = new Set<(e: PassSignal) => void>();
 
 export const stageBus = {
@@ -81,12 +85,34 @@ export const stageBus = {
     passHandlers = h;
     return () => {
       if (passHandlers === h) passHandlers = null;
+      if (passOwner === h) passOwner = null;
     };
   },
-  passDown: (p: PassSample) => passHandlers?.down(p) ?? false,
-  passMove: (p: PassSample) => passHandlers?.move(p) ?? false,
-  passUp: (p: PassSample, cancelled: boolean) => passHandlers?.up(p, cancelled) ?? false,
-  passKey: (key: string, repeat: boolean) => passHandlers?.key(key, repeat) ?? false,
+  /** Tiket DOM film 2,5D: dicoba sesudah tiket 3D. Mengembalikan pembatal. */
+  bindPassFlat(h: PassHandlers): () => void {
+    flatHandlers = h;
+    return () => {
+      if (flatHandlers === h) flatHandlers = null;
+      if (passOwner === h) passOwner = null;
+    };
+  },
+  /** Tekan: tiket 3D dulu, lalu tiket DOM. Yang menerima menjadi pemilik pointer sampai `up`. */
+  passDown(p: PassSample) {
+    for (const h of [passHandlers, flatHandlers]) {
+      if (h?.down(p)) {
+        passOwner = h;
+        return true;
+      }
+    }
+    return false;
+  },
+  passMove: (p: PassSample) => passOwner?.move(p) ?? false,
+  passUp(p: PassSample, cancelled: boolean) {
+    const h = passOwner;
+    passOwner = null;
+    return h?.up(p, cancelled) ?? false;
+  },
+  passKey: (key: string, repeat: boolean) => passHandlers?.key(key, repeat) || (flatHandlers?.key(key, repeat) ?? false),
   passEvent(e: PassSignal) {
     for (const fn of passListeners) fn(e);
   },

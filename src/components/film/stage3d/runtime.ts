@@ -18,6 +18,7 @@ import { type SweepPose, sweepPose } from "@/engine/stage/gunungan";
 import { type Grade, gradeOf, type GradePhase, phaseOf } from "@/engine/stage/grade";
 import { lightElevation, type Mood, moodOf } from "@/engine/stage/mood";
 import { blendShot, type Frame, kayonShot, SUN_TRACK, sunDirection, type SunTrack } from "@/engine/stage/shots";
+import { tailHook } from "@/engine/stage/pass";
 import { terrainHeight, TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stage/terrain";
 import { type ParticleMix, particleMix } from "@/engine/stage/particles";
 import { RIVER, riverLine, waterLevel } from "@/engine/stage/river";
@@ -225,6 +226,8 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let shape: TerrainShape = shape0;
   let cues = createCues(film, frame);
   let kayonAt = kayonShot(frame);
+  // tiket tamu di samping gunungan penutup: kait tali dari shot kayon di layar ini
+  let tailAt = tailHook(kayonAt, frame.aspect);
   let lastSky: SkyState | null = null;
   let mood: Mood | null = null;
   let grade: Grade | null = null;
@@ -260,6 +263,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     frame = { aspect: w / h, horizon: -track.bottom };
     cues = createCues(film, frame);
     kayonAt = kayonShot(frame);
+    tailAt = tailHook(kayonAt, frame.aspect);
     lastSky = null;
     // lanskap mengikuti lebar dan tinggi lintasan matahari di layar ini
     const end = sunDirection(1, 1, track, frame.aspect);
@@ -382,7 +386,11 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     camera.lookAt(look.set(lx, shot.look[1], lz).lerp(GONG_CENTER, Math.min(1, zoomed * 1.4)));
     // bidikan dekat (tiket 3D, ±0,4 m dari kartu): geseran parallax diperkecil sebanding jaraknya, supaya perspektif
     // tetap bergeser tanpa kartu terlempar keluar layar
-    const reach = (shot.rig === "orbit" ? 1 : 0.6) * Math.min(1, shot.focus / 3.2);
+    // tiket penutup (<1 m dari kamera): jangkauannya menyusut ke jaraknya sebanyak gunungan tertancap
+    const tailOn = gateEnd === "tail" && planted > 0 && cursor.from === cursor.to && cursor.to === film.slides.length - 1;
+    const reach0 = shot.rig === "orbit" ? 1 : 0.6;
+    const reachFocus = Math.min(1, shot.focus / 3.2);
+    const reach = reach0 * (tailOn ? reachFocus + (Math.min(1, tailAt.dist / 3.2) - reachFocus) * planted : reachFocus);
     // jarak ke objek: bidikan lanskap berfokus jauh (40 m), jadi dorongannya dibatasi seperti di bidikan pendapa
     const dist = Math.min(shot.focus, 12);
     camera.translateX((Math.sin(t * 0.21) * 0.035 + lk.x * VIEW.shiftX) * reach);
@@ -418,7 +426,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       passContent = nextPass;
       pass.setContent(nextPass);
     }
-    pass.update({ camera, cursor, index: passIndex, t, dt, tilt: touchLook ? lk : null });
+    pass.update({ camera, cursor, index: passIndex, t, dt, tilt: touchLook ? lk : null, tail: tailOn ? { planted, hook: tailAt.hook } : null });
     const passState = pass.state();
     // letak kartu di layar (persen dari akar film): untuk uji e2e dan pratinjau yang perlu memegang kartunya
     const passAt = pass.center();

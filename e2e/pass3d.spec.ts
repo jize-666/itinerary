@@ -140,6 +140,41 @@ test.describe("tiket 3D di slide tiket", () => {
   });
 });
 
+test.describe("tiket di samping gunungan penutup", () => {
+  /** Dari slide tiket ke credits, lalu maju sekali lagi: gunungan penutup tertancap dan mendarat. */
+  async function plantTail(page: Page) {
+    await openPass(page);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => slide(page), { timeout: WAIT_LONG }).toBe("credits");
+    await settled(page);
+    await page.waitForTimeout(400);
+    await page.keyboard.press("ArrowDown");
+    await expect(film(page)).toHaveAttribute("data-gate", "tail", { timeout: WAIT_LONG });
+  }
+
+  test("gunungan mendarat: tiket ada di layar dan berbalik ke belakang; klik membaliknya, muka gunungan tetap", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "klik mouse di titik kartu");
+    await plantTail(page);
+    await expect(film(page)).toHaveAttribute("data-pass-at", /^-?[\d.]+,-?[\d.]+$/, { timeout: WAIT_LONG });
+    // sesudah mendarat tiket disentak dan memperlihatkan "Matur nuwun"
+    await expect.poll(() => state(page), { timeout: WAIT_LONG * 2 }).toBe("flipped");
+    const face = await film(page).getAttribute("data-face");
+    const p = await cardPoint(page);
+    await page.mouse.click(p.x, p.y);
+    await expect.poll(() => state(page), { timeout: WAIT_LONG * 2 }).toBe("resting");
+    // klik di tiket tidak boleh membalik gunungan di bawahnya
+    expect(await film(page).getAttribute("data-face")).toBe(face);
+    await expect(film(page)).toHaveAttribute("data-gate", "tail");
+  });
+
+  test("gunungan dicabut lagi: tiket naik dan hilang (tanpa data-pass-at)", async ({ page }) => {
+    await plantTail(page);
+    await expect(film(page)).toHaveAttribute("data-pass-at", /.+/, { timeout: WAIT_LONG });
+    await page.keyboard.press("ArrowUp");
+    await expect(film(page)).not.toHaveAttribute("data-pass-at", /.+/, { timeout: WAIT_LONG });
+  });
+});
+
 test.describe("tanpa tiket 3D", () => {
   test("?stage=static: tidak ada data-pass3d dan tiket DOM terlihat", async ({ page }) => {
     await open(page, "?stage=static");

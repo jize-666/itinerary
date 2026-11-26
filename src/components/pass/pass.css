@@ -5,13 +5,17 @@
    Variabel --hm-* dipasang home (Scene.tsx, dari src/engine/motion/tokens.ts HOME); di halaman lain dipakai nilai
    cadangan yang sama. --mx / --my (−1…1) = arah pandang: kursor di home, --lx / --ly di Today. */
 
-.hm-card {
+.hm-card,
+.pass-back {
   --r: 15px;
   --notch:
     radial-gradient(circle at 0 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 0 / 51% 51% no-repeat,
     radial-gradient(circle at 100% 0, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 0 / 51% 51% no-repeat,
     radial-gradient(circle at 0 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 0 100% / 51% 51% no-repeat,
     radial-gradient(circle at 100% 100%, transparent var(--r), #000 calc(var(--r) + 0.6px)) 100% 100% / 51% 51% no-repeat;
+}
+
+.hm-card {
   position: relative;
   transform-style: preserve-3d;
   transform: rotateY(calc(var(--mx, 0) * var(--hm-tilt-y, 7deg))) rotateX(calc(var(--my, 0) * var(--hm-tilt-x, 4.5deg) * -1));
@@ -311,9 +315,124 @@
   }
 }
 
+/* ---- Mode `toy` (film 2,5D): kartu dua muka yang digerakkan film/pass-toy.ts lewat --ps-roll / --ps-pitch / --ps-yaw (deg) ----
+   Tanpa pengendali (Calm, tiket 3D tampil) variabel kosong dan kartu diam seperti biasa. Ujung benang = titik putar. */
+.pass-toy {
+  --mx: var(--lx, 0);
+  --my: var(--ly, 0);
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.pass-toy .pass-swing {
+  transform-origin: 50% calc(17px - var(--thread, 44px));
+  transform: rotate(var(--ps-roll, 0deg)) rotateX(var(--ps-pitch, 0deg));
+  animation: pass-fade 0.6s ease var(--d, 0ms) both;
+}
+
+@keyframes pass-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* miring mengikuti pandang (perspective shift) dan putaran pada benang bertumpu di satu elemen */
+.pass-toy .pass-turn {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--my, 0) * var(--hm-tilt-x, 4.5deg) * -1)) rotateY(calc(var(--mx, 0) * var(--hm-tilt-y, 7deg) + var(--ps-yaw, 0deg)));
+}
+
+.pass-toy .hm-card {
+  transform: none;
+}
+
+.pass-toy .hm-card *,
+.pass-toy .pass-back,
+.pass-toy .pass-back * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* punggung: sebidang dengan kartu, tepat di belakang lapisan paling bawah muka depan */
+.pass-back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: var(--prada);
+  background: linear-gradient(135deg, #ecd39a 0%, #a8823f 34%, #e6ca8c 62%, #8f6c30 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+  transform: rotateY(180deg) translateZ(7px);
+}
+
+.pass-back-base {
+  position: absolute;
+  inset: 1px;
+  background: radial-gradient(120% 84% at 50% 0%, #1c2452 0%, #11152f 54%, #0b0e22 100%);
+  -webkit-mask: var(--notch);
+  mask: var(--notch);
+}
+
+.pass-kawung {
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+}
+
+.pass-back-body {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.pass-mono {
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 18cqw, 92px);
+  aspect-ratio: 1;
+  border: 1.5px solid var(--prada);
+  border-radius: 50%;
+  outline: 1px solid rgb(200 162 90 / 0.4);
+  outline-offset: 5px;
+  background: #0b0e22;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(26px, 7cqw, 38px);
+  letter-spacing: 0.04em;
+}
+
+.pass-thanks {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(24px, 6cqw, 34px);
+  line-height: 1.1;
+}
+
+.pass-caption {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pass-swing {
+  .pass-swing,
+  .pass-toy .pass-swing {
     animation: none;
+  }
+
+  .pass-toy .pass-turn {
+    transform: none;
   }
 
   .pass-hold .hm-card {
