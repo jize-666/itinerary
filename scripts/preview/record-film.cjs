@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- skrip dev CommonJS mandiri (bukan kode aplikasi); dijalankan langsung dengan node */
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
-//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket]
+//   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket|tiket]
+// tiket = tiket 3D bertali (Tugas 12b): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
+//   kartu diseret lalu dilepas (berayun), disentil (berputar di tali), diketuk (dibalik ke belakang) dan diketuk lagi,
+//   lalu di desktop kursor menggerakkan pandang (parallax, perspective shift). Pakai STAGE=high.
 // maket = perbaikan bug maket (PR #23): kartu Pasar Gede di gallery Hari 1 → "See it in the miniature" → maket terbuka
 // tanpa macet → "Back" → film kembali ke kartu asal. Pakai STAGE=high (film 3D) atau STAGE=static.
 // batik = Hari 3 di film (Tugas 11.3): judul, pembuka hari, sembilan panel (sungai, kawung oleh Clawd, nila, soga,
@@ -256,7 +259,7 @@ const fs = require('fs');
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(width * dpr), maxHeight: Math.round(height * dpr), everyNthFrame: 1 });
   if (dio || cant) await ctx.addInitScript((l) => { try { localStorage.setItem('lakon.lang', l); localStorage.removeItem('lakon.canting.v1'); } catch {} }, process.env.DIO_LANG || 'en');
   const query = [STAGE ? `stage=${STAGE}` : '', process.env.QUERY || ''].filter(Boolean).join('&');
-  const hash = ['gallery', 'judul', 'kitar', 'dimensi', 'maket'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : tour === 'batik' ? '#day-3' : '';
+  const hash = ['gallery', 'judul', 'kitar', 'dimensi', 'maket'].includes(tour) ? '#day-1' : tour === 'kamera' ? '#day-2' : tour === 'batik' ? '#day-3' : tour === 'tiket' ? '#epilogue' : '';
   const dioQuery = ['tur=1', `q=${process.env.DIO_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const cantQuery = [`q=${process.env.CANT_Q || 'high'}`, process.env.QUERY || ''].filter(Boolean).join('&');
   const filmUrl = dio ? `/diorama/?${dioQuery}` : cant ? `/canting/?${cantQuery}` : `/film/${query ? `?${query}` : ''}${hash}`;
@@ -752,6 +755,67 @@ const fs = require('fs');
           }
       }
       await w(2400);
+    }
+    await finish();
+    return;
+  }
+
+  if (tour === 'tiket') {
+    // Tugas 12b: tiket 3D bertali. Titik kartu di layar dibaca dari data-pass-at (persen dari akar film).
+    const card = async (dx = 0, dy = 0) => {
+      const at = await p.locator('.film').getAttribute('data-pass-at');
+      const box = await p.locator('.film').boundingBox();
+      if (!at || !box) return null;
+      const [x, y] = at.split(',').map(Number);
+      return [box.x + (box.width * x) / 100 + dx, box.y + (box.height * y) / 100 + dy];
+    };
+    const drag = async (from, path, stepMs) => {
+      await p.mouse.move(from[0], from[1]);
+      await w(260);
+      await p.mouse.down();
+      await w(200);
+      for (const [x, y] of path) { await p.mouse.move(x, y); await w(stepMs); }
+      await p.mouse.up();
+    };
+    await w(2600); // epilog
+    await advance(3400); // kartu kepulangan
+    await advance(4200); // slide tiket: tiket turun dari kegelapan atap, lalu tenang di depan gong
+    await w(1400);
+    const { width: vw, height: vh } = p.viewportSize();
+    const s = Math.min(vw, vh);
+    let c = await card(0, s * 0.05);
+    if (c) {
+      // tarik ke kiri dan sedikit ke bawah, tahan sebentar, lalu lepas: berayun
+      const path = [];
+      for (let k = 1; k <= 22; k++) path.push([c[0] - (s * 0.22 * k) / 22, c[1] + (s * 0.05 * k) / 22]);
+      await drag(c, path, 34);
+      await w(4200);
+    }
+    c = await card(s * 0.045, s * 0.11);
+    if (c) {
+      // sentil: tarikan cepat ke samping di sudut bawah kartu, kartu berputar di talinya
+      const path = [];
+      for (let k = 1; k <= 6; k++) path.push([c[0] + (s * 0.16 * k) / 6, c[1]]);
+      await drag(c, path, 16);
+      await w(4600);
+    }
+    c = await card();
+    if (c) {
+      await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); // ketuk: dibalik
+      await w(4600);
+      c = await card();
+      if (c) { await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); } // kembali ke depan
+      await w(3800);
+    }
+    if (!phone) {
+      const loop = [[0.5, 0.42], [0.86, 0.3], [0.86, 0.62], [0.14, 0.62], [0.14, 0.3], [0.5, 0.42]];
+      for (let i = 1; i < loop.length; i++)
+        for (let k = 1; k <= 28; k++) {
+          const [x0, y0] = loop[i - 1], [x1, y1] = loop[i];
+          await p.mouse.move(vw * (x0 + ((x1 - x0) * k) / 28), vh * (y0 + ((y1 - y0) * k) / 28));
+          await w(28);
+        }
+      await w(1600);
     }
     await finish();
     return;
