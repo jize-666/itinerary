@@ -10,7 +10,7 @@
 import { audioStatus } from "@/engine/audio/status";
 import { langStore } from "@/engine/i18n/lang";
 import { Clawd, type ClawdFrame } from "@/engine/mascot/clawd";
-import { bestSide, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
+import { bestSide, PASS_BODY_WEIGHT, PASS_CANDIDATES, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
 import { clipMs, clipUrl } from "@/engine/mascot/voice";
 
@@ -38,6 +38,11 @@ export function blocksOf(el: HTMLElement): Block[] {
   add(".fl-layer[data-pos='cur'] .gal-card", BLOCK_WEIGHT.card);
   // kain buatan tamu di epilog (Tugas 11.4): seberat teks, supaya Clawd berdiri di sampingnya, bukan di atasnya
   add(".fl-layer[data-pos='cur'] .fs-cloth-sheet", BLOCK_WEIGHT.text);
+  // tiket 3D bertali (Tugas 12b): kotak kartu di layar dari panggung (`data-pass-box`, persen), juga seberat teks
+  const pass = el.dataset.passBox?.split(",").map(Number);
+  if (pass?.length === 4 && pass.every(Number.isFinite) && pass[2]! > 0 && pass[3]! > 0) {
+    out.push({ x: (pass[0]! / 100) * box.width, y: (pass[1]! / 100) * box.height, w: (pass[2]! / 100) * box.width, h: (pass[3]! / 100) * box.height, weight: BLOCK_WEIGHT.text });
+  }
   return out;
 }
 
@@ -139,7 +144,8 @@ export function createSession({ touch }: { touch: boolean }) {
       if (!ctx.moving && key !== sideKey && t - settledAt >= SETTLE && view.w > 0) {
         sideKey = key;
         const tall = view.w < view.h;
-        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"]);
+        const passSlide = el.dataset.kind === "pass" && !!el.dataset.passBox;
+        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"], passSlide ? PASS_CANDIDATES : undefined, passSlide ? PASS_BODY_WEIGHT : 1);
       }
       return { clawd: frame, spot, side };
     },

@@ -194,7 +194,13 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
   let passContent: PassContent | null = null;
   let passShown: string | null = null;
   let passAtShown = "";
+  let passBoxShown = "";
   const passProj = new Vector3();
+  const passCorner = new Vector3();
+  const passRight = new Vector3();
+  const passUp = new Vector3();
+  /** Sudut kotak kartu (m, sumbu kamera) dengan tepi aman: kartu 74 × 150 mm, ditambah ruang ayun dan tali di atasnya. */
+  const PASS_CORNERS = [[-0.05, -0.095], [0.05, -0.095], [-0.05, 0.12], [0.05, 0.12]] as const;
   const unbindPass = stageBus.bindPass({
     down: (p) => pass.pointerDown(p),
     move: (p) => pass.pointerMove(p),
@@ -417,9 +423,29 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     // letak kartu di layar (persen dari akar film): untuk uji e2e dan pratinjau yang perlu memegang kartunya
     const passAt = pass.center();
     let passXY = "";
+    let passBox = "";
     if (passAt) {
       passProj.copy(passAt).project(camera);
       passXY = `${((passProj.x * 0.5 + 0.5) * 100).toFixed(1)},${((0.5 - passProj.y * 0.5) * 100).toFixed(1)}`;
+      // kotak kartu di layar (persen, dibulatkan): Clawd memilih tempat di luar kotak ini (session.ts blocksOf)
+      let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const [sx, sy] of PASS_CORNERS) {
+        passCorner.copy(passAt).addScaledVector(passRight.setFromMatrixColumn(camera.matrixWorld, 0), sx).addScaledVector(passUp.setFromMatrixColumn(camera.matrixWorld, 1), sy).project(camera);
+        x0 = Math.min(x0, passCorner.x);
+        x1 = Math.max(x1, passCorner.x);
+        y0 = Math.min(y0, passCorner.y);
+        y1 = Math.max(y1, passCorner.y);
+      }
+      const pct = (v: number) => Math.round(v * 100);
+      passBox = `${pct(x0 * 0.5 + 0.5)},${pct(0.5 - y1 * 0.5)},${pct((x1 - x0) * 0.5)},${pct((y1 - y0) * 0.5)}`;
+    }
+    if (passBox !== passBoxShown) {
+      passBoxShown = passBox;
+      const el = root();
+      if (el) {
+        if (passBox) el.dataset.passBox = passBox;
+        else delete el.dataset.passBox;
+      }
     }
     if (passXY !== passAtShown) {
       passAtShown = passXY;
@@ -645,6 +671,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
       if (el) {
         delete el.dataset.pass3d;
         delete el.dataset.passAt;
+        delete el.dataset.passBox;
       }
     }
     stageBus.setKayon(false);

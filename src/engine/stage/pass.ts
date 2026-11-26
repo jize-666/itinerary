@@ -27,10 +27,12 @@ export const PASS = {
   descend: 0.72,
   /** Bagian tinggi layar yang diisi kartu (layar mendatar) dan bagian lebar layar (layar tegak). */
   fillHeight: 0.48,
+  /** Layar tegak: batas tinggi kartu, supaya kartu tidak masuk ke bilah atas (layar 9:16 yang pendek). */
+  fillHeightTall: 0.42,
   fillWidth: 0.46,
   /** Letak pusat kartu di layar (NDC, + = atas) di layar mendatar dan tegak: tombol slide ada di bawahnya. */
   screenY: 0.22,
-  screenYTall: 0.32,
+  screenYTall: 0.28,
   /** Arah kamera dari kartu (derajat): sedikit dari kanan dan atas, supaya tebal kartu tampak saat berayun. */
   az: 9,
   el: 4,
@@ -51,7 +53,8 @@ export const passCenter = (lift = 0): Vec3 => [PASS.hook[0], PASS.hook[1] - PASS
 export function passShot(aspect: number): Shot {
   const fov = fitFov(PASS.fov, aspect);
   const half = Math.tan((fov * RAD) / 2);
-  const d = Math.max(0.15 / (2 * PASS.fillHeight * half), 0.074 / (2 * PASS.fillWidth * half * Math.max(aspect, 0.3)));
+  const fillH = aspect < 1 ? PASS.fillHeightTall : PASS.fillHeight;
+  const d = Math.max(0.15 / (2 * fillH * half), 0.074 / (2 * PASS.fillWidth * half * Math.max(aspect, 0.3)));
   const c = passCenter();
   const [az, el] = [PASS.az * RAD, PASS.el * RAD];
   const pos: Vec3 = [c[0] + d * Math.sin(az) * Math.cos(el), c[1] + d * Math.sin(el), c[2] + d * Math.cos(az) * Math.cos(el)];
