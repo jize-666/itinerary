@@ -6,10 +6,8 @@
  *   kalimat (seperti dialog gim), bukan dihitung sebagai klik, jadi tamu yang tidak sabar tidak membuatnya marah.
  * - Sesudahnya, reaksi perilaku (sapa, senang, sayang, marah, tenang, bangun, gong, mulai mengantuk) tertulis di
  *   gelembung, dengan variasi yang digilir.
- * - Selama kalimat diketik atau suaranya berbunyi Clawd bergerak "bicara" (lengan menjelaskan) bila tidak sedang
- *   bergerak lain.
- * - Suara (`voice.ts`): bila `voice.on()`, kalimat yang punya klip ditahan sampai klipnya selesai; `voice.prepare`
- *   diberi nama klip kalimat yang baru diantrekan supaya bisa diunduh lebih dulu.
+ * - Selama kalimat diketik Clawd bergerak "bicara" (lengan menjelaskan) bila tidak sedang bergerak lain. Biip tiap
+ *   kata dibunyikan sesi (`components/mascot/session.ts`, `beep.ts`).
  * Murni: waktu dalam milidetik dari pemanggil.
  */
 import type { Lang } from "@/engine/i18n/lang";
@@ -20,10 +18,6 @@ import type { Mood } from "./face";
 import { INTRO, SAY, type SpeechKey, type Text, TIPS, type TipId, textOf, WELCOME_BACK } from "./lines";
 import type { Motion } from "./pose";
 import { GRAB_DELAY, ticketReaction } from "./ticket";
-import { clipMs, clipName } from "./voice";
-
-/** Sambungan ke pemutar suara: suara menyala, dan unduh klip lebih dulu. */
-export type ClawdVoice = Readonly<{ on: () => boolean; prepare?: (names: readonly string[]) => void }>;
 
 export type ClawdFrame = Readonly<{
   mood: Mood;
@@ -51,11 +45,11 @@ export class Clawd {
   /** Tiket sedang dipegang sejak (ms), menunggu `GRAB_DELAY`; null = tidak ada pegangan yang ditunda. */
   private grabAt: number | null = null;
 
-  constructor(now: number, lang: Lang, touch = false, private readonly voice?: ClawdVoice) {
+  constructor(now: number, lang: Lang, touch = false) {
     this.lang = lang;
     this.touch = touch;
     this.clock = now;
-    this.dialogue = new Dialogue((u) => (u.clip && this.voice?.on() ? clipMs(this.lang, u.clip()) : null));
+    this.dialogue = new Dialogue();
     this.behavior = new MascotBehavior(now, { onSpeech: (line) => this.speak(line), onRest: () => this.speak("rest") });
   }
 
@@ -69,11 +63,10 @@ export class Clawd {
   }
 
   private line(id: string, t: Text): Utterance {
-    return { id, text: () => textOf(t, this.lang, this.touch), clip: () => clipName(id, this.touch && !!t.touch) };
+    return { id, text: () => textOf(t, this.lang, this.touch) };
   }
 
   private say(lines: Utterance[], now: number, interrupt = false) {
-    if (this.voice?.on()) this.voice.prepare?.(lines.map((u) => u.clip!()));
     this.dialogue.say(lines, now, interrupt);
   }
 
@@ -185,7 +178,7 @@ export class Clawd {
     const speech = this.dialogue.tick(now);
     if (this.introducing && !this.dialogue.active) this.introducing = false;
     let { motion, motionSince } = snap;
-    const talking = !!speech?.typing || !!speech?.voicing;
+    const talking = !!speech?.typing;
     if (talking && !this.talking) this.talkSince = now;
     this.talking = talking;
     if (talking && motion === "hover") [motion, motionSince] = ["talk", this.talkSince];

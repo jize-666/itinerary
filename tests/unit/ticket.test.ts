@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MASCOT, MascotBehavior } from "@/engine/mascot/behavior";
 import { Clawd } from "@/engine/mascot/clawd";
 import { GRAB_DELAY, TOSS_SPEED, ticketReaction } from "@/engine/mascot/ticket";
-import { moodOf } from "@/engine/mascot/voice";
+import { moodOf } from "@/engine/mascot/beep";
 import { contextOf } from "@/components/mascot/session";
 
 /** Clawd bereaksi saat tamu bermain dengan tiket bertali (3D dan 2,5D). */

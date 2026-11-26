@@ -88,7 +88,7 @@ describe("bus panggung (DOM → panggung 3D)", () => {
 });
 
 describe("bunyi adegan (audioStatus.scene)", () => {
-  const control = { setEnabled: vi.fn(), playSfx: vi.fn(), preload: vi.fn(), playVoice: vi.fn(), stopVoice: vi.fn(), preloadVoice: vi.fn() } satisfies AudioControl;
+  const control = { setEnabled: vi.fn(), playSfx: vi.fn(), preload: vi.fn(), playBeep: vi.fn() } satisfies AudioControl;
   afterEach(() => {
     vi.clearAllMocks();
     audioStatus.publish({ started: false, enabled: false }, control);
@@ -113,22 +113,5 @@ describe("bunyi adegan (audioStatus.scene)", () => {
     audioStatus.scene("api-naga", 0.6, 0.5);
     expect(control.playSfx).toHaveBeenNthCalledWith(1, "gong", { gain: 0.9, delay: 0.52, duck: true });
     expect(control.playSfx).toHaveBeenNthCalledWith(2, "api-naga", { gain: 0.45, delay: 0.6, duck: false });
-  });
-
-  it("suara Clawd: hanya sesudah lakon dimulai dan suara menyala; hening tidak mengunduh klip", () => {
-    audioStatus.publish({ started: true, enabled: false }, control);
-    expect(audioStatus.voiceOn()).toBe(false);
-    audioStatus.voice("/audio/clawd/en/intro.0.mp3");
-    audioStatus.prepareVoice(["/audio/clawd/en/intro.1.mp3"]);
-    expect(control.playVoice).not.toHaveBeenCalled();
-    expect(control.preloadVoice).not.toHaveBeenCalled();
-    audioStatus.publish({ started: true, enabled: true }, control);
-    expect(audioStatus.voiceOn()).toBe(true);
-    audioStatus.prepareVoice(["/audio/clawd/en/intro.1.mp3"]);
-    audioStatus.voice("/audio/clawd/en/intro.0.mp3");
-    audioStatus.hush();
-    expect(control.preloadVoice).toHaveBeenCalledWith(["/audio/clawd/en/intro.1.mp3"]);
-    expect(control.playVoice).toHaveBeenCalledWith("/audio/clawd/en/intro.0.mp3");
-    expect(control.stopVoice).toHaveBeenCalledTimes(1);
   });
 });
