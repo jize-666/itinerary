@@ -5,6 +5,16 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 26 Nov: "kerjakan sisa tugas 12" — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "kerjakan sisa tugas 12". Sisa yang dimaksud adalah P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2 yang belum dikerjakan di PR #26:
+- tiket juga muncul di epilog (PRD situs §7.4: tergantung saat gong terakhir dan gunungan ditancapkan kembali);
+- reaksi Clawd saat tiket dipegang atau dibalik, dengan kalimat baru dua bahasa;
+- versi 2,5D berpegas CSS (tiket DOM yang berayun mengikuti kemiringan dan kursor, tanpa WebGL; Calm tetap diam);
+- klip suara EN `tip.pass.0/1` dan kalimat reaksi baru (suara teman host).
+
+Branch kerja `claude/admiring-noether-tbqvap` dari `main` `9dd1565` (sudah ada satu commit catatan).
+
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 
 **Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"
