@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — DICATAT, SEDANG DIKERJAKAN
+### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 
 **Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
 
@@ -36,6 +36,15 @@ Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratc
 1. Selesai: kalimat baru `ticketGrab` ("Careful, that ticket has your name on it!" / "Hold on tight!"), `ticketToss` ("Whoa! Easy, it's only paper!" / "Wheee! Look at it spin!"), `ticketBack` ("Matur nuwun. That's Javanese for thank you."), `ticketFront` ("And there's your name again."), dua bahasa; `tip.pass.1` punya varian klik/ketuk. `MascotBehavior.ticket` (gerak + suasana hati, ucapan dijarangkan `speechGap` dan 15 dtk per jenis, diam saat memandu atau marah); `ticketReaction` (lepas ≥ 0,9 m/s = dilempar); reaksi pegang ditunda 350 ms (Opus, sesudah tinjauan) supaya ketukan yang membalik tiket ditanggapi sebagai balik, bukan pegangan. Disambungkan dari `stageBus.onPass` di Clawd 3D dan 2,5D; `contextOf` juga membaca `data-pass-flat`.
 2. Tes: unit `ticket.test.ts` 15/15, typecheck dan eslint bersih. Klip suara baru masuk `PENDING` sampai P1d selesai.
 3. Berikutnya: P1a, P1c, P1d berjalan.
+
+**P1a, P1c, dan biip selesai (26 Nov):**
+1. Selesai:
+   - P1a: tiket di samping gunungan penutup (desktop: kelir kiri gunungan; HP: pojok kiri atas), turun mengikuti `planted`, tersentak dan berbalik ke "Matur nuwun" saat gunungan menancap, bisa dipegang dan dibalik; digambar di atas kelir (material tembus pandang alfa 1, `renderOrder` 2002); parallax penutup menyusut sebanding jarak tiket; tombol `.fl-kayon` tetap ditawarkan ke pegangan tiket.
+   - P1c: tiket 2,5D berpegas (`engine/pass3d/swing2d.ts`, `film/pass-toy.ts`), seret, ketuk/Enter untuk membalik ke muka belakang DOM, kemiringan dan kursor menggeser titik setimbang, `data-pass-flat`, slot pegangan kedua di bus, `PassSound` juga di film 2,5D.
+   - Biip: klip suara Clawd dihapus (39 MP3, `voice-clips.json`, pemutar, `clawd-voice.ts`, `mix-voice.py`); biip prosedural per kata (`engine/mascot/beep.ts`, `engine/audio/beep-synth.ts`), nada per suasana, ikut sakelar suara, juga film ID. Perekam mencatat biip (`BEEP=`, alias `VOICE=`), `mix-beep.cjs` mencampurnya ke video. Tur perekam `tiket` kini sampai penutup, dan dengan `STAGE=static` memainkan tiket 2,5D.
+   - Contoh biip (`biip-contoh.mp3`) dan foto penutup desktop dikirim ke host dan dicatat di ledger.
+2. Tes: lint, typecheck, content:check, build lulus; unit 748/748; e2e terdampak (`pass3d`, `pass-flat` baru, `sound`, `smoke`, `gate`, `film`, `batik-sound`) 160 lulus, 26 dilewati sesuai proyek.
+3. Berikutnya: video `tiket25d-desktop/hp` dan `tiket3d-penutup-desktop/hp` (data April, nama Jize, bersuara biip) sedang direkam; lalu kirim, catat di ledger, buka PR.
 
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 

@@ -2,7 +2,7 @@
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
 //   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket|tiket]
-// tiket = tiket 3D bertali (Tugas 12b): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
+// tiket = tiket bertali (Tugas 12b; STAGE=static: tiket 2,5D berpegas, tanpa penutup): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
 //   lalu credits: gunungan penutup tertancap dan tiket tamu tergantung di sampingnya,
 //   kartu diseret lalu dilepas (berayun), disentil (berputar di tali), diketuk (dibalik ke belakang) dan diketuk lagi,
 //   lalu di desktop kursor menggerakkan pandang (parallax, perspective shift). Pakai STAGE=high.
@@ -708,10 +708,15 @@ const fs = require('fs');
 
   if (tour === 'tiket') {
     // Tugas 12b: tiket 3D bertali. Titik kartu di layar dibaca dari data-pass-at (persen dari akar film).
+    // film 2,5D (STAGE=static): tiket DOM berpegas, titiknya dari kotak kartu DOM
     const card = async (dx = 0, dy = 0) => {
       const at = await p.locator('.film').getAttribute('data-pass-at');
       const box = await p.locator('.film').boundingBox();
-      if (!at || !box) return null;
+      if (!box) return null;
+      if (!at) {
+        const flat = await p.locator('.fl-layer[data-pos="cur"] .pass-toy .pass-turn').first().boundingBox().catch(() => null);
+        return flat ? [flat.x + flat.width / 2 + dx, flat.y + flat.height / 2 + dy] : null;
+      }
       const [x, y] = at.split(',').map(Number);
       return [box.x + (box.width * x) / 100 + dx, box.y + (box.height * y) / 100 + dy];
     };
@@ -763,7 +768,12 @@ const fs = require('fs');
         }
       await w(1600);
     }
-    // penutup: credits → gunungan tertancap lagi; tiket turun di sampingnya dan berbalik ke "Matur nuwun"
+    // penutup (hanya panggung 3D): credits → gunungan tertancap lagi; tiket turun di sampingnya dan berbalik ke "Matur nuwun"
+    if ((await p.locator('.film').getAttribute('data-stage')) !== 'on') {
+      await w(1200);
+      await finish();
+      return;
+    }
     await advance(3000); // credits
     await p.waitForSelector('.film[data-gate="tail"]', { timeout: 30000 });
     await w(5200); // mendarat + ±3 dtk
