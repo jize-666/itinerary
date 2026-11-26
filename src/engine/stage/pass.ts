@@ -3,7 +3,7 @@
  * tergantung selama perpindahan slide. Murni: tanpa DOM, tanpa three.
  *
  * Tiket bertali dari Codex (`src/engine/pass3d`) berukuran asli: kartu 74 × 150 mm, kait di ujung tali 106 mm, kartu
- * diam ±0,17 m di bawah kait. Tiket digantung ±2,6 m di depan gong ageng, sedikit ke kanan, supaya gong tampak redup di
+ * diam ±0,17 m di bawah kait. Tiket digantung ±3,3 m di depan gong ageng, sedikit ke kanan, supaya gong tampak redup di
  * belakangnya tanpa memenuhi layar. Tali di atas kait naik lurus ke atap (bagian yang tidak disimulasikan).
  *
  * Kamera datang ke slide ini dari shot lanskap (kartu kepulangan) atau orbit (epilog) lewat lintasan melengkung di atas
@@ -16,15 +16,15 @@ import { fitFov, type Shot, skyStretch, type Vec3 } from "./shots";
 
 export const PASS = {
   /** Kait tiket saat diam (dunia, m). */
-  hook: [0.72, 1.84, 2.6] as Vec3,
+  hook: [0.62, 1.84, 3.3] as Vec3,
   /** Pusat kartu yang diam, di bawah kait (m). */
   hang: 0.17,
   /** Ujung atas tali yang tidak disimulasikan: balok tumpang sari. */
   beam: 4.3,
   /** Setinggi apa tiket masih tergantung saat perpindahan baru dimulai (m). */
-  drop: 1.6,
+  drop: 1.8,
   /** Tiket mulai turun sesudah kedekatan ini (0–1); sebelumnya kamera masih melintas di atas gong. */
-  descend: 0.66,
+  descend: 0.72,
   /** Bagian tinggi layar yang diisi kartu (layar mendatar) dan bagian lebar layar (layar tegak). */
   fillHeight: 0.48,
   fillWidth: 0.46,

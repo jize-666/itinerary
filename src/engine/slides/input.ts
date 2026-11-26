@@ -337,7 +337,9 @@ export function bindInput(root: HTMLElement, h: InputHandlers): () => void {
   let grab: number | null = null;
   const sample = (e: PointerEvent): PointerSample => {
     const r = root.getBoundingClientRect();
-    return { id: e.pointerId, x: e.clientX - r.left, y: e.clientY - r.top, width: r.width, height: r.height, time: e.timeStamp / 1000 };
+    // jam halaman (bukan e.timeStamp): sama di peramban, dan ikut jam virtual perekam pratinjau, jadi ketukan dan laju
+    // sentilan terbaca sama di video
+    return { id: e.pointerId, x: e.clientX - r.left, y: e.clientY - r.top, width: r.width, height: r.height, time: performance.now() / 1000 };
   };
   const onGrabDown = (e: PointerEvent) => {
     if (!h.grabStart || grab !== null || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
