@@ -10,8 +10,10 @@ import { clipMs, voiceLines } from "@/engine/mascot/voice";
  */
 const DIR = join(process.cwd(), "public/audio/clawd");
 const manifest = clips as Record<string, Record<string, number> | undefined>;
-// The host records this new line after integration. Validate it like every other clip as soon as it arrives.
-const names = voiceLines().map((l) => l.name).filter(name=>name!=="tip.mountain.0" || !!manifest.en?.[name]);
+// Kalimat baru yang klipnya belum direkam (butuh rekaman teman host): gelembung tanpa suara. Begitu klipnya ada,
+// diperiksa seperti klip lain. tip.mountain (Tugas 10), tip.pass (tiket 3D, Tugas 12b).
+const PENDING = new Set(["tip.mountain.0", "tip.pass.0", "tip.pass.1"]);
+const names = voiceLines().map((l) => l.name).filter((name) => !PENDING.has(name) || !!manifest.en?.[name]);
 
 describe("klip suara Clawd (berkas asli)", () => {
   it("tiap kalimat punya lama EN antara 0,5 dan 12 dtk", () => {

@@ -24,7 +24,7 @@ describe("daftar klip suara Clawd", () => {
   it("satu klip per kalimat, ditambah satu untuk tiap varian layar sentuh; nama unik", () => {
     const all = [...INTRO, ...WELCOME_BACK, ...Object.values(TIPS).flat(), ...Object.values(SAY).flat()];
     expect(lines).toHaveLength(all.length + all.filter((t) => t.touch).length);
-    expect(lines).toHaveLength(40);
+    expect(lines).toHaveLength(42); // + tip.pass.0 dan tip.pass.1 (tiket 3D, Tugas 12b)
     expect(new Set(lines.map((l) => l.name)).size).toBe(lines.length);
     for (const l of lines) {
       expect(l.en.length, l.name).toBeGreaterThan(0);
