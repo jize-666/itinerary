@@ -23,6 +23,8 @@ export type GuideContext = Readonly<{
   /** Film 2,5D (tanpa panggung 3D): tidak ada zoom/kitar gong dan gunungan pembuka. Bawaan: film 3D. */
   flat?: boolean;
   mountainDawn?: boolean;
+  /** Tiket 3D bertali sudah tampil di slide tiket (`data-pass3d`, bukan sedang dimuat). */
+  pass3d?: boolean;
 }>;
 
 /** Petunjuk yang berlaku di tempat ini, atau null. */
@@ -43,6 +45,8 @@ export function tipAt(c: GuideContext): TipId | null {
       return "gong";
     case "credits":
       return "credits";
+    case "pass":
+      return c.pass3d ? "pass" : null;
     default:
       return null;
   }
@@ -73,7 +77,7 @@ export function spotAt(c: GuideContext, speaking: TipId | null): Spot {
 export const GUIDE_KEY = "lakon.clawd";
 export type Seen = { intro: boolean; tips: TipId[] };
 const EMPTY: Seen = { intro: false, tips: [] };
-const TIP_IDS: readonly TipId[] = ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits", "mountain"];
+const TIP_IDS: readonly TipId[] = ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits", "mountain", "pass"];
 
 export function readSeen(store: Pick<Storage, "getItem"> | undefined): Seen {
   try {
@@ -155,6 +159,23 @@ export const SIDE_CANDIDATES: readonly (readonly [number, number, BubbleSide])[]
   [0.6, 0.56, "left"],
 ];
 
+/**
+ * Slide tiket dengan tiket 3D (Tugas 12b): kartu berdiri di tengah layar, tombol di bawahnya. Di HP sempit tidak ada
+ * calon biasa yang muat di samping kartu, jadi ditambah calon di pita kiri/kanan kartu (setinggi kartu): badan Clawd
+ * tidak menutupi kartu; gelembungnya hanya sebentar saat berbicara, jadi badan yang menutupi kartu dihitung jauh lebih
+ * mahal (`PASS_BODY_WEIGHT`).
+ */
+export const PASS_BODY_WEIGHT = 12;
+export const PASS_CANDIDATES: readonly (readonly [number, number, BubbleSide])[] = [
+  ...SIDE_CANDIDATES,
+  [0.68, -0.05, "above"],
+  [-0.68, -0.05, "above"],
+  [0.68, 0.12, "above"],
+  [-0.68, 0.12, "above"],
+  [0.68, 0.28, "above"],
+  [-0.68, 0.28, "above"],
+];
+
 const overlap = (a: Block, x: number, y: number, w: number, h: number) =>
   Math.max(0, Math.min(a.x + a.w, x + w) - Math.max(a.x, x)) * Math.max(0, Math.min(a.y + a.h, y + h) - Math.max(a.y, y));
 
@@ -162,7 +183,15 @@ const overlap = (a: Block, x: number, y: number, w: number, h: number) =>
  * Tempat di samping yang paling sedikit menutupi isi layar. Clawd berukuran `body` px (tinggi badan), gelembungnya
  * kira-kira `bubble` px di atas kepalanya. Calon yang keluar layar dibuang. Seri: calon yang lebih awal (lebih disukai).
  */
-export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number; h: number }>, body: number, bubble: Readonly<{ w: number; h: number }>, candidates = SIDE_CANDIDATES): readonly [number, number, BubbleSide] {
+export function bestSide(
+  blocks: readonly Block[],
+  screen: Readonly<{ w: number; h: number }>,
+  body: number,
+  bubble: Readonly<{ w: number; h: number }>,
+  candidates = SIDE_CANDIDATES,
+  /** Pengali biaya badan yang menutupi isi (slide tiket 3D: badan tetap di sana, gelembung hanya sebentar). */
+  bodyWeight = 1,
+): readonly [number, number, BubbleSide] {
   let best = candidates[0]!;
   let bestCost = Infinity;
   for (const c of candidates) {
@@ -181,7 +210,7 @@ export function bestSide(blocks: readonly Block[], screen: Readonly<{ w: number;
     const gx = above ? Math.max(12, Math.min(screen.w - 12 - gw, cx - gw / 2)) : c[2] === "right" ? bx + bw + 8 : bx - 8 - gw;
     const gy = above ? by - bubble.h - 8 : Math.max(12, Math.min(screen.h - 12 - bubble.h, cy - bubble.h / 2));
     let cost = gy < 0 ? 1e9 : 0;
-    for (const b of blocks) cost += b.weight * (overlap(b, bx, by, bw, bh) + 0.6 * overlap(b, gx, gy, gw, bubble.h));
+    for (const b of blocks) cost += b.weight * (bodyWeight * overlap(b, bx, by, bw, bh) + 0.6 * overlap(b, gx, gy, gw, bubble.h));
     if (cost < bestCost - 1) {
       bestCost = cost;
       best = c;

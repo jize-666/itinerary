@@ -2,6 +2,8 @@
 
 19 November 2026 · dibaca bersama `codex-prd-bersama.md` (aturan bersama) · disusun Claude untuk host
 
+> **Pembaruan 25 Nov 2026:** Codex tidak punya akses repo dan tugas ini dibagi dua. Prompt yang dikirim ke Codex sekarang `codex-prompt-12-boarding-pass.md` (berdiri sendiri, dengan gambar referensi three.js `ref-01`–`ref-07` dari `prototypes/boarding-pass/reference/`). Codex mengerjakan setengah pertama (fisika, tiket 3D, interaksi, sandbox); Claude memasangnya di film dan mengerjakan sisanya. Tujuan dan uji penerimaan di berkas ini tetap berlaku.
+
 ## Prompt siap tempel (English)
 
 > Build the guest's ticket, "Admit one", as a physical 3D object in the film: a hanging paper tag on a thread that the guest can grab, pull, swing, flick and flip, reacting to phone tilt and a light breeze, with gold foil that catches the light. Write the rope and card physics yourself in TypeScript (no WebAssembly, so no Rapier) as a deterministic fixed-step solver. The guest's name comes from private runtime data and must never be in the bundle or the repo. It appears on the `pass` slide of `/film/` (and the epilogue if you wish) inside the existing 3D stage, with the current DOM ticket as the fallback. The design of the card, the material, the physics feel, where it hangs, and any extra moments are yours: aim for a tactile object that feels real in the hand, and exceed this PRD where you can. Respect the hard limits in the shared rules and pass the acceptance tests in §7. Deliver as described in the shared rules §4.

@@ -5,7 +5,7 @@ import { useI18n } from "@/engine/i18n/useI18n";
 import type { TripView } from "@/lib/trip";
 import "./pass.css";
 
-const fmtDate = (date: string, lang: Lang) =>
+export const fmtDate = (date: string, lang: Lang) =>
   new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }).format(
     new Date(`${date}T12:00:00+07:00`),
   );

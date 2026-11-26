@@ -25,7 +25,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 24 Nov 2026 (PR #12–#24 di-merge; Tugas 1–11 selesai, 11.4 di PR #25 menunggu host; Tugas 12 belum, Codex tidak bisa melanjutkan). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 26 Nov 2026 (PR #12–#25 di-merge; Tugas 1–12 selesai, Tugas 12 di PR #26 menunggu host; daftar habis, tanya host sebelum lanjut). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -159,7 +159,19 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     Rinciannya: `docs/design/decisions.md` bagian "Suara membatik dan kain tamu di epilog" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
     - Host mendengar video bersuara. Suaranya belum pernah didengar di perangkat; di container hanya spektrumnya yang diperiksa.
     - Uji di iPhone produksi: suara di `/canting/` dan Hari 3, serta kain di epilog sesudah membatik.
-- [ ] **12. Boarding pass 3D dengan fisika.** 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM).
+- [x] **12. Boarding pass 3D dengan fisika.** ✅ 26 Nov 2026 (12a + 12b), PR #26, menunggu host. 📝 PRD Codex: `codex-prd-12-boarding-pass-3d.md` (fisika ditulis sendiri, tanpa WASM). Dibagi dua atas arahan host 25 Nov ("codex kerjakan setengah nya saja. sisanya lu, setelah output codex"; Codex tidak punya akses repo, boleh Blender atau three.js):
+  - [x] **12a. Codex:** fisika murni + tes, tiket 3D, interaksi, sandbox. ✅ 25 Nov: prompt berdiri sendiri `docs/handoff/codex-prompt-12-boarding-pass.md` dan gambar referensi three.js `ref-01`–`ref-07` (adegan `prototypes/boarding-pass/reference/`). ✅ 26 Nov: output Codex diterima (`pass3d.zip`, README `docs/handoff/README-12-boarding-pass.md`).
+  - [x] **12b. Claude, sesudah output Codex.** ✅ 26 Nov 2026 (host: "gabungin sama ini aja", jadi satu PR dengan 12a):
+    - tiket tergantung di depan gong di slide tiket, turun dari atap dan naik lagi mengikuti gulir; kamera tidak pernah menembusnya (diuji);
+    - seret, ayun, sentil, ketuk/Enter untuk membalik; geser di luar tiket tetap pindah slide; kemiringan HP menggeser gravitasi;
+    - material memakai uniform panggung; parallax dan perspective shift diperkecil sebanding jarak;
+    - tiket DOM tetap untuk Static/Calm/gagal dan untuk pembaca layar;
+    - Clawd memberi petunjuk; suara prosedural tiket;
+    - e2e `pass3d.spec.ts`.
+
+    Rinciannya: `docs/design/decisions.md` bagian "Tiket 3D bertali di slide tiket" dan `HANDOFF.md` bagian 0. Sisa pekerjaan:
+    - Host menonton video dan menguji di iPhone produksi: fps saat diseret, jari, kemiringan, suara.
+    - Belum dikerjakan (P1, menunggu host): tiket juga di epilog, reaksi Clawd saat tiket dipegang/dibalik, versi 2,5D berpegas CSS, klip suara EN `tip.pass.0/1`.
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 

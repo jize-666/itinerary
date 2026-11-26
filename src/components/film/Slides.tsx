@@ -428,6 +428,7 @@ function Pass({ data }: Ctx) {
   return (
     <div className="fl-body fl-body--center fs-pass">
       <HangingPass data={data} delay={200} width={560} thread={30} className="fs-ticket" />
+      <p className="sr-only fs-ticket-hint">{t("ticket.label3d")}</p>
       <div className="fs-actions f-rise" style={d(700)}>
         <CurtainLink className="pb pb--gold pb--kawung pb--lg" data-haptic="" href="/today/">
           <span className="pb-face">

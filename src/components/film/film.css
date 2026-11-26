@@ -1414,6 +1414,34 @@ html.film-on body {
   gap: clamp(18px, 3vh, 30px);
 }
 
+/* Tiket 3D bertali (Tugas 12b) tampil di panggung: tiket DOM disembunyikan dari layar tetapi tetap terbaca pembaca layar
+   (isi tiket lengkap di sana), tombol turun ke bawah layar supaya kartu 3D di atasnya leluasa dipegang dan diayun.
+   Selama memuat, atau bila tiket 3D gagal, tiket DOM yang tampil. */
+.fs-ticket-hint {
+  display: none;
+}
+
+.film[data-pass3d]:not([data-pass3d="loading"]) .fs-ticket {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.film[data-pass3d]:not([data-pass3d="loading"]) .fs-ticket-hint {
+  display: block;
+}
+
+.film[data-pass3d]:not([data-pass3d="loading"]) .fs-pass {
+  align-content: end;
+  /* di atas label bab dan garis kemajuan film */
+  padding-bottom: max(86px, calc(env(safe-area-inset-bottom) + 74px));
+}
+
 .fs-actions {
   display: grid;
   gap: 10px;

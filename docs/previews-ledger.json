@@ -542,6 +542,86 @@
       "sent": "2026-11-24",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "ref-01-hero.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-01-hero.jpg",
+      "size": 673460,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-02-macro.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-02-macro.jpg",
+      "size": 649407,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-03-back.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-03-back.jpg",
+      "size": 748996,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-04-motion.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-04-motion.jpg",
+      "size": 835704,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-05-phone.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-05-phone.jpg",
+      "size": 447366,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-06-storyboard.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-06-storyboard.jpg",
+      "size": 748972,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "ref-07-spec.jpg",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12/ref-07-spec.jpg",
+      "size": 782870,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "codex-12-boarding-pass.zip",
+      "path": "/tmp/claude-0/-home-user/58ba516e-5456-4177-946b-a5c9fd276c10/scratchpad/codex-12-boarding-pass.zip",
+      "size": 4813074,
+      "sent": "2026-11-25",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket3d-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/tiket3d-desktop.mp4",
+      "size": 28130424,
+      "sent": "2026-11-26",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket3d-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/tiket3d-hp.mp4",
+      "size": 15775381,
+      "sent": "2026-11-26",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
