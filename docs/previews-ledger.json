@@ -606,6 +606,14 @@
       "sent": "2026-11-25",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "tiket3d-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/tiket3d-desktop.mp4",
+      "size": 28130424,
+      "sent": "2026-11-26",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
