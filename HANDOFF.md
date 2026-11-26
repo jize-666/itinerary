@@ -5,6 +5,17 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — DICATAT, SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
+
+Tafsir Claude:
+- Suara Clawd (39 klip EN suara teman host di `public/audio/clawd/en/`, `voice-clips.json`, pemutar klip) dihapus.
+- Gantinya bunyi "biip" prosedural (Web Audio, tanpa berkas): rentetan biip pendek mengikuti ketikan gelembung, satu biip per suku kata/kata (bukan per huruf, supaya tidak berisik). Nadanya ikut emosi Clawd (senang tinggi dan lincah, marah rendah dan kasar, terkejut melonjak, mengantuk turun pelan). Ikut sakelar suara.
+- Karena biip tidak berbahasa, film berbahasa Indonesia juga ikut bersuara.
+- Subagen klip suara P1d dihentikan (klip tiket dan `tip.mountain.0` tidak lagi diperlukan); belum ada berkas repo yang ia ubah.
+- Bila host ingin satu biip per gelembung saja (bukan rentetan), cukup diganti satu angka.
+
 ### Permintaan host 26 Nov: "kerjakan sisa tugas 12" — DICATAT, SEDANG DIKERJAKAN
 
 **Kata host, kata demi kata:** "kerjakan sisa tugas 12". Sisa yang dimaksud adalah P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2 yang belum dikerjakan di PR #26:
@@ -19,7 +30,7 @@ Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratc
 - **P1a, tiket di penutup** (Sonnet): saat gunungan ditancapkan kembali di credits, tiket turun di samping gunungan mengikuti `planted` (desktop: kelir kosong di kiri gunungan; HP: pojok kiri atas di samping pucuk), tersentak dan berbalik ke "Matur nuwun" saat gunungan menancap dengan gong, bisa dipegang dan dibalik; digambar di atas kelir. Clawd tetap di kanan bawah.
 - **P1b, reaksi Clawd** (Sonnet): selesai, lihat di bawah.
 - **P1c, tiket 2,5D berpegas** (Sonnet): model pegas murni (`engine/pass3d/swing2d.ts`), tiket DOM berayun mengikuti kursor/kemiringan, bisa diseret dan diketuk untuk dibalik (muka belakang DOM), memakai isyarat `PassSignal` yang sama (suara dan Clawd ikut), `data-pass-flat`; Calm diam.
-- **P1d, klip suara** (Sonnet): 10 klip EN (`tip.pass.*`, reaksi tiket, dan `tip.mountain.0`) dengan Chatterbox di CPU. Rekaman acuan asli tidak ada di container ini, jadi acuannya gabungan klip Clawd yang sudah ada.
+- ~~**P1d, klip suara**~~: dibatalkan, suara Clawd diganti biip (permintaan host di atas).
 
 **P1b selesai (26 Nov):**
 1. Selesai: kalimat baru `ticketGrab` ("Careful, that ticket has your name on it!" / "Hold on tight!"), `ticketToss` ("Whoa! Easy, it's only paper!" / "Wheee! Look at it spin!"), `ticketBack` ("Matur nuwun. That's Javanese for thank you."), `ticketFront` ("And there's your name again."), dua bahasa; `tip.pass.1` punya varian klik/ketuk. `MascotBehavior.ticket` (gerak + suasana hati, ucapan dijarangkan `speechGap` dan 15 dtk per jenis, diam saat memandu atau marah); `ticketReaction` (lepas ≥ 0,9 m/s = dilempar); reaksi pegang ditunda 350 ms (Opus, sesudah tinjauan) supaya ketukan yang membalik tiket ditanggapi sebagai balik, bukan pegangan. Disambungkan dari `stageBus.onPass` di Clawd 3D dan 2,5D; `contextOf` juga membaca `data-pass-flat`.
