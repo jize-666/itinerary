@@ -1,9 +1,23 @@
 # HANDOFF
 
-Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `9805c53`) · **Tugas 12 (12a + 12b) selesai di PR #26, menunggu host** (tonton video tiket 3D, uji iPhone) · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov 10.34 UTC; Tugas 1–12 selesai semuanya** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
+
+**Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"
+
+1. **Selesai:** PR #26 (Tugas 12a + 12b) di-merge 26 Nov 10.34 UTC (squash `9dd1565`). Semua tugas di daftar `CLAUDE.md` (1–12, ditambah tugas di luar urutan) sudah selesai dan masuk `main`. Branch kerja dimulai ulang dari `main` `9dd1565`.
+2. **Hasil tes / kendala:** tidak ada kode baru di sesi ini. Pratinjau yang belum di Drive: 72 berkas, 673 MB (di bawah 1 GB, belum perlu token).
+3. **Langkah berikutnya:** daftar tugas habis, jadi tanya host dulu sebelum lanjut. Yang masih menunggu host:
+   - uji di iPhone produksi dan MacBook: tiket 3D, suara membatik dan kain di epilog, Hari 3, `/canting/`, maket, tombol suara sesudah tab dimuat ulang, izin gerak, Lereng Lawu, diorama;
+   - P1 Tugas 12 yang belum dikerjakan: tiket di epilog, reaksi Clawd saat tiket dipegang atau dibalik, versi 2,5D berpegas CSS;
+   - klip suara EN yang butuh rekaman teman host: `tip.mountain.0`, `tip.pass.0/1`;
+   - pertanyaan lama yang belum dijawab: kaki Clawd 3D tertutup kartu gallery, api naga gong judul keluar bingkai atas, `GRADE_STRENGTH`, 2,5D di slide selain gallery;
+   - beban yang belum diperbaiki: Lereng Lawu 8,8–10,8 dtk di 4G tanpa gzip (target ≤ 5 dtk), dunia Lawu dibangun di main thread (±130–300 ms);
+   - Jize Zone: URL login di Supabase (bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2").
 
 ### Tugas 12b: output Codex dipasang di film — SELESAI 26 NOV, DI PR #26 (bersama 12a), MENUNGGU HOST
 
