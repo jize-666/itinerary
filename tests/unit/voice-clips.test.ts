@@ -12,7 +12,7 @@ const DIR = join(process.cwd(), "public/audio/clawd");
 const manifest = clips as Record<string, Record<string, number> | undefined>;
 // Kalimat baru yang klipnya belum direkam (butuh rekaman teman host): gelembung tanpa suara. Begitu klipnya ada,
 // diperiksa seperti klip lain. tip.mountain (Tugas 10), tip.pass (tiket 3D, Tugas 12b).
-const PENDING = new Set(["tip.mountain.0", "tip.pass.0", "tip.pass.1"]);
+const PENDING = new Set(["tip.mountain.0", "tip.pass.0", "tip.pass.1", "tip.pass.1.touch", "ticketGrab.0", "ticketGrab.1", "ticketToss.0", "ticketToss.1", "ticketBack.0", "ticketFront.0"]);
 const names = voiceLines().map((l) => l.name).filter((name) => !PENDING.has(name) || !!manifest.en?.[name]);
 
 describe("klip suara Clawd (berkas asli)", () => {

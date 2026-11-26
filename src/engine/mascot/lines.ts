@@ -32,10 +32,10 @@ export const WELCOME_BACK: readonly Text[] = [{ en: "Welcome back! Clawd here.",
  */
 export type TipId = "kayon" | "beat" | "zoom" | "gallery" | "phrases" | "gong" | "credits" | "mountain" | "pass";
 export const TIPS: Readonly<Record<TipId, readonly Text[]>> = {
-  // tiket 3D bertali di slide tiket (Tugas 12b); belum ada klip suara, jadi gelembung tanpa suara
+  // tiket bertali di slide tiket (3D dan 2,5D); klip suaranya menyusul, sampai ada gelembung tanpa suara
   pass: [
     { en: "This ticket is yours. Grab it and give it a swing.", id: "Tiket ini milikmu. Pegang, lalu ayunkan." },
-    { en: "Tap it to see the back.", id: "Ketuk untuk melihat baliknya." },
+    { en: "Click it to see the back.", id: "Klik untuk melihat baliknya.", touch: { en: "Tap it to see the back.", id: "Ketuk untuk melihat baliknya." } },
   ],
   mountain: [
     {en:"Look along the rows. The first warm light has to clear the ridge.",id:"Coba lihat barisan teh itu. Cahaya pagi baru sampai setelah melewati punggung bukit."},
@@ -122,6 +122,16 @@ export const SAY: Readonly<Record<SpeechKey, readonly Text[]>> = {
     { en: "Whoa! That startled me!", id: "Wah! Kaget aku!" },
     { en: "That gong is loud!", id: "Gongnya keras, ya!" },
   ],
+  ticketGrab: [
+    { en: "Careful, that ticket has your name on it!", id: "Hati-hati, ada namamu di tiket itu!" },
+    { en: "Hold on tight!", id: "Pegang yang erat!" },
+  ],
+  ticketToss: [
+    { en: "Whoa! Easy, it's only paper!", id: "Wah! Pelan, itu cuma kertas!" },
+    { en: "Wheee! Look at it spin!", id: "Wiii! Lihat, berputar!" },
+  ],
+  ticketBack: [{ en: "Matur nuwun. That's Javanese for thank you.", id: "Matur nuwun. Itu bahasa Jawa untuk terima kasih." }],
+  ticketFront: [{ en: "And there's your name again.", id: "Dan itu namamu lagi." }],
 };
 
 /** Teks satu ucapan dalam bahasa `lang`; `touch` = layar sentuh. */

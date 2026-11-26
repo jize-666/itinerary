@@ -15,6 +15,17 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 Branch kerja `claude/admiring-noether-tbqvap` dari `main` `9dd1565` (sudah ada satu commit catatan).
 
+Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratchpad `tail-desktop.png`/`tail-hp.png`):
+- **P1a, tiket di penutup** (Sonnet): saat gunungan ditancapkan kembali di credits, tiket turun di samping gunungan mengikuti `planted` (desktop: kelir kosong di kiri gunungan; HP: pojok kiri atas di samping pucuk), tersentak dan berbalik ke "Matur nuwun" saat gunungan menancap dengan gong, bisa dipegang dan dibalik; digambar di atas kelir. Clawd tetap di kanan bawah.
+- **P1b, reaksi Clawd** (Sonnet): selesai, lihat di bawah.
+- **P1c, tiket 2,5D berpegas** (Sonnet): model pegas murni (`engine/pass3d/swing2d.ts`), tiket DOM berayun mengikuti kursor/kemiringan, bisa diseret dan diketuk untuk dibalik (muka belakang DOM), memakai isyarat `PassSignal` yang sama (suara dan Clawd ikut), `data-pass-flat`; Calm diam.
+- **P1d, klip suara** (Sonnet): 10 klip EN (`tip.pass.*`, reaksi tiket, dan `tip.mountain.0`) dengan Chatterbox di CPU. Rekaman acuan asli tidak ada di container ini, jadi acuannya gabungan klip Clawd yang sudah ada.
+
+**P1b selesai (26 Nov):**
+1. Selesai: kalimat baru `ticketGrab` ("Careful, that ticket has your name on it!" / "Hold on tight!"), `ticketToss` ("Whoa! Easy, it's only paper!" / "Wheee! Look at it spin!"), `ticketBack` ("Matur nuwun. That's Javanese for thank you."), `ticketFront` ("And there's your name again."), dua bahasa; `tip.pass.1` punya varian klik/ketuk. `MascotBehavior.ticket` (gerak + suasana hati, ucapan dijarangkan `speechGap` dan 15 dtk per jenis, diam saat memandu atau marah); `ticketReaction` (lepas ≥ 0,9 m/s = dilempar); reaksi pegang ditunda 350 ms (Opus, sesudah tinjauan) supaya ketukan yang membalik tiket ditanggapi sebagai balik, bukan pegangan. Disambungkan dari `stageBus.onPass` di Clawd 3D dan 2,5D; `contextOf` juga membaca `data-pass-flat`.
+2. Tes: unit `ticket.test.ts` 15/15, typecheck dan eslint bersih. Klip suara baru masuk `PENDING` sampai P1d selesai.
+3. Berikutnya: P1a, P1c, P1d berjalan.
+
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 
 **Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"

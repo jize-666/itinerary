@@ -13,11 +13,13 @@
  * Murni: waktu dalam milidetik dari pemanggil.
  */
 import type { Lang } from "@/engine/i18n/lang";
-import { MascotBehavior } from "./behavior";
+import type { PassSignal } from "@/engine/stage/bus";
+import { MascotBehavior, type TicketKind } from "./behavior";
 import { Dialogue, type SpeechFrame, type Utterance } from "./dialogue";
 import type { Mood } from "./face";
 import { INTRO, SAY, type SpeechKey, type Text, TIPS, type TipId, textOf, WELCOME_BACK } from "./lines";
 import type { Motion } from "./pose";
+import { GRAB_DELAY, ticketReaction } from "./ticket";
 import { clipMs, clipName } from "./voice";
 
 /** Sambungan ke pemutar suara: suara menyala, dan unduh klip lebih dulu. */
@@ -46,6 +48,8 @@ export class Clawd {
   private turns: Partial<Record<SpeechKey, number>> = {};
   private talkSince = 0;
   private talking = false;
+  /** Tiket sedang dipegang sejak (ms), menunggu `GRAB_DELAY`; null = tidak ada pegangan yang ditunda. */
+  private grabAt: number | null = null;
 
   constructor(now: number, lang: Lang, touch = false, private readonly voice?: ClawdVoice) {
     this.lang = lang;
@@ -137,6 +141,25 @@ export class Clawd {
     this.behavior.gong(now);
   }
 
+  ticket(kind: TicketKind, now: number) {
+    this.clock = now;
+    this.behavior.ticket(kind, now);
+  }
+
+  /** Isyarat tiket bertali (3D atau 2,5D). Pegangan baru ditanggapi sesudah `GRAB_DELAY` bila belum dilepas. */
+  ticketSignal(signal: PassSignal, now: number) {
+    this.clock = now;
+    if (signal.type === "release") this.grabAt = null;
+    const kind = ticketReaction(signal);
+    if (!kind) return;
+    if (kind === "grab") {
+      this.grabAt = now;
+      return;
+    }
+    this.grabAt = null;
+    this.behavior.ticket(kind, now);
+  }
+
   /** Kegiatan lain di halaman (gulir, geser): menunda kantuk. */
   activity(now: number) {
     this.clock = now;
@@ -150,6 +173,10 @@ export class Clawd {
 
   tick(now: number): ClawdFrame {
     this.clock = now;
+    if (this.grabAt !== null && now - this.grabAt >= GRAB_DELAY) {
+      this.grabAt = null;
+      this.behavior.ticket("grab", now);
+    }
     // selama berbicara Clawd tidak mengantuk; selama perkenalan dan petunjuk ia tidak menyela dirinya dengan celetukan
     this.dialogue.tick(now);
     this.behavior.guiding = this.dialogue.has("intro.") || this.dialogue.has("welcome.") || this.dialogue.has("tip.");

@@ -26,6 +26,8 @@ const MOODS: readonly (readonly [RegExp, VoiceMood])[] = [
   [/^(happy|love)\./, "happy"],
   [/^tap\.2/, "happy"], // "Hehe, that tickles!"
   [/^gong\./, "surprised"],
+  [/^ticketToss\.0/, "surprised"],
+  [/^(ticketToss\.1|ticketFront\.)/, "happy"],
   [/^wake\.0/, "surprised"], // "Huh! I wasn't sleeping!"
   [/^(rest|wake)\./, "sleepy"],
 ];

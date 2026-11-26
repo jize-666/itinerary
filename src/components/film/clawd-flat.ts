@@ -39,6 +39,9 @@ export function createFlatGuide({ host, probe, still, touch }: { host: HTMLEleme
     timers.add(id);
   });
 
+  // tamu bermain dengan tiket bertali (2,5D): Clawd bereaksi
+  const offPass = stageBus.onPass((e) => session.ticket(e, performance.now()));
+
   const view = { w: host.clientWidth, h: host.clientHeight };
   const resize = new ResizeObserver(() => {
     view.w = host.clientWidth;
@@ -141,6 +144,7 @@ export function createFlatGuide({ host, probe, still, touch }: { host: HTMLEleme
     dispose() {
       cancelAnimationFrame(raf);
       offStrike();
+      offPass();
       timers.forEach((id) => clearTimeout(id));
       resize.disconnect();
       session.dispose();

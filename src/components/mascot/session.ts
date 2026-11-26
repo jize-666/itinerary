@@ -11,6 +11,7 @@ import { audioStatus } from "@/engine/audio/status";
 import { langStore } from "@/engine/i18n/lang";
 import { Clawd, type ClawdFrame } from "@/engine/mascot/clawd";
 import { bestSide, PASS_BODY_WEIGHT, PASS_CANDIDATES, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
+import type { PassSignal } from "@/engine/stage/bus";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
 import { clipMs, clipUrl } from "@/engine/mascot/voice";
 
@@ -57,7 +58,8 @@ const storage = () => {
 /** Keadaan film yang dibaca dari atribut data akar film (`data-kind`, `data-beat`, `data-gate`, `data-sheet`). */
 export function contextOf(el: HTMLElement, moving: boolean, flat: boolean): GuideContext {
   return {
-    mountainDawn: el.dataset.theme === "lawu" && el.dataset.slide?.endsWith("/kemuning-sunrise"), kind: el.dataset.kind as GuideContext["kind"], pass3d: !!el.dataset.pass3d && el.dataset.pass3d !== "loading", beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
+    mountainDawn: el.dataset.theme === "lawu" && el.dataset.slide?.endsWith("/kemuning-sunrise"), kind: el.dataset.kind as GuideContext["kind"], // tiket 3D tampil, atau tiket 2,5D sedang interaktif (`data-pass-flat`)
+    pass3d: (!!el.dataset.pass3d && el.dataset.pass3d !== "loading") || "passFlat" in el.dataset, beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
 }
 
 export type SessionFrame = Readonly<{
@@ -160,6 +162,11 @@ export function createSession({ touch }: { touch: boolean }) {
     gong(ms: number) {
       clock = ms;
       brain.gong(ms);
+    },
+    /** Isyarat tiket bertali: tamu menggenggam, melempar, atau membalik. */
+    ticket(signal: PassSignal, ms: number) {
+      clock = ms;
+      brain.ticketSignal(signal, ms);
     },
     dispose() {
       if (voiced) audioStatus.hush();

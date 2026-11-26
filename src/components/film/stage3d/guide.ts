@@ -13,6 +13,7 @@ import { type PerspectiveCamera, type Scene, Vector3 } from "three";
 import { createBubble } from "@/components/mascot/bubble";
 import { BODY_FRAC, contextOf, createSession } from "@/components/mascot/session";
 import type { BubbleSide } from "@/engine/mascot/guide";
+import { stageBus } from "@/engine/stage/bus";
 import type { Hold } from "./chapters";
 import { createMascot } from "./mascot";
 import type { Shared } from "./shared";
@@ -58,6 +59,8 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
   rig.emotes.visible = false;
   scene.add(rig.root, rig.emotes, rig.lights);
   const session = createSession({ touch });
+  // tamu bermain dengan tiket bertali: Clawd bereaksi
+  const offPass = stageBus.onPass((e) => session.ticket(e, session.clock));
 
   let bubble: ReturnType<typeof createBubble> | null = null;
   let hit: HTMLButtonElement | null = null;
@@ -227,6 +230,7 @@ export function createStageGuide({ shared, scene, host, touch }: { shared: Share
       rig.setPixel(px);
     },
     dispose() {
+      offPass();
       session.dispose();
       resize?.disconnect();
       bubble?.dispose();
