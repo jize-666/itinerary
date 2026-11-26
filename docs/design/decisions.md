@@ -543,6 +543,8 @@ Belum disambungkan ke film (itu M3).
 
 ## Suara Clawd (17 Nov 2026), arahan host: "ini ada 2 suara, yang suara perempuan adalah suara yang pernah ku buat untuk clawd. bisa pakai suara ini?", "oke i choose clawd-deep-6"
 
+**Diganti 26 Nov 2026:** suara klip dihapus, Clawd kini berbunyi "biip" (bagian "Biip Clawd" di bawah). Butir di bagian ini tinggal sebagai catatan riwayat.
+
 Sumber suara diganti 17–18 Nov (host: "suara clawd, ganti dengan ini"; pilihan host 18 Nov: "gw pilih suara temen gw yang en. gausa kasih indo."). Suara ElevenLabs "clawd-deep-6" di atas tidak dipakai lagi; butir di bawah sudah sesuai keadaan baru.
 
 - **Suara:** rekaman pesan suara teman host, yang sudah setuju suaranya dipakai untuk proyek ini, ditiru dengan Chatterbox (model TTS open source Resemble AI) yang dijalankan di CPU container, karena kuota ZeroGPU Hugging Face habis. Rekaman dijernihkan seperlunya (warna suara berubah ±1 dB). Rekaman mentah dan WAV hasil Chatterbox disimpan di luar repo.
@@ -796,3 +798,24 @@ Tugas 12 dibagi dua. Codex (tanpa akses repo) mengerjakan setengah pertama dari 
 - **Clawd.** Petunjuk baru `pass` ("This ticket is yours. Grab it and give it a swing." / "Tap it to see the back."), hanya bila tiket 3D tampil. Belum ada klip suara, jadi gelembung tanpa suara. Clawd tidak menutupi tiket: panggung menulis kotak kartu di layar (`data-pass-box`) dan pemilih tempat Clawd menghindarinya seperti teks. Di HP 9:16 yang pendek tidak ada tempat biasa yang muat, jadi slide tiket punya calon tambahan di pita kiri/kanan kartu dan badan yang menutupi kartu dihitung 12× lebih mahal daripada gelembung (gelembung hanya muncul sebentar). Ditemukan di video HP pertama: Clawd berdiri di pojok kiri atas kartu.
 - **Suara** (Sonnet): desir kertas mengikuti laju ayunan, denting mata ayam saat tali tersentak, ketuk kertas saat dibalik, sentuhan saat dipegang dan desau saat dilepas. Prosedural (Web Audio), ikut sakelar suara.
 - **Untuk uji dan perekam**: `data-pass3d` (status) dan `data-pass-at` (pusat kartu di layar, persen) di akar film; tur perekam `tiket`.
+
+## Sisa Tugas 12: tiket di penutup, tiket 2,5D berpegas, reaksi Clawd (26 Nov 2026), arahan host: "kerjakan sisa tugas 12"
+
+Butir P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2.
+
+- **Tiket di penutup film** (PRD situs §7.4: tiket tergantung saat gong terakhir dan gunungan ditancapkan kembali). Di credits, saat gunungan ditancapkan lagi (`tail`), tiket turun dari atas bingkai di samping gunungan mengikuti `planted` (kedalaman ikut gulir; naik lagi saat gunungan dicabut). Letaknya dipatok di layar dari shot kayon (`tailHook`, `engine/stage/pass.ts`): layar mendatar di kelir kosong kiri gunungan (pusat NDC −0,56, +0,10; kartu 34% tinggi layar), layar tegak di pojok kiri atas di samping pucuk gunungan (−0,68, +0,45; 19%), karena Clawd berdiri di kanan bawah. Layar hampir persegi menggeser dan mengecilkan kartu supaya tidak menyentuh gunungan.
+  - Saat gunungan menancap (dengan gong), tiket tersentak dan berbalik ke muka "Matur nuwun", penutup yang pas untuk lakon. Ketukan membaliknya lagi; bisa diseret dan diayun seperti di slide tiket.
+  - Kelir dan gunungan digambar di atas seluruh panggung (`depthTest` mati, `renderOrder` 2000/2001), jadi material tiket masuk daftar tembus pandang (alfa tetap 1) dan digambar dengan `renderOrder` 2002 di mode penutup.
+  - Parallax kamera di penutup menyusut sebanding jarak tiket (±0,7 m), seperti di slide tiket; yang lain di layar (gunungan, Clawd) menempel pada kamera.
+  - Tombol `.fl-kayon` di atas gunungan tetap ditawarkan ke pegangan tiket: sinar 3D yang memutuskan, dan bila tiket yang kena, klik pada tombol ditelan (gunungan tidak ikut terbalik).
+- **Tiket 2,5D berpegas** (film tanpa WebGL, juga selama tiket 3D memuat atau gagal). Model pegas murni `engine/pass3d/swing2d.ts` (langkah tetap 1/120 dtk): ayun di bidang layar 0,85 Hz, ayun ke depan-belakang, dan putar di tali dengan pegas ke 0 atau π. Kemiringan HP atau kursor menggeser titik setimbang (≤ ±6°) dan perubahan pandang yang cepat menambah ayunan (kartu tertinggal saat pandang bergerak). Seret untuk mengayun, ketuk atau Enter untuk membalik ke muka belakang DOM (kawung foil, monogram inisial tamu, "Matur nuwun"). Bayangan jauh berada di luar putaran, jadi tetap di belakang kartu. Pengendali `film/pass-toy.ts` menulis `--ps-roll/--ps-pitch/--ps-yaw`, tidur saat kartu diam, menulis `data-pass-flat` di akar film, dan memakai isyarat `PassSignal` yang sama dengan tiket 3D, jadi suara tiket dan Clawd ikut. Bus panggung punya slot pegangan kedua untuk tiket DOM (tiket 3D didahulukan). Calm: diam seperti sebelumnya.
+- **Reaksi Clawd** saat tiket dimainkan (3D dan 2,5D): dipegang ("Careful, that ticket has your name on it!"), dilempar ≥ 0,9 m/s ("Whoa! Easy, it's only paper!"), dibalik ("Matur nuwun. That's Javanese for thank you."), kembali ke depan ("And there's your name again."), dua bahasa. Ucapan dijarangkan (jeda 4 dtk dan 15 dtk per jenis), diam selama memandu atau marah. Reaksi pegang ditunda 350 ms supaya ketukan yang membalik tiket ditanggapi sebagai balik.
+
+## Biip Clawd (26 Nov 2026), arahan host: "ilangin suara clawd, ganti dengan \"biip\""
+
+- Klip suara Clawd (39 MP3, `voice-clips.json`, pemutar klip, `scripts/audio/clawd-voice.ts`) dihapus. Gelembung kembali memakai waktu ketik dan baca saja.
+- Gantinya biip prosedural (Web Audio, tanpa berkas): satu biip pendek di awal tiap kata yang diketik, bukan per huruf (`engine/mascot/beep.ts`), paling rapat 75 ms; lompatan besar (Calm menampilkan kalimat sekaligus) paling banyak tiga biip. Tinggi nada bergeser tetap per kata (hash kata), jadi terdengar seperti celoteh gim piksel, cocok dengan gelembung pikselnya.
+- Nada mengikuti suasana kalimat: tenang 700 Hz kotak, senang 880 Hz naik sedikit, terkejut 900 Hz melonjak, marah 300 Hz gergaji turun, mengantuk 480 Hz segitiga turun pelan dan hanya tiap kata kedua. Lirih, masuk bus efek, ikut sakelar suara (`audioStatus.beep`, pembangkit `engine/audio/beep-synth.ts`).
+- Biip tidak berbahasa, jadi film berbahasa Indonesia kini ikut bersuara.
+- Perekam pratinjau mencatat biip (`__clawdBeep`) dan `scripts/preview/mix-beep.cjs` membangkitkannya ulang di OfflineAudioContext untuk video.
+
