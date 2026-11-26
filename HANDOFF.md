@@ -1,18 +1,26 @@
 # HANDOFF
 
-Diperbarui 25 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `9805c53`, PR #25 di-merge) · **Tugas 12 dibagi dua: 12a (Codex) prompt + gambar referensi terkirim, menunggu output Codex; 12b dikerjakan Claude sesudahnya** · Jize Zone tayang di https://jize-zone.vercel.app.
+Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `9805c53`) · **Tugas 12 (12a + 12b) selesai di PR #26, menunggu host** (tonton video tiket 3D, uji iPhone) · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Tugas 12b: output Codex dipasang di film — DICATAT 26 NOV, SEDANG DIKERJAKAN
+### Tugas 12b: output Codex dipasang di film — SELESAI 26 NOV, DI PR #26 (bersama 12a), MENUNGGU HOST
 
 **Kata host, kata demi kata:** "@pass3d.zip hasil task 12 codex. pr 26 blm gw merge gabungin sama ini aja". Jadi 12b dikerjakan di branch yang sama dan masuk PR #26 (bersama prompt dan gambar referensi 12a).
 
-1. **Kiriman Codex** (`pass3d.zip`, 52 berkas, dibongkar di scratchpad): `engine/` (fisika badan kaku + tali 16 ruas, 240 Hz, deterministik, event), `render/` (kartu, tali pilin, muka depan/belakang di kanvas runtime, material HDR dengan uniform panggung), `interaction/` (pointer + Enter/Space, mengembalikan "bukan milikku"), `sandbox/`, `tests/` (Vitest fisika + uji nama di browser), README. Modul ±14,3 KB gzip, 5 draw call, fisika 0,1–0,2 ms.
-2. **Rencana 12b:** salin ke `src/engine/pass3d/` dan `src/components/film/stage3d/pass3d/`; pasang di `runtime.ts` (dibuat dekat slide `pass`, dilepas saat jauh), sambungkan uniform `COMMON`; shot `pass` baru + aturan gerak kamera host (parallax, perspective shift, tiket turun mengikuti gulir); gestur tiket vs swipe film; isi tiket dari data trip + i18n; DOM `HangingPass` tersembunyi visual saat 3D siap, tetap untuk Static/Calm; `data-pass3d`; Clawd tidak menutupi tiket + reaksi; suara prosedural; tes unit + e2e; video desktop + HP (data April, Jize); dokumen.
+1. **Selesai** (rincian: `docs/design/decisions.md` bagian "Tiket 3D bertali di slide tiket"; README Codex: `docs/handoff/README-12-boarding-pass.md`):
+   - Modul Codex dipakai apa adanya: `src/engine/pass3d/` (fisika badan kaku + tali 16 ruas, 240 Hz, deterministik) dan `src/components/film/stage3d/pass3d/` (kartu, tali pilin, muka cetak runtime, material HDR, input). Perubahan hanya `noUncheckedIndexedAccess` (Sonnet) dan opsi `prelude` material.
+   - Panggung (`pass3d/stage.ts`, `engine/stage/pass.ts`): tiket dipasang ≤ 2 slide dari slide tiket, dilepas bila jauh; kait ±3,3 m di depan gong; tiket turun dari atap di akhir perpindahan dan naik saat pergi, mengikuti gulir; shot `passShot` baru; parallax diperkecil sebanding jarak; blencong didekatkan secara maya sebagai lampu kartu; uniform `COMMON`.
+   - Gestur (`engine/slides/input.ts` + `director.ts` + bus): pointer di kartu/tali = fisika, di tempat lain = geser film; ketuk/Enter = balik; pandangan ditahan selama dipegang; kemiringan HP menggeser gravitasi; angin 0,04.
+   - Isi tiket dari data trip runtime + i18n (`components/pass/content.ts`); tanpa tabel bandara (penanda privasi "TJQ").
+   - Tiket DOM tersembunyi dari layar saat tiket 3D tampil, tetap terbaca pembaca layar; tombol turun ke bawah layar; `data-pass3d`, `data-pass-at`.
+   - Clawd: petunjuk `pass` (tanpa klip suara; tes suara mengecualikannya seperti `tip.mountain`). Suara prosedural tiket (Sonnet): desir kertas, denting mata ayam, ketuk balik.
+   - Tur perekam `tiket` di `record-film.cjs`.
+2. **Tes:** typecheck, lint, content:check lulus; unit 696/696 (baru: `pass3d-physics` 14, `pass-stage` 14 termasuk jarak aman kamera di tiga lintasan, `pass-sound` 15); e2e baru `e2e/pass3d.spec.ts` (Sonnet) 13 lulus, 3 dilewati di iphone (seret/klik/Enter dengan mouse dan keyboard fisik). Tes jarak aman menangkap tabrakan saat tiket dipindah ke z 3,3: penurunan digeser ke kedekatan > 0,72 dari 1,8 m.
+3. **Langkah berikutnya:** host menonton video (desktop + HP, data April, nama Jize) dan meninjau PR #26 (Squash and merge). Uji iPhone produksi (`/film/?fps#epilogue` → slide tiket): fps saat diseret di `high ×1 (paksa)`, tarik dengan jari, kemiringan HP, suara. Belum dikerjakan (P1, menunggu host): tiket juga muncul di epilog, reaksi Clawd saat tiket dipegang/dibalik, versi 2,5D berpegas CSS, klip suara EN `tip.pass.0/1`.
 
-### Permintaan host 25 Nov: prompt Codex + gambar referensi three.js untuk Tugas 12 — SELESAI 25 NOV, MENUNGGU OUTPUT CODEX
+### Permintaan host 25 Nov: prompt Codex + gambar referensi three.js untuk Tugas 12 — SELESAI 25 NOV (output Codex datang 26 Nov, lihat 12b)
 
 **Kata host, kata demi kata:** "berikan gw prompt untuk diberikan ke codex (dia ga masuk repo) Tugas 12, boarding pass 3D dengan fisika. bebas dia mau bikin pake blender atau trheejs, pokoknya penting bisa ke sambung ke itinerary. jangan terlalu batasin kemampuan codex, buat lebih flexibel. tugaslu (gambar prefrensi tugas 12 menggunakan trhee js, untuk di berikan ke codex, lalu beserta prompt nya) note: jika tugas 12 adalah tugas yang panjang, codex kerjakan setengah nya saja. sisanya lu, setelah output codex."
 
