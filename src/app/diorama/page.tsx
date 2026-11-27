@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useSyncExternalStore } from "react";
+import { useLayoutEffect, useSyncExternalStore } from "react";
+import { curtain } from "@/engine/motion/curtain";
 import { useRequireSession } from "@/components/useRequireSession";
 import { useI18n } from "@/engine/i18n/useI18n";
 import { readOptions } from "@/engine/diorama/options";
@@ -31,6 +32,12 @@ function isCalm() {
   }
 }
 export default function DioramaPage() {
+  // Tahan tirai tertutup selama maket memulai kerja beratnya (chunk, adegan, shader); Diorama melepasnya sesudah
+  // bingkai pertama, dan batas waktu di engine menjamin tirai tetap membuka.
+  useLayoutEffect(() => {
+    curtain.hold("diorama");
+    return () => curtain.release("diorama");
+  }, []);
   const session = useRequireSession();
   const { lang } = useI18n();
   const calm = useSyncExternalStore(subscribe, isCalm, () => false);
