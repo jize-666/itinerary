@@ -25,7 +25,7 @@
 
 ## Daftar tugas (kerjakan urut)
 
-Diperbarui 27 Nov 2026 (PR #12–#27 di-merge; Tugas 1–12 selesai; audit host 27 Nov di PR berikutnya; daftar habis, tanya host sebelum lanjut). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
+Diperbarui 27 Nov 2026 (PR #12–#27 di-merge; Tugas 1–12 selesai; audit host 27 Nov di PR #28, CI hijau, menunggu host; daftar habis, tanya host sebelum lanjut). Di luar urutan, atas arahan host 18 Nov malam ("bukan suara. supabase, connect in"): Jize Zone v2 tersambung ke Supabase "live-second-brain" dan tayang di https://jize-zone.vercel.app; tinggal URL login di Supabase (`HANDOFF.md` bagian 0). Suara Clawd 39 klip EN dan gong datar film 2,5D selesai 19 Nov, PR menunggu host. Tugas 9 (Diorama Solo) selesai 19 Nov: diorama dari Codex dipasang di `/diorama/` (PR #20). Tugas 10–12 diserahkan ke Codex lewat PRD di `docs/handoff/` (19 Nov); Claude memasang hasilnya.
 
 - [x] **1. Selesaikan revisi film 2D.** ✅ 11 Nov 2026. Catatan audit host (tes langsung, 11 Nov): siklus waktu di gallery belum rapi dan belum mulus. Yang diminta dan sudah dikerjakan:
   - Matahari muncul perlahan mulai dari jadwal pertama setelah sarapan.
@@ -179,11 +179,11 @@ Aturan tambahan dari host (12 Nov, sesudah Tugas 5):
     Rinciannya: `docs/design/decisions.md` bagian "Sisa Tugas 12" dan `HANDOFF.md` bagian 0. Sisa pekerjaan: uji iPhone produksi (penutup, tiket 2,5D di Safari).
 - [x] **Suara Clawd diganti biip (permintaan host 26 Nov, di luar urutan: "ilangin suara clawd, ganti dengan \"biip\"").** ✅ 26 Nov 2026, di PR #27 (di-merge 27 Nov). Klip suara teman host dihapus. Gantinya biip prosedural per kata, nadanya ikut suasana, juga untuk film ID. Rinciannya: `docs/design/decisions.md` bagian "Biip Clawd". Sisa: host mendengar contoh dan video.
 
-- [x] **Audit host 27 Nov (di luar urutan: "transisi masuk ke diorama nya masih patah patah, berat", "tier kualitasnya bisa ga high/ultra aja, guasa ada medium dan low?").** ✅ 27 Nov 2026, PR berikutnya sesudah #27:
+- [x] **Audit host 27 Nov (di luar urutan: "transisi masuk ke diorama nya masih patah patah, berat", "tier kualitasnya bisa ga high/ultra aja, guasa ada medium dan low?").** ✅ 27 Nov 2026, PR #28 (CI hijau, menunggu host):
   - Tier kualitas tamu hanya High dan Ultra di film, maket, dan canting; resolusi tidak pernah diturunkan saat berjalan (penyebab tablet buram); Ultra untuk desktop GPU kuat. `?stage=lite`/`?q=lite` = mode uji e2e tersembunyi, tidak pernah dipilih untuk tamu.
   - Masuk maket: tirai ditahan sampai bingkai pertama maket tergambar (selalu dengan batas waktu), shader dipanaskan, chunk diunduh lebih dulu, kilau emas di tirai selama menunggu.
 
-  Rinciannya: `docs/design/decisions.md` bagian "Tier kualitas hanya High dan Ultra" dan "Masuk maket tanpa patah", `HANDOFF.md` bagian 0. Sisa: uji host di iPhone dan tablet Samsung (ketajaman, fps, transisi maket).
+  Rinciannya: `docs/design/decisions.md` bagian "Tier kualitas hanya High dan Ultra" dan "Masuk maket tanpa patah", `HANDOFF.md` bagian 0. Video masuk maket desktop + HP dikirim 27 Nov. Sisa: uji host di iPhone dan tablet Samsung (ketajaman, fps, transisi maket).
 
 Panduan merge untuk host ada di `HANDOFF.md` bagian 5.
 
