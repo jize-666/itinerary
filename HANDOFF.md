@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov; sisa Tugas 12 dan biip Clawd di PR #27, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov; sisa Tugas 12 dan biip Clawd di PR #27, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
