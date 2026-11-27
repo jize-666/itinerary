@@ -127,4 +127,49 @@ test.describe("tautan ke maket", () => {
     await page.locator(".dio-back").click();
     await expect(page).toHaveURL(/\/today\/$/);
   });
+  // Laporan host 27 Nov: masuk maket patah-patah. Tirai kini ditahan tertutup sampai maket menggambar bingkai pertama.
+  test("Today → maket: tirai baru membuka sesudah maket siap (tidak membuka di atas kerja berat)", async ({ page }) => {
+    await page.clock.setFixedTime(wib("2027-04-08T10:45:00"));
+    await seedSession(page);
+    await page.route(TRIP, (r) => json(r, 200, rename(todayFixture("guest") as never, "walk", "laweyan")));
+    await page.addInitScript(() => {
+      const log: { s: string; ready: string | null; t?: number; root?: boolean }[] = ((window as never as { __cur: unknown }).__cur = []) as never;
+      const watch = () => {
+        const el = document.querySelector(".curtain");
+        if (!el) return requestAnimationFrame(watch);
+        new MutationObserver(() =>
+          log.push({ t: Math.round(performance.now()), root: !!document.querySelector(".dio-root"), s: el.getAttribute("data-state") ?? "", ready: document.querySelector(".dio-root")?.getAttribute("data-ready") ?? null }),
+        ).observe(el, { attributes: true, attributeFilter: ["data-state"] });
+      };
+      document.addEventListener("DOMContentLoaded", watch);
+    });
+    await page.goto("/today/");
+    await page.locator(".tl-stop a[data-diorama]").click();
+    await expect(page).toHaveURL(/\/diorama\/\?lokasi=laweyan$/);
+    await expect(page.locator(".curtain")).toHaveAttribute("data-state", "open", { timeout: 10_000 });
+    await expect(page.locator(".dio-root")).toHaveAttribute("data-ready", "true");
+    const log = await page.evaluate(() => (window as never as { __cur: { s: string; ready: string | null }[] }).__cur);
+    const opening = log.find((e) => e.s === "opening");
+    expect(opening, "tirai membuka").toBeTruthy();
+    expect(opening!.ready, "maket sudah hidup saat tirai mulai membuka").toBe("true");
+  });
+
+  test("maket yang tidak pernah menggambar (WebGL gagal): tirai tetap membuka lewat batas waktu", async ({ page }) => {
+    await page.addInitScript(() => {
+      const orig = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: never[]) {
+        if (/webgl/.test(type)) return null;
+        return (orig as (...a: unknown[]) => unknown).call(this, type, ...rest) as never;
+      } as never;
+    });
+    await page.clock.setFixedTime(wib("2027-04-08T10:45:00"));
+    await seedSession(page);
+    await page.route(TRIP, (r) => json(r, 200, rename(todayFixture("guest") as never, "walk", "laweyan")));
+    await page.goto("/today/");
+    await page.locator(".tl-stop a[data-diorama]").click();
+    await expect(page).toHaveURL(/\/diorama\/\?lokasi=laweyan$/);
+    // tertahan paling lama 5 dtk, lalu membuka (tidak pernah macet)
+    await expect(page.locator(".curtain")).toHaveAttribute("data-state", "open", { timeout: 12_000 });
+    await expect(page.locator(".dio-back")).toBeInViewport();
+  });
 });

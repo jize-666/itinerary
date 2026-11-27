@@ -19,6 +19,7 @@ import {
 } from "./controller";
 import { IconCalm, IconCanting } from "@/components/Icons";
 import { CurtainLink } from "@/components/motion/Curtain";
+import { curtain } from "@/engine/motion/curtain";
 import { CANTING_HREF } from "@/engine/slides/canting-link";
 import { Icon, LandmarkIcon, type IconName } from "./Icons";
 import type { SurfaceMode } from "./artwork";
@@ -369,6 +370,7 @@ export function Diorama({
               labelHost={host}
               labels={labels}
               ready={setEngine}
+              shown={() => curtain.release("diorama")}
               changed={onStats}
               slow={slow}
               fallback={fallback}
