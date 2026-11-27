@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Vector3 } from "three";
 import { CollisionWorld } from "@/engine/diorama/collision";
-import { photoSize, readOptions, percentile, renderDpr } from "@/engine/diorama/options";
+import { photoSize, readOptions, percentile, renderDpr, tierStep } from "@/engine/diorama/options";
 import { photoName } from "@/components/diorama/photos";
 
 describe("diorama camera clearance", () => {
@@ -53,14 +53,18 @@ describe("diorama camera clearance", () => {
 });
 describe("integration and photos", () => {
   it("accepts the four supported URL options", () => {
-    expect(readOptions("?lokasi=pasar&tur=1&q=low&fps")).toEqual({
+    expect(readOptions("?lokasi=pasar&tur=1&q=ultra&fps")).toEqual({
       focus: "pasar",
       autoTour: true,
-      quality: "low",
+      quality: "ultra",
       showFps: true,
     });
     expect(readOptions("?lokasi=no&q=ultra").focus).toBeUndefined();
-    expect(readOptions("?lokasi=no&q=ultra").quality).toBeUndefined();
+    expect(readOptions("?q=high").quality).toBe("high");
+    // tautan lama: medium dan low menjadi high
+    expect(readOptions("?q=medium").quality).toBe("high");
+    expect(readOptions("?q=low").quality).toBe("high");
+    expect(readOptions("?q=bogus").quality).toBeUndefined();
   });
   it("preserves the viewport aspect with a 1920px long side", () => {
     expect(photoSize(360, 640)).toEqual([1080, 1920]);
@@ -76,10 +80,15 @@ describe("integration and photos", () => {
     expect(percentile(Array.from({ length: 100 }, (_, i) => i + 1))).toBe(95));
 });
 
-it("reduces pixel cost even on a DPR-1 display and caps high-DPI rendering", () => {
+it("never renders below native density up to 2 (high) and supersamples in ultra", () => {
   expect(renderDpr("high", 1)).toBe(1);
-  expect(renderDpr("medium", 1)).toBeCloseTo(0.82);
-  expect(renderDpr("low", 1)).toBeCloseTo(0.6);
-  expect(renderDpr("high", 3)).toBe(1.5);
-  expect(renderDpr("low", 3)).toBeCloseTo(0.9);
+  expect(renderDpr("high", 2.6)).toBe(2);
+  expect(renderDpr("high", 3)).toBe(2);
+  expect(renderDpr("ultra", 1)).toBe(1.5);
+  expect(renderDpr("ultra", 2)).toBe(2);
+  expect(renderDpr("ultra", 3)).toBe(2.5);
+});
+it("steps down only from ultra to high", () => {
+  expect(tierStep("ultra")).toBe("high");
+  expect(tierStep("high")).toBe("high");
 });

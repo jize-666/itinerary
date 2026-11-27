@@ -9,7 +9,7 @@ import { createCues, SKY_WINDOW, skyAlong } from "@/engine/stage/cue";
 import { hex, lightElevation, mixMood, moodOf } from "@/engine/stage/mood";
 import { blendShot, fitFov, galleryShot, hfovOf, projectPoint, rayThrough, type Shot, shotFor, skyStretch, STAGE_CENTER, SUN_TRACK, sunDirection, type Vec3 } from "@/engine/stage/shots";
 import { fbm, TERRAIN, TERRAIN_DEFAULT, terrainHeight, villageLights } from "@/engine/stage/terrain";
-import { type Caps, createGovernor, GOVERNOR, guessTier, LADDER, pinnedHigh, rungOf, TIER } from "@/engine/stage/tier";
+import { type Caps, createGovernor, dprFor, GOVERNOR, guessTier, parseTier, TIER } from "@/engine/stage/tier";
 import type { TripView } from "@/lib/trip";
 
 const film = buildFilm({ role: "guest", trip: Trip.parse(soloInput) as unknown as TripView["trip"] });
@@ -20,6 +20,7 @@ const firstOf = (kind: Slide["kind"]) => film.slides.findIndex((s) => s.kind ===
 
 describe("tier awal (guessTier)", () => {
   const caps = (over: Partial<Caps>): Caps => ({ webgl2: true, renderer: "", mobile: false, cores: 8, memory: 8, ...over });
+  const RTX = "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)";
 
   it("tanpa WebGL2 atau dengan renderer perangkat lunak: Static (film 2,5D)", () => {
     expect(guessTier(caps({ webgl2: false, renderer: "Apple GPU" }))).toBe("static");
@@ -27,194 +28,161 @@ describe("tier awal (guessTier)", () => {
     expect(guessTier(caps({ renderer: "llvmpipe (LLVM 15.0.7, 256 bits)" }))).toBe("static");
   });
 
-  it("HP flagship mulai dari High; HP lama dari Low; yang tak dikenal dari Medium", () => {
-    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", memory: 0, cores: 6 }))).toBe("high");
-    expect(guessTier(caps({ mobile: true, renderer: "Adreno (TM) 750" }))).toBe("high");
-    expect(guessTier(caps({ mobile: true, renderer: "Adreno (TM) 506" }))).toBe("low");
-    expect(guessTier(caps({ mobile: true, renderer: "Mali-G52 MC2" }))).toBe("low");
-    expect(guessTier(caps({ mobile: true, renderer: "Sesuatu yang baru" }))).toBe("medium");
+  it("semua HP dan tablet: High, apa pun GPU, inti, atau memorinya (tablet flagship tidak lagi buram)", () => {
+    for (const renderer of ["Apple GPU", "Adreno (TM) 750", "Adreno (TM) 506", "Mali-G52 MC2", "Mali-G715", "Xclipse 940", "Sesuatu yang baru", RTX]) {
+      for (const [cores, memory] of [[0, 0], [2, 2], [4, 0], [8, 8], [8, 12]] as const) {
+        expect(guessTier(caps({ mobile: true, renderer, cores, memory })), `${renderer} ${cores}/${memory}`).toBe("high");
+      }
+    }
   });
 
-  it("desktop: GPU diskret atau Apple Silicon High, grafis terpadu lama Low", () => {
-    expect(guessTier(caps({ renderer: "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)" }))).toBe("high");
-    expect(guessTier(caps({ renderer: "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)" }))).toBe("high");
-    expect(guessTier(caps({ renderer: "ANGLE (Intel, Intel(R) HD Graphics 4000 Direct3D11)" }))).toBe("low");
-    expect(guessTier(caps({ renderer: "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics)" }))).toBe("medium");
+  it("desktop dengan GPU kuat, inti dan memori cukup (atau tidak diketahui): Ultra", () => {
+    expect(guessTier(caps({ renderer: RTX }))).toBe("ultra");
+    expect(guessTier(caps({ renderer: "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)" }))).toBe("ultra");
+    expect(guessTier(caps({ renderer: RTX, cores: 0, memory: 0 }))).toBe("ultra");
+    expect(guessTier(caps({ renderer: RTX, cores: 16, memory: 8 }))).toBe("ultra");
   });
 
-  it("memori atau inti sedikit menurunkan tier awal", () => {
-    expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", memory: 2 }))).toBe("low");
-    expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", cores: 2 }))).toBe("low");
-    expect(guessTier(caps({ renderer: "NVIDIA GeForce RTX 3060", memory: 4 }))).toBe("medium");
-    // iPhone/iPad: Safari melaporkan ≤ 4 inti, tetapi High dipaksa (keputusan host 12 & 14 Nov)
-    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", cores: 4, memory: 0 }))).toBe("high");
-    expect(guessTier(caps({ mobile: true, renderer: "Apple GPU", cores: 2, memory: 0 }))).toBe("high");
-    expect(pinnedHigh(caps({ mobile: true, renderer: "Apple GPU", cores: 4, memory: 0 }))).toBe(true);
-    // bukan iPhone/iPad: tidak dipaksa (Mac, Android, renderer lain)
-    expect(pinnedHigh(caps({ renderer: "Apple GPU" }))).toBe(false);
-    expect(pinnedHigh(caps({ mobile: true, renderer: "Adreno (TM) 750" }))).toBe(false);
-    expect(pinnedHigh(caps({ mobile: true, webgl2: false, renderer: "Apple GPU" }))).toBe(false);
+  it("desktop dengan inti atau memori kurang, atau grafis terpadu: High", () => {
+    expect(guessTier(caps({ renderer: RTX, memory: 4 }))).toBe("high");
+    expect(guessTier(caps({ renderer: RTX, cores: 4 }))).toBe("high");
+    expect(guessTier(caps({ renderer: RTX, cores: 2, memory: 2 }))).toBe("high");
+    expect(guessTier(caps({ renderer: "ANGLE (Intel, Intel(R) HD Graphics 4000 Direct3D11)" }))).toBe("high");
+    expect(guessTier(caps({ renderer: "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics)" }))).toBe("high");
+  });
+});
+
+describe("spesifikasi tier dan resolusi", () => {
+  it("hanya Ultra dan High; Ultra lebih rapat dan lebih halus, High memegang spesifikasi High lama", () => {
+    expect(Object.keys(TIER).sort()).toEqual(["high", "ultra"]);
+    expect(TIER.high).toEqual({ dpr: 2, dprMin: 0, msaa: 4, bloom: 5, shadow: 2048, particles: 1, idleEvery: 1, dof: true });
+    expect(TIER.ultra).toMatchObject({ dpr: 2.5, dprMin: 1.5, msaa: 4, bloom: 6, shadow: 4096, particles: 1, idleEvery: 1, dof: true });
   });
 
-  it("tangga: tiap tier WebGL punya spesifikasi, dan urutannya makin ringan", () => {
-    expect(LADDER[0]).toEqual({ tier: "high", scale: 1 });
-    expect(LADDER[LADDER.length - 1]!.tier).toBe("static");
-    expect(rungOf("medium")).toBe(2);
-    expect(TIER.high.dpr).toBeGreaterThan(TIER.medium.dpr);
-    expect(TIER.medium.particles).toBeGreaterThan(TIER.low.particles);
-    expect(TIER.low.msaa).toBe(0);
+  it("dprFor: High mengikuti layar (maks 2), Ultra 1,5–2,5", () => {
+    expect(dprFor(TIER.high, 1)).toBe(1);
+    expect(dprFor(TIER.high, 2.6)).toBe(2);
+    expect(dprFor(TIER.high, 3)).toBe(2);
+    expect(dprFor(TIER.ultra, 1)).toBe(1.5);
+    expect(dprFor(TIER.ultra, 2)).toBe(2);
+    expect(dprFor(TIER.ultra, 3)).toBe(2.5);
+  });
+
+  it("?stage=: ultra, high, static; medium dan low lama menjadi high", () => {
+    expect(parseTier("ultra")).toBe("ultra");
+    expect(parseTier("high")).toBe("high");
+    expect(parseTier("static")).toBe("static");
+    expect(parseTier("medium")).toBe("high");
+    expect(parseTier("low")).toBe("high");
+    expect(parseTier("x")).toBeUndefined();
+    expect(parseTier(null)).toBeUndefined();
   });
 });
 
 describe("pengatur FPS (createGovernor)", () => {
-  /** Jalankan `ms` milidetik frame berjarak `dt`; kembalikan anak tangga yang dilaporkan dan jam akhir. */
+  /** Jalankan `ms` milidetik frame berjarak `dt`; kembalikan tier yang dilaporkan dan jam akhir. */
   function run(g: ReturnType<typeof createGovernor>, from: number, ms: number, dt: number) {
     const moves: string[] = [];
     let t = from;
     for (; t < from + ms; t += dt) {
       const r = g.sample(dt, t);
-      if (r) moves.push(`${r.tier}×${r.scale}`);
+      if (r) moves.push(r);
     }
     return { moves, t };
   }
+  /** Jalankan sampai pengatur pindah (atau `max` ms habis). */
+  const until = (g: ReturnType<typeof createGovernor>, from: number, dt: number, max: number) => {
+    for (let t = from; t < from + max; t += dt) {
+      const r = g.sample(dt, t);
+      if (r) return { move: r as string | null, t };
+    }
+    return { move: null as string | null, t: from + max };
+  };
 
   it("60 fps yang stabil: tidak pernah pindah, fps terukur", () => {
-    const g = createGovernor("high", 0);
+    const g = createGovernor("ultra", 0);
     const { moves } = run(g, 0, 12_000, 1000 / 60);
     expect(moves).toEqual([]);
     expect(g.fps()).toBeGreaterThan(59);
     expect(g.capped()).toBe(false);
+    expect(g.tier()).toBe("ultra");
+    expect(g.fell()).toBe(0);
   });
 
-  it("berat (40 fps): turun satu anak tangga tiap ±3 dtk, resolusi dulu baru efek", () => {
+  it("Ultra berat (40 fps): turun ke High sekali, tidak lebih cepat dari pemanasan + jendela, lalu tetap di High", () => {
+    const early = run(createGovernor("ultra", 0), 0, GOVERNOR.warmup + GOVERNOR.window * 0.8, 25);
+    expect(early.moves).toEqual([]);
+    const g = createGovernor("ultra", 0);
+    const { moves } = run(g, 0, 120_000, 25);
+    expect(moves).toEqual(["high"]);
+    expect(g.tier()).toBe("high");
+    expect(g.fell()).toBe(40);
+  });
+
+  it("Ultra di 47 fps tetap Ultra; di bawah 45 turun", () => {
+    expect(run(createGovernor("ultra", 0), 0, 20_000, 1000 / 47).moves).toEqual([]);
+    expect(run(createGovernor("ultra", 0), 0, 20_000, 1000 / 43).moves).toEqual(["high"]);
+  });
+
+  it("High tidak pernah turun, apa pun fpsnya: tanpa Medium, Low, skala, atau Static", () => {
+    for (const fps of [40, 25, 12, 5]) {
+      const g = createGovernor("high", 0);
+      const { moves } = run(g, 0, 120_000, 1000 / fps);
+      expect(moves, `${fps} fps`).toEqual([]);
+      expect(g.tier()).toBe("high");
+    }
+  });
+
+  it("High yang dimulai di High tidak pernah naik ke Ultra, walau 60 fps", () => {
     const g = createGovernor("high", 0);
-    const { moves } = run(g, 0, 14_000, 25);
-    expect(moves.slice(0, 3)).toEqual(["high×0.82", "medium×1", "medium×0.82"]);
-    // tidak lebih cepat dari jendela ukur + pemanasan
-    const first = run(createGovernor("high", 0), 0, GOVERNOR.warmup + GOVERNOR.window * 0.8, 25);
-    expect(first.moves).toEqual([]);
+    expect(run(g, 0, 120_000, 1000 / 60).moves).toEqual([]);
+    expect(g.tier()).toBe("high");
   });
 
-  it("di anak tangga WebGL teringan: 30 fps bertahan, di bawah 20 fps jatuh ke Static", () => {
-    const g = createGovernor("low", 0);
-    const a = run(g, 0, 6000, 1000 / 40);
-    expect(a.moves).toEqual(["low×0.75"]);
-    const b = run(g, a.t, 12_000, 1000 / 26);
-    expect(b.moves).toEqual([]);
-    const c = run(g, b.t, 8000, 1000 / 14);
-    expect(c.moves).toEqual(["static×1"]);
-    expect(g.sample(16, c.t + 16)).toBeNull();
+  it("Static tidak pernah berubah", () => {
+    const g = createGovernor("static", 0);
+    expect(run(g, 0, 60_000, 1000 / 60).moves).toEqual([]);
+    expect(g.tier()).toBe("static");
   });
 
-  it("naik lagi hanya sesudah lama stabil, dan anak tangga yang terbukti berat tidak dicoba ulang", () => {
-    /** Jalankan sampai pengatur pindah (atau `max` ms habis). */
-    const until = (g: ReturnType<typeof createGovernor>, from: number, dt: number, max: number) => {
-      for (let t = from; t < from + max; t += dt) {
-        const r = g.sample(dt, t);
-        if (r) return { move: `${r.tier}×${r.scale}`, t };
-      }
-      return { move: null, t: from + max };
-    };
-    const g = createGovernor("high", 0);
+  it("kembali ke Ultra hanya sesudah lama lancar, dan Ultra yang terbukti berat tidak dicoba ulang", () => {
+    const g = createGovernor("ultra", 0);
     const down = until(g, 0, 25, 10_000);
-    expect(down.move).toBe("high×0.82");
+    expect(down.move).toBe("high");
     // lancar: belum boleh naik sebelum jeda habis
     const early = run(g, down.t, GOVERNOR.upCooldown - 500, 1000 / 60);
     expect(early.moves).toEqual([]);
+    expect(g.tier()).toBe("high");
     const up = until(g, early.t, 1000 / 60, 5000);
-    expect(up.move).toBe("high×1");
-    // berat lagi tak lama sesudah naik → turun, lalu tidak pernah naik ke sana lagi
+    expect(up.move).toBe("ultra");
+    expect(g.fell()).toBe(0);
+    // berat lagi tak lama sesudah naik → turun, lalu tidak pernah naik lagi
     const again = until(g, up.t, 25, 10_000);
-    expect(again.move).toBe("high×0.82");
+    expect(again.move).toBe("high");
     expect(again.t - up.t).toBeLessThan(GOVERNOR.retreat);
     const calm = run(g, again.t, 90_000, 1000 / 60);
     expect(calm.moves).toEqual([]);
-    expect(g.rung()).toEqual({ tier: "high", scale: 0.82 });
+    expect(g.tier()).toBe("high");
   });
 
   it("layar 30 Hz (Low Power Mode): 30 fps stabil tidak dianggap berat, dan tidak pernah naik", () => {
-    const g = createGovernor("medium", 0);
+    const g = createGovernor("ultra", 0);
     const { moves } = run(g, 0, 40_000, 33.4);
     expect(moves).toEqual([]);
     expect(g.capped()).toBe(true);
     expect(g.fps()).toBeGreaterThan(29);
   });
 
-  it("High dipaksa (iPhone/iPad): fps yang turun ke 40 tidak menurunkan resolusi atau tier", () => {
-    const g = createGovernor("high", 0, false, true);
-    expect(g.pinned()).toBe(true);
-    const { moves } = run(g, 0, 30_000, 25); // 40 fps
-    expect(moves).toEqual([]);
-    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
-    expect(g.pinned()).toBe(true);
-  });
-
-  it("High dipaksa turun hanya bila tersendat terus-menerus (median < GOVERNOR.rescueBelow selama rescueHold), satu anak tangga sekali", () => {
-    const g = createGovernor("high", 0, false, true);
-    const early = run(g, 0, GOVERNOR.rescueHold, 1000 / 25); // 25 fps, belum cukup lama
-    expect(early.moves).toEqual([]);
-    expect(g.pinned()).toBe(true);
-    const later = run(g, early.t, 8000, 1000 / 25);
-    expect(later.moves).toEqual(["high×0.82"]);
-    expect(g.pinned()).toBe(false);
-    expect(g.rescued()).toBe(25);
-  });
-
-  it("keluhan host 14 Nov (\"masih medium\"): frame lambat saat film dibuka tidak melepas High, dan 40–48 fps tetap High", () => {
-    const g = createGovernor("high", 0, false, true);
-    let t = 0;
-    const frames = (ms: number, dt: number) => {
-      const moves: string[] = [];
-      for (const end = t + ms; t < end; t += dt) {
-        const r = g.sample(dt, t);
-        if (r) moves.push(`${r.tier}×${r.scale}`);
-      }
-      return moves;
-    };
-    // memuat: tekstur gunungan dan shader, frame 60–200 ms selama 4 dtk, diselingi frame normal
-    const loading: string[] = [];
-    for (let i = 0; i < 40; i++) loading.push(...frames(100, 1000 / 60), ...frames(200, 200), ...frames(60, 60));
-    expect(loading).toEqual([]);
-    // lalu slide prolog yang berat: 42 fps selama setengah menit
-    expect(frames(30_000, 1000 / 42)).toEqual([]);
-    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
-    expect(g.pinned()).toBe(true);
-    expect(g.rescued()).toBe(0);
-  });
-
-  it("perangkat yang dipaksa High dan sempat diturunkan kembali ke High begitu lancar lagi (gerbang 60 fps)", () => {
-    const g = createGovernor("high", 0, false, true);
-    const slow = run(g, 0, 40_000, 1000 / 25);
-    expect(slow.moves.length).toBeGreaterThanOrEqual(2);
-    expect(g.pinned()).toBe(false);
-    const smooth = run(g, slow.t, 120_000, 1000 / 60);
-    expect(smooth.moves.at(-1)).toBe("high×1");
-    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
-    expect(g.pinned()).toBe(true);
-    expect(g.rescued()).toBe(0);
-  });
-
-  it("High dipaksa di layar 30 Hz (Low Power Mode): 30 fps stabil tetap High", () => {
-    const g = createGovernor("high", 0, false, true);
-    const { moves } = run(g, 0, 20_000, 33.4);
-    expect(moves).toEqual([]);
-    expect(g.pinned()).toBe(true);
-  });
-
-  it("paksaan hanya berlaku bila mulai di High", () => {
-    expect(createGovernor("medium", 0, false, true).pinned()).toBe(false);
-  });
-
   it("tier dipaksa: hanya mengukur", () => {
-    const g = createGovernor("high", 0, true);
+    const g = createGovernor("ultra", 0, true);
     const { moves } = run(g, 0, 20_000, 40);
     expect(moves).toEqual([]);
     expect(g.fps()).toBeCloseTo(25, 0);
-    expect(g.rung()).toEqual({ tier: "high", scale: 1 });
+    expect(g.tier()).toBe("ultra");
   });
 
   it("jeda panjang (tab kembali, GC besar) bukan data kehalusan: jendela dimulai ulang", () => {
-    const g = createGovernor("high", 0);
+    const g = createGovernor("ultra", 0);
     const a = run(g, 0, 4000, 1000 / 60);
     expect(g.sample(900, a.t + 900)).toBeNull();
     expect(g.fps()).toBe(0);

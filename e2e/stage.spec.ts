@@ -7,7 +7,7 @@ import { filmFixture, json, seedSession, todayFixture, TRIP } from "./helpers";
  * Data tiruan; backend di-mock.
  */
 /**
- * Runner CI (GitHub, tanpa GPU) menggambar panggung 3D di CPU: ±2–4 frame per detik pada tier Low, lebih lambat lagi
+ * Runner CI (GitHub, tanpa GPU) menggambar panggung 3D di CPU: ±2–4 frame per detik, lebih lambat lagi
  * bila dua kanvas 3D berjalan bersamaan. Di sana tes 3D diberi waktu tiga kali lipat dan dijalankan satu per satu
  * di berkas ini. Pemeriksaannya sama; yang ditambah hanya waktu menunggu frame.
  */
@@ -69,7 +69,7 @@ async function release(page: Page) {
  * pembuka dicabut lebih dulu, kecuali `gate` = "keep" (tes gerbang). Tahap gong hero tidak dilewati di sini:
  * `step` maju melewatinya bila perlu.
  */
-async function open3d(page: Page, query = "?stage=low", hash = "", gate: "open" | "keep" = "open") {
+async function open3d(page: Page, query = "?stage=high", hash = "", gate: "open" | "keep" = "open") {
   await open(page, query, hash);
   await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
   if (gate === "open" && !hash) await openGate(page);
@@ -112,7 +112,7 @@ test.describe("tanpa GPU, Calm, reduced motion: film tetap 2,5D (tier Static)", 
 
   test("reduced motion: tanpa WebGL walau tier dipaksa", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await open(page, "?stage=low");
+    await open(page, "?stage=high");
     await expect(film(page)).toHaveAttribute("data-calm", "");
     await page.waitForTimeout(1200);
     await expect(page.locator(".fl-canvas")).toHaveCount(0);
@@ -138,13 +138,13 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     await open3d(page);
     await expect(canvas(page)).toBeVisible();
     await expect(page.locator(".fl-canvas")).toHaveAttribute("aria-hidden", "true");
-    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "low");
+    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high");
     await expect(page.locator(".fl-skies")).toBeHidden();
     // teks itinerary tetap DOM di atas kanvas (FR-12)
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await nextFrames(page);
     const s = (await stats(page))!;
-    expect(s.tier).toBe("low");
+    expect(s.tier).toBe("high");
     expect(s.calls).toBeGreaterThan(3);
     expect(s.triangles).toBeGreaterThan(10_000);
     // kanvas tidak menghalangi klik ke tombol di atasnya
@@ -200,7 +200,7 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
   });
 
   test("gallery: kamera memandang lanskap dan bergeser menyamping per panel", async ({ page }) => {
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await step(page); // intro hari
     await step(page); // panel pertama
     await expect(film(page)).toHaveAttribute("data-kind", "panel");
@@ -290,14 +290,14 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
   });
 
   test("?fps menampilkan overlay ukur", async ({ page }) => {
-    await open3d(page, "?stage=low&fps");
+    await open3d(page, "?stage=high&fps");
     await nextFrames(page, 20);
-    await expect(page.locator(".fl-fps")).toContainText("low");
-    await expect(page.locator(".fl-fps")).toContainText(/\d+ fps/); // laju layar selalu berangka, juga saat diam di tier Low
+    await expect(page.locator(".fl-fps")).toContainText("high");
+    await expect(page.locator(".fl-fps")).toContainText(/\d+ fps/); // laju layar selalu berangka, juga saat diam
     await expect(page.locator(".fl-fps")).toContainText("draw");
   });
 
-  test("iPhone/iPad (GPU \"Apple GPU\", Safari melapor 4 inti): tier High dipaksa, overlay menandainya", async ({ page }) => {
+  test("iPhone/iPad (GPU \"Apple GPU\", Safari melapor 4 inti): tier High, tanpa skala resolusi", async ({ page }) => {
     // Chromium di e2e memakai SwiftShader; di sini laporan GPU dan jumlah inti dibuat seperti iPhone di Safari
     await page.addInitScript(() => {
       Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 });
@@ -311,8 +311,9 @@ test.describe("panggung 3D hidup (tier dipaksa)", () => {
     });
     await open(page, "?fps");
     await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high", { timeout: WAIT_LONG });
-    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-scale", "1");
-    await expect(page.locator(".fl-fps")).toContainText("high ×1 (paksa)", { timeout: WAIT });
+    await expect(page.locator(".fl-canvas")).not.toHaveAttribute("data-scale", /.*/);
+    await expect(page.locator(".fl-fps")).toContainText("high", { timeout: WAIT });
+    await expect(page.locator(".fl-fps")).not.toContainText("×");
   });
 
   test("tanpa ?fps tidak ada overlay", async ({ page }) => {
@@ -342,7 +343,7 @@ test.describe("gong ageng 3D", () => {
     await open3d(page);
     await nextFrames(page);
     const front = (await stats(page))!;
-    await page.goto("/film/?stage=low#day-1");
+    await page.goto("/film/?stage=high#day-1");
     await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
     await settled(page);
     await step(page); // intro hari
@@ -365,7 +366,7 @@ test.describe("gong ageng 3D", () => {
   const strikes = async (page: Page) => (await stats(page))?.strikes ?? -1;
 
   test("slide gong: bidang sentuh tombol pukul tepat di atas gong, teks berada di bawahnya", async ({ page }) => {
-    const strike = await toGong(page, "?stage=low");
+    const strike = await toGong(page, "?stage=high");
     await expect(strike).toBeVisible();
     await expect(strike).toHaveAccessibleName(/gong/i);
     await expect(strike.locator(".fs-gong")).toBeHidden();
@@ -381,7 +382,7 @@ test.describe("gong ageng 3D", () => {
   });
 
   test("tiba di slide gong: gong dipukul sendiri; klik dan Enter memukul lagi, tetapi tidak selama tabuh masih berayun", async ({ page }) => {
-    const strike = await toGong(page, "?stage=low");
+    const strike = await toGong(page, "?stage=high");
     // otomatis: tabuh diayun ±0,26 dtk sesudah tiba dan kena ±0,5 dtk kemudian
     await expect(strike).toHaveAttribute("data-struck", "1");
     await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(1);
@@ -422,7 +423,7 @@ test.describe("gong ageng 3D", () => {
       };
       requestAnimationFrame(loop);
     });
-    await open3d(page, "?stage=low", "#day-2");
+    await open3d(page, "?stage=high", "#day-2");
     await nextFrames(page);
     expect(await page.evaluate(() => (window as unknown as { __kickMax: number }).__kickMax)).toBe(0);
     await step(page, "ArrowUp"); // ke slide gong penutup Hari 1: dipukul sendiri
@@ -439,7 +440,7 @@ test.describe("gong ageng 3D", () => {
     // tujuh langkah gulir, masing-masing menunggu kamera 3D yang digambar tanpa GPU: lebih dari 30 dtk bawaan
     test.slow();
     test.skip(testInfo.project.name !== "desktop", "roda mouse hanya di desktop");
-    await toGong(page, "?stage=low");
+    await toGong(page, "?stage=high");
     await film(page).hover();
     await page.mouse.wheel(0, 100);
     await expect.poll(() => gongZoom(page), { timeout: WAIT }).toBeGreaterThan(0.6);
@@ -469,7 +470,7 @@ test.describe("gong ageng 3D", () => {
     // lima penantian zoom, masing-masing menunggu kamera 3D yang digambar tanpa GPU; sejak sungai dan larung
     // (Tugas 8.1) adegannya lebih berat di renderer perangkat lunak, jadi 30 dtk bawaan kadang habis saat zoom keluar
     test.slow();
-    const strike = await toGong(page, "?stage=low");
+    const strike = await toGong(page, "?stage=high");
     const w0 = (await strike.boundingBox())!.width;
     await page.keyboard.press("+");
     await page.keyboard.press("+");
@@ -487,7 +488,7 @@ test.describe("gong ageng 3D", () => {
   });
 
   test("meninggalkan slide gong lalu kembali: dipukul sendiri lagi", async ({ page }) => {
-    const strike = await toGong(page, "?stage=low");
+    const strike = await toGong(page, "?stage=high");
     await expect.poll(() => strikes(page), { timeout: WAIT }).toBe(1);
     await step(page, "ArrowDown"); // judul Hari 2
     await page.waitForTimeout(1700);
@@ -563,10 +564,10 @@ test.describe("gunungan 3D: sapuan antar bab tetap bayangan kayon DOM (keputusan
     await open(page);
     await page.waitForTimeout(1500);
     expect(got).toEqual([]);
-    await page.goto("/film/?stage=low");
+    await page.goto("/film/?stage=high");
     await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
     await expect.poll(() => got.length, { timeout: WAIT_LONG }).toBe(5);
-    expect([...got].sort()).toEqual(["agung-1500.webp", "agung-aux-750.webp", "geni-1000.webp", "murka-1500.webp", "murka-aux-750.webp"]);
+    expect([...got].sort()).toEqual(["agung-2000.webp", "agung-aux-1000.webp", "geni-1000.webp", "murka-2000.webp", "murka-aux-1000.webp"]);
   });
 });
 
@@ -577,7 +578,7 @@ const planted = async (page: Page) => (await stats(page))?.gate.planted ?? -1;
 
 test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   test("film 3D dibuka dengan gunungan tertancap; gulir maju mencabutnya tanpa pindah slide, lalu teks prolog muncul", async ({ page }) => {
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     await expect.poll(() => opacity(page, HERO), { timeout: WAIT }).toBe(0);
     await nextFrames(page);
@@ -595,7 +596,7 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   });
 
   test("klik dan Enter membalik gunungan ke muka Murka dan kembali ke muka Agung", async ({ page }) => {
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     const flip = page.locator(".fl-kayon");
     await expect(flip).toHaveAttribute("aria-pressed", "false");
@@ -626,7 +627,7 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
   });
 
   test("penutup: gulir maju di credits menancapkan gunungan dan credits memudar; mundur mencabutnya", async ({ page }) => {
-    await open3d(page, "?stage=low", "#credits");
+    await open3d(page, "?stage=high", "#credits");
     const last = await film(page).getAttribute("data-index");
     await expect(film(page)).toHaveAttribute("data-kind", "credits");
     await expect.poll(() => page.evaluate(() => (window as unknown as { __lakonStage?: { kayon: boolean } }).__lakonStage?.kayon ?? false), { timeout: WAIT_LONG }).toBe(true);
@@ -647,14 +648,14 @@ test.describe("gunungan pembuka dan penutup (Tugas 7)", () => {
 
   test("penutup ditancapkan sendiri bila tamu diam di credits", async ({ page }) => {
     test.slow();
-    await open3d(page, "?stage=low", "#credits");
+    await open3d(page, "?stage=high", "#credits");
     await expect(film(page)).toHaveAttribute("data-kind", "credits");
     await expect(film(page)).toHaveAttribute("data-gate", "tail", { timeout: WAIT_LONG });
   });
 
   test("geser jari mencabut gunungan mengikuti jari; dilepas sesudah ambang, tercabut habis", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "iphone", "geser jari di layar sentuh");
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(film(page)).toHaveAttribute("data-gate", "head", { timeout: WAIT_LONG });
     const cdp = await page.context().newCDPSession(page);
     const touch = (type: "touchStart" | "touchMove" | "touchEnd", y = 0) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y }] });
@@ -708,7 +709,7 @@ test.describe("tahap gong di slide judul, panggung 3D (Tugas 7b)", () => {
       };
       requestAnimationFrame(loop);
     });
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await nextFrames(page);
     await page.evaluate(() => {
       const w = window as unknown as { __cam0: number[]; __lakonStage: { camera: number[] } };
@@ -746,7 +747,7 @@ test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"
   test("judul hari: seret mouse ke kanan = kamera ke kiri sampai −90°, ke kiri sampai +90°; dilepas kembali ke depan; slide tidak pindah", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
     test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await nextFrames(page);
     const view = page.viewportSize()!;
     const y = view.height * 0.55;
@@ -767,7 +768,7 @@ test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"
 
   test("judul hari: zoom dengan + / − dan Ctrl+roda, teks memudar saat gong didekati", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "keyboard dan roda hanya di desktop");
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await nextFrames(page);
     await page.keyboard.press("+");
     await page.keyboard.press("+");
@@ -806,7 +807,7 @@ test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"
   test("gong penutup: seret mouse mengitari gong; seret yang dilepas di atas tombol pukul bukan pukulan", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "mouse hanya di desktop");
     test.slow(); // tiap gerak mouse menunggu frame 3D yang digambar CPU
-    await open3d(page, "?stage=low", "#day-2");
+    await open3d(page, "?stage=high", "#day-2");
     await step(page, "ArrowUp");
     await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
     const strike = page.locator(".fl-layer[data-pos='cur'] .fs-strike");
@@ -827,7 +828,7 @@ test.describe("zoom dan kamera mengitari gong ±90° (permintaan host 14 Nov: \"
   test("HP: geser jari mendatar di judul mengitari gong (slide tidak pindah), langkah maju sesudahnya tetap menabuh gong", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "iphone", "sentuhan hanya di HP");
     test.slow();
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await nextFrames(page);
     const view = page.viewportSize()!;
     const cdp = await page.context().newCDPSession(page);
@@ -943,14 +944,10 @@ test.describe("gallery 3D: letak Z dan depth of field (Tugas 7b)", () => {
     expect((await dofOf(page)).focus).toBe(12);
   });
 
-  test("tier Medium dan Low: tanpa depth of field (TIER.dof)", async ({ page }) => {
+  test("tautan lama ?stage=medium dan ?stage=low menjadi tier High", async ({ page }) => {
     await open3d(page, "?stage=medium", "#day-1");
-    await step(page);
-    await step(page);
-    await nextFrames(page, 3);
-    const d = await dofOf(page);
-    expect(d.amount).toBe(0);
-    expect(d.drawn).toBe(false);
+    await expect(page.locator(".fl-canvas")).toHaveAttribute("data-tier", "high");
+    expect((await stats(page))!.tier).toBe("high");
   });
 });
 
@@ -965,7 +962,7 @@ test.describe("Clawd, maskot pemandu di panggung 3D (M3, arahan host 15–16 Nov
     page.addInitScript((tips) => localStorage.setItem("lakon.clawd", JSON.stringify({ intro: true, tips })), ["kayon", "beat", "zoom", "gallery", "phrases", "gong", "credits"].filter((t) => !except.includes(t)));
 
   test("muncul bersama gunungan pembuka dan memperkenalkan diri; petunjuk lama tidak tampil", async ({ page }) => {
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(said(page)).toHaveText("Clawd: Hi! I'm Clawd.", { timeout: WAIT_LONG });
     await expect(clawd(page)).toBeVisible();
     // teks petunjuk lama ("Scroll or swipe", "or press the arrow keys", "Click or tap the gunungan…") tidak ada lagi
@@ -975,7 +972,7 @@ test.describe("Clawd, maskot pemandu di panggung 3D (M3, arahan host 15–16 Nov
   });
 
   test("klik Clawd saat perkenalan memajukan kalimat tanpa memindah slide atau mencabut gunungan", async ({ page }) => {
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(said(page)).toContainText("Hi! I'm Clawd.", { timeout: WAIT_LONG });
     // kalimat ketiga: cara maju, sesuai perangkat (layar sentuh = geser). Tiap klik melengkapi atau memajukan satu
     // kalimat; gelembung digambar ulang di frame berikutnya, jadi tunggu satu frame sebelum membaca lagi
@@ -991,7 +988,7 @@ test.describe("Clawd, maskot pemandu di panggung 3D (M3, arahan host 15–16 Nov
 
   test("tamu lama disapa singkat; spam klik membuatnya marah dengan ucapan", async ({ page }) => {
     await seenBefore(page);
-    await open3d(page, "?stage=low", "", "keep");
+    await open3d(page, "?stage=high", "", "keep");
     await expect(said(page)).toHaveText("Clawd: Welcome back! Clawd here.", { timeout: WAIT_LONG });
     await expect(page.locator(".clawd-bubble")).not.toHaveAttribute("data-on", "", { timeout: WAIT_LONG });
     // spam: enam klik beruntun (dikirim sekaligus, seperti jari yang mengetuk cepat)
@@ -1004,7 +1001,7 @@ test.describe("Clawd, maskot pemandu di panggung 3D (M3, arahan host 15–16 Nov
   test("gallery: petunjuk geser diucapkan, dan Clawd serta gelembungnya tidak menutupi tombol kartu", async ({ page }) => {
     test.slow();
     await seenBefore(page, ["gallery"]);
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await step(page); // intro hari
     await step(page); // panel pertama
     await expect(film(page)).toHaveAttribute("data-kind", "panel");
@@ -1157,14 +1154,14 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
 
   test("fase mengikuti slide: gerbang di judul hari, subuh di pembuka hari, jam tempat singgah di gallery, malam di gong penutup", async ({ page }) => {
     test.slow();
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
     await step(page); // pembuka hari: langit subuh sebelum tempat singgah pertama
     await expect.poll(() => phase(page), { timeout: WAIT }).toBe("dawn");
     await step(page); // panel pertama: mengikuti jam tempat singgah (fase terang)
     await expect(film(page)).toHaveAttribute("data-kind", "panel");
     await expect.poll(async () => ["dawn", "day", "dusk"].includes((await phase(page)) ?? ""), { timeout: WAIT }).toBe(true);
-    await open3d(page, "?stage=low", "#day-2");
+    await open3d(page, "?stage=high", "#day-2");
     await step(page, "ArrowUp");
     await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
     await expect.poll(() => phase(page), { timeout: WAIT }).toBe("night");
@@ -1177,7 +1174,7 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
     test.setTimeout(180_000);
     const scratch = await page.context().newPage();
     try {
-      await open3d(page, "?stage=low&clawd=0", "#day-1");
+      await open3d(page, "?stage=high&clawd=0", "#day-1");
       await expect.poll(() => phase(page), { timeout: WAIT }).toBe("gate");
       const gateOn = tone(await meanRgb(page, scratch));
       await gradeOff(page, true);
@@ -1185,7 +1182,7 @@ test.describe("grading warna per fase (Tugas 8.2 + 8.3, host 18 Nov: \"kerjakan 
       expect(gateOn).toBeGreaterThan(gateOff + 0.03);
 
       // malam diukur di slide intro prolog (tanpa gong yang baranya masih berubah), bergantian dua kali lalu dirata-rata
-      await open3d(page, "?stage=low&clawd=0");
+      await open3d(page, "?stage=high&clawd=0");
       await step(page); // headline
       await step(page); // intro: langit malam
       await expect(film(page)).toHaveAttribute("data-kind", "intro");
@@ -1241,7 +1238,7 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
 
   test("jenis butir mengikuti slide: debu lampu di judul hari, embun di pembuka hari, debu emas di gallery, kunang-kunang di gong penutup", async ({ page }) => {
     test.slow();
-    await open3d(page, "?stage=low", "#day-1");
+    await open3d(page, "?stage=high", "#day-1");
     await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("lamp");
     await step(page); // pembuka hari: subuh
     await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("dew");
@@ -1249,7 +1246,7 @@ test.describe("partikel per fase (Tugas 8.4, host 18 Nov: \"dah gw merge, lanjut
     for (let i = 0; i < 8 && (await strongest(page)) !== "motes"; i++) await step(page);
     await expect(film(page)).toHaveAttribute("data-kind", "panel");
     expect(await strongest(page)).toBe("motes");
-    await open3d(page, "?stage=low", "#day-2");
+    await open3d(page, "?stage=high", "#day-2");
     await step(page, "ArrowUp");
     await expect(film(page)).toHaveAttribute("data-slide", "day-1/gong");
     await expect.poll(() => strongest(page), { timeout: WAIT }).toBe("fireflies");

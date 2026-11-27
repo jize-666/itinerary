@@ -3,7 +3,7 @@
  * dan menggambar tiap frame. Stage3D.tsx hanya memasang dan membongkarnya.
  *
  * Tiap frame: letak film (`probe`) → cue (shot kamera + keadaan langit) → uniform bersama dan kamera → rantai
- * post. Loop berhenti saat tab tersembunyi, melambat saat diam di tier rendah, dan memberi makan pengatur tier.
+ * post. Loop berhenti saat tab tersembunyi, dan memberi makan pengatur tier.
  */
 import { type PerspectiveCamera, type Scene, Vector2, Vector3, type WebGLRenderer } from "three";
 import type { Film } from "@/engine/slides/build-slides";
@@ -23,7 +23,7 @@ import { terrainHeight, TERRAIN_DEFAULT, type TerrainShape } from "@/engine/stag
 import { type ParticleMix, particleMix } from "@/engine/stage/particles";
 import { RIVER, riverLine, waterLevel } from "@/engine/stage/river";
 import { drawnAt, filmPosition, larungRoutes, pointAt, type Route, riverRing, shownAt } from "@/engine/stage/route";
-import type { Governor, Rung, Tier, TierSpec } from "@/engine/stage/tier";
+import type { Governor, Tier, TierSpec } from "@/engine/stage/tier";
 import { chapterWorlds } from "./chapters";
 import { createBlencong } from "./blencong";
 import { createDust } from "./dust";
@@ -44,8 +44,7 @@ import { createVillage } from "./village";
 /** Angka yang dibaca overlay FPS, tes, dan skrip ukur. */
 export type StageStats = {
   tier: Tier;
-  scale: number;
-  /** fps rata-rata ±3 dtk dari pengatur tier (0 bila belum cukup data, atau saat diam di tier Low). */
+  /** fps rata-rata ±3 dtk dari pengatur tier (0 bila belum cukup data, atau saat diam). */
   fps: number;
   /** Laju frame layar saat ini (rata-rata pendek dari jarak antar requestAnimationFrame): yang ditampilkan overlay. */
   pace: number;
@@ -104,10 +103,10 @@ export type StageHooks = {
   probe(): Cursor;
   /** Frame pertama sudah tergambar. */
   onLive(): void;
-  /** Tidak bisa lanjut (konteks WebGL hilang, atau terlalu berat bahkan di tier terendah). */
-  onFail(why: "lost" | "slow"): void;
-  /** Pengatur FPS pindah anak tangga. */
-  onRung(r: Rung): void;
+  /** Tidak bisa lanjut (konteks WebGL hilang). */
+  onFail(why: "lost"): void;
+  /** Pengatur FPS pindah tier (Ultra ↔ High). */
+  onTier(t: Tier): void;
   /** Sesudah tiap frame (overlay FPS). */
   onStats?(): void;
   /** Isi tiket 3D (nama tamu dari data privat + label dua bahasa); null = tidak ada tiket. Dibaca tiap frame. */
@@ -188,7 +187,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     },
   });
   // tiket 3D bertali (Tugas 12b): dipasang dekat slide tiket, digerakkan fisika milik modul tiket
-  const pass = createPassStage({ scene, shared, spec, onEvent: (e) => stageBus.passEvent(e) });
+  const pass = createPassStage({ scene, shared, onEvent: (e) => stageBus.passEvent(e) });
   /** HP: kemiringan HP menggeser gravitasi tiket sedikit (di desktop kursor hanya menggeser kamera). */
   const touchLook = isMobile();
   const passIndex = film.slides.findIndex((s) => s.kind === "pass");
@@ -663,10 +662,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     stats.pace = gap ? 1000 / gap : 0;
     stats.capped = governor.capped();
     hooks().onStats?.();
-    if (next) {
-      if (next.tier === "static") hooks().onFail("slow");
-      else hooks().onRung(next);
-    }
+    if (next) hooks().onTier(next);
   };
   raf = requestAnimationFrame(tick);
 

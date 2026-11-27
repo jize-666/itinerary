@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GUIDE_KINDS, type GuideKind } from "@/engine/canting/guides";
 import type { Tool } from "@/engine/canting/motif";
 import type { CantingQuality } from "@/engine/canting/options";
+import { defaultQuality } from "@/engine/motion/quality";
 import { ct, type CantingLang, type CantingTextKey } from "@/engine/canting/text";
 import { Icon } from "@/components/diorama/Icons";
 import { createCantingGuide, type CantingGuide } from "./guide";
@@ -92,7 +93,7 @@ export function Canting({ lang, calm, quality, showFps = false, demo = false }: 
   const [stats, setStats] = useState("");
   const [failed, setFailed] = useState(false);
   const [savedOnce, setSavedOnce] = useState(false);
-  const tier: CantingQuality = quality ?? "high";
+  const tier: CantingQuality = quality ?? defaultQuality();
   const t = (k: CantingTextKey) => ct(k, lang);
 
   useEffect(() => {

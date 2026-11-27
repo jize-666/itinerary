@@ -14,7 +14,6 @@ import type { Vec3 } from "@/engine/stage/shots";
 import { createPassPhysics, type PassEvent, type PassStatus } from "@/engine/pass3d";
 import type { Cursor } from "@/engine/stage/cue";
 import { PASS, passCloseness, passLift, passWanted, tailLift } from "@/engine/stage/pass";
-import type { TierSpec } from "@/engine/stage/tier";
 import { COMMON, type Shared } from "../shared";
 import type { PassContent } from "./content";
 import { createPassInput, type PassPointer } from "./input";
@@ -66,8 +65,9 @@ const TAIL_ORDER = 2002;
 const LAND_AT = 0.98;
 const LAND_JOLT: [number, number, number] = [0.22, 0, 0.1];
 
-export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene; shared: Shared; spec: TierSpec; onEvent?: (e: PassEvent) => void }): PassStage {
-  const quality: PassQuality = spec.dof ? "high" : spec.msaa >= 2 ? "medium" : "low";
+export function createPassStage({ scene, shared, onEvent }: { scene: Scene; shared: Shared; onEvent?: (e: PassEvent) => void }): PassStage {
+  // ultra dan high memakai setelan tiket yang sama
+  const quality: PassQuality = "high";
   const physics = createPassPhysics({ onEvent: (e) => onEvent?.(e) });
   physics.setWind(BREEZE);
   const lampPos = new Vector3();

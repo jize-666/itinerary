@@ -151,7 +151,7 @@ const minutes = (s: Slide | undefined) =>
   s?.clock ?? (s?.kind === "panel" && s.stop.start ? Number(s.stop.start.slice(0, 2)) * 60 + Number(s.stop.start.slice(3, 5)) : 6 * 60);
 
 export function createBatikWorld(shared: Shared, spec: TierSpec, film: Film, gl: WebGLRenderer): ChapterWorld {
-  const quality: BatikQuality = spec.dof ? "high" : spec.msaa ? "medium" : "low";
+  const quality: BatikQuality = "high";
   // satu lampion per tempat singgah tiga hari film
   const lanterns = Math.max(3, film.slides.filter((s) => s.kind === "panel").length);
   const trace = traceMotif(kawungUkel({ aspect: CLOTH.aspect, river: { lanterns } }));
@@ -233,7 +233,7 @@ export function createBatikWorld(shared: Shared, spec: TierSpec, film: Film, gl:
   group.add(door);
 
   // ---- wajan malam di atas anglo, dan canting ----
-  const toolQ = quality === "high" ? "high" : quality === "medium" ? "medium" : "low";
+  const toolQ = quality;
   const pan = createWaxPan({ quality: toolQ });
   pan.group.scale.setScalar(1.8);
   pan.group.position.set(-W / 2 - 0.75, 0.108 * 1.8, 0.7);

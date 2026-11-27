@@ -1,5 +1,6 @@
 export type DioLocation = "pendhapa" | "pasar" | "laweyan";
-export type Quality = "high" | "medium" | "low";
+import { parseQuality, pixelRatio, type Quality } from "@/engine/motion/quality";
+export type { Quality };
 export type TourState = "idle" | "playing" | "paused" | "done";
 
 export type DioramaProps = {
@@ -18,17 +19,14 @@ export function readOptions(search: string) {
     q = p.get("q");
   const focus: DioLocation | undefined =
     place === "pendhapa" || place === "pasar" || place === "laweyan" ? place : undefined;
-  const quality: Quality | undefined = q === "high" || q === "medium" || q === "low" ? q : undefined;
+  const quality: Quality | undefined = parseQuality(q);
   return { focus, quality, autoTour: p.get("tur") === "1", showFps: p.has("fps") };
 }
 export const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
-/** Use the high-tier density as a baseline so quality also scales on 1× desktop screens. */
-export function renderDpr(tier: Quality, nativeDpr: number) {
-  const base = Math.min(1.5, Math.max(0.5, nativeDpr || 1));
-  const fraction = { high: 1, medium: 0.82, low: 0.6 }[tier];
-  return base * fraction;
-}
-export const tierStep = (q: Quality): Quality => (q === "high" ? "medium" : "low");
+/** Rasio piksel kanvas: High = kerapatan layar (maks 2), Ultra = 1,5–2,5. Tidak pernah diperkecil. */
+export const renderDpr = (tier: Quality, nativeDpr: number) => pixelRatio(tier, nativeDpr);
+/** Satu-satunya langkah turun: Ultra ke High. */
+export const tierStep = (q: Quality): Quality => (q === "ultra" ? "high" : q);
 export function percentile(values: readonly number[], q = 0.95) {
   if (!values.length) return 0;
   const sorted = [...values].sort((a, b) => a - b);

@@ -25,7 +25,7 @@ async function visit(p: Page, params = "", lang: "en" | "id" = "en", calm = fals
     },
     { lang, calm },
   );
-  await p.goto("/diorama/?q=low" + params);
+  await p.goto("/diorama/?q=high" + params);
   await expect(p.locator(".dio-root")).toHaveAttribute("data-ready", "true", { timeout: 60_000 });
 }
 const tool = (p: Page, name: string) => p.getByRole("button", { name, exact: true });
@@ -36,17 +36,17 @@ async function blobBytes(d: Download) {
 }
 
 test("requires the existing session before exposing the miniature", async ({ page }) => {
-  await page.goto("/diorama/?q=low");
+  await page.goto("/diorama/?q=high");
   await expect(page).toHaveURL(/\/(\?.*)?$/);
   await expect(page.locator(".dio-canvas canvas")).toHaveCount(0);
 });
-test("low quality applies the actual framebuffer density on desktop and mobile", async ({ page }) => {
+test("high quality renders at native density up to 2 on desktop and mobile", async ({ page }) => {
   await visit(page);
   const canvas = page.locator(".dio-canvas canvas");
   await expect
     .poll(async () =>
       canvas.evaluate((el) => {
-        const expected = Math.min(1.5, devicePixelRatio) * 0.6;
+        const expected = Math.min(2, devicePixelRatio);
         return Math.abs((el as HTMLCanvasElement).width / el.getBoundingClientRect().width - expected);
       }),
     )

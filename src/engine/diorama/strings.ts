@@ -89,8 +89,7 @@ export const strings = {
   done: { en: "Tour complete", id: "Tur selesai" },
   fps: { en: "Frame time (p95)", id: "Waktu frame (p95)" },
   high: { en: "High", id: "Tinggi" },
-  medium: { en: "Medium", id: "Sedang" },
-  low: { en: "Low", id: "Rendah" },
+  ultra: { en: "Ultra", id: "Ultra" },
   drawCalls: { en: "Draw calls", id: "Panggilan gambar" },
   triangles: { en: "Triangles", id: "Segitiga" },
   photoHint: {

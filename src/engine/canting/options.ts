@@ -3,10 +3,12 @@ export type { BatikState };
 export { EMPTY_STATE };
 
 export type Tahap = "malam" | "nila" | "soga" | "lorod";
-export type CantingQuality = "high" | "medium" | "low";
+import { parseQuality, type Quality } from "@/engine/motion/quality";
+
+export type CantingQuality = Quality;
 
 /**
- * Opsi dari query string: `?q=high|medium|low`, `?tahap=malam|nila|soga|lorod` (studio foto), `?draw=0..1`, `?fps`,
+ * Opsi dari query string: `?q=ultra|high` (medium dan low lama = high), `?tahap=malam|nila|soga|lorod` (studio foto), `?draw=0..1`, `?fps`,
  * `?demo=1` (halaman interaktif membatik sendiri: pola kawung ditorehkan, dicelup, dilorod, disimpan).
  */
 export function readCantingOptions(search: string): {
@@ -22,7 +24,7 @@ export function readCantingOptions(search: string): {
   const raw = p.get("draw");
   const n = raw === null || raw.trim() === "" ? NaN : Number(raw);
   return {
-    quality: q === "high" || q === "medium" || q === "low" ? q : undefined,
+    quality: parseQuality(q),
     tahap: t === "malam" || t === "nila" || t === "soga" || t === "lorod" ? t : undefined,
     draw: Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : undefined,
     showFps: p.has("fps"),

@@ -13,7 +13,7 @@ module.exports = async function recordLawu(dataFile, output, device) {
     throw Error("Generate neutral preview data with scripts/preview/client-data.ts");
   const fps = 24,
     phone = device !== "desktop",
-    stage = process.env.STAGE || "medium";
+    stage = process.env.STAGE || "high";
   const viewport = phone ? { width: 360, height: 640 } : { width: 1440, height: 900 };
   const browser = await chromium.launch({
     executablePath: process.env.PREVIEW_BROWSER || undefined,

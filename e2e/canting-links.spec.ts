@@ -92,14 +92,14 @@ test.describe("tautan membatik di maket", () => {
 
   async function visit(p: Page, lokasi?: string) {
     await seedSession(p);
-    await p.goto("/diorama/?q=low" + (lokasi ? `&lokasi=${lokasi}` : ""));
+    await p.goto("/diorama/?q=high" + (lokasi ? `&lokasi=${lokasi}` : ""));
     await expect(p.locator(".dio-root")).toHaveAttribute("data-ready", "true", { timeout: 60_000 });
   }
 
   test("hanya panel bengkel batik yang membawa tautan, dan klik membuka /canting/", async ({ page }) => {
     await visit(page, "pasar");
     await expect(page.locator("a[data-canting]")).toHaveCount(0);
-    await page.goto("/diorama/?q=low&lokasi=laweyan");
+    await page.goto("/diorama/?q=high&lokasi=laweyan");
     await expect(page.locator(".dio-root")).toHaveAttribute("data-ready", "true", { timeout: 60_000 });
     const link = page.locator(".dio-caption a[data-canting]");
     await expect(link).toHaveCount(1, { timeout: 15_000 });

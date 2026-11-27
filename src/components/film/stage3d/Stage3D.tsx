@@ -12,7 +12,7 @@ import type { PerspectiveCamera } from "three";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
 import type { PassContent } from "./pass3d/content";
-import { createGovernor, type Governor, LADDER, type Rung, rungOf, type Tier, TIER, type TierSpec } from "@/engine/stage/tier";
+import { createGovernor, dprFor, type Governor, type Tier, TIER, type TierSpec } from "@/engine/stage/tier";
 import { createRuntime, type Runtime, type StageHooks, type StageStats } from "./runtime";
 
 export type { StageStats };
@@ -26,8 +26,6 @@ export type Stage3DProps = {
   tier: Exclude<Tier, "static">;
   /** Tier dipaksa (`?stage=`): pengatur FPS hanya mengukur. */
   locked: boolean;
-  /** iPhone/iPad: tier High dipaksa, pengatur tidak menurunkannya kecuali benar-benar tersendat (`pinnedHigh`). */
-  pinned?: boolean;
   /** Tampilkan overlay FPS. */
   debug: boolean;
   /** Isi tiket 3D (Tugas 12b); null = tidak ada tiket 3D. */
@@ -35,7 +33,7 @@ export type Stage3DProps = {
   /** Frame pertama sudah tergambar. */
   onLive: () => void;
   /** Tidak bisa lanjut (konteks WebGL hilang, atau terlalu berat bahkan di tier terendah): kembali ke film 2,5D. */
-  onFail: (why: "lost" | "slow") => void;
+  onFail: (why: "lost") => void;
 };
 
 declare global {
@@ -48,13 +46,12 @@ type SceneProps = {
   film: Film;
   root: RefObject<HTMLElement | null>;
   spec: TierSpec;
-  scale: number;
   governor: Governor;
   stats: RefObject<StageStats>;
   hooks: RefObject<StageHooks>;
 };
 
-function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) {
+function Scene({ film, root, spec, governor, stats, hooks }: SceneProps) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const advance = useThree((s) => s.advance);
@@ -76,7 +73,7 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
   useEffect(() => {
     runtime.current?.resize();
     runtime.current?.layout();
-  }, [size.width, size.height, dpr, scale]);
+  }, [size.width, size.height, dpr]);
 
   // prioritas > 0: R3F tidak menggambar sendiri; rantai post yang menggambar
   useFrame((state, dt) => {
@@ -86,27 +83,26 @@ function Scene({ film, root, spec, scale, governor, stats, hooks }: SceneProps) 
   return null;
 }
 
-const blankStats = (tier: Tier): StageStats => ({ tier, scale: 1, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, orbit: 0, kayon: false, bloom: "", gate: { end: null, planted: 0, face: "agung" }, time: 0, dof: { amount: 0, focus: 0, drawn: false }, portal: 0, grade: { phase: "gate", sat: 1 }, particles: { lamp: 1, dew: 0, motes: 0, fireflies: 0 } });
+const blankStats = (tier: Tier): StageStats => ({ tier, fps: 0, pace: 0, work: 0, frames: 0, calls: 0, triangles: 0, capped: false, camera: [0, 0, 0], fov: 0, index: 0, moving: false, strikes: 0, kick: 0, orbit: 0, kayon: false, bloom: "", gate: { end: null, planted: 0, face: "agung" }, time: 0, dof: { amount: 0, focus: 0, drawn: false }, portal: 0, grade: { phase: "gate", sat: 1 }, particles: { lamp: 1, dew: 0, motes: 0, fireflies: 0 } });
 
-export default function Stage3D({ film, probe, root, tier, locked, pinned = false, debug, pass = null, onLive, onFail }: Stage3DProps) {
-  const [rung, setRung] = useState<Rung>(() => LADDER[rungOf(tier)]!);
-  const [governor] = useState(() => createGovernor(tier, performance.now(), locked, pinned));
+export default function Stage3D({ film, probe, root, tier, locked, debug, pass = null, onLive, onFail }: Stage3DProps) {
+  const [current, setCurrent] = useState<Tier>(tier);
+  const [governor] = useState(() => createGovernor(tier, performance.now(), locked));
   const stats = useRef<StageStats>(blankStats(tier));
   const wrap = useRef<HTMLDivElement>(null);
   const hud = useRef<HTMLPreElement>(null);
   const hudAt = useRef(0);
-  const hooks = useRef<StageHooks>({ probe, onLive, onFail, onRung: setRung });
+  const hooks = useRef<StageHooks>({ probe, onLive, onFail, onTier: setCurrent });
 
   useEffect(() => {
     const s = stats.current;
-    s.tier = rung.tier;
-    s.scale = rung.scale;
+    s.tier = current;
     window.__lakonStage = s;
     hooks.current = {
       probe,
       onLive,
       onFail,
-      onRung: setRung,
+      onTier: setCurrent,
       onStats() {
         const now = performance.now();
         if (now - hudAt.current < 250) return;
@@ -116,25 +112,25 @@ export default function Stage3D({ film, probe, root, tier, locked, pinned = fals
           const tri = s.triangles >= 1000 ? `${Math.round(s.triangles / 1000)}k` : String(s.triangles);
           // baris 1: laju layar sekarang, rata-rata 3 dtk dari pengatur tier (bila sudah ada), waktu CPU per frame
           const avg = s.fps ? ` · avg ${s.fps.toFixed(0)}` : "";
-          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${s.tier} ×${s.scale}${governor.pinned() ? " (paksa)" : governor.rescued() ? ` (paksa, turun: ${governor.rescued()} fps)` : ""} · ${s.calls} draw · ${tri} tri`;
+          hud.current.textContent = `${s.pace ? s.pace.toFixed(0) : "–"} fps${avg}${s.capped ? " (30 Hz)" : ""} · ${s.work.toFixed(1)} ms\n${governor.fell() ? `${s.tier} (turun dari ultra: ${governor.fell()} fps)` : s.tier} · ${s.calls} draw · ${tri} tri`;
         }
       },
     };
     return () => {
       delete window.__lakonStage;
     };
-  }, [rung, probe, onLive, onFail, governor]);
+  }, [current, probe, onLive, onFail, governor]);
 
   // isi tiket 3D dibaca panggung tiap frame (tidak membangun ulang dunia saat bahasa berganti)
   useEffect(() => {
     hooks.current.pass = () => pass;
-  }, [pass, rung, probe, onLive, onFail, governor]);
+  }, [pass, current, probe, onLive, onFail, governor]);
 
-  if (rung.tier === "static") return null;
-  const spec = TIER[rung.tier];
-  const dpr = Math.min(window.devicePixelRatio || 1, spec.dpr) * rung.scale;
+  if (current === "static") return null;
+  const spec = TIER[current];
+  const dpr = dprFor(spec, window.devicePixelRatio || 1);
   return (
-    <div ref={wrap} className="fl-canvas" data-tier={rung.tier} data-scale={rung.scale} aria-hidden="true">
+    <div ref={wrap} className="fl-canvas" data-tier={current} aria-hidden="true">
       <Canvas
         frameloop="never"
         dpr={dpr}
@@ -144,7 +140,7 @@ export default function Stage3D({ film, probe, root, tier, locked, pinned = fals
         camera={{ fov: 36, near: 0.1, far: 3000, position: [0, 1.3, 7.4] }}
         style={{ position: "absolute", inset: 0 }}
       >
-        <Scene film={film} root={root} spec={spec} scale={rung.scale} governor={governor} stats={stats} hooks={hooks} />
+        <Scene film={film} root={root} spec={spec} governor={governor} stats={stats} hooks={hooks} />
       </Canvas>
       {debug && <pre ref={hud} className="fl-fps" />}
     </div>
