@@ -5,7 +5,7 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
-### Permintaan host 27 Nov (di luar urutan): paket maskot Clawd dalam zip — SEDANG DIKERJAKAN
+### Permintaan host 27 Nov (di luar urutan): paket maskot Clawd dalam zip — SELESAI 27 NOV, ZIP DIKIRIM
 
 **Kata host, kata demi kata:** "kasih gw maskot clawd nya, lengkap dengan gerak, design nya. zip".
 
@@ -15,6 +15,12 @@ Tafsir Claude: satu zip yang berdiri sendiri, dikirim ke host di chat (tidak mas
 - **gambar** lembar ekspresi, turnaround, dan pose; **video** gerak singkat;
 - **kode sumber** maskot apa adanya (otak, penggerak, wajah, pose, jeli, gelembung, biip, 3D, 2,5D) beserta tesnya;
 - **desain**: README spesifikasi (ukuran, warna, ekspresi, aturan gerak, gelembung, biip, perilaku) dan kutipan `docs/design/decisions.md` bagian Clawd.
+
+Host di tengah pekerjaan: "gausa ada video cok. cepetan kirim zipnya aelah". Video dibatalkan.
+
+1. **Selesai:** `clawd-maskot.zip` (11 MB, 119 berkas) dikirim ke host di chat; tidak masuk repo. Isi: `demo/` (demo mandiri, dibuka dari file://: 3D | 2,5D, 8 suasana hati, 11 gerakan, 12 ekspresi, perkenalan, ketuk, EN | ID, biip, gerak dikurangi, `?auto=1`), `model/` (GLB netral, 12 ekspresi, dan satu GLB semua ekspresi), `render/` (`ekspresi.png`, `turnaround.png`, `gerak.png`, `mood.png`), `src/` (48 berkas kode maskot + tipe trip saja, tanpa sesi/backend), `tests/` (6 berkas), `README.md` spesifikasi, `desain/keputusan-desain-clawd.md`. Demo dan ekspor dibuat subagen Sonnet (terhenti sekali karena batas pemakaian, lalu dihentikan sebelum video), README dan peninjauan oleh Opus.
+2. **Tes:** dari isi paket sendiri, Vitest 91/91 dan `tsc` bersih (tanpa `stage3d/guide.ts` yang perlu panggung film). Demo dari file:// di Chromium: tanpa error console, ketukan pada Clawd memunculkan gelembung. Lembar `clawd-2.5d.png`, `gelembung.png`, `palet.png` tidak sempat dibuat (palet dan gelembung tertulis di README).
+3. **Berikutnya:** tunggu tanggapan host atas zip. Daftar tugas di `CLAUDE.md` tetap habis: tanya host sebelum lanjut.
 
 ### MULAI DI SINI (sesudah PR #28 di-merge, 27 Nov)
 
