@@ -1,6 +1,6 @@
 # HANDOFF
 
-Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov 10.34 UTC; Tugas 1–12 selesai semuanya** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov; sisa Tugas 12 dan biip Clawd di PR #27, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
@@ -16,7 +16,7 @@ Tafsir Claude:
 - Subagen klip suara P1d dihentikan (klip tiket dan `tip.mountain.0` tidak lagi diperlukan); belum ada berkas repo yang ia ubah.
 - Bila host ingin satu biip per gelembung saja (bukan rentetan), cukup diganti satu angka.
 
-### Permintaan host 26 Nov: "kerjakan sisa tugas 12" — DICATAT, SEDANG DIKERJAKAN
+### Permintaan host 26 Nov: "kerjakan sisa tugas 12" — SELESAI 27 NOV, DI PR #27, MENUNGGU HOST
 
 **Kata host, kata demi kata:** "kerjakan sisa tugas 12". Sisa yang dimaksud adalah P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2 yang belum dikerjakan di PR #26:
 - tiket juga muncul di epilog (PRD situs §7.4: tergantung saat gong terakhir dan gunungan ditancapkan kembali);
@@ -51,7 +51,12 @@ Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratc
 2. Tes: unit 748/748, e2e `pass-flat` 11 lulus / 5 dilewati sesudah build ulang. Container sempat restart: rekaman 3D desktop terputus sebelum penutup, jadi direkam ulang bersama 2,5D HP dan 3D HP.
 3. Berikutnya: kirim `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`, catat di ledger.
 
-**Pratinjau terkirim (27 Nov):** `tiket25d-hp2.mp4` (33 dtk, Clawd di pita atas) dan `tiket3d-penutup-desktop.mp4` (60 dtk, High: slide tiket, credits, gunungan penutup dengan tiket "Matur nuwun", diketuk bolak-balik) dikirim dan dicatat di ledger. Rekaman 3D desktop pertama gagal di penutup: tur menunggu gunungan menancap sendiri (12 dtk jam halaman = ±10 menit nyata di K 0,02) dengan batas 30 dtk nyata; kini tur menancapkannya dengan satu langkah maju. `tiket3d-penutup-hp.mp4` sedang direkam.
+**Pratinjau terkirim (27 Nov):** `tiket25d-hp2.mp4` (33 dtk, Clawd di pita atas) dan `tiket3d-penutup-desktop.mp4` (60 dtk, High: slide tiket, credits, gunungan penutup dengan tiket "Matur nuwun", diketuk bolak-balik) dikirim dan dicatat di ledger. Rekaman 3D desktop pertama gagal di penutup: tur menunggu gunungan menancap sendiri (12 dtk jam halaman = ±10 menit nyata di K 0,02) dengan batas 30 dtk nyata; kini tur menancapkannya dengan satu langkah maju. `tiket3d-penutup-hp.mp4` (50 dtk, HP 9:16: tiket di pojok kiri atas di samping pucuk gunungan, Clawd di kanan bawah) juga dikirim dan dicatat.
+
+**Penutupan sesi (27 Nov):**
+1. Selesai: sisa Tugas 12 (tiket di penutup, tiket 2,5D berpegas, reaksi Clawd) dan biip Clawd, semua di PR #27 (Squash and merge, menunggu host). Lima pratinjau terkirim: `biip-contoh.mp3`, foto penutup desktop, `tiket25d-desktop`, `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`.
+2. Tes: lint, typecheck, content:check, build lulus; unit 748/748; e2e terdampak 160 lulus / 26 dilewati, `pass-flat` diulang sesudah perbaikan HP 11 lulus / 5 dilewati. Belum diuji di perangkat: iPhone produksi (penutup, biip, tiket 2,5D di Safari).
+3. Berikutnya: host mendengar biip (bila ingin satu biip per gelembung, cukup ubah perencana di `engine/mascot/beep.ts`) dan meninjau PR #27. Daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut.
 
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 
