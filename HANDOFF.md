@@ -18,6 +18,15 @@ Tafsir Claude:
 2. **Tablet Samsung flagship buram.** Kemungkinan terdeteksi Medium (resolusi lebih rendah), atau pengatur fps menurunkan resolusi (seperti `×0.82` di tangkapan layar slide tiket).
 3. **Tier kualitas cukup High dan Ultra, tanpa Medium dan Low.** Static (tanpa WebGL) tetap ada sebagai cadangan perangkat tanpa WebGL2 dan Calm, karena itu bukan tingkat kualitas. Pengatur fps tidak lagi menurunkan resolusi, sesuai aturan host 12 Nov: "beban hemat tapi jangan turunkan kualitas". Ultra = High ditambah resolusi dan antialias lebih tinggi untuk perangkat kuat. Berlaku untuk panggung film, `/diorama/`, dan `/canting/`.
 
+**Tier High/Ultra selesai (27 Nov, Sonnet, ditinjau Opus):**
+1. Selesai: penyebab buram ditemukan. Di film, perangkat non-Apple turun anak tangga saat < 50 fps (High ×0,82 → Medium → Low) sampai resolusinya rendah; di maket, layar sentuh mulai di Medium (rasio piksel 1,5 × 0,82) dan turun lagi bila p95 > 16,7 ms. Sekarang:
+   - film `Tier = ultra | high | static` (static hanya tanpa WebGL2/renderer perangkat lunak); High = setelan High lama; Ultra = rasio piksel min 1,5 (supersampling di layar 1×) maks 2,5, bloom 6, shadow 4096; semua HP/tablet High, desktop GPU kuat (memori dan inti ≥ 8 atau tidak diketahui) Ultra;
+   - pengatur fps tidak pernah mengecilkan resolusi; satu-satunya langkah Ultra → High (< 45 fps 3 dtk) dan kembali (≥ 58 fps 8 dtk); tidak pernah di bawah High;
+   - maket dan canting `ultra | high` (rasio piksel High = min(layar, 2), Ultra 1,5–2,5; Ultra bawaan di desktop bukan sentuh dengan ≥ 8 inti; pembantu `engine/motion/quality.ts`); maket hanya turun Ultra → High;
+   - `?stage=`/`?q=` lama `medium`/`low` menjadi alias High; overlay menulis `high (turun dari ultra: N fps)`.
+2. Tes: lint, typecheck, unit 754/754. E2E memakai `stage=high`/`q=high` (dulu `low`); e2e terdampak sedang dijalankan untuk melihat waktunya di renderer perangkat lunak.
+3. Berikutnya: hasil e2e, gabungkan perbaikan transisi maket (subagen di worktree), video, PR.
+
 ### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 
 **Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
