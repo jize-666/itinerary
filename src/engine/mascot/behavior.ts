@@ -9,7 +9,10 @@ import type { Mood } from "./face";
 import type { Motion } from "./pose";
 
 /** Kunci ucapan spontan (teksnya di i18n `mascot.say.*`). */
-export type Line = "tap" | "wake" | "angry" | "happy" | "love" | "gong" | "calm";
+export type Line = "tap" | "wake" | "angry" | "happy" | "love" | "gong" | "calm" | "ticketGrab" | "ticketToss" | "ticketBack" | "ticketFront";
+
+/** Cara tamu bermain dengan tiket bertali. */
+export type TicketKind = "grab" | "toss" | "back" | "front";
 
 export type Snapshot = Readonly<{ mood: Mood; motion: Motion; motionSince: number; resting: boolean; traveling: boolean; guiding: boolean }>;
 
@@ -34,6 +37,8 @@ export const MASCOT = {
   sleepAfter: 60000,
   /** Ucapan spontan paling rapat. */
   speechGap: 4000,
+  /** Ucapan soal tiket: satu jenis paling rapat sekali per 15 dtk. */
+  ticketCooldown: 15000,
 } as const;
 
 const DUR: Partial<Record<Motion, number>> = { greet: 2400, happy: 2000, angry: 1800, wake: 1400, surprised: 1300, point: 2600 };
@@ -50,6 +55,7 @@ export class MascotBehavior {
   private moodUntil = Infinity;
   private angerAllowedAt = 0;
   private lastSpeech = -Infinity;
+  private lastTicket: Partial<Record<TicketKind, number>> = {};
   private lastActivity: number;
   private gesture: Motion | null = null;
   private gestureSince = 0;
@@ -186,6 +192,25 @@ export class MascotBehavior {
     this.say("gong", now);
   }
 
+  /** Tamu bermain dengan tiket: gerak singkat, dan ucapan yang dijarangkan per jenis (`ticketCooldown`). */
+  ticket(kind: TicketKind, now: number) {
+    this.activity(now);
+    if (this.mood === "angry") return;
+    const [mood, ms, motion]: [Mood, number, Motion] = {
+      grab: ["curious", 1400, "look"],
+      toss: ["surprised", 1100, "surprised"],
+      back: ["happy", 1600, "happy"],
+      front: ["happy", 1200, "look"],
+    }[kind] as [Mood, number, Motion];
+    this.setMood(mood, now, ms);
+    this.play(motion, now);
+    const last = this.lastTicket[kind];
+    if (last !== undefined && now - last < MASCOT.ticketCooldown) return;
+    const before = this.lastSpeech;
+    this.say(`ticket${kind[0]!.toUpperCase()}${kind.slice(1)}` as Line, now);
+    if (this.lastSpeech !== before) this.lastTicket[kind] = now;
+  }
+
   /** Tab disembunyikan/ditampilkan: semua jam emosi dibekukan selama tersembunyi. */
   visibility(hidden: boolean, now: number) {
     if (hidden && this.hiddenAt === null) this.hiddenAt = now;
@@ -198,6 +223,7 @@ export class MascotBehavior {
       this.angerAllowedAt += elapsed;
       this.lastActivity = now;
       this.lastSpeech += elapsed;
+      for (const k of Object.keys(this.lastTicket) as TicketKind[]) this.lastTicket[k]! += elapsed;
       this.hiddenAt = null;
       this.clearTaps();
     }

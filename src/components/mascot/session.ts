@@ -4,15 +4,16 @@
  * perangkat), bahasa, dan tempat di samping yang dipilih dari tata letak slide. Yang berbeda antara kedua film hanya
  * cara menggambar Clawd dan cara menaruhnya di layar.
  *
- * Suara Clawd (`engine/mascot/voice.ts`) juga diputar di sini: klip kalimat dimulai saat kalimatnya muncul, dan
- * dihentikan saat kalimat dilewati, dipotong reaksi, atau bahasa diganti. Ikut sakelar suara situs (`audioStatus`).
+ * "Biip" Clawd (`engine/mascot/beep.ts`) juga dibunyikan di sini: tiap frame, kata yang baru terketik di gelembung
+ * berbunyi satu biip menurut suasana kalimatnya. Ikut sakelar suara situs (`audioStatus`); bahasa tidak berpengaruh.
  */
 import { audioStatus } from "@/engine/audio/status";
 import { langStore } from "@/engine/i18n/lang";
+import { moodOf, planBeeps } from "@/engine/mascot/beep";
 import { Clawd, type ClawdFrame } from "@/engine/mascot/clawd";
 import { bestSide, PASS_BODY_WEIGHT, PASS_CANDIDATES, type Block, BLOCK_WEIGHT, type BubbleSide, Guide, type GuideContext, readSeen, type Spot, spotAt, stillApplies, writeSeen } from "@/engine/mascot/guide";
+import type { PassSignal } from "@/engine/stage/bus";
 import { INTRO, TIPS, type TipId } from "@/engine/mascot/lines";
-import { clipMs, clipUrl } from "@/engine/mascot/voice";
 
 /** Tinggi badan Clawd di layar (bagian sisi layar terpendek). */
 export const BODY_FRAC = { wide: 0.15, tall: 0.19 } as const;
@@ -21,8 +22,6 @@ const BUBBLE_EST = { wide: { w: 332, h: 84 }, tall: { w: 292, h: 80 } } as const
 /** Tata letak slide diukur sekian detik sesudah tiba (teks dan kartu sudah selesai muncul). */
 const SETTLE = 0.45;
 const TIP_IDS = Object.keys(TIPS) as TipId[];
-/** Suara kalimat hanya dimulai bila frame pertamanya datang paling lambat sekian ms sesudah kalimat muncul. */
-const VOICE_START = 400;
 
 /** Kotak isi slide dan chrome yang sebaiknya tidak ditutupi (px, relatif terhadap akar film). */
 export function blocksOf(el: HTMLElement): Block[] {
@@ -38,6 +37,8 @@ export function blocksOf(el: HTMLElement): Block[] {
   add(".fl-layer[data-pos='cur'] .gal-card", BLOCK_WEIGHT.card);
   // kain buatan tamu di epilog (Tugas 11.4): seberat teks, supaya Clawd berdiri di sampingnya, bukan di atasnya
   add(".fl-layer[data-pos='cur'] .fs-cloth-sheet", BLOCK_WEIGHT.text);
+  // tiket 2,5D berpegas (film tanpa panggung 3D): kartu DOM seberat teks
+  add(".fl-layer[data-pos='cur'] .pass-toy .pass-turn", BLOCK_WEIGHT.text);
   // tiket 3D bertali (Tugas 12b): kotak kartu di layar dari panggung (`data-pass-box`, persen), juga seberat teks
   const pass = el.dataset.passBox?.split(",").map(Number);
   if (pass?.length === 4 && pass.every(Number.isFinite) && pass[2]! > 0 && pass[3]! > 0) {
@@ -57,7 +58,8 @@ const storage = () => {
 /** Keadaan film yang dibaca dari atribut data akar film (`data-kind`, `data-beat`, `data-gate`, `data-sheet`). */
 export function contextOf(el: HTMLElement, moving: boolean, flat: boolean): GuideContext {
   return {
-    mountainDawn: el.dataset.theme === "lawu" && el.dataset.slide?.endsWith("/kemuning-sunrise"), kind: el.dataset.kind as GuideContext["kind"], pass3d: !!el.dataset.pass3d && el.dataset.pass3d !== "loading", beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
+    mountainDawn: el.dataset.theme === "lawu" && el.dataset.slide?.endsWith("/kemuning-sunrise"), kind: el.dataset.kind as GuideContext["kind"], // tiket 3D tampil, atau tiket 2,5D sedang interaktif (`data-pass-flat`)
+    pass3d: (!!el.dataset.pass3d && el.dataset.pass3d !== "loading") || "passFlat" in el.dataset, beat: el.dataset.beat === "out", gate: el.dataset.gate ?? "off", moving, sheet: "sheet" in el.dataset, flat };
 }
 
 export type SessionFrame = Readonly<{
@@ -70,12 +72,10 @@ export type SessionFrame = Readonly<{
 
 export function createSession({ touch }: { touch: boolean }) {
   const guide = new Guide(readSeen(storage()));
-  const brain: Clawd = new Clawd(0, langStore.get(), touch, {
-    on: audioStatus.voiceOn,
-    prepare: (names) => audioStatus.prepareVoice(names.filter((n) => clipMs(brain.lang, n) !== null).map((n) => clipUrl(brain.lang, n))),
-  });
-  /** Kalimat bersuara yang sedang diputar: kunci + klip + bahasa + saat muncul. */
-  let voiced = "";
+  const brain: Clawd = new Clawd(0, langStore.get(), touch);
+  /** Kalimat yang terakhir dibiipkan: kunci + saat muncul, huruf yang sudah tampil di frame itu. */
+  let beeped: { key: string; shown: number } | null = null;
+  let lastBeep = -Infinity;
   const offLang = langStore.subscribe(() => (brain.lang = langStore.get()));
   let clock = 0;
   const onVisibility = () => brain.visibility(document.visibilityState === "hidden", clock);
@@ -120,13 +120,17 @@ export function createSession({ touch }: { touch: boolean }) {
       for (const id of TIP_IDS) if (brain.hasTip(id) && !stillApplies(id, ctx)) brain.hushTip(id, ms);
       const frame = brain.tick(ms);
       const speech = frame.speech;
-      // suara: satu klip per kalimat; kalimat berganti, dilewati, memudar, atau bahasa diganti → klip lama berhenti
-      const voiceKey = speech?.voice && speech.fade === 1 ? `${speech.id}|${speech.voice}|${brain.lang}|${speech.since}` : "";
-      if (voiceKey !== voiced) {
-        if (voiced) audioStatus.hush();
-        voiced = voiceKey;
-        if (speech?.voice && speech.voicing && ms - speech.since <= VOICE_START) audioStatus.voice(clipUrl(brain.lang, speech.voice));
-      }
+      // biip: kata yang baru terketik sejak frame lalu (kalimat baru mulai dari huruf pertama)
+      if (speech && speech.fade === 1) {
+        const key = `${speech.id}|${speech.since}`;
+        const from = beeped?.key === key ? beeped.shown : 0;
+        if (speech.shown > from) {
+          const plan = planBeeps(speech.text, from, speech.shown, moodOf(speech.id), ms, lastBeep);
+          lastBeep = plan.last;
+          for (const tone of plan.beeps) audioStatus.beep(tone);
+        }
+        beeped = { key, shown: speech.shown };
+      } else beeped = null;
       // tuntas: kalimat terakhir perkenalan/petunjuk sudah lengkap diketik
       if (speech && !speech.typing) {
         if (speech.id === `intro.${INTRO.length - 1}` && guide.introDone()) persist();
@@ -144,8 +148,11 @@ export function createSession({ touch }: { touch: boolean }) {
       if (!ctx.moving && key !== sideKey && t - settledAt >= SETTLE && view.w > 0) {
         sideKey = key;
         const tall = view.w < view.h;
-        const passSlide = el.dataset.kind === "pass" && !!el.dataset.passBox;
-        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"], passSlide ? PASS_CANDIDATES : undefined, passSlide ? PASS_BODY_WEIGHT : 1);
+        // slide tiket: tiket 3D (`data-pass-box`) mendapat calon tempat di samping kartu; badan yang menutupi kartu (3D
+        // atau 2,5D) jauh lebih mahal daripada gelembung
+        const pass3d = el.dataset.kind === "pass" && !!el.dataset.passBox;
+        const passFlat = el.dataset.kind === "pass" && "passFlat" in el.dataset;
+        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"], pass3d ? PASS_CANDIDATES : undefined, pass3d || passFlat ? PASS_BODY_WEIGHT : 1);
       }
       return { clawd: frame, spot, side };
     },
@@ -161,8 +168,12 @@ export function createSession({ touch }: { touch: boolean }) {
       clock = ms;
       brain.gong(ms);
     },
+    /** Isyarat tiket bertali: tamu menggenggam, melempar, atau membalik. */
+    ticket(signal: PassSignal, ms: number) {
+      clock = ms;
+      brain.ticketSignal(signal, ms);
+    },
     dispose() {
-      if (voiced) audioStatus.hush();
       offLang();
       document.removeEventListener("visibilitychange", onVisibility);
     },

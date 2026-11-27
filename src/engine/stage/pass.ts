@@ -12,7 +12,8 @@
  * gulir (aturan host: kedalaman yang mengikuti gulir, berhenti saat gulir berhenti).
  */
 import type { Cursor } from "./cue";
-import { fitFov, type Shot, skyStretch, type Vec3 } from "./shots";
+import { plantSize } from "./gate";
+import { fitFov, projectPoint, rayThrough, type Shot, skyStretch, type Vec3 } from "./shots";
 
 export const PASS = {
   /** Kait tiket saat diam (dunia, m). */
@@ -83,3 +84,62 @@ export function passWanted(cursor: Cursor, index: number, mounted: boolean): boo
   const away = Math.min(Math.abs(cursor.from - index), Math.abs(cursor.to - index));
   return away <= (mounted ? 3 : 2);
 }
+
+/**
+ * Tiket tamu di samping gunungan penutup (PRD: tiket juga di epilog, tergantung saat gong terakhir dan gunungan
+ * tertancap lagi). Kamera di sana adalah shot kayon, jadi letak kartu dipatok di layar (NDC) lalu dicari kait di
+ * dunia yang jatuh tepat di titik itu. `fill` = bagian tinggi layar yang diisi kartu.
+ */
+export const TAIL = {
+  /** Layar mendatar: kelir kosong ada di kiri gunungan. */
+  wide: { x: -0.56, y: 0.1, fill: 0.34 },
+  /** Layar tegak: gunungan memenuhi lebar, satu-satunya ruang kosong di pojok kiri atas di samping pucuknya. */
+  tall: { x: -0.68, y: 0.45, fill: 0.19 },
+  /** Tinggi kait saat gunungan belum tertancap (m): kartu di atas bingkai. */
+  lift: 1.1,
+  /** Tiket mulai turun saat gunungan tertancap sebanyak ini. */
+  from: 0.35,
+  /** Ruang ayun di sekeliling kartu (kali ukuran kartu) dan jarak aman dari gunungan (NDC). */
+  swing: 1.2,
+  gap: 0.04,
+} as const;
+
+/** Lebar kartu dibanding tingginya (74 × 150 mm). */
+const CARD_RATIO = 0.074 / 0.15;
+
+/** Letak pusat kartu di layar (NDC) dan bagian tinggi layar yang diisinya, untuk layar `aspect`. */
+export function tailTarget(aspect: number): { x: number; y: number; fill: number } {
+  if (aspect < 1) return { ...TAIL.tall };
+  const { y } = TAIL.wide;
+  let x: number = TAIL.wide.x;
+  let fill: number = TAIL.wide.fill;
+  // lebar gunungan di layar (NDC): setengah lebarnya 0,7 × tinggi / aspek; kartu tidak boleh menyentuhnya
+  const gun = (0.7 * plantSize(aspect)) / aspect;
+  const half = (f: number) => (f * CARD_RATIO * TAIL.swing) / aspect;
+  const limit = -gun - TAIL.gap;
+  if (x + half(fill) > limit) {
+    // layar hampir persegi: kartu di tengah pita kosong di kiri gunungan, dikecilkan bila pita sempit
+    const edge = -0.97;
+    fill = Math.min(fill, (((limit - edge) / 2) * aspect) / (CARD_RATIO * TAIL.swing));
+    x = (edge + limit) / 2;
+  }
+  return { x, y, fill };
+}
+
+/**
+ * Kait tali untuk shot kayon `kayon`: pusat kartu yang diam (kait turun `PASS.hang`) jatuh di `tailTarget` dari
+ * kamera tanpa parallax, pada jarak yang membuat kartu setinggi `fill` layar. `dist` = jarak kamera ke kartu (m).
+ */
+export function tailHook(kayon: Shot, aspect: number): { hook: Vec3; dist: number } {
+  const t = tailTarget(aspect);
+  const dist = 0.15 / (2 * t.fill * Math.tan((kayon.fov * RAD) / 2));
+  const dir = rayThrough(kayon, aspect, t.x, t.y);
+  const at = (s: number): Vec3 => [kayon.pos[0] + dir[0] * s, kayon.pos[1] + dir[1] * s, kayon.pos[2] + dir[2] * s];
+  // `dist` diukur sejajar arah pandang, bukan sepanjang sinar
+  const s = dist / Math.max(1e-6, projectPoint(kayon, aspect, at(1)).depth);
+  const c = at(s);
+  return { hook: [c[0], c[1] + PASS.hang, c[2]], dist };
+}
+
+/** Tinggi tambahan kait (m) saat gunungan tertancap sebanyak `planted`: turun mengikuti gulir, naik lagi saat dicabut. */
+export const tailLift = (planted: number): number => TAIL.lift * (1 - smoothstep(TAIL.from, 1, planted));

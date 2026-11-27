@@ -2,7 +2,8 @@
 // Perekam pratinjau film dalam gerak lambat (HD, mulus walau server tanpa GPU).
 // Pemakaian: pnpm build && pnpm preview (port 4173), lalu
 //   node scripts/preview/record-film.cjs <data-trip.json> <keluaran.mp4> [desktop|iphone|hp916] [K=0.25] [film|gallery|stage|prolog|gong|kayon|kamera|datar|gerbang|judul|kitar|clawd|dimensi|diorama|lawu|canting|batik|maket|tiket]
-// tiket = tiket 3D bertali (Tugas 12b): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
+// tiket = tiket bertali (Tugas 12b; STAGE=static: tiket 2,5D berpegas, tanpa penutup): epilog → kartu kepulangan → slide tiket (tiket turun dari atap mengikuti gulir),
+//   lalu credits: gunungan penutup tertancap dan tiket tamu tergantung di sampingnya,
 //   kartu diseret lalu dilepas (berayun), disentil (berputar di tali), diketuk (dibalik ke belakang) dan diketuk lagi,
 //   lalu di desktop kursor menggerakkan pandang (parallax, perspective shift). Pakai STAGE=high.
 // maket = perbaikan bug maket (PR #23): kartu Pasar Gede di gallery Hari 1 → "See it in the miniature" → maket terbuka
@@ -14,7 +15,7 @@
 // (bawaan high), DIO_LANG=en|id. Di HP goresan memakai sentuhan jari (CDP).
 // lawu = eleven Day 2 stops, frame-stepped on desktop 1440×900 or phone 1080×1920 at 24 fps (record-lawu.cjs).
 // Use the April client-data fixture. Optional PREVIEW_BROWSER selects a locally installed headless Chromium.
-// diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, VOICE diabaikan): DIO_Q=high|medium|low (bawaan high)
+// diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, BEEP diabaikan): DIO_Q=high|medium|low (bawaan high)
 // mengunci kualitas, DIO_LANG=en|id (bawaan en, lewat localStorage lakon.lang), QUERY menambah parameter URL. Video
 // mulai begitu .dio-root[data-ready="true"] (mesin maket hidup, tur otomatis jalan dari detik 0; STAGE diabaikan) dan
 // berhenti saat data-tour="done" + ±1,5 dtk virtual, batas aman 70 dtk virtual. Contoh:
@@ -41,13 +42,14 @@
 // (permintaan host 14 Nov "dua dua nya, 90derajat") di judul Hari 1: seret ke kanan sampai samping gong, dilepas
 // (kembali ke depan), seret ke kiri, zoom masuk dan keluar, gong ditabuh saat sudah dikitari, lalu gong penutup hari. Film 3D yang dibuka di slide pertama selalu mulai dengan gunungan tertancap, dan judul hari serta
 // hero punya tahap gong: `advance` mencabut gunungan dan menjalankan tahap gong lebih dulu bila perlu.
-// Bersuara: VOICE=<suara.json> mencatat kapan tiap klip suara Clawd mulai dan berhenti (waktu VIDEO), karena rekaman
-// Playwright tidak membawa audio. Rekaman lalu dimulai dari beranda seperti tamu: tombol "Begin the lakon" ditekan
-// (itu yang menyalakan suara; film dibuka lewat navigasi klien dengan ?stage= / QUERY / #hari yang sama), bahasa EN,
-// dan Chromium boleh memutar tanpa gestur. Berkas JSON berisi {K, fps, events:[{t, type:"start"|"stop"|"hush", name}]}; hush = gelembung mulai memudar.
-// Sesudahnya: python3 -I scripts/preview/mix-voice.py . <video.mp4> <suara.json> <keluaran.mp4>. Web Audio halaman
-// berjalan dengan jam nyata (tidak ikut diperlambat), jadi hanya saat start dan stop eksplisit yang dipakai.
-// Contoh: STAGE=static VOICE=suara.json node scripts/preview/record-film.cjs data.json film.mp4 desktop 0.25 clawd
+// Bersuara: BEEP=<biip.json> (alias VOICE=) mencatat tiap "biip" Clawd (waktu VIDEO), karena rekaman Playwright tidak
+// membawa audio. Halaman memasang window.__clawdBeep(tone) (dipanggil audioStatus.beep), lalu t = (jam nyata - awal
+// video) x K + tone.delay. Rekaman dimulai dari beranda seperti tamu: tombol "Begin the lakon" ditekan (itu yang
+// menyalakan suara; film dibuka lewat navigasi klien dengan ?stage= / QUERY / #hari yang sama), bahasa EN, dan
+// Chromium boleh memutar tanpa gestur. Berkas JSON berisi {K, fps, events:[{t, tone}]}.
+// Sesudahnya: node scripts/preview/mix-beep.cjs <video.mp4> <biip.json> <keluaran.mp4>. Web Audio halaman berjalan
+// dengan jam nyata (tidak ikut diperlambat), jadi biipnya dibangkitkan ulang offline dari beep-synth.ts.
+// Contoh: STAGE=static BEEP=biip.json node scripts/preview/record-film.cjs data.json film.mp4 desktop 0.25 clawd
 // Suara membatik (Tugas 11.4): SOUND=<batik.json> menyalakan sakelar suara sebelum kamera berjalan dan mencatat kadar dan
 // bunyi sekali dari batik-sound.ts (waktu VIDEO); sesudahnya node scripts/preview/mix-batik.cjs <video> <batik.json> <keluaran>.
 // KEEP_OUT=<kain.jpg> (tur canting) menyimpan salinan kain jadi dari IndexedDB; CLOTH=<kain.jpg> menaruhnya di
@@ -78,7 +80,7 @@ const fs = require('fs');
   const base = device === 'hp916' ? { ...devices['iPhone 14 Pro'], viewport: { width: 360, height: 640 }, screen: { width: 360, height: 640 } } : phone ? { ...devices['iPhone 14 Pro'] } : { viewport: { width: 1280, height: 720 } };
   const dio = tour === 'diorama';
   const cant = tour === 'canting';
-  const VOICE = dio || cant ? '' : process.env.VOICE || '';
+  const VOICE = dio || cant ? '' : process.env.BEEP || process.env.VOICE || ''; // BEEP=<biip.json> (VOICE = nama lama)
   const SOUND = process.env.SOUND || '';
   const b = await chromium.launch({ args: [`--force-device-scale-factor=${dpr}`, ...(VOICE || SOUND ? ['--autoplay-policy=no-user-gesture-required'] : [])] });
   const ctx = await b.newContext({ ...base, deviceScaleFactor: dpr });
@@ -96,82 +98,26 @@ const fs = require('fs');
     window.requestAnimationFrame = (cb) => raf((ts) => cb(Math.min(ts, performance.now())));
   }, K);
   /**
-   * Peristiwa suara Clawd (jam dinding nyata `tw`). Waktu video t = (tw − t0) × K dihitung saat ditulis; peristiwa
-   * sebelum video mulai (film 3D: Clawd sudah bicara selagi panggung dimuat) mendapat t negatif, dan mix-voice.py
-   * memotong awal klipnya. Log ditulis tiap peristiwa: bila rekaman terputus (container di-restart), isinya tidak hilang.
+   * Biip Clawd (jam dinding nyata `tw`). Waktu video t = (tw - t0) x K + tone.delay dihitung saat ditulis; delay
+   * (dtk jam halaman) sama dengan dtk video. Biip sebelum video mulai (film 3D: Clawd sudah bicara selagi panggung
+   * dimuat) mendapat t negatif, dan mix-beep.cjs melewatkannya. Log ditulis tiap biip: bila rekaman terputus
+   * (container di-restart), isinya tidak hilang.
    */
   const voiceEvents = [];
-  const dumpVoice = (selesai) => {
+  const dumpVoice = () => {
     if (t0 === null) return;
-    const events = voiceEvents.map(({ tw, type, name }) => ({ t: +((tw - t0) * K).toFixed(3), type, name }));
-    fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events, selesai }, null, 1));
+    const events = voiceEvents.map(({ tw, tone }) => ({ t: +((tw - t0) * K + (tone.delay || 0)).toFixed(3), tone }));
+    fs.writeFileSync(VOICE, JSON.stringify({ K, fps: FPS, events }, null, 1));
   };
   if (VOICE) {
-    await ctx.exposeFunction('__voiceEv', (type, name) => {
-      voiceEvents.push({ tw: Date.now() / 1000, type, name });
-      dumpVoice(false);
+    await ctx.exposeFunction('__beepEv', (tone) => {
+      voiceEvents.push({ tw: Date.now() / 1000, tone });
+      dumpVoice();
     });
     await ctx.addInitScript(() => {
       localStorage.setItem('lakon.lang', 'en');
-      const names = new WeakMap(); // ArrayBuffer / AudioBuffer klip Clawd -> nama klip
-      const nameOf = (u) => (/\/audio\/clawd\/(?:[^/?#]+\/)?([^/?#]+)\.mp3/.exec(u) || [])[1];
-      const f = window.fetch.bind(window);
-      window.fetch = (input, init) => {
-        const n = nameOf(typeof input === 'string' ? input : input instanceof Request ? input.url : String(input));
-        const pr = f(input, init);
-        return !n ? pr : pr.then((r) => {
-          const ab = r.arrayBuffer.bind(r);
-          r.arrayBuffer = () => ab().then((buf) => { names.set(buf, n); return buf; });
-          return r;
-        });
-      };
-      const dd = BaseAudioContext.prototype.decodeAudioData;
-      BaseAudioContext.prototype.decodeAudioData = function (buf, ok, err) {
-        const n = names.get(buf); // dicatat sebelum aslinya jalan: ArrayBuffer dilepas sesudahnya
-        const done = (ab) => { if (n) names.set(ab, n); return ab; };
-        const r = dd.call(this, buf, ok && ((ab) => ok(done(ab))), err);
-        return n ? r.then(done) : r;
-      };
-      const proto = AudioBufferSourceNode.prototype;
-      for (const type of ['start', 'stop']) {
-        const orig = proto[type];
-        proto[type] = function (...a) {
-          const n = this.buffer && names.get(this.buffer);
-          if (n) window.__voiceEv(type, n);
-          return orig.apply(this, a);
-        };
-      }
-      // Klip di halaman berjalan dengan jam nyata dan biasanya sudah habis sebelum dihentikan, jadi `stop` jarang
-      // terpanggil. Aplikasi menghentikan suara begitu gelembung mulai memudar (fade < 1, session.ts → hush), jadi
-      // saat opacity gelembung turun dari 1 dicatat sebagai `hush`: klip yang sedang berbunyi di video berhenti.
-      const seen = new WeakSet();
-      const watch = (el) => {
-        let was = 1;
-        new MutationObserver(() => {
-          const o = parseFloat(el.style.opacity || '1');
-          if (was >= 1 && o < 1) window.__voiceEv('hush', '');
-          was = o;
-        }).observe(el, { attributes: true, attributeFilter: ['style'] });
-      };
-      const find = () => { for (const el of document.querySelectorAll('.clawd-bubble')) if (!seen.has(el)) { seen.add(el); watch(el); } };
-      document.addEventListener('DOMContentLoaded', () => { find(); new MutationObserver(find).observe(document.body, { childList: true, subtree: true }); });
+      window.__clawdBeep = (tone) => window.__beepEv(tone);
     });
-    // Jam audio ikut diperlambat K, seperti performance.now dan Date.now di atas. Tanpa ini, di film 3D (CPU sibuk
-    // menggambar panggung, 1–2 frame/dtk) klip yang selesai dimuat lebih dari VOICE_LATE (0,6 dtk jam audio NYATA)
-    // sesudah diminta dianggap terlambat dan tidak diputar, padahal dalam waktu film jedanya hanya puluhan milidetik.
-    await ctx.addInitScript((k) => {
-      const d = Object.getOwnPropertyDescriptor(BaseAudioContext.prototype, 'currentTime');
-      const starts = new WeakMap();
-      Object.defineProperty(BaseAudioContext.prototype, 'currentTime', {
-        configurable: true,
-        get() {
-          const real = d.get.call(this);
-          if (!starts.has(this)) starts.set(this, real);
-          const s = starts.get(this);
-          return s + (real - s) * k;
-        },
-      });
-    }, K);
   }
   /**
    * Suara membatik (Tugas 11.4, SOUND=<batik.json>): kadar dan bunyi sekali dari batik-sound.ts dicatat dengan jam
@@ -217,7 +163,7 @@ const fs = require('fs');
   const { width, height } = p.viewportSize();
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-vf', `scale=${phone ? 1080 : 1920}:-2:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-preset', 'medium', '-profile:v', 'high', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   let last = null, t0 = null, tick = 0, written = 0;
-  if (VOICE) ff.on('close', () => dumpVoice(true));
+  if (VOICE) ff.on('close', dumpVoice);
   if (SOUND) ff.on('close', () => dumpSound(true));
   /** Kamera berjalan: selama menunggu panggung 3D dimuat, frame diterima tetapi tidak ditulis ke video. */
   let rolling = true;
@@ -762,10 +708,15 @@ const fs = require('fs');
 
   if (tour === 'tiket') {
     // Tugas 12b: tiket 3D bertali. Titik kartu di layar dibaca dari data-pass-at (persen dari akar film).
+    // film 2,5D (STAGE=static): tiket DOM berpegas, titiknya dari kotak kartu DOM
     const card = async (dx = 0, dy = 0) => {
       const at = await p.locator('.film').getAttribute('data-pass-at');
       const box = await p.locator('.film').boundingBox();
-      if (!at || !box) return null;
+      if (!box) return null;
+      if (!at) {
+        const flat = await p.locator('.fl-layer[data-pos="cur"] .pass-toy .pass-turn').first().boundingBox().catch(() => null);
+        return flat ? [flat.x + flat.width / 2 + dx, flat.y + flat.height / 2 + dy] : null;
+      }
       const [x, y] = at.split(',').map(Number);
       return [box.x + (box.width * x) / 100 + dx, box.y + (box.height * y) / 100 + dy];
     };
@@ -816,6 +767,26 @@ const fs = require('fs');
           await w(28);
         }
       await w(1600);
+    }
+    // penutup (hanya panggung 3D): credits → gunungan tertancap lagi; tiket turun di sampingnya dan berbalik ke "Matur nuwun"
+    if ((await p.locator('.film').getAttribute('data-stage')) !== 'on') {
+      await w(1200);
+      await finish();
+      return;
+    }
+    await advance(3000); // credits
+    // tancep kayon dengan satu langkah maju (seperti tur gerbang): menunggu gunungan menancap sendiri (12 dtk halaman)
+    // di jam virtual K kecil memakan ±10 menit nyata
+    await advance(800);
+    await p.waitForSelector('.film[data-gate="tail"]', { timeout: 600000 });
+    await w(5200); // mendarat + ±3 dtk
+    c = await card();
+    if (c) {
+      await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); // ketuk: muka depan lagi
+      await w(3600);
+      c = await card();
+      if (c) { await p.mouse.move(c[0], c[1]); await w(300); await p.mouse.down(); await w(120); await p.mouse.up(); } // ketuk lagi
+      await w(3200);
     }
     await finish();
     return;

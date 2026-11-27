@@ -6,7 +6,7 @@
 //
 //   node scripts/preview/mix-batik.cjs <video.mp4> <batik.json> <keluaran.mp4> [suara-lain.m4a]
 //
-// Bila video sudah bersuara (mis. hasil mix-voice.py), audionya ikut dicampur. Gain = bus efek aplikasi (SFX_LEVEL di
+// Bila video sudah bersuara (mis. hasil mix-beep.cjs), audionya ikut dicampur. Gain = bus efek aplikasi (SFX_LEVEL di
 // src/engine/audio/catalog.ts); hasil disamakan ke ±-18 LUFS (limiter -1 dBTP), 48 kHz stereo, AAC 160k.
 const { chromium } = require('playwright');
 const { spawnSync } = require('child_process');

@@ -543,7 +543,7 @@ function Stage({ data }: { data: TripView }) {
         <BatikLayers film={film} slide={slide} probe={probe} moving={!!view.moving} calm={calm} />
       )}
       {slide?.theme === "batik" && <BatikSound film={film} probe={probe} />}
-      {stage === "on" && <PassSound />}
+      <PassSound />
       <StageMount film={film} probe={probe} root={root} calm={calm} pass={passContent} onPhase={setStage} onIntent={onIntent} />
       {/* Clawd, maskot pemandu: di panggung 3D ia bagian dari kanvas; di film 2,5D versi CSS 3D (M4) */}
       {stage === "off" && <ClawdFlat root={root} probe={probe} calm={calm} />}

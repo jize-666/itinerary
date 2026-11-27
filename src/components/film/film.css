@@ -1442,6 +1442,26 @@ html.film-on body {
   padding-bottom: max(86px, calc(env(safe-area-inset-bottom) + 74px));
 }
 
+/* Film 2,5D di HP tegak (tanpa panggung 3D): tiket berpegas memenuhi lebar layar, jadi Clawd berdiri di pita atas
+   (kiri atas, gelembung di kanannya) dan tiket turun di bawahnya; di layar pendek kartu diperkecil (zoom ikut tata
+   letak, jadi tombol tetap di atas label bab). */
+@media (max-aspect-ratio: 4/5) {
+  .film:not([data-stage]) .fs-pass {
+    align-content: start;
+    padding-top: max(27svh, 172px);
+  }
+}
+
+@media (max-aspect-ratio: 4/5) and (max-height: 720px) {
+  .film:not([data-stage]) .fs-pass {
+    gap: 12px;
+  }
+
+  .film:not([data-stage]) .fs-pass .pass-toy {
+    zoom: 0.68;
+  }
+}
+
 .fs-actions {
   display: grid;
   gap: 10px;

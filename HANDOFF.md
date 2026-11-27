@@ -1,9 +1,76 @@
 # HANDOFF
 
-Diperbarui 26 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dari `main` `9805c53`) · **Tugas 12 (12a + 12b) selesai di PR #26, menunggu host** (tonton video tiket 3D, uji iPhone) · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov; sisa Tugas 12 dan biip Clawd di PR #27, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
+
+**Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
+
+Tafsir Claude:
+- Suara Clawd (39 klip EN suara teman host di `public/audio/clawd/en/`, `voice-clips.json`, pemutar klip) dihapus.
+- Gantinya bunyi "biip" prosedural (Web Audio, tanpa berkas): rentetan biip pendek mengikuti ketikan gelembung, satu biip per suku kata/kata (bukan per huruf, supaya tidak berisik). Nadanya ikut emosi Clawd (senang tinggi dan lincah, marah rendah dan kasar, terkejut melonjak, mengantuk turun pelan). Ikut sakelar suara.
+- Karena biip tidak berbahasa, film berbahasa Indonesia juga ikut bersuara.
+- Subagen klip suara P1d dihentikan (klip tiket dan `tip.mountain.0` tidak lagi diperlukan); belum ada berkas repo yang ia ubah.
+- Bila host ingin satu biip per gelembung saja (bukan rentetan), cukup diganti satu angka.
+
+### Permintaan host 26 Nov: "kerjakan sisa tugas 12" — SELESAI 27 NOV, DI PR #27, MENUNGGU HOST
+
+**Kata host, kata demi kata:** "kerjakan sisa tugas 12". Sisa yang dimaksud adalah P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2 yang belum dikerjakan di PR #26:
+- tiket juga muncul di epilog (PRD situs §7.4: tergantung saat gong terakhir dan gunungan ditancapkan kembali);
+- reaksi Clawd saat tiket dipegang atau dibalik, dengan kalimat baru dua bahasa;
+- versi 2,5D berpegas CSS (tiket DOM yang berayun mengikuti kemiringan dan kursor, tanpa WebGL; Calm tetap diam);
+- klip suara EN `tip.pass.0/1` dan kalimat reaksi baru (suara teman host).
+
+Branch kerja `claude/admiring-noether-tbqvap` dari `main` `9dd1565` (sudah ada satu commit catatan).
+
+Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratchpad `tail-desktop.png`/`tail-hp.png`):
+- **P1a, tiket di penutup** (Sonnet): saat gunungan ditancapkan kembali di credits, tiket turun di samping gunungan mengikuti `planted` (desktop: kelir kosong di kiri gunungan; HP: pojok kiri atas di samping pucuk), tersentak dan berbalik ke "Matur nuwun" saat gunungan menancap dengan gong, bisa dipegang dan dibalik; digambar di atas kelir. Clawd tetap di kanan bawah.
+- **P1b, reaksi Clawd** (Sonnet): selesai, lihat di bawah.
+- **P1c, tiket 2,5D berpegas** (Sonnet): model pegas murni (`engine/pass3d/swing2d.ts`), tiket DOM berayun mengikuti kursor/kemiringan, bisa diseret dan diketuk untuk dibalik (muka belakang DOM), memakai isyarat `PassSignal` yang sama (suara dan Clawd ikut), `data-pass-flat`; Calm diam.
+- ~~**P1d, klip suara**~~: dibatalkan, suara Clawd diganti biip (permintaan host di atas).
+
+**P1b selesai (26 Nov):**
+1. Selesai: kalimat baru `ticketGrab` ("Careful, that ticket has your name on it!" / "Hold on tight!"), `ticketToss` ("Whoa! Easy, it's only paper!" / "Wheee! Look at it spin!"), `ticketBack` ("Matur nuwun. That's Javanese for thank you."), `ticketFront` ("And there's your name again."), dua bahasa; `tip.pass.1` punya varian klik/ketuk. `MascotBehavior.ticket` (gerak + suasana hati, ucapan dijarangkan `speechGap` dan 15 dtk per jenis, diam saat memandu atau marah); `ticketReaction` (lepas ≥ 0,9 m/s = dilempar); reaksi pegang ditunda 350 ms (Opus, sesudah tinjauan) supaya ketukan yang membalik tiket ditanggapi sebagai balik, bukan pegangan. Disambungkan dari `stageBus.onPass` di Clawd 3D dan 2,5D; `contextOf` juga membaca `data-pass-flat`.
+2. Tes: unit `ticket.test.ts` 15/15, typecheck dan eslint bersih. Klip suara baru masuk `PENDING` sampai P1d selesai.
+3. Berikutnya: P1a, P1c, P1d berjalan.
+
+**P1a, P1c, dan biip selesai (26 Nov):**
+1. Selesai:
+   - P1a: tiket di samping gunungan penutup (desktop: kelir kiri gunungan; HP: pojok kiri atas), turun mengikuti `planted`, tersentak dan berbalik ke "Matur nuwun" saat gunungan menancap, bisa dipegang dan dibalik; digambar di atas kelir (material tembus pandang alfa 1, `renderOrder` 2002); parallax penutup menyusut sebanding jarak tiket; tombol `.fl-kayon` tetap ditawarkan ke pegangan tiket.
+   - P1c: tiket 2,5D berpegas (`engine/pass3d/swing2d.ts`, `film/pass-toy.ts`), seret, ketuk/Enter untuk membalik ke muka belakang DOM, kemiringan dan kursor menggeser titik setimbang, `data-pass-flat`, slot pegangan kedua di bus, `PassSound` juga di film 2,5D.
+   - Biip: klip suara Clawd dihapus (39 MP3, `voice-clips.json`, pemutar, `clawd-voice.ts`, `mix-voice.py`); biip prosedural per kata (`engine/mascot/beep.ts`, `engine/audio/beep-synth.ts`), nada per suasana, ikut sakelar suara, juga film ID. Perekam mencatat biip (`BEEP=`, alias `VOICE=`), `mix-beep.cjs` mencampurnya ke video. Tur perekam `tiket` kini sampai penutup, dan dengan `STAGE=static` memainkan tiket 2,5D.
+   - Contoh biip (`biip-contoh.mp3`) dan foto penutup desktop dikirim ke host dan dicatat di ledger.
+2. Tes: lint, typecheck, content:check, build lulus; unit 748/748; e2e terdampak (`pass3d`, `pass-flat` baru, `sound`, `smoke`, `gate`, `film`, `batik-sound`) 160 lulus, 26 dilewati sesuai proyek.
+3. Berikutnya: video `tiket25d-desktop/hp` dan `tiket3d-penutup-desktop/hp` (data April, nama Jize, bersuara biip) sedang direkam; lalu kirim, catat di ledger, buka PR.
+
+**Pratinjau dan perbaikan Clawd di HP 2,5D (27 Nov):**
+1. Selesai: PR #27 dibuka. Video `tiket25d-desktop.mp4` (40 dtk, biip) dikirim dan dicatat. Di video HP 9:16 pertama Clawd berdiri di atas tiket (layar 360×640 penuh: tiket selebar layar, tiga tombol). Diperbaiki (`film.css`, `session.ts`): di film 2,5D HP tegak tiket turun di bawah pita atas (`padding-top: max(27svh, 172px)`), Clawd berdiri di kiri atas dengan gelembung di kanannya, layar ≤ 720 px tingginya memperkecil kartu (`zoom: 0.68`) supaya tombol tetap di atas label bab; kartu 2,5D dihitung sebagai blok dan badan Clawd yang menutupinya 12× lebih mahal. Dicek di 360×640 dan 390×844.
+2. Tes: unit 748/748, e2e `pass-flat` 11 lulus / 5 dilewati sesudah build ulang. Container sempat restart: rekaman 3D desktop terputus sebelum penutup, jadi direkam ulang bersama 2,5D HP dan 3D HP.
+3. Berikutnya: kirim `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`, catat di ledger.
+
+**Pratinjau terkirim (27 Nov):** `tiket25d-hp2.mp4` (33 dtk, Clawd di pita atas) dan `tiket3d-penutup-desktop.mp4` (60 dtk, High: slide tiket, credits, gunungan penutup dengan tiket "Matur nuwun", diketuk bolak-balik) dikirim dan dicatat di ledger. Rekaman 3D desktop pertama gagal di penutup: tur menunggu gunungan menancap sendiri (12 dtk jam halaman = ±10 menit nyata di K 0,02) dengan batas 30 dtk nyata; kini tur menancapkannya dengan satu langkah maju. `tiket3d-penutup-hp.mp4` (50 dtk, HP 9:16: tiket di pojok kiri atas di samping pucuk gunungan, Clawd di kanan bawah) juga dikirim dan dicatat.
+
+**Penutupan sesi (27 Nov):**
+1. Selesai: sisa Tugas 12 (tiket di penutup, tiket 2,5D berpegas, reaksi Clawd) dan biip Clawd, semua di PR #27 (Squash and merge, menunggu host). Lima pratinjau terkirim: `biip-contoh.mp3`, foto penutup desktop, `tiket25d-desktop`, `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`.
+2. Tes: lint, typecheck, content:check, build lulus; unit 748/748; e2e terdampak 160 lulus / 26 dilewati, `pass-flat` diulang sesudah perbaikan HP 11 lulus / 5 dilewati. Belum diuji di perangkat: iPhone produksi (penutup, biip, tiket 2,5D di Safari).
+3. Berikutnya: host mendengar biip (bila ingin satu biip per gelembung, cukup ubah perencana di `engine/mascot/beep.ts`) dan meninjau PR #27. Daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut.
+
+### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
+
+**Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"
+
+1. **Selesai:** PR #26 (Tugas 12a + 12b) di-merge 26 Nov 10.34 UTC (squash `9dd1565`). Semua tugas di daftar `CLAUDE.md` (1–12, ditambah tugas di luar urutan) sudah selesai dan masuk `main`. Branch kerja dimulai ulang dari `main` `9dd1565`.
+2. **Hasil tes / kendala:** tidak ada kode baru di sesi ini. Pratinjau yang belum di Drive: 72 berkas, 673 MB (di bawah 1 GB, belum perlu token).
+3. **Langkah berikutnya:** daftar tugas habis, jadi tanya host dulu sebelum lanjut. Yang masih menunggu host:
+   - uji di iPhone produksi dan MacBook: tiket 3D, suara membatik dan kain di epilog, Hari 3, `/canting/`, maket, tombol suara sesudah tab dimuat ulang, izin gerak, Lereng Lawu, diorama;
+   - P1 Tugas 12 yang belum dikerjakan: tiket di epilog, reaksi Clawd saat tiket dipegang atau dibalik, versi 2,5D berpegas CSS;
+   - klip suara EN yang butuh rekaman teman host: `tip.mountain.0`, `tip.pass.0/1`;
+   - pertanyaan lama yang belum dijawab: kaki Clawd 3D tertutup kartu gallery, api naga gong judul keluar bingkai atas, `GRADE_STRENGTH`, 2,5D di slide selain gallery;
+   - beban yang belum diperbaiki: Lereng Lawu 8,8–10,8 dtk di 4G tanpa gzip (target ≤ 5 dtk), dunia Lawu dibangun di main thread (±130–300 ms);
+   - Jize Zone: URL login di Supabase (bagian "Permintaan host 18 Nov malam: sambungkan Jize Zone v2").
 
 ### Tugas 12b: output Codex dipasang di film — SELESAI 26 NOV, DI PR #26 (bersama 12a), MENUNGGU HOST
 

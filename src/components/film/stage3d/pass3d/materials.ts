@@ -99,6 +99,8 @@ function buildMaterial(lighting: StageLighting, options: PassShaderOptions, shad
     vertexShader: passWorldVertex,
     fragmentShader: (options.prelude ?? stageUniformDeclarations + (options.skyGLSL ?? defaultPassSky)) + common + passLightingChunk + shader,
     toneMapped: false,
+    // alfa selalu 1 (gambar sama); masuk daftar tembus pandang supaya renderOrder bisa menggambarnya di atas kelir
+    transparent: true,
   });
 }
 

@@ -2,6 +2,8 @@
  * Status audio yang dibaca UI global (toggle speaker di layout), tanpa membawa kode mesin audio.
  * Mesinnya (AudioEngine) hanya dimuat halaman yang memulai suara (gerbang); Today yang ringan tidak ikut mengunduhnya.
  */
+import type { BeepTone } from "@/engine/mascot/beep";
+
 export type AudioState = Readonly<{
   /** Tamu sudah menekan "Begin the lakon" di gerbang. */
   started: boolean;
@@ -22,10 +24,8 @@ export type AudioControl = {
   playSfx(name: ClickSound | SceneSound, opts: { gain?: number; delay?: number; duck?: boolean }): unknown;
   /** Unduh dan urai lebih dulu, supaya bunyi pertama tidak terlambat. */
   preload(name: SceneSound): void;
-  /** Suara Clawd: satu klip pada satu waktu (klip baru menghentikan yang lama). */
-  playVoice(url: string): unknown;
-  stopVoice(): void;
-  preloadVoice(urls: readonly string[]): void;
+  /** "Biip" Clawd: satu bunyi pendek untuk satu kata di gelembung. */
+  playBeep(tone: BeepTone): void;
 };
 
 /** Sama dengan CLICK_LEVEL di catalog.ts (disalin supaya modul ini tetap tanpa kode mesin). */
@@ -90,19 +90,13 @@ export const audioStatus = {
   prepare(...sounds: SceneSound[]) {
     if (state.started && state.enabled) for (const s of sounds) control?.preload(s);
   },
-  /** Suara Clawd boleh berbunyi: lakon sudah dimulai, suara menyala, dan mesin audio sudah dimuat. */
+  /** Lakon sudah dimulai, suara menyala, dan mesin audio sudah dimuat (bunyi prosedural boleh dibangkitkan). */
   environment: () => state.started && state.enabled ? control?.environment?.() ?? null : null,
   voiceOn: () => state.started && state.enabled && control !== null,
-  /** Putar suara Clawd untuk satu kalimat (menghentikan yang sebelumnya). */
-  voice(url: string) {
-    if (state.started && state.enabled) void control?.playVoice(url);
-  },
-  /** Hentikan suara Clawd. */
-  hush() {
-    control?.stopVoice();
-  },
-  /** Unduh klip suara Clawd lebih dulu. Hening → tidak mengunduh apa pun. */
-  prepareVoice(urls: readonly string[]) {
-    if (state.started && state.enabled) control?.preloadVoice(urls);
+  /** Satu "biip" Clawd. Hening → tidak berbunyi. Pada rekaman pratinjau, `__clawdBeep` ikut menerima nadanya. */
+  beep(tone: BeepTone) {
+    if (!state.started || !state.enabled) return;
+    void control?.playBeep(tone);
+    (globalThis as { __clawdBeep?: (t: BeepTone) => void }).__clawdBeep?.(tone);
   },
 };

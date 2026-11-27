@@ -10,9 +10,10 @@
  *  - Tiket hanya bisa dipegang saat film diam di slide tiket. Kemiringan HP menggeser gravitasi sedikit; angin lembut.
  */
 import { Color, CylinderGeometry, Group, type IUniform, Mesh, type PerspectiveCamera, type Scene, Vector3 } from "three";
+import type { Vec3 } from "@/engine/stage/shots";
 import { createPassPhysics, type PassEvent, type PassStatus } from "@/engine/pass3d";
 import type { Cursor } from "@/engine/stage/cue";
-import { PASS, passCloseness, passLift, passWanted } from "@/engine/stage/pass";
+import { PASS, passCloseness, passLift, passWanted, tailLift } from "@/engine/stage/pass";
 import type { TierSpec } from "@/engine/stage/tier";
 import { COMMON, type Shared } from "../shared";
 import type { PassContent } from "./content";
@@ -26,7 +27,16 @@ export type PassStageState = PassStatus | "loading";
 
 export type PassStage = {
   /** Sesudah kamera frame ini ditetapkan. `tilt`: kemiringan HP (−1…1), atau null di desktop. */
-  update(o: { camera: PerspectiveCamera; cursor: Cursor; index: number; t: number; dt: number; tilt: { x: number; y: number } | null }): void;
+  update(o: {
+    camera: PerspectiveCamera;
+    cursor: Cursor;
+    index: number;
+    t: number;
+    dt: number;
+    tilt: { x: number; y: number } | null;
+    /** Tiket penutup di samping gunungan: null kecuali film diam di slide terakhir dengan gerbang penutup. */
+    tail?: { planted: number; hook: Vec3 } | null;
+  }): void;
   setContent(content: PassContent | null): void;
   /** null = tiket 3D tidak ada (jauh, belum ada data, atau gagal dimuat). */
   state(): PassStageState | null;
@@ -50,6 +60,11 @@ const BREEZE: [number, number, number] = [0.04, 0, 0.015];
 /** Jarak lampu maya dari kartu ke arah blencong (m), dan bagian cahaya blencong yang sampai. */
 const LAMP_NEAR = 0.34;
 const LAMP_SHARE = 0.9;
+/** Di depan kelir tiket digambar sesudah tirai dan lembar gunungan (renderOrder 2000 dan 2001). */
+const TAIL_ORDER = 2002;
+/** Gunungan dianggap mendarat saat tertancap sebanyak ini; sentakan kecil (m/s) menggoyang tiket. */
+const LAND_AT = 0.98;
+const LAND_JOLT: [number, number, number] = [0.22, 0, 0.1];
 
 export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene; shared: Shared; spec: TierSpec; onEvent?: (e: PassEvent) => void }): PassStage {
   const quality: PassQuality = spec.dof ? "high" : spec.msaa >= 2 ? "medium" : "low";
@@ -103,8 +118,25 @@ export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene
   let close = 0;
   let camera: PerspectiveCamera | null = null;
   let lastLift: number = PASS.drop;
+  /** "pass": tergantung di depan gong di slide tiket; "tail": di samping gunungan penutup. Berganti hanya saat tak terlihat. */
+  let mode: "pass" | "tail" = "pass";
+  let tailPlanted = 0;
+  let still = true;
+  let landed = false;
+  const tailHook = new Vector3(...PASS.hook);
+  const camUp = new Vector3();
+  const camRight = new Vector3();
+  const camBack = new Vector3();
   const center = new Vector3();
   const blencong = new Vector3();
+
+  /** Urutan gambar tiket: di atas kelir saat di samping gunungan, biasa di slide tiket. */
+  const applyOrder = () => {
+    const order = mode === "tail" ? TAIL_ORDER : 0;
+    rig.traverse((o) => {
+      o.renderOrder = order;
+    });
+  };
 
   const unmount = () => {
     generation++;
@@ -129,6 +161,7 @@ export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene
         loading = false;
         visual = v;
         rig.add(v.object);
+        applyOrder();
         physics.settle(false);
         input = createPassInput({ engine: physics, visual: v });
       })
@@ -141,32 +174,66 @@ export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene
       });
   };
 
-  const ready = () => !!visual && !!input && !!camera && close >= 1 && rig.visible;
+  const ready = () => !!visual && !!input && !!camera && rig.visible && (mode === "tail" ? tailPlanted >= 0.999 && still : close >= 1);
 
   return {
-    update({ camera: cam, cursor, index, t, dt, tilt }) {
+    update({ camera: cam, cursor, index, t, dt, tilt, tail = null }) {
       camera = cam;
       const mounted = !!visual || loading;
       if (passWanted(cursor, index, mounted) && content) mount();
       else if (mounted) unmount();
       close = passCloseness(cursor, index);
+      still = cursor.from === cursor.to;
       if (!visual) return;
-      const lift = passLift(close);
+      // ganti mode hanya saat tiket tak terlihat; mulai menggantung diam, dengan muka yang sama
+      if (!!tail !== (mode === "tail") && !rig.visible) {
+        mode = tail ? "tail" : "pass";
+        applyOrder();
+        physics.settle(physics.state.back);
+        landed = false;
+      }
+      const tailMode = mode === "tail";
+      if (tailMode) {
+        tailPlanted = Math.max(0, Math.min(1, tail?.planted ?? 0));
+        if (tail) tailHook.set(tail.hook[0], tail.hook[1], tail.hook[2]);
+      }
+      const lift = tailMode ? tailLift(tailPlanted) : passLift(close);
       lastLift = lift;
-      // jauh di luar bidikan (masih di atas atap): tidak digambar dan tidak disimulasikan
-      rig.visible = close > 0;
-      if (!rig.visible) return;
-      rig.position.set(PASS.hook[0], PASS.hook[1] + lift, PASS.hook[2]);
+      // pass: jauh di luar bidikan (masih di atas atap); tail: belum ada gunungan. Tidak digambar, tidak disimulasikan
+      rig.visible = tailMode ? tailPlanted > 0 : close > 0;
+      if (!rig.visible) {
+        landed = false;
+        return;
+      }
+      if (tailMode) rig.position.set(tailHook.x, tailHook.y + lift, tailHook.z);
+      else rig.position.set(PASS.hook[0], PASS.hook[1] + lift, PASS.hook[2]);
       rig.updateMatrixWorld();
-      // tiket hanya bisa dipegang di slide tiket: pegangan dilepas bila film mulai berpindah
-      if (close < 1 && input?.activeId != null) input.pointerCancel(input.activeId);
+      // tiket hanya bisa dipegang saat film diam di tempatnya: pegangan dilepas bila film mulai berpindah
+      if (!ready() && input?.activeId != null) input.pointerCancel(input.activeId);
+      if (tailMode) {
+        if (tailPlanted < 0.9) landed = false;
+        else if (!landed && tailPlanted >= LAND_AT) {
+          // gunungan mendarat: tiket tersentak lalu menunjukkan "Matur nuwun" di balik kartu
+          landed = true;
+          physics.addImpulse(LAND_JOLT);
+          if (!physics.state.back) physics.flip();
+        }
+      }
       if (tilt && input) input.applyTilt(tilt.x, tilt.y * 0.6, cam);
       else physics.setTilt(0, 0);
       const state = physics.step(Math.min(dt, 0.1));
       visual.update(state, t);
-      // cahaya blencong yang sampai ke kartu: lampu maya di antara kartu dan blencong
       center.set(state.position[0]!, state.position[1]!, state.position[2]!).applyMatrix4(rig.matrixWorld);
-      blencong.copy(shared.uLampPos.value).sub(center).normalize();
+      if (tailMode) {
+        // di depan kelir tidak ada blencong yang dekat: lampu maya dari atas dan depan kartu (relatif kamera)
+        camRight.setFromMatrixColumn(cam.matrixWorld, 0);
+        camUp.setFromMatrixColumn(cam.matrixWorld, 1);
+        camBack.setFromMatrixColumn(cam.matrixWorld, 2);
+        blencong.set(0, 0, 0).addScaledVector(camUp, 0.65).addScaledVector(camBack, 0.75).addScaledVector(camRight, 0.15).normalize();
+      } else {
+        // cahaya blencong yang sampai ke kartu: lampu maya di antara kartu dan blencong
+        blencong.copy(shared.uLampPos.value).sub(center).normalize();
+      }
       lampPos.copy(center).addScaledVector(blencong, LAMP_NEAR);
       lampColor.copy(shared.uLampColor.value).multiplyScalar(LAMP_SHARE);
     },
@@ -182,7 +249,8 @@ export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene
     },
     busy() {
       if (!visual || !rig.visible) return false;
-      return (close > 0 && close < 1) || physics.state.status === "dragging" || physics.state.status === "swinging" || lastLift > 0;
+      const moving = mode === "tail" ? tailPlanted < 1 : close > 0 && close < 1;
+      return moving || physics.state.status === "dragging" || physics.state.status === "swinging" || lastLift > 0;
     },
     pointerDown(p) {
       return ready() && !!input && !!camera && input.pointerDown(p, camera);

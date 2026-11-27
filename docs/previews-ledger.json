@@ -622,6 +622,54 @@
       "sent": "2026-11-26",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "biip-contoh.mp3",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/beeptest/biip-contoh.mp3",
+      "size": 189268,
+      "sent": "2026-11-26",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tail-desktop.png",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/shots2/tail-desktop.png",
+      "size": 1632507,
+      "sent": "2026-11-26",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket25d-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/vid/tiket25d-desktop.mp4",
+      "size": 11621273,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket25d-hp2.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/vid/tiket25d-hp2.mp4",
+      "size": 12126211,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket3d-penutup-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/vid/tiket3d-penutup-desktop.mp4",
+      "size": 45187828,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "tiket3d-penutup-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/f10beb86-b705-5ef7-a097-90129dc0d590/scratchpad/vid/tiket3d-penutup-hp.mp4",
+      "size": 32146974,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
     }
   ]
 }
