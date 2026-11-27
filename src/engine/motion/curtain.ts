@@ -50,12 +50,14 @@ export const curtain = {
         void curtain.open();
       }, maxMs),
     );
+    listeners.forEach((fn) => fn());
   },
   /** Lepas tahanan; bila itu yang terakhir dan ada yang meminta membuka, tirai dibuka. */
   release(key: string) {
     if (!holds.has(key)) return;
     clearTimeout(holds.get(key));
     holds.delete(key);
+    listeners.forEach((fn) => fn());
     if (!holds.size && wantOpen) void curtain.open();
   },
   holding: () => holds.size > 0,

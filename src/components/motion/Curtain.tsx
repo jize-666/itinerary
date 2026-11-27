@@ -13,6 +13,8 @@ import { prefetchDiorama } from "@/components/diorama/prefetch";
  */
 export function Curtain() {
   const st = useSyncExternalStore(curtain.subscribe, curtain.get, curtain.getServer);
+  // tertahan (maket sedang menyiapkan bingkai pertamanya): kilau emas berjalan di garis tengah, tanda halaman tidak macet
+  const held = useSyncExternalStore(curtain.subscribe, curtain.holding, () => false);
   const path = usePathname();
   useEffect(() => {
     // tunda satu tik: halaman tujuan yang berat memasang `curtain.hold` di commit yang sama (efeknya bisa
@@ -21,7 +23,7 @@ export function Curtain() {
     return () => clearTimeout(t);
   }, [path]);
   return (
-    <div className="curtain" data-state={st} aria-hidden="true">
+    <div className="curtain" data-state={st} data-held={held || undefined} aria-hidden="true">
       <span className="curtain-bar curtain-bar--top" />
       <span className="curtain-bar curtain-bar--bottom" />
       <span className="curtain-seam" />
