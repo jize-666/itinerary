@@ -32,6 +32,8 @@ Tafsir Claude:
 2. Tes: unit 759/759. E2E terdampak di build gabungan: 178 lulus, 49 gagal. Hampir semuanya batas waktu di `stage`, `lawu`, `canting` karena e2e kini memakai High di renderer perangkat lunak. Sedang ditambahkan mode uji tersembunyi `?stage=lite`/`?q=lite` (setelan Low lama, hanya lewat URL, tidak pernah dipilih untuk tamu) untuk tes yang dulu memakai `low`.
 3. Berikutnya: e2e hijau, video masuk maket desktop + HP, PR.
 
+**Mode uji lite (27 Nov):** subagen Sonnet berhenti di tengah karena batas pemakaian; Opus melanjutkan. `?stage=lite` dan `?q=lite` (setelan Low lama: rasio piksel 1, tanpa MSAA, bloom 3, tanpa bayangan, partikel 0,15, tanpa DOF; maket shadow 512) hanya lewat URL; `guessTier` dan bawaan kualitas tidak pernah memberinya. E2E yang dulu memakai `low` kini memakai `lite`. Unit 762/762, lint dan typecheck bersih. E2E lokal (4 worker, batas lokal 15/30 dtk): 179 lulus, 21 gagal batas waktu di `stage`/`pass3d`/`lawu` desktop karena kanvas 3D CPU berebut; `stage.spec` desktop di CI berjalan satu per satu dengan batas 45/90 dtk, jadi CI yang menjadi ukuran. Video masuk maket (film 2,5D → kartu Pasar Gede → maket → Kembali) desktop dan HP sedang direkam.
+
 ### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 
 **Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
