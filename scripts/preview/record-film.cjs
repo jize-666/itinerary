@@ -775,7 +775,10 @@ const fs = require('fs');
       return;
     }
     await advance(3000); // credits
-    await p.waitForSelector('.film[data-gate="tail"]', { timeout: 30000 });
+    // tancep kayon dengan satu langkah maju (seperti tur gerbang): menunggu gunungan menancap sendiri (12 dtk halaman)
+    // di jam virtual K kecil memakan ±10 menit nyata
+    await advance(800);
+    await p.waitForSelector('.film[data-gate="tail"]', { timeout: 600000 });
     await w(5200); // mendarat + ±3 dtk
     c = await card();
     if (c) {
