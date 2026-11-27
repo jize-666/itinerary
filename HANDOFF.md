@@ -51,6 +51,8 @@ Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratc
 2. Tes: unit 748/748, e2e `pass-flat` 11 lulus / 5 dilewati sesudah build ulang. Container sempat restart: rekaman 3D desktop terputus sebelum penutup, jadi direkam ulang bersama 2,5D HP dan 3D HP.
 3. Berikutnya: kirim `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`, catat di ledger.
 
+**Pratinjau terkirim (27 Nov):** `tiket25d-hp2.mp4` (33 dtk, Clawd di pita atas) dan `tiket3d-penutup-desktop.mp4` (60 dtk, High: slide tiket, credits, gunungan penutup dengan tiket "Matur nuwun", diketuk bolak-balik) dikirim dan dicatat di ledger. Rekaman 3D desktop pertama gagal di penutup: tur menunggu gunungan menancap sendiri (12 dtk jam halaman = ±10 menit nyata di K 0,02) dengan batas 30 dtk nyata; kini tur menancapkannya dengan satu langkah maju. `tiket3d-penutup-hp.mp4` sedang direkam.
+
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 
 **Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"
