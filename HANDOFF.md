@@ -46,6 +46,11 @@ Rencana (Opus memutuskan, subagen mengerjakan; tangkapan layar penutup di scratc
 2. Tes: lint, typecheck, content:check, build lulus; unit 748/748; e2e terdampak (`pass3d`, `pass-flat` baru, `sound`, `smoke`, `gate`, `film`, `batik-sound`) 160 lulus, 26 dilewati sesuai proyek.
 3. Berikutnya: video `tiket25d-desktop/hp` dan `tiket3d-penutup-desktop/hp` (data April, nama Jize, bersuara biip) sedang direkam; lalu kirim, catat di ledger, buka PR.
 
+**Pratinjau dan perbaikan Clawd di HP 2,5D (27 Nov):**
+1. Selesai: PR #27 dibuka. Video `tiket25d-desktop.mp4` (40 dtk, biip) dikirim dan dicatat. Di video HP 9:16 pertama Clawd berdiri di atas tiket (layar 360×640 penuh: tiket selebar layar, tiga tombol). Diperbaiki (`film.css`, `session.ts`): di film 2,5D HP tegak tiket turun di bawah pita atas (`padding-top: max(27svh, 172px)`), Clawd berdiri di kiri atas dengan gelembung di kanannya, layar ≤ 720 px tingginya memperkecil kartu (`zoom: 0.68`) supaya tombol tetap di atas label bab; kartu 2,5D dihitung sebagai blok dan badan Clawd yang menutupinya 12× lebih mahal. Dicek di 360×640 dan 390×844.
+2. Tes: unit 748/748, e2e `pass-flat` 11 lulus / 5 dilewati sesudah build ulang. Container sempat restart: rekaman 3D desktop terputus sebelum penutup, jadi direkam ulang bersama 2,5D HP dan 3D HP.
+3. Berikutnya: kirim `tiket25d-hp2`, `tiket3d-penutup-desktop`, `tiket3d-penutup-hp`, catat di ledger.
+
 ### MULAI DI SINI (sesudah PR #26 di-merge, 26 Nov)
 
 **Kata host, kata demi kata:** "pr 26 dah gw merge, sudah selesai semuanya ya?"
