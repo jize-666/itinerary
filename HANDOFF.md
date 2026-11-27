@@ -1,9 +1,15 @@
 # HANDOFF
 
-Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `2a100a8`) · **PR #27 di-merge host 27 Nov; audit host 27 Nov (tier High/Ultra, masuk maket tanpa patah) di PR #28, CI hijau, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `5884fc6`) · **PR #28 (audit host 27 Nov) di-merge host 27 Nov** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### MULAI DI SINI (sesudah PR #28 di-merge, 27 Nov)
+
+1. **Selesai:** PR #28 (tier kualitas High/Ultra dan masuk maket tanpa patah) di-merge host 27 Nov 13.08 UTC (squash `5884fc6`). CI di head terakhir hijau. Branch kerja dimulai ulang dari `main` `5884fc6`.
+2. **Hasil tes / kendala:** tidak ada kode baru sesudah merge. Pratinjau yang belum di Drive: 80 berkas, 792 MB (di bawah 1 GB, belum perlu token).
+3. **Langkah berikutnya:** daftar tugas di `CLAUDE.md` habis, jadi tanya host dulu. Yang masih menunggu host: uji di iPhone produksi dan tablet Samsung (ketajaman High/Ultra, fps tanpa penurunan resolusi, transisi masuk maket), ditambah daftar di "MULAI DI SINI (sesudah PR #26 di-merge)" di bawah.
 
 ### Audit host 27 Nov (iPhone produksi, 4G) — SELESAI 27 NOV, DI PR #28, MENUNGGU HOST
 
