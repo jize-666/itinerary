@@ -4,7 +4,11 @@
  * Murni: tanpa DOM.
  */
 
-export type Quality = "ultra" | "high";
+/**
+ * `lite` = mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu. Hanya lewat `?q=lite`:
+ * `defaultQuality` tidak pernah mengembalikannya dan tidak ada langkah turun ke sana.
+ */
+export type Quality = "ultra" | "high" | "lite";
 
 /** Lebih dari ini, kerapatan piksel tidak lagi terlihat dan hanya menambah beban. */
 const HIGH_DPR_MAX = 2;
@@ -25,7 +29,7 @@ export function defaultQuality(): Quality {
 
 /** `?q=`: ultra dan high; `medium` dan `low` (tautan lama) menjadi high. */
 export function parseQuality(raw: string | null | undefined): Quality | undefined {
-  if (raw === "ultra") return "ultra";
+  if (raw === "ultra" || raw === "lite") return raw;
   if (raw === "high" || raw === "medium" || raw === "low") return "high";
   return undefined;
 }
@@ -36,5 +40,6 @@ export function parseQuality(raw: string | null | undefined): Quality | undefine
  */
 export function pixelRatio(q: Quality, native: number): number {
   const n = native > 0 ? native : 1;
+  if (q === "lite") return 1;
   return q === "ultra" ? Math.min(ULTRA_DPR_MAX, Math.max(ULTRA_DPR_MIN, n)) : Math.min(HIGH_DPR_MAX, n);
 }

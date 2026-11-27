@@ -58,6 +58,8 @@ const snapshot = (p: Pose): Pose => ({ ...p, target: [...p.target] });
 const tierConfig = {
   ultra: 2048,
   high: 1536,
+  // mode uji (?q=lite); tidak pernah dipilih untuk tamu
+  lite: 512,
 };
 const touchPresent = () => matchMedia("(pointer: coarse)").matches;
 export const initialState: ViewerState = {

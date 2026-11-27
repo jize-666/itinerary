@@ -54,7 +54,7 @@ describe("tier awal (guessTier)", () => {
 
 describe("spesifikasi tier dan resolusi", () => {
   it("hanya Ultra dan High; Ultra lebih rapat dan lebih halus, High memegang spesifikasi High lama", () => {
-    expect(Object.keys(TIER).sort()).toEqual(["high", "ultra"]);
+    expect(Object.keys(TIER).sort()).toEqual(["high", "lite", "ultra"]);
     expect(TIER.high).toEqual({ dpr: 2, dprMin: 0, msaa: 4, bloom: 5, shadow: 2048, particles: 1, idleEvery: 1, dof: true });
     expect(TIER.ultra).toMatchObject({ dpr: 2.5, dprMin: 1.5, msaa: 4, bloom: 6, shadow: 4096, particles: 1, idleEvery: 1, dof: true });
   });
@@ -76,6 +76,22 @@ describe("spesifikasi tier dan resolusi", () => {
     expect(parseTier("low")).toBe("high");
     expect(parseTier("x")).toBeUndefined();
     expect(parseTier(null)).toBeUndefined();
+  });
+
+  it("lite: mode uji, hanya lewat ?stage=lite; tebakan perangkat dan pengatur tidak pernah memilihnya", () => {
+    expect(parseTier("lite")).toBe("lite");
+    expect(TIER.lite).toEqual({ dpr: 1, dprMin: 0, msaa: 0, bloom: 3, shadow: 0, particles: 0.15, idleEvery: 2, dof: false });
+    const renderers = ["Apple GPU", "NVIDIA GeForce RTX 4070", "Apple M2", "Intel(R) HD Graphics 4000", "Mali-G52", "Adreno (TM) 506", "SwiftShader", ""];
+    for (const renderer of renderers)
+      for (const mobile of [true, false])
+        for (const cores of [0, 2, 4, 8, 16])
+          for (const memory of [0, 2, 4, 8])
+            for (const webgl2 of [true, false])
+              expect(guessTier({ webgl2, renderer, mobile, cores, memory })).not.toBe("lite");
+    // pengatur yang dikunci (URL) tidak pernah pindah dari lite, seberat apa pun
+    const g = createGovernor("lite", 0, true);
+    for (let t = 0; t < 20000; t += 100) expect(g.sample(100, t)).toBeNull();
+    expect(g.tier()).toBe("lite");
   });
 });
 

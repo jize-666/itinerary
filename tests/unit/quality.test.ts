@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseQuality, pixelRatio, preferUltra } from "@/engine/motion/quality";
+import { defaultQuality, parseQuality, pixelRatio, preferUltra } from "@/engine/motion/quality";
 
 describe("preferUltra", () => {
   it("desktop dengan inti banyak atau tidak diketahui", () => {
@@ -23,6 +23,11 @@ describe("parseQuality", () => {
     expect(parseQuality("x")).toBeUndefined();
     expect(parseQuality(null)).toBeUndefined();
   });
+  it("lite hanya lewat ?q=lite (mode uji), dan bukan bawaan perangkat mana pun", () => {
+    expect(parseQuality("lite")).toBe("lite");
+    for (const touch of [true, false]) for (const cores of [0, 2, 4, 8, 16]) expect(preferUltra({ touch, cores })).toBe(touch ? false : cores === 0 || cores >= 8);
+    expect(defaultQuality()).not.toBe("lite");
+  });
 });
 
 describe("pixelRatio", () => {
@@ -31,6 +36,10 @@ describe("pixelRatio", () => {
     expect(pixelRatio("high", 1.75)).toBe(1.75);
     expect(pixelRatio("high", 3)).toBe(2);
     expect(pixelRatio("high", 0)).toBe(1);
+  });
+  it("lite (uji): selalu 1", () => {
+    expect(pixelRatio("lite", 1)).toBe(1);
+    expect(pixelRatio("lite", 3)).toBe(1);
   });
   it("ultra: 1,5 sampai 2,5", () => {
     expect(pixelRatio("ultra", 1)).toBe(1.5);

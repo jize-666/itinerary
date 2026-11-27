@@ -187,7 +187,7 @@ export function createRuntime({ gl, scene, advance, film, root, spec, governor, 
     },
   });
   // tiket 3D bertali (Tugas 12b): dipasang dekat slide tiket, digerakkan fisika milik modul tiket
-  const pass = createPassStage({ scene, shared, onEvent: (e) => stageBus.passEvent(e) });
+  const pass = createPassStage({ scene, shared, spec, onEvent: (e) => stageBus.passEvent(e) });
   /** HP: kemiringan HP menggeser gravitasi tiket sedikit (di desktop kursor hanya menggeser kamera). */
   const touchLook = isMobile();
   const passIndex = film.slides.findIndex((s) => s.kind === "pass");

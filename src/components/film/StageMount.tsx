@@ -88,7 +88,7 @@ export function StageMount({ film, probe, root, calm, pass = null, onPhase, onIn
 
   // gunungan pembuka menunggu teksturnya: diunduh bersamaan dengan bundle 3D, bukan sesudahnya
   useEffect(() => {
-    if (wanted && film.slides[probe().from]?.theme !== "lawu") prefetchKayon(true);
+    if (wanted && film.slides[probe().from]?.theme !== "lawu") prefetchKayon(choice.tier !== "lite");
   }, [wanted, choice.tier, film, probe]);
 
   // On a Day 2 deep link, the local relief and its shader code can travel alongside the shared stage.

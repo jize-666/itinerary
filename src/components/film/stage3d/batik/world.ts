@@ -151,7 +151,8 @@ const minutes = (s: Slide | undefined) =>
   s?.clock ?? (s?.kind === "panel" && s.stop.start ? Number(s.stop.start.slice(0, 2)) * 60 + Number(s.stop.start.slice(3, 5)) : 6 * 60);
 
 export function createBatikWorld(shared: Shared, spec: TierSpec, film: Film, gl: WebGLRenderer): ChapterWorld {
-  const quality: BatikQuality = "high";
+  // mode uji (lite) memakai kain dan perkakas kecil; tamu selalu high
+  const quality: BatikQuality = spec.msaa === 0 ? "lite" : "high";
   // satu lampion per tempat singgah tiga hari film
   const lanterns = Math.max(3, film.slides.filter((s) => s.kind === "panel").length);
   const trace = traceMotif(kawungUkel({ aspect: CLOTH.aspect, river: { lanterns } }));

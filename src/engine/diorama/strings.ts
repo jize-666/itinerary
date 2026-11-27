@@ -90,6 +90,7 @@ export const strings = {
   fps: { en: "Frame time (p95)", id: "Waktu frame (p95)" },
   high: { en: "High", id: "Tinggi" },
   ultra: { en: "Ultra", id: "Ultra" },
+  lite: { en: "Lite (test)", id: "Lite (uji)" },
   drawCalls: { en: "Draw calls", id: "Panggilan gambar" },
   triangles: { en: "Triangles", id: "Segitiga" },
   photoHint: {

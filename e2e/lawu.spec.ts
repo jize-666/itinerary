@@ -45,7 +45,7 @@ test("every stop lights in sequence, reverses, and keeps the two neighbouring ch
     if (m.type() === "error") errors.push(m.text());
   });
   const f = await prep(page);
-  await page.goto("/film/?stage=high#day-2");
+  await page.goto("/film/?stage=lite#day-2");
   await expect(f).toHaveAttribute("data-world-ready", "lawu", { timeout: 35000 });
   await expect(f).toHaveAttribute("data-relief", "dem");
   await next(page);
@@ -64,7 +64,7 @@ test("every stop lights in sequence, reverses, and keeps the two neighbouring ch
     ["day-1", "shared"],
     ["day-3", "batik"],
   ] as const) {
-    await page.goto("/film/?stage=high#" + ch);
+    await page.goto("/film/?stage=lite#" + ch);
     await expect(f).toHaveAttribute("data-world", "shared", { timeout: 25000 });
     await next(page);
     await next(page);
@@ -75,7 +75,7 @@ test("every stop lights in sequence, reverses, and keeps the two neighbouring ch
 });
 test("pixel wheel holds the actual camera at partial travel and can return to the starting panel", async ({ page }) => {
   const f = await prep(page);
-  await page.goto("/film/?stage=high#day-2");
+  await page.goto("/film/?stage=lite#day-2");
   await expect(f).toHaveAttribute("data-world-ready", "lawu", { timeout: 35000 });
   await next(page);
   await next(page);
@@ -101,7 +101,7 @@ test("unavailable DEM keeps mountain, lights and cards accessible", async ({ pag
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const f = await prep(page);
-  await page.goto("/film/?stage=high#day-2");
+  await page.goto("/film/?stage=lite#day-2");
   await expect(f).toHaveAttribute("data-relief", "procedural", { timeout: 35000 });
   await next(page);
   await next(page);
@@ -124,7 +124,7 @@ for (const mode of ["static", "calm", "reduced", "no-webgl"])
       if (r.url().includes("/stage/lawu/relief.bin")) requests++;
     });
     await prep(page);
-    await page.goto(`/film/?stage=${mode === "static" ? "static" : "high"}#day-2`);
+    await page.goto(`/film/?stage=${mode === "static" ? "static" : "lite"}#day-2`);
     await next(page);
     await expect(page.locator("[data-lawu-flat]")).toBeVisible();
     await expect(page.locator(".fl-canvas")).toHaveCount(0);
@@ -132,7 +132,7 @@ for (const mode of ["static", "calm", "reduced", "no-webgl"])
   });
 test("rendering contexts are released after repeated client navigations", async ({ page }) => {
   const f = await prep(page);
-  await page.goto("/film/?stage=high#day-2");
+  await page.goto("/film/?stage=lite#day-2");
   for (let i = 0; i < 3; i++) {
     await expect(f).toHaveAttribute("data-world-ready", "lawu", { timeout: 45000 });
     await page.evaluate(() =>

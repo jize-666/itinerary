@@ -61,6 +61,7 @@ describe("integration and photos", () => {
     });
     expect(readOptions("?lokasi=no&q=ultra").focus).toBeUndefined();
     expect(readOptions("?q=high").quality).toBe("high");
+    expect(readOptions("?q=lite").quality).toBe("lite"); // mode uji, tidak pernah bawaan
     // tautan lama: medium dan low menjadi high
     expect(readOptions("?q=medium").quality).toBe("high");
     expect(readOptions("?q=low").quality).toBe("high");

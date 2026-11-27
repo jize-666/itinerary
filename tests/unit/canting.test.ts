@@ -114,6 +114,7 @@ describe("options", () => {
     expect(readCantingOptions("?q=medium").quality).toBe("high");
     expect(readCantingOptions("?q=low").quality).toBe("high");
     expect(readCantingOptions("?q=high").quality).toBe("high");
+    expect(readCantingOptions("?q=lite").quality).toBe("lite"); // mode uji
   });
   it("maps tahap to state", () => {
     expect(tahapState("malam")).toEqual({ draw: 1, nila: 0, kerok: 0, soga: 0, lorod: 0 });

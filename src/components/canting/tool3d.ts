@@ -42,11 +42,13 @@ import {
   type Texture,
 } from "three";
 
-type Quality = "ultra" | "high";
+type Quality = "ultra" | "high" | "lite";
 
 /** Jumlah segmen per kualitas (anggaran segitiga: canting < 6k, wajan < 8k; ultra sama dengan high). */
 const HIGH_Q = { seg: 28, tubeSeg: 26, tubeRad: 6, bamboo: 12, pan: 48, anglo: 40, arc: 8, lumps: 12 } as const;
-const Q = { ultra: HIGH_Q, high: HIGH_Q } as const;
+// mode uji (e2e, renderer perangkat lunak): segmen sedikit; tidak pernah dipilih untuk tamu
+const LITE_Q = { seg: 12, tubeSeg: 10, tubeRad: 4, bamboo: 7, pan: 20, anglo: 18, arc: 4, lumps: 5 } as const;
+const Q = { ultra: HIGH_Q, high: HIGH_Q, lite: LITE_Q } as const;
 
 // ---------- pembantu: derau, warna, tekstur ----------
 

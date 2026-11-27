@@ -72,7 +72,7 @@ test("/canting/ demo berbunyi, menyimpan kain, dan epilog film menampilkannya", 
       localStorage.setItem("lakon.lang", "en");
     } catch {}
   });
-  await page.goto("/canting/?q=high&demo=1");
+  await page.goto("/canting/?q=lite&demo=1");
   await expect(page.locator("main.cnt-root")).toHaveAttribute("data-ready", "true", { timeout: 60_000 });
   await soundOn(page);
   await page.waitForFunction(() => (window as unknown as { __lakonCanting?: { kept?: boolean } }).__lakonCanting?.kept === true, null, { timeout: 200_000, polling: 500 });

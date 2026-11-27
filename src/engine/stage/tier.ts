@@ -14,7 +14,11 @@
  * ambangnya ikut dibagi dua, jadi 30 fps yang stabil tidak dianggap berat.
  */
 
-export type Tier = "ultra" | "high" | "static";
+/**
+ * `lite` = mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu. Hanya bisa dicapai lewat
+ * `?stage=lite`: `guessTier` dan pengatur tidak pernah memilihnya. Nilainya biaya Low yang lama.
+ */
+export type Tier = "ultra" | "high" | "lite" | "static";
 
 export type TierSpec = Readonly<{
   /** Batas atas device pixel ratio kanvas. */
@@ -38,14 +42,19 @@ export type TierSpec = Readonly<{
 export const TIER: Readonly<Record<Exclude<Tier, "static">, TierSpec>> = {
   high: { dpr: 2, dprMin: 0, msaa: 4, bloom: 5, shadow: 2048, particles: 1, idleEvery: 1, dof: true },
   ultra: { dpr: 2.5, dprMin: 1.5, msaa: 4, bloom: 6, shadow: 4096, particles: 1, idleEvery: 1, dof: true },
+  // mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu
+  lite: { dpr: 1, dprMin: 0, msaa: 0, bloom: 3, shadow: 0, particles: 0.15, idleEvery: 2, dof: false },
 };
 
 /** Rasio piksel kanvas untuk `spec` di layar berkerapatan `native`. */
 export const dprFor = (spec: TierSpec, native: number): number => Math.min(spec.dpr, Math.max(spec.dprMin, native > 0 ? native : 1));
 
-/** Nama tier dari `?stage=`: ultra, high, static; `medium` dan `low` (tautan lama) menjadi high. */
+/**
+ * Nama tier dari `?stage=`: ultra, high, static; `medium` dan `low` (tautan lama) menjadi high. `lite` hanya untuk
+ * uji (mode uji, tidak pernah dipilih untuk tamu).
+ */
 export function parseTier(raw: string | null | undefined): Tier | undefined {
-  if (raw === "ultra" || raw === "high" || raw === "static") return raw;
+  if (raw === "ultra" || raw === "high" || raw === "lite" || raw === "static") return raw;
   if (raw === "medium" || raw === "low") return "high";
   return undefined;
 }
