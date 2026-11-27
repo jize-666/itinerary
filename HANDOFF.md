@@ -5,6 +5,17 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Permintaan host 27 Nov (di luar urutan): paket maskot Clawd dalam zip — SEDANG DIKERJAKAN
+
+**Kata host, kata demi kata:** "kasih gw maskot clawd nya, lengkap dengan gerak, design nya. zip".
+
+Tafsir Claude: satu zip yang berdiri sendiri, dikirim ke host di chat (tidak masuk repo), berisi:
+- **demo** yang langsung dibuka di browser tanpa situs: Clawd 3D (rupa kit v4, gerak lentur, ekspresi, partikel emosi, gelembung piksel, biip) dan Clawd 2,5D (balok CSS 3D), dengan tombol suasana hati, gerak, dan ekspresi;
+- **model** GLB hasil ekspor constructor (netral + 12 ekspresi) untuk Blender atau alat lain;
+- **gambar** lembar ekspresi, turnaround, dan pose; **video** gerak singkat;
+- **kode sumber** maskot apa adanya (otak, penggerak, wajah, pose, jeli, gelembung, biip, 3D, 2,5D) beserta tesnya;
+- **desain**: README spesifikasi (ukuran, warna, ekspresi, aturan gerak, gelembung, biip, perilaku) dan kutipan `docs/design/decisions.md` bagian Clawd.
+
 ### MULAI DI SINI (sesudah PR #28 di-merge, 27 Nov)
 
 1. **Selesai:** PR #28 (tier kualitas High/Ultra dan masuk maket tanpa patah) di-merge host 27 Nov 13.08 UTC (squash `5884fc6`). CI di head terakhir hijau. Branch kerja dimulai ulang dari `main` `5884fc6`.
