@@ -5,6 +5,19 @@ Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
 
+### Audit host 27 Nov (iPhone produksi, 4G) — DICATAT, SEDANG DIKERJAKAN
+
+PR #27 di-merge host 27 Nov 04.24 UTC; branch kerja dimulai ulang dari `main` terbaru.
+
+**Kata host, kata demi kata:** "hasil audit; gw cukup memuaskan, wajar 25-50 fps, ini di mid range. mungkin untuk hp/laptop client gw bisa tembus 30-60fps, jadi aman. yang perlu di perbaiki; transisi masuk ke diorama nya masih patah patah, berat. anehnya, temen gw masuk web kemarin, pake tab samsung flagship kenapa burem ya? auto medium apa gimana? tier kualitasnya bisa ga high/ultra aja, guasa ada medium dan low?"
+
+Tangkapan layar host (overlay `?fps`): prolog `high ×1 (paksa)` 34 fps (rata-rata 33); slide tiket `high ×0.82 (paksa, turun: 31 fps)` 39 fps (rata-rata 43); gong Hari 3 `high ×1 (paksa)` 29 fps (rata-rata 30). Tangkapan layar host memuat nama asli tamu: tidak disalin ke repo.
+
+Tafsir Claude:
+1. **Transisi masuk ke diorama patah-patah dan berat.** Diukur dulu, lalu dicari sumbernya: kemungkinan pekerjaan berat (unduh dan parse chunk, membangun adegan, kompilasi shader) jatuh tepat saat tirai bergerak. Arah perbaikan: kerja berat dilakukan saat tirai tertutup atau dicicil, dan tirai baru membuka sesudah frame pertama maket siap.
+2. **Tablet Samsung flagship buram.** Kemungkinan terdeteksi Medium (resolusi lebih rendah), atau pengatur fps menurunkan resolusi (seperti `×0.82` di tangkapan layar slide tiket).
+3. **Tier kualitas cukup High dan Ultra, tanpa Medium dan Low.** Static (tanpa WebGL) tetap ada sebagai cadangan perangkat tanpa WebGL2 dan Calm, karena itu bukan tingkat kualitas. Pengatur fps tidak lagi menurunkan resolusi, sesuai aturan host 12 Nov: "beban hemat tapi jangan turunkan kualitas". Ultra = High ditambah resolusi dan antialias lebih tinggi untuk perangkat kuat. Berlaku untuk panggung film, `/diorama/`, dan `/canting/`.
+
 ### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 
 **Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
