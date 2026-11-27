@@ -39,9 +39,9 @@ async function goTo(page: Page, id: string) {
   expect(await slide(page)).toBe("pass");
 }
 
-/** Buka film 3D (tier Low) dan tunggu tiketnya siap di slide `pass`. */
+/** Buka film 3D (tier lite, mode uji) dan tunggu tiketnya siap di slide `pass`. */
 async function openPass(page: Page) {
-  await open(page, "?stage=low");
+  await open(page, "?stage=lite");
   await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
   await goTo(page, "pass");
   await expect.poll(() => state(page), { timeout: WAIT_LONG }).toMatch(/^(ready|resting)$/);
@@ -186,7 +186,7 @@ test.describe("tanpa tiket 3D", () => {
 
   test("Calm mode: tiket DOM tetap terlihat tanpa tiket 3D", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("lakon.calm", "1"));
-    await open(page, "?stage=low");
+    await open(page, "?stage=lite");
     await goTo(page, "pass");
     await page.waitForTimeout(800);
     await expect(film(page)).not.toHaveAttribute("data-pass3d", /.+/);
@@ -198,7 +198,7 @@ test.describe("tanpa tiket 3D", () => {
     page.on("pageerror", (e) => errors.push(e.message));
     const data = filmFixture("guest") as Record<string, unknown>;
     delete data.private;
-    await open(page, "?stage=low", data);
+    await open(page, "?stage=lite", data);
     await expect(film(page)).toHaveAttribute("data-stage", "on", { timeout: WAIT_LONG });
     for (let i = 0; i < 12 && (await slide(page)) !== "pass"; i++) {
       const before = Number(await film(page).getAttribute("data-index"));

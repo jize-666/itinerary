@@ -94,8 +94,8 @@ describe("options", () => {
     expect(readCantingOptions("")).toEqual({ quality: undefined, tahap: undefined, draw: undefined, showFps: false, demo: false });
     expect(readCantingOptions("?demo=1").demo).toBe(true);
     expect(readCantingOptions("?demo=yes").demo).toBe(false);
-    expect(readCantingOptions("?q=medium&tahap=soga&draw=0.4&fps")).toEqual({
-      quality: "medium",
+    expect(readCantingOptions("?q=ultra&tahap=soga&draw=0.4&fps")).toEqual({
+      quality: "ultra",
       tahap: "soga",
       draw: 0.4,
       showFps: true,
@@ -107,8 +107,14 @@ describe("options", () => {
     expect(readCantingOptions("?draw=-2").draw).toBe(0);
     expect(readCantingOptions("?draw=abc").draw).toBeUndefined();
     expect(readCantingOptions("?draw=").draw).toBeUndefined();
-    expect(readCantingOptions("?q=ultra&tahap=x").quality).toBeUndefined();
-    expect(readCantingOptions("?q=ultra&tahap=x").tahap).toBeUndefined();
+    expect(readCantingOptions("?q=bogus&tahap=x").quality).toBeUndefined();
+    expect(readCantingOptions("?q=bogus&tahap=x").tahap).toBeUndefined();
+  });
+  it("maps legacy quality names to high", () => {
+    expect(readCantingOptions("?q=medium").quality).toBe("high");
+    expect(readCantingOptions("?q=low").quality).toBe("high");
+    expect(readCantingOptions("?q=high").quality).toBe("high");
+    expect(readCantingOptions("?q=lite").quality).toBe("lite"); // mode uji
   });
   it("maps tahap to state", () => {
     expect(tahapState("malam")).toEqual({ draw: 1, nila: 0, kerok: 0, soga: 0, lorod: 0 });

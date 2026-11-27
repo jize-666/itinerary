@@ -670,6 +670,22 @@
       "sent": "2026-11-27",
       "drive": null,
       "driveId": null
+    },
+    {
+      "name": "maket-masuk-desktop.mp4",
+      "path": "/tmp/claude-0/-home-user/1fba1da8-7178-4191-a96c-7b08f1dd9322/scratchpad/maket-masuk-desktop.mp4",
+      "size": 10999870,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
+    },
+    {
+      "name": "maket-masuk-hp.mp4",
+      "path": "/tmp/claude-0/-home-user/1fba1da8-7178-4191-a96c-7b08f1dd9322/scratchpad/maket-masuk-hp.mp4",
+      "size": 11053937,
+      "sent": "2026-11-27",
+      "drive": null,
+      "driveId": null
     }
   ]
 }

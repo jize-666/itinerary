@@ -1,9 +1,43 @@
 # HANDOFF
 
-Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `9dd1565`) · **PR #26 (Tugas 12) di-merge host 26 Nov; sisa Tugas 12 dan biip Clawd di PR #27, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
+Diperbarui 27 Nov 2026 (WIB) · branch kerja `claude/admiring-noether-tbqvap` (dimulai ulang dari `main` `2a100a8`) · **PR #27 di-merge host 27 Nov; audit host 27 Nov (tier High/Ultra, masuk maket tanpa patah) di PR #28, CI hijau, menunggu host** · daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut
 Konteks proyek dan aturan yang tidak boleh dilanggar: `docs/handoff/FABLE-5.2.md`. Keputusan desain: `docs/design/decisions.md`.
 
 ## 0. Tugas aktif: panggung 3D (permintaan host 12 Nov)
+
+### Audit host 27 Nov (iPhone produksi, 4G) — SELESAI 27 NOV, DI PR #28, MENUNGGU HOST
+
+PR #27 di-merge host 27 Nov 04.24 UTC; branch kerja dimulai ulang dari `main` terbaru.
+
+**Kata host, kata demi kata:** "hasil audit; gw cukup memuaskan, wajar 25-50 fps, ini di mid range. mungkin untuk hp/laptop client gw bisa tembus 30-60fps, jadi aman. yang perlu di perbaiki; transisi masuk ke diorama nya masih patah patah, berat. anehnya, temen gw masuk web kemarin, pake tab samsung flagship kenapa burem ya? auto medium apa gimana? tier kualitasnya bisa ga high/ultra aja, guasa ada medium dan low?"
+
+Tangkapan layar host (overlay `?fps`): prolog `high ×1 (paksa)` 34 fps (rata-rata 33); slide tiket `high ×0.82 (paksa, turun: 31 fps)` 39 fps (rata-rata 43); gong Hari 3 `high ×1 (paksa)` 29 fps (rata-rata 30). Tangkapan layar host memuat nama asli tamu: tidak disalin ke repo.
+
+Tafsir Claude:
+1. **Transisi masuk ke diorama patah-patah dan berat.** Diukur dulu, lalu dicari sumbernya: kemungkinan pekerjaan berat (unduh dan parse chunk, membangun adegan, kompilasi shader) jatuh tepat saat tirai bergerak. Arah perbaikan: kerja berat dilakukan saat tirai tertutup atau dicicil, dan tirai baru membuka sesudah frame pertama maket siap.
+2. **Tablet Samsung flagship buram.** Kemungkinan terdeteksi Medium (resolusi lebih rendah), atau pengatur fps menurunkan resolusi (seperti `×0.82` di tangkapan layar slide tiket).
+3. **Tier kualitas cukup High dan Ultra, tanpa Medium dan Low.** Static (tanpa WebGL) tetap ada sebagai cadangan perangkat tanpa WebGL2 dan Calm, karena itu bukan tingkat kualitas. Pengatur fps tidak lagi menurunkan resolusi, sesuai aturan host 12 Nov: "beban hemat tapi jangan turunkan kualitas". Ultra = High ditambah resolusi dan antialias lebih tinggi untuk perangkat kuat. Berlaku untuk panggung film, `/diorama/`, dan `/canting/`.
+
+**Tier High/Ultra selesai (27 Nov, Sonnet, ditinjau Opus):**
+1. Selesai: penyebab buram ditemukan. Di film, perangkat non-Apple turun anak tangga saat < 50 fps (High ×0,82 → Medium → Low) sampai resolusinya rendah; di maket, layar sentuh mulai di Medium (rasio piksel 1,5 × 0,82) dan turun lagi bila p95 > 16,7 ms. Sekarang:
+   - film `Tier = ultra | high | static` (static hanya tanpa WebGL2/renderer perangkat lunak); High = setelan High lama; Ultra = rasio piksel min 1,5 (supersampling di layar 1×) maks 2,5, bloom 6, shadow 4096; semua HP/tablet High, desktop GPU kuat (memori dan inti ≥ 8 atau tidak diketahui) Ultra;
+   - pengatur fps tidak pernah mengecilkan resolusi; satu-satunya langkah Ultra → High (< 45 fps 3 dtk) dan kembali (≥ 58 fps 8 dtk); tidak pernah di bawah High;
+   - maket dan canting `ultra | high` (rasio piksel High = min(layar, 2), Ultra 1,5–2,5; Ultra bawaan di desktop bukan sentuh dengan ≥ 8 inti; pembantu `engine/motion/quality.ts`); maket hanya turun Ultra → High;
+   - `?stage=`/`?q=` lama `medium`/`low` menjadi alias High; overlay menulis `high (turun dari ultra: N fps)`.
+2. Tes: lint, typecheck, unit 754/754. E2E memakai `stage=high`/`q=high` (dulu `low`); e2e terdampak sedang dijalankan untuk melihat waktunya di renderer perangkat lunak.
+3. Berikutnya: hasil e2e, gabungkan perbaikan transisi maket (subagen di worktree), video, PR.
+
+**Transisi maket selesai dan digabung (27 Nov):**
+1. Selesai: tirai ditahan (`curtain.hold/release`, batas 5 dtk dari halaman dan 9 dtk dari klik) sampai bingkai pertama maket tergambar; shader dipanaskan (`compileAsync`); chunk maket diunduh dari tautan film/Today; kilau emas di garis tengah tirai selama tertahan (Opus). Diukur di Chromium: long task saat tirai membuka 1,4–3,7 dtk → 0, frame terburuk 1,3–3,0 dtk → 50–150 ms. Catatan di `docs/design/decisions.md`.
+2. Tes: unit 759/759. E2E terdampak di build gabungan: 178 lulus, 49 gagal. Hampir semuanya batas waktu di `stage`, `lawu`, `canting` karena e2e kini memakai High di renderer perangkat lunak. Sedang ditambahkan mode uji tersembunyi `?stage=lite`/`?q=lite` (setelan Low lama, hanya lewat URL, tidak pernah dipilih untuk tamu) untuk tes yang dulu memakai `low`.
+3. Berikutnya: e2e hijau, video masuk maket desktop + HP, PR.
+
+**Mode uji lite (27 Nov):** subagen Sonnet berhenti di tengah karena batas pemakaian; Opus melanjutkan. `?stage=lite` dan `?q=lite` (setelan Low lama: rasio piksel 1, tanpa MSAA, bloom 3, tanpa bayangan, partikel 0,15, tanpa DOF; maket shadow 512) hanya lewat URL; `guessTier` dan bawaan kualitas tidak pernah memberinya. E2E yang dulu memakai `low` kini memakai `lite`. Unit 762/762, lint dan typecheck bersih. E2E lokal (4 worker, batas lokal 15/30 dtk): 179 lulus, 21 gagal batas waktu di `stage`/`pass3d`/`lawu` desktop karena kanvas 3D CPU berebut; `stage.spec` desktop di CI berjalan satu per satu dengan batas 45/90 dtk, jadi CI yang menjadi ukuran. Video masuk maket (film 2,5D → kartu Pasar Gede → maket → Kembali) desktop dan HP sedang direkam.
+
+**Penutupan audit 27 Nov:**
+1. Selesai: tier kualitas tamu hanya High dan Ultra (film, maket, canting; resolusi tidak pernah diturunkan saat berjalan), masuk maket dengan tirai yang ditahan sampai bingkai pertama maket tergambar, dan mode uji tersembunyi `lite` untuk e2e. PR #28 dibuka (Squash and merge). Video `maket-masuk-desktop.mp4` dan `maket-masuk-hp.mp4` (±34 dtk, data April, nama Jize, film 2,5D → kartu Pasar Gede → maket → Back) dikirim ke host dan dicatat di ledger. Di lembar kontak: tirai menutup, tertahan dengan kilau emas di garis tengah, lalu membuka dengan maket sudah utuh; Back kembali ke kartu Pasar Gede.
+2. Tes: lint, typecheck, build lulus; unit 762/762; CI PR #28 (`check`, `e2e (1/2)`, `e2e (2/2)`) hijau. Video direkam dengan film 2,5D (`STAGE=static`) karena film 3D di renderer perangkat lunak terlalu lambat untuk direkam; maket di High. Yang belum di Drive: 80 berkas, 792 MB (di bawah 1 GB). Belum diuji di perangkat: ketajaman di tablet Samsung, fps High tanpa penurunan resolusi dan transisi maket di iPhone.
+3. Berikutnya: host meninjau video dan PR #28, lalu menguji di iPhone dan tablet Samsung. Daftar tugas di `CLAUDE.md` habis: tanya host sebelum lanjut.
 
 ### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 

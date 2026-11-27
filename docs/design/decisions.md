@@ -819,3 +819,23 @@ Butir P1 PRD `docs/handoff/codex-prd-12-boarding-pass-3d.md` §4.2.
 - Biip tidak berbahasa, jadi film berbahasa Indonesia kini ikut bersuara.
 - Perekam pratinjau mencatat biip (`__clawdBeep`) dan `scripts/preview/mix-beep.cjs` membangkitkannya ulang di OfflineAudioContext untuk video.
 
+## Tier kualitas hanya High dan Ultra (27 Nov 2026), audit host: "tab samsung flagship kenapa burem ya? auto medium apa gimana? tier kualitasnya bisa ga high/ultra aja, guasa ada medium dan low?"
+
+Menggantikan tebakan tier dan tangga pengatur di "Panggung 3D, fondasi" dan paksaan High iPhone (14 Nov).
+
+- **Penyebab buram:** di film, perangkat selain iPhone turun anak tangga tiap kali rata-rata < 50 fps (High ×0,82 → Medium → Medium ×0,82 → Low), jadi tablet yang wajar di 30–45 fps berakhir di resolusi rendah. Di maket, layar sentuh mulai di Medium (rasio piksel 1,5 × 0,82) dan turun lagi bila p95 > 16,7 ms. Host menerima 25–50 fps di HP kelas menengah.
+- **Tingkat kualitas:** `ultra` dan `high` saja, di panggung film, `/diorama/`, dan `/canting/`. `static` (film 2,5D) tetap ada hanya untuk perangkat tanpa WebGL2 atau dengan renderer perangkat lunak; itu cadangan, bukan tingkat kualitas.
+  - High = setelan High lama (rasio piksel min(layar, 2), MSAA 4, bloom 5, shadow 2048, DOF). Semua HP, tablet, dan laptop grafis terpadu.
+  - Ultra = High dengan rasio piksel paling sedikit 1,5 dan paling banyak 2,5 (supersampling di monitor 1×), bloom 6, shadow 4096. Desktop dengan GPU kuat dan memori/inti ≥ 8 (atau tidak diketahui). Maket dan canting: Ultra di desktop bukan sentuh dengan ≥ 8 inti (`engine/motion/quality.ts`).
+- **Resolusi tidak pernah diturunkan saat berjalan** (aturan host 12 Nov "beban hemat tapi jangan turunkan kualitas"). Satu-satunya langkah: Ultra → High bila rata-rata < 45 fps selama 3 dtk, dan kembali ke Ultra sesudah ≥ 58 fps 8 dtk (dengan jeda dan larangan bolak-balik). Tidak pernah di bawah High. Layar 30 Hz: ambang dibagi dua.
+- `?stage=` dan `?q=` menerima `ultra|high` (film juga `static`); `medium` dan `low` dari tautan lama dibaca High. Overlay `?fps` menulis tier, atau `high (turun dari ultra: N fps)`.
+- E2E kini memakai `stage=high`/`q=high` (dulu `low` yang murah di renderer perangkat lunak).
+
+## Masuk maket tanpa patah (27 Nov 2026), audit host: "transisi masuk ke diorama nya masih patah patah, berat"
+
+- **Penyebab (diukur di Chromium):** tirai membuka begitu rute berganti, padahal maket baru membangun adegan, mengompilasi shader, mengalokasikan shadow map, dan mengunggah tekstur. Dua sampai lima long task (total 1,4–3,7 dtk; frame terburuk 1,3–3,0 dtk) jatuh tepat di animasi membuka.
+- **Tirai ditahan** (`engine/motion/curtain.ts` `hold`/`release`): navigasi ke rute berat menahan tirai sebelum menutup, halaman maket menahannya saat dipasang, dan maket melepasnya dua rAF sesudah bingkai pertama tergambar. Selalu ada batas waktu (5 dtk sesudah halaman terpasang, 9 dtk dari klik): tirai tidak pernah tertinggal tertutup seperti bug 24 Nov. Gerak dikurangi: tetap tanpa tirai.
+- **Kerja berat di balik tirai:** shader dipanaskan (`compileAsync`, batas 2 dtk) sebelum bingkai pertama; chunk maket diunduh di waktu senggang dari tautan di film dan Today.
+- **Tanda menunggu:** selama tertahan, kilau emas bolak-balik di garis tengah tirai, supaya layar gelap tidak terasa macet.
+- **Hasil di Chromium:** long task selama tirai membuka 0, frame terburuk 50–150 ms (dulu 1,3–3,0 dtk). Harganya, tirai tertutup lebih lama (di renderer perangkat lunak 4,6–6 dtk dari klik; di GPU sungguhan kompilasi shader jauh lebih cepat).
+

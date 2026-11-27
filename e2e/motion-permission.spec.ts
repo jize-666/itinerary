@@ -57,7 +57,7 @@ test("maket: ketukan pertama meminta izin di dalam gesture yang sah", async ({ p
   await stubPermission(page);
   await seedSession(page);
   await page.addInitScript(() => localStorage.setItem("lakon.calm", "0"));
-  await page.goto("/diorama/?q=low");
+  await page.goto("/diorama/?q=lite");
   await expect(page.locator(".dio-root")).toHaveAttribute("data-ready", "true", { timeout: 60_000 });
   const box = (await page.locator(".dio-root canvas").first().boundingBox())!;
   await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);

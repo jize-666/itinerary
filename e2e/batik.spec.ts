@@ -42,7 +42,7 @@ test("dunia batik hidup di pembuka dan gallery Hari 3, maju dan mundur; gong ter
     if (m.type() === "error") errors.push(m.text());
   });
   const f = await prep(page);
-  await page.goto("/film/?stage=low#day-3");
+  await page.goto("/film/?stage=lite#day-3");
   await expect(f).toHaveAttribute("data-slide", "day-3/title");
   // dunia dimuat sejak judul hari (bab yang memuat slide didahulukan), tetapi judul tetap di pendapa
   await expect(f).toHaveAttribute("data-world-ready", "batik", WAIT);
@@ -77,7 +77,7 @@ test("dunia batik hidup di pembuka dan gallery Hari 3, maju dan mundur; gong ter
 test("Calm: Hari 3 tetap utuh tanpa panggung 3D, kain 2,5D mengikuti letak hari", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("lakon.calm", "1"));
   const f = await prep(page);
-  await page.goto("/film/?stage=low#day-3");
+  await page.goto("/film/?stage=lite#day-3");
   await expect(f).toHaveAttribute("data-slide", "day-3/title");
   await expect(page.locator(".batik-layers")).toHaveCount(0);
   await step(page);

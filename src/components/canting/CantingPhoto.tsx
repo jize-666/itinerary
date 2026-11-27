@@ -15,6 +15,7 @@ import {
 import { kawungUkel } from "@/engine/canting/motif";
 import { traceMotif } from "@/engine/canting/trace";
 import { CLOTH_TILT, fitDistance } from "@/engine/canting/frame";
+import { pixelRatio } from "@/engine/motion/quality";
 import { tahapState, type CantingQuality, type Tahap } from "@/engine/canting/options";
 import type { BatikState } from "@/engine/canting/state";
 import { startLook, stepLook } from "@/components/film/look";
@@ -62,7 +63,7 @@ export function CantingPhoto({ lang, calm, quality, tahap, draw, showFps = false
     const root = rootRef.current;
     if (!canvas || !root) return;
     const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, tier === "low" ? 1 : tier === "medium" ? 1.5 : 2));
+    renderer.setPixelRatio(pixelRatio(tier, window.devicePixelRatio || 1));
     renderer.toneMapping = NoToneMapping;
     const scene = new Scene();
     scene.background = new Color("#0b0a12");

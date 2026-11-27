@@ -45,6 +45,7 @@ import { DYE_SPLASH, dyeEnvelope, handWax, lorodEnvelope } from "@/engine/cantin
 import { STORE_LIMIT, StrokeHistory } from "@/engine/canting/strokes";
 import { readCloth, saveCloth } from "@/lib/keepsake";
 import { startLook, stepLook } from "@/components/film/look";
+import { pixelRatio } from "@/engine/motion/quality";
 import type { BatikQuality } from "./batik";
 import { linkBatikSound } from "./sound-link";
 import { surfaceMaterial } from "./surface";
@@ -146,7 +147,7 @@ const bump = (k: number) => {
 export function createStudio(canvas: HTMLCanvasElement, root: HTMLElement, opts: StudioOptions, cb: StudioCallbacks): Studio {
   let calm = opts.calm;
   const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.quality === "low" ? 1 : opts.quality === "medium" ? 1.5 : 2));
+  renderer.setPixelRatio(pixelRatio(opts.quality, window.devicePixelRatio || 1));
   renderer.toneMapping = NoToneMapping;
   const scene = new Scene();
   scene.background = new Color("#0b0a12");

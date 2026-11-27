@@ -15,7 +15,7 @@ const { chromium } = require("@playwright/test"),
   });
   const results = { browser: b.version(), width, height, dpr: +ratio, tiers: {} };
   try {
-    for (const tier of ["low", "medium", "high"]) {
+    for (const tier of ["high", "ultra"]) {
       const ctx = await b.newContext({
         viewport: { width, height },
         hasTouch: true,

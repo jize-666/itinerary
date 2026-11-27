@@ -15,7 +15,7 @@ import { prefersReducedMotion } from "@/engine/motion/tokens";
 import type { Film } from "@/engine/slides/build-slides";
 import type { Cursor } from "@/engine/stage/cue";
 import { prefetchKayon } from "@/engine/stage/kayon-files";
-import { type Caps, guessTier, pinnedHigh, type Tier } from "@/engine/stage/tier";
+import { type Caps, guessTier, parseTier, type Tier } from "@/engine/stage/tier";
 import type { Stage3DProps } from "./stage3d/Stage3D";
 
 /** Keadaan panggung untuk Film: "off" = 2,5D, "live" = kanvas memudar masuk, "on" = kanvas penuh (langit 2,5D tak digambar). */
@@ -36,7 +36,6 @@ type Props = {
   onIntent?: (wanted: boolean) => void;
 };
 
-const TIERS: readonly Tier[] = ["high", "medium", "low", "static"];
 /** Lama kanvas memudar masuk (ms); sama dengan transisi `.fl-canvas` di film.css. */
 const FADE_MS = 900;
 
@@ -61,23 +60,22 @@ export function readCaps(): Caps {
   return { webgl2, renderer, mobile, cores, memory };
 }
 
-type Choice = { tier: Tier; locked: boolean; debug: boolean; pinned: boolean };
+type Choice = { tier: Tier; locked: boolean; debug: boolean };
 
 function choose(): Choice {
   const q = new URLSearchParams(window.location.search);
-  const forced = q.get("stage") as Tier | null;
+  const forced = parseTier(q.get("stage"));
   const debug = q.has("fps");
-  if (forced === "static") return { tier: "static", locked: true, debug, pinned: false };
+  if (forced === "static") return { tier: "static", locked: true, debug };
   const caps = readCaps();
-  if (forced && TIERS.includes(forced)) return { tier: caps.webgl2 ? forced : "static", locked: true, debug, pinned: false };
-  // iPhone/iPad: High dipaksa (keputusan host 12 & 14 Nov)
-  return { tier: guessTier(caps), locked: false, debug, pinned: pinnedHigh(caps) };
+  if (forced) return { tier: caps.webgl2 ? forced : "static", locked: true, debug };
+  return { tier: guessTier(caps), locked: false, debug };
 }
 
 export function StageMount({ film, probe, root, calm, pass = null, onPhase, onIntent }: Props) {
   const [reduced] = useState(prefersReducedMotion);
   const flat = calm || reduced;
-  const choice = useMemo((): Choice => flat ? { tier: "static", locked: true, debug: false, pinned: false } : choose(), [flat]);
+  const choice = useMemo((): Choice => flat ? { tier: "static", locked: true, debug: false } : choose(), [flat]);
   const [Stage, setStage] = useState<ComponentType<Stage3DProps> | null>(null);
   const [failed, setFailed] = useState(false);
   const [live, setLive] = useState(false);
@@ -90,7 +88,7 @@ export function StageMount({ film, probe, root, calm, pass = null, onPhase, onIn
 
   // gunungan pembuka menunggu teksturnya: diunduh bersamaan dengan bundle 3D, bukan sesudahnya
   useEffect(() => {
-    if (wanted && film.slides[probe().from]?.theme !== "lawu") prefetchKayon(choice.tier === "high");
+    if (wanted && film.slides[probe().from]?.theme !== "lawu") prefetchKayon(choice.tier !== "lite");
   }, [wanted, choice.tier, film, probe]);
 
   // On a Day 2 deep link, the local relief and its shader code can travel alongside the shared stage.
@@ -137,5 +135,5 @@ export function StageMount({ film, probe, root, calm, pass = null, onPhase, onIn
   }, [shown, live, onPhase]);
 
   if (!shown || choice.tier === "static") return null;
-  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} pinned={choice.pinned} debug={choice.debug} pass={pass} onLive={onLive} onFail={onFail} />;
+  return <Stage film={film} probe={probe} root={root} tier={choice.tier} locked={choice.locked} debug={choice.debug} pass={pass} onLive={onLive} onFail={onFail} />;
 }

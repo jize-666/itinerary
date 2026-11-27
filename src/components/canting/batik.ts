@@ -41,10 +41,11 @@ import { EMPTY_STATE, type BatikState } from "@/engine/canting/state";
 export type { BatikState };
 export { EMPTY_STATE };
 
-export type BatikQuality = "high" | "medium" | "low";
+/** `lite` = mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu. */
+export type BatikQuality = "ultra" | "high" | "lite";
 
 /** Tinggi target per kualitas (lebar = tinggi × aspek). High tetap tajam saat kamera mendekat ke cucuk. */
-export const TARGET_HEIGHT: Record<BatikQuality, number> = { high: 1600, medium: 1152, low: 768 };
+export const TARGET_HEIGHT: Record<BatikQuality, number> = { ultra: 1600, high: 1600, lite: 768 };
 
 /** Lebar jendela waktu (dalam progres torehan) selama malam masih panas dan mengilap. */
 const HOT = 0.012;

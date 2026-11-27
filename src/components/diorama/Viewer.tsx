@@ -17,6 +17,8 @@ type Props = Pick<DioramaProps, "calm" | "quality" | "focus" | "lang"> & {
   slow: (n: number) => void;
   labelHost: RefObject<HTMLDivElement | null>;
   labels: boolean;
+  /** Bingkai pertama sudah tergambar dan ditampilkan (sesudah pemanasan shader). */
+  shown?: () => void;
 };
 const anchors = [new Vector3(0, 4.9, -3.65), new Vector3(5.55, 3.25, 2), new Vector3(-6, 2.8, 2.6)];
 const projected = new Vector3();
@@ -24,7 +26,9 @@ function Binding(props: Props) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const manager = useRef<DioramaController | null>(null),
     latest = useRef(props),
-    bounds = useRef(size);
+    bounds = useRef(size),
+    warm = useRef(false),
+    shownFrames = useRef(0);
   useLayoutEffect(() => {
     latest.current = props;
     bounds.current = size;
@@ -52,8 +56,24 @@ function Binding(props: Props) {
       },
     );
     manager.current = c;
+    // Pemanasan selagi tirai masih tertutup: kompilasi shader (paralel bila didukung) sebelum bingkai pertama, supaya
+    // kompilasi dan unggah tekstur tidak jatuh di tengah animasi tirai membuka. Batas 2 dtk agar tidak pernah macet.
+    warm.current = false;
+    shownFrames.current = 0;
+    const done = () => {
+      if (warm.current) return;
+      warm.current = true;
+      invalidate();
+    };
+    const timer = window.setTimeout(done, 2000);
+    const compiling = gl.compileAsync ? gl.compileAsync(scene, camera) : Promise.resolve(gl.compile(scene, camera));
+    compiling.catch(() => {}).then(() => {
+      window.clearTimeout(timer);
+      done();
+    });
     p.ready(c);
     return () => {
+      window.clearTimeout(timer);
       manager.current = null;
       c.dispose();
       latest.current.ready(null);
@@ -77,9 +97,15 @@ function Binding(props: Props) {
     invalidate();
   }, [props.labels, invalidate]);
   useFrame(() => {
+    if (!warm.current) return;
     manager.current?.frame(performance.now());
     gl.render(scene, camera);
     manager.current?.rendered();
+    if (shownFrames.current === 0) {
+      // bingkai pertama ada di layar sesudah dua rAF; baru sesudah itu tirai boleh membuka
+      shownFrames.current = 1;
+      requestAnimationFrame(() => requestAnimationFrame(() => latest.current.shown?.()));
+    }
     const host = latest.current.labelHost.current;
     if (!host || !latest.current.labels) return;
     for (let i = 0; i < anchors.length; i++) {

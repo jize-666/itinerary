@@ -67,7 +67,8 @@ const LAND_AT = 0.98;
 const LAND_JOLT: [number, number, number] = [0.22, 0, 0.1];
 
 export function createPassStage({ scene, shared, spec, onEvent }: { scene: Scene; shared: Shared; spec: TierSpec; onEvent?: (e: PassEvent) => void }): PassStage {
-  const quality: PassQuality = spec.dof ? "high" : spec.msaa >= 2 ? "medium" : "low";
+  // ultra dan high memakai setelan tiket yang sama; "low" hanya untuk mode uji (lite)
+  const quality: PassQuality = spec.msaa === 0 ? "low" : "high";
   const physics = createPassPhysics({ onEvent: (e) => onEvent?.(e) });
   physics.setWind(BREEZE);
   const lampPos = new Vector3();

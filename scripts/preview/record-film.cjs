@@ -11,11 +11,11 @@
 // batik = Hari 3 di film (Tugas 11.3): judul, pembuka hari, sembilan panel (sungai, kawung oleh Clawd, nila, soga,
 // malam), lalu gong terakhir dengan kain jadi di pendapa; pakai STAGE=high (atau STAGE=static untuk kain 2,5D).
 // canting = halaman membatik /canting/ (Tugas 11.2): menggambar bebas (klowong, cecek, tembok, mbleber), celup canting,
-// mulai lagi dengan pola kawung yang ditorehkan canting, nila, mbironi, soga, lorod, simpan. CANT_Q=high|medium|low
+// mulai lagi dengan pola kawung yang ditorehkan canting, nila, mbironi, soga, lorod, simpan. CANT_Q=ultra|high
 // (bawaan high), DIO_LANG=en|id. Di HP goresan memakai sentuhan jari (CDP).
 // lawu = eleven Day 2 stops, frame-stepped on desktop 1440×900 or phone 1080×1920 at 24 fps (record-lawu.cjs).
 // Use the April client-data fixture. Optional PREVIEW_BROWSER selects a locally installed headless Chromium.
-// diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, BEEP diabaikan): DIO_Q=high|medium|low (bawaan high)
+// diorama = tur otomatis maket 3D /diorama/ (64 dtk; tanpa suara, BEEP diabaikan): DIO_Q=ultra|high (bawaan high)
 // mengunci kualitas, DIO_LANG=en|id (bawaan en, lewat localStorage lakon.lang), QUERY menambah parameter URL. Video
 // mulai begitu .dio-root[data-ready="true"] (mesin maket hidup, tur otomatis jalan dari detik 0; STAGE diabaikan) dan
 // berhenti saat data-tour="done" + ±1,5 dtk virtual, batas aman 70 dtk virtual. Contoh:
@@ -54,7 +54,7 @@
 // bunyi sekali dari batik-sound.ts (waktu VIDEO); sesudahnya node scripts/preview/mix-batik.cjs <video> <batik.json> <keluaran>.
 // KEEP_OUT=<kain.jpg> (tur canting) menyimpan salinan kain jadi dari IndexedDB; CLOTH=<kain.jpg> menaruhnya di
 // perangkat rekaman film, dan tur batik lalu berlanjut ke epilog yang memperlihatkan kain itu.
-// Panggung 3D: STAGE=high|medium|low memaksa tier (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
+// Panggung 3D: STAGE=ultra|high|static memaksa tier (medium dan low lama = high) (`?stage=`), dan tur baru dimulai sesudah kanvas tampil.
 // Di server tanpa GPU kanvas digambar di CPU (±1–2 frame per detik di 1080p) dan selama itu seluruh halaman
 // tertahan. Supaya tiap frame video punya gambar baru, K harus ≤ (fps nyata ÷ 60): pakai K = 0,02 atau lebih
 // kecil, dan jangan menjalankan pekerjaan berat lain selama merekam. Rekaman 38 detik memakan ±35 menit.

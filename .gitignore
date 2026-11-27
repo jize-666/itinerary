@@ -14,3 +14,4 @@ supabase/.temp/
 __pycache__/
 # dibuat otomatis oleh `next dev`
 AGENTS.md
+.claude/worktrees/

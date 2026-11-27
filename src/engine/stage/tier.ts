@@ -1,20 +1,30 @@
 /**
  * Tier kualitas panggung 3D (PRD §12.2) dan pengaturnya. Murni: tanpa DOM, tanpa three.
  *
- * Tier awal ditebak dari perangkat (`guessTier`). Sesudah itu `createGovernor` mengawasi waktu antar frame:
- * rata-rata < 50 fps selama ±3 dtk → turun satu anak tangga; stabil ≥ 58 fps → naik lagi, dengan jeda supaya
- * tidak bolak-balik. Tiap tier punya dua anak tangga: resolusi penuh dan resolusi dikecilkan. Jadi langkah
- * pertama saat berat adalah menurunkan resolusi (nyaris tak terlihat), baru kemudian mematikan efek.
+ * Hanya dua tingkat kualitas: Ultra dan High. `static` bukan tingkat kualitas, melainkan jalan keluar (tanpa WebGL2
+ * atau renderer perangkat lunak → film 2,5D). Keputusan host 27 Nov: tablet flagship terlihat buram karena tangga
+ * lama menurunkan resolusi dan efek; "guasa ada medium dan low". Resolusi tidak pernah diperkecil saat berjalan.
+ *
+ * Tier awal ditebak dari perangkat (`guessTier`): desktop dengan GPU kuat → Ultra, selebihnya (semua HP dan tablet)
+ * → High. `createGovernor` hanya boleh satu langkah: Ultra turun ke High bila rata-rata < 45 fps selama ±3 dtk
+ * (sesudah pemanasan), dan kembali ke Ultra bila ≥ 58 fps bertahan 8 dtk, dengan jeda supaya tidak bolak-balik.
+ * Di bawah High tidak ada apa-apa: 25–50 fps di HP kelas menengah diterima host.
  *
  * Layar yang dibatasi 30 Hz (Low Power Mode iOS) dikenali dari jarak antar frame yang rapat di ±33 ms; di sana
  * ambangnya ikut dibagi dua, jadi 30 fps yang stabil tidak dianggap berat.
  */
 
-export type Tier = "high" | "medium" | "low" | "static";
+/**
+ * `lite` = mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu. Hanya bisa dicapai lewat
+ * `?stage=lite`: `guessTier` dan pengatur tidak pernah memilihnya. Nilainya biaya Low yang lama.
+ */
+export type Tier = "ultra" | "high" | "lite" | "static";
 
 export type TierSpec = Readonly<{
-  /** Batas device pixel ratio kanvas. */
+  /** Batas atas device pixel ratio kanvas. */
   dpr: number;
+  /** Batas bawah: layar 1× digambar lebih rapat (supersampling). 0 = ikut kerapatan layar. */
+  dprMin: number;
   /** Sampel MSAA pada target HDR (0 = tanpa). */
   msaa: 0 | 2 | 4;
   /** Jumlah tingkat mip bloom (0 = bloom mati). */
@@ -25,29 +35,29 @@ export type TierSpec = Readonly<{
   particles: number;
   /** Saat diam, gambar tiap N frame layar (1 = tiap frame). */
   idleEvery: number;
-  /** Depth of field (hanya tier tertinggi). */
+  /** Depth of field. */
   dof: boolean;
 }>;
 
 export const TIER: Readonly<Record<Exclude<Tier, "static">, TierSpec>> = {
-  high: { dpr: 2, msaa: 4, bloom: 5, shadow: 2048, particles: 1, idleEvery: 1, dof: true },
-  medium: { dpr: 1.5, msaa: 2, bloom: 4, shadow: 1024, particles: 0.5, idleEvery: 1, dof: false },
-  low: { dpr: 1, msaa: 0, bloom: 3, shadow: 0, particles: 0.15, idleEvery: 2, dof: false },
+  high: { dpr: 2, dprMin: 0, msaa: 4, bloom: 5, shadow: 2048, particles: 1, idleEvery: 1, dof: true },
+  ultra: { dpr: 2.5, dprMin: 1.5, msaa: 4, bloom: 6, shadow: 4096, particles: 1, idleEvery: 1, dof: true },
+  // mode uji (e2e, renderer perangkat lunak); tidak pernah dipilih untuk tamu
+  lite: { dpr: 1, dprMin: 0, msaa: 0, bloom: 3, shadow: 0, particles: 0.15, idleEvery: 2, dof: false },
 };
 
-/** Anak tangga dari terberat ke teringan. `scale` = pengali resolusi di dalam tier itu. */
-export type Rung = Readonly<{ tier: Tier; scale: number }>;
-export const LADDER: readonly Rung[] = [
-  { tier: "high", scale: 1 },
-  { tier: "high", scale: 0.82 },
-  { tier: "medium", scale: 1 },
-  { tier: "medium", scale: 0.82 },
-  { tier: "low", scale: 1 },
-  { tier: "low", scale: 0.75 },
-  { tier: "static", scale: 1 },
-];
+/** Rasio piksel kanvas untuk `spec` di layar berkerapatan `native`. */
+export const dprFor = (spec: TierSpec, native: number): number => Math.min(spec.dpr, Math.max(spec.dprMin, native > 0 ? native : 1));
 
-export const rungOf = (tier: Tier): number => LADDER.findIndex((r) => r.tier === tier);
+/**
+ * Nama tier dari `?stage=`: ultra, high, static; `medium` dan `low` (tautan lama) menjadi high. `lite` hanya untuk
+ * uji (mode uji, tidak pernah dipilih untuk tamu).
+ */
+export function parseTier(raw: string | null | undefined): Tier | undefined {
+  if (raw === "ultra" || raw === "high" || raw === "lite" || raw === "static") return raw;
+  if (raw === "medium" || raw === "low") return "high";
+  return undefined;
+}
 
 export type Caps = Readonly<{
   webgl2: boolean;
@@ -62,112 +72,66 @@ export type Caps = Readonly<{
 }>;
 
 const SOFTWARE = /swiftshader|llvmpipe|software|basic render|microsoft basic/i;
-/** iPhone dan iPad: Safari menamai GPU-nya "Apple GPU" saja, dan menyamarkan jumlah inti (melapor ≤ 4). */
-const APPLE_MOBILE = /^apple gpu$/i;
-const HIGH_MOBILE = /apple gpu|apple a1[5-9]|apple a[2-9]\d|adreno \(tm\) (7[3-9]\d|8\d\d)|adreno (7[3-9]\d|8\d\d)|immortalis|mali-g(71[05]|72\d|9\d\d)|xclipse (9[2-9]\d|[1-9]\d{3})/i;
-const LOW_MOBILE = /adreno \(tm\) [1-5]\d\d|adreno [1-5]\d\d|mali-(4\d\d|t\d+|g3\d|g5[12])|powervr|videocore|vivante/i;
 const HIGH_DESKTOP = /apple m\d|nvidia|geforce|rtx|gtx|radeon rx|radeon pro|arc\(tm\)|intel\(r\) arc/i;
-const LOW_DESKTOP = /intel\(r\) hd graphics|intel hd graphics|gma|mesa dri intel\(r\) (hd|ivybridge|sandybridge|haswell)/i;
 
 /**
- * Tier High dipaksa di iPhone/iPad (keputusan host 12 Nov "paksa ke high", ditegaskan 14 Nov: "paksa tier high ke
- * iphone, soalnya cuma dapet medium doang"). Dulu iPhone mulai di Medium karena Safari melaporkan ≤ 4 inti, lalu
- * pengatur FPS sempat mengecilkan resolusinya. Sekarang mulai di High dan pengatur menahannya di sana
- * (`createGovernor`, `pinned`), kecuali film benar-benar tersendat (`GOVERNOR.rescueBelow`).
- */
-export function pinnedHigh(caps: Caps): boolean {
-  return caps.webgl2 && caps.mobile && APPLE_MOBILE.test(caps.renderer.trim());
-}
-
-/**
- * Tier awal. Tanpa WebGL2 atau dengan renderer perangkat lunak → Static (film 2,5D): menggambar 3D di CPU
- * selalu patah-patah. HP flagship sengaja dimulai di High (PRD: "mobile flagship tidak dibuat ringan");
- * pengatur FPS yang menurunkannya bila ternyata berat. iPhone/iPad selalu High (`pinnedHigh`).
+ * Tier awal. Tanpa WebGL2 atau dengan renderer perangkat lunak → Static (film 2,5D): menggambar 3D di CPU selalu
+ * patah-patah. Desktop (bukan layar sentuh) dengan GPU kuat, memori ≥ 8 GB dan ≥ 8 inti (atau tidak diketahui) →
+ * Ultra. Selebihnya, termasuk semua HP dan tablet dan laptop dengan GPU terpadu → High.
  */
 export function guessTier(caps: Caps): Tier {
   if (!caps.webgl2 || SOFTWARE.test(caps.renderer)) return "static";
-  if (pinnedHigh(caps)) return "high";
-  const r = caps.renderer;
-  let tier: Tier;
-  if (caps.mobile) tier = HIGH_MOBILE.test(r) ? "high" : LOW_MOBILE.test(r) ? "low" : "medium";
-  else tier = HIGH_DESKTOP.test(r) ? "high" : LOW_DESKTOP.test(r) ? "low" : "medium";
-  // memori atau inti sedikit: jangan mulai dari atas
-  if ((caps.memory > 0 && caps.memory <= 2) || (caps.cores > 0 && caps.cores <= 2)) return "low";
-  if (tier === "high" && ((caps.memory > 0 && caps.memory <= 4) || (caps.cores > 0 && caps.cores <= 4))) return "medium";
-  return tier;
+  if (caps.mobile || !HIGH_DESKTOP.test(caps.renderer)) return "high";
+  const memoryOk = !(caps.memory > 0) || caps.memory >= 8;
+  const coresOk = !(caps.cores > 0) || caps.cores >= 8;
+  return memoryOk && coresOk ? "ultra" : "high";
 }
 
 export const GOVERNOR = {
   /** Jendela rata-rata (ms). */
   window: 3000,
-  /** Sesudah mulai atau ganti anak tangga, frame awal diabaikan (kompilasi shader, alokasi target). */
+  /** Sesudah mulai atau ganti tier, frame awal diabaikan (kompilasi shader, alokasi target). */
   warmup: 1500,
-  /** Turun bila rata-rata fps di bawah ini (pada layar 60 Hz). */
-  downBelow: 50,
-  /** Naik bila rata-rata fps setidaknya ini… */
+  /** Ultra turun ke High bila rata-rata fps di bawah ini (pada layar 60 Hz). */
+  downBelow: 45,
+  /** Naik kembali ke Ultra bila rata-rata fps setidaknya ini… */
   upAtLeast: 58,
   /** …selama ini (ms)… */
   upHold: 8000,
   /** …dan paling cepat sekian ms sesudah perubahan terakhir. */
   upCooldown: 20000,
-  /** Naik lalu turun lagi dalam waktu ini = anak tangga di atas memang terlalu berat: jangan dicoba lagi. */
+  /** Naik lalu turun lagi dalam waktu ini = Ultra memang terlalu berat di sini: jangan dicoba lagi. */
   retreat: 12000,
-  /** Di Low pun di bawah ini → Static. */
-  staticBelow: 20,
-  /**
-   * Tier High yang dipaksa (iPhone/iPad) hanya diturunkan bila fps median di bawah ini terus-menerus selama
-   * `rescueHold`: film benar-benar tersendat, misalnya di iPhone lama. Median, bukan rata-rata: frame lambat sesaat
-   * (tekstur diunggah, shader dikompilasi saat film dibuka) tidak menggesernya. Di atasnya pengatur hanya mengukur.
-   */
-  rescueBelow: 35,
-  /** Lama tersendat (ms) sebelum perangkat yang dipaksa turun satu anak tangga. */
-  rescueHold: 10000,
   /** Jeda antar frame di atas ini bukan data kehalusan (tab baru kembali, GC besar): jendela dimulai ulang. */
   hitch: 250,
 } as const;
 
 export type Governor = {
-  /** Catat satu frame: `dt` = jarak dari frame sebelumnya (ms), `now` = jam (ms). Mengembalikan anak tangga baru bila berubah. */
-  sample(dt: number, now: number): Rung | null;
-  /** Anak tangga sekarang. */
-  rung(): Rung;
+  /** Catat satu frame: `dt` = jarak dari frame sebelumnya (ms), `now` = jam (ms). Mengembalikan tier baru bila berubah. */
+  sample(dt: number, now: number): Tier | null;
+  /** Tier sekarang. */
+  tier(): Tier;
   /** fps rata-rata jendela terakhir (0 bila belum cukup data). */
   fps(): number;
   /** Layar terdeteksi dibatasi ±30 Hz. */
   capped(): boolean;
   /** Mulai ulang jendela (tab kembali terlihat, adegan berat baru dimuat). */
   rest(now: number): void;
-  /** Tier High sedang dipaksa dan dipakai (iPhone/iPad, anak tangga teratas). */
-  pinned(): boolean;
-  /** Perangkat yang dipaksa High sedang di bawah High: fps median saat terakhir diturunkan (0 bila tidak). */
-  rescued(): number;
-};
-
-/** fps dari median jarak antar frame. */
-const medianFps = (dts: readonly number[]): number => {
-  const s = [...dts].sort((a, b) => a - b);
-  const m = s.length % 2 ? s[(s.length - 1) / 2]! : (s[s.length / 2 - 1]! + s[s.length / 2]!) / 2;
-  return m > 0 ? 1000 / m : 0;
+  /** Ultra sedang turun ke High: fps rata-rata saat diturunkan (0 bila tidak). */
+  fell(): number;
 };
 
 /**
  * `start` = tier awal; `locked` = tier dipaksa (uji, `?stage=`): pengatur hanya mengukur, tidak pernah pindah.
- * `pinned` = tier High dipaksa untuk perangkat ini (iPhone/iPad), keputusan host "paksa tier high ke iphone". Aturannya
- * sendiri, bukan aturan biasa (turun di bawah 50 fps): 40–48 fps di High dianggap cukup; turun satu anak tangga
- * hanya bila fps median di bawah `GOVERNOR.rescueBelow` terus-menerus selama `GOVERNOR.rescueHold`, dan kembali naik
- * sampai High begitu lancar lagi. Keluhan host 14 Nov ("masih medium"): dulu paksaan dilepas oleh beberapa frame
- * lambat saat film dibuka, lalu aturan biasa menurunkannya sampai `medium ×0.82` dan tidak pernah kembali.
+ * Tier tertinggi yang boleh dipulihkan adalah `start`; di bawah High tidak ada langkah dan Static tidak pernah dipilih.
  */
-export function createGovernor(start: Tier, now: number, locked = false, pinned = false): Governor {
-  const forced = pinned && start === "high";
-  /** Sejak kapan fps median terus di bawah ambang (perangkat yang dipaksa). */
-  let slowSince: number | null = null;
-  let rescued = 0;
-  let at = Math.max(0, rungOf(start));
-  /** Anak tangga terberat yang masih boleh dicoba. */
-  let ceiling = 0;
+export function createGovernor(start: Tier, now: number, locked = false): Governor {
+  let at: Tier = start;
   let since = now;
   let lastUp = -Infinity;
+  /** Sudah naik lalu turun lagi dalam `retreat`: Ultra tidak dicoba lagi. */
+  let noUltra = false;
+  let fell = 0;
   let goodSince: number | null = null;
   /** Cincin sampel [waktu, dt]. */
   let times: number[] = [];
@@ -184,24 +148,20 @@ export function createGovernor(start: Tier, now: number, locked = false, pinned 
     since = t;
     goodSince = null;
   };
-  const move = (to: number, t: number): Rung => {
+  const move = (to: Tier, t: number): Tier => {
     at = to;
     reset(t);
-    return LADDER[at]!;
+    return at;
   };
 
   return {
-    rung: () => LADDER[at]!,
+    tier: () => at,
     fps: () => fps,
     capped: () => capped,
-    rest: (t) => {
-      reset(t);
-      slowSince = null;
-    },
-    pinned: () => forced && at === 0,
-    rescued: () => (forced && at > 0 ? rescued : 0),
+    rest: (t) => reset(t),
+    fell: () => (start === "ultra" && at === "high" ? fell : 0),
     sample(dt, t) {
-      if (LADDER[at]!.tier === "static") return null;
+      if (at === "static") return null;
       if (!(dt > 0) || dt > GOVERNOR.hitch) {
         reset(t);
         return null;
@@ -222,43 +182,19 @@ export function createGovernor(start: Tier, now: number, locked = false, pinned 
       capped = near30 >= dts.length * 0.9;
       const k = capped ? 0.5 : 1;
       if (locked) return null;
-      const tier = LADDER[at]!.tier;
-      if (forced) {
-        const med = medianFps(dts);
-        if (med < GOVERNOR.rescueBelow * k) {
-          slowSince ??= t;
-          goodSince = null;
-          const last = at >= LADDER.length - 2;
-          if (last || t - slowSince < GOVERNOR.rescueHold) return null;
-          slowSince = null;
-          rescued = Math.round(med);
-          if (t - lastUp < GOVERNOR.retreat) ceiling = at + 1;
-          return move(at + 1, t);
-        }
-        slowSince = null;
-        // lancar lagi: naik kembali sampai High (dengan jeda dan batas yang sama dengan aturan biasa)
-        if (at > 0 && !capped && med >= GOVERNOR.upAtLeast && at > ceiling) {
-          goodSince ??= t;
-          if (t - goodSince >= GOVERNOR.upHold && t - since >= GOVERNOR.upCooldown) {
-            lastUp = t;
-            return move(at - 1, t);
-          }
-        } else goodSince = null;
-        return null;
-      }
 
-      if (fps < GOVERNOR.downBelow * k) {
-        const last = at >= LADDER.length - 2; // sudah di anak tangga WebGL teringan
-        if (last && fps >= GOVERNOR.staticBelow * k) return null;
-        if (t - lastUp < GOVERNOR.retreat) ceiling = at + 1; // baru saja naik lalu berat: jangan naik ke sini lagi
-        return move(at + 1, t);
+      if (at === "ultra") {
+        if (fps >= GOVERNOR.downBelow * k) return null;
+        fell = Math.round(fps);
+        if (t - lastUp < GOVERNOR.retreat) noUltra = true;
+        return move("high", t);
       }
       // di layar 30 Hz tidak terlihat apakah masih ada ruang, jadi tidak pernah naik di sana
-      if (!capped && fps >= GOVERNOR.upAtLeast && at > ceiling && tier !== "static") {
+      if (start === "ultra" && !noUltra && !capped && fps >= GOVERNOR.upAtLeast) {
         goodSince ??= t;
         if (t - goodSince >= GOVERNOR.upHold && t - since >= GOVERNOR.upCooldown) {
           lastUp = t;
-          return move(at - 1, t);
+          return move("ultra", t);
         }
       } else goodSince = null;
       return null;

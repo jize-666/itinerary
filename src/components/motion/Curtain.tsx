@@ -2,7 +2,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { type ComponentProps, type MouseEvent, useEffect, useSyncExternalStore } from "react";
-import { curtain } from "@/engine/motion/curtain";
+import { curtain, heavyRoute, HOLD_NAV_MS } from "@/engine/motion/curtain";
+import { prefetchDiorama } from "@/components/diorama/prefetch";
 
 /**
  * Bilah letterbox di atas segalanya. Tidak menangkap klik saat terbuka.
@@ -12,12 +13,17 @@ import { curtain } from "@/engine/motion/curtain";
  */
 export function Curtain() {
   const st = useSyncExternalStore(curtain.subscribe, curtain.get, curtain.getServer);
+  // tertahan (maket sedang menyiapkan bingkai pertamanya): kilau emas berjalan di garis tengah, tanda halaman tidak macet
+  const held = useSyncExternalStore(curtain.subscribe, curtain.holding, () => false);
   const path = usePathname();
   useEffect(() => {
-    void curtain.open();
+    // tunda satu tik: halaman tujuan yang berat memasang `curtain.hold` di commit yang sama (efeknya bisa
+    // berjalan sesudah efek ini), dan tirai baru boleh membuka setelah tahanan itu dilepas
+    const t = setTimeout(() => void curtain.open(), 0);
+    return () => clearTimeout(t);
   }, [path]);
   return (
-    <div className="curtain" data-state={st} aria-hidden="true">
+    <div className="curtain" data-state={st} data-held={held || undefined} aria-hidden="true">
       <span className="curtain-bar curtain-bar--top" />
       <span className="curtain-bar curtain-bar--bottom" />
       <span className="curtain-seam" />
@@ -31,7 +37,12 @@ export function useCurtainNav() {
   return async (href: string, delay = 0) => {
     if (delay) await new Promise((r) => setTimeout(r, delay));
     // rute yang sama tidak mengganti pathname, jadi tidak ada yang membuka tirai lagi: tanpa tirai
-    if (new URL(href, window.location.href).pathname !== window.location.pathname) await curtain.close();
+    const to = new URL(href, window.location.href).pathname;
+    if (to !== window.location.pathname) {
+      // tahan sebelum menutup: pathname bisa berganti sebelum halaman berat sempat memasang tahanannya sendiri
+      if (heavyRoute(to)) curtain.hold("diorama", HOLD_NAV_MS);
+      await curtain.close();
+    }
     router.push(href);
   };
 }
@@ -39,6 +50,11 @@ export function useCurtainNav() {
 /** Link yang menutup tirai dulu (klik biasa); klik tengah / Cmd+klik tetap perilaku bawaan. */
 export function CurtainLink({ href, onClick, ...rest }: ComponentProps<typeof Link> & { href: string }) {
   const go = useCurtainNav();
+  const toDiorama = typeof href === "string" && heavyRoute(href);
+  // maket: unduh chunk 3D selagi tamu masih membaca, supaya tirai tidak menunggu jaringan
+  useEffect(() => {
+    if (toDiorama) prefetchDiorama();
+  }, [toDiorama]);
   return (
     <Link
       href={href}

@@ -23,6 +23,7 @@ import {
   type Quality,
   type TourState,
 } from "@/engine/diorama/options";
+import { defaultQuality } from "@/engine/motion/quality";
 import { makeArtwork, type SurfaceMode } from "./artwork";
 
 export type ViewerState = {
@@ -55,9 +56,10 @@ const ease = (u: number) => u * u * (3 - 2 * u);
 const v3 = (v: Vec) => new Vector3(...v);
 const snapshot = (p: Pose): Pose => ({ ...p, target: [...p.target] });
 const tierConfig = {
+  ultra: 2048,
   high: 1536,
-  medium: 1024,
-  low: 512,
+  // mode uji (?q=lite); tidak pernah dipilih untuk tamu
+  lite: 512,
 };
 const touchPresent = () => matchMedia("(pointer: coarse)").matches;
 export const initialState: ViewerState = {
@@ -67,7 +69,7 @@ export const initialState: ViewerState = {
   angle: 4,
   azimuth: 180,
   elevation: 28,
-  tier: "medium",
+  tier: "high",
   p95: 0,
   draws: 0,
   triangles: 0,
@@ -155,7 +157,7 @@ export class DioramaController {
     this.atHome = !this.location;
     this.angle = this.location ? null : 4;
     this.calm = options.calm;
-    this.tier = options.quality ?? (touchPresent() ? "medium" : "high");
+    this.tier = options.quality ?? defaultQuality();
     this.forced = options.forceQuality;
     this.requestedQuality = options.quality;
     this.scene.add(this.artwork.group);
@@ -629,12 +631,12 @@ export class DioramaController {
     if (now - this.lastSlow < 1000 || this.samples.length < 25) return;
     this.lastSlow = now;
     this.measured95 = percentile(this.samples);
-    const target = touchPresent() ? (this.tier === "high" ? 16.7 : 33.4) : 20;
+    const target = touchPresent() ? 33.4 : 20;
     this.slowWindows = this.measured95 > target ? this.slowWindows + 1 : 0;
     if (this.slowWindows >= 3) {
       this.slowWindows = 0;
       this.bridge.slow(this.measured95);
-      if (!this.forced && this.tier !== "low") {
+      if (!this.forced && this.tier === "ultra") {
         this.tier = tierStep(this.tier);
         this.samples = [];
         this.applyQuality();

@@ -52,7 +52,7 @@ const zlib = require('zlib');
 
   const rows = [];
   let stageSize = null;
-  for (const tier of ['high', 'medium', 'low']) {
+  for (const tier of ['ultra', 'high']) {
     const { ctx, p, js, first } = await open(tier);
     if (!stageSize) stageSize = size(js);
     const settle = () => p.waitForFunction(() => !document.querySelector('.film').hasAttribute('data-moving'));

@@ -4,7 +4,7 @@ import { seedSession } from "./helpers";
 
 /**
  * Halaman /canting/ (Tugas 11.2): batik interaktif. WebGL digambar CPU (SwiftShader) di e2e, jadi frame lambat
- * dan penantian dibuat longgar; `?q=low` dipakai di mana-mana.
+ * dan penantian dibuat longgar; `?q=lite` dipakai di mana-mana.
  */
 const CI = !!process.env.CI;
 const K = CI ? 3 : 1;
@@ -25,7 +25,7 @@ const dabs = async (p: Page) => (await dbg(p))?.dabs ?? 0;
 const root = (p: Page) => p.locator("main.cnt-root");
 const btn = (p: Page, name: string | RegExp, exact = true) => p.getByRole("button", { name, exact: typeof name === "string" ? exact : undefined });
 
-async function visit(p: Page, params = "?q=low", opts: { calm?: boolean } = {}) {
+async function visit(p: Page, params = "?q=lite", opts: { calm?: boolean } = {}) {
   await seedSession(p);
   await p.addInitScript(
     ({ calm }) => {
@@ -75,7 +75,7 @@ async function drawUntilWax(p: Page) {
 const pngPage = (buf: Buffer) => ({ sig: buf.subarray(0, 8).toString("hex"), w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) });
 
 test("private page: without a session /canting/ goes home", async ({ page }) => {
-  await page.goto("/canting/?q=low");
+  await page.goto("/canting/?q=lite");
   await expect(page).toHaveURL(/\/(\?.*)?$/);
   await expect(page.locator("main.cnt-root")).toHaveCount(0);
 });
@@ -85,7 +85,7 @@ test("demo traces kawung, dyes through the stages and downloads a 2048x1280 PNG"
   test.skip(testInfo.project.name !== "desktop", "cukup di desktop");
   test.setTimeout(LONG);
   const seen = new Set<string>();
-  await visit(page, "?q=low&demo=1");
+  await visit(page, "?q=lite&demo=1");
   const dl = page.waitForEvent("download", { timeout: LONG - 20_000 });
   const t0 = Date.now();
   while (Date.now() - t0 < LONG - 25_000) {
@@ -161,7 +161,7 @@ test("persistence: wax survives a reload", async ({ page }, info) => {
 test("calm: usable and marked with data-calm", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop", "mouse drawing");
   test.setTimeout(LONG);
-  await visit(page, "?q=low", { calm: true });
+  await visit(page, "?q=lite", { calm: true });
   await expect(root(page)).toHaveAttribute("data-calm", "");
   await drawUntilWax(page);
 });
@@ -192,7 +192,7 @@ test("leaving and returning three times does not error", async ({ page }, info) 
   page.on("pageerror", (e) => errors.push(e.message));
   await seedSession(page);
   for (let i = 0; i < 3; i++) {
-    await page.goto("/canting/?q=low");
+    await page.goto("/canting/?q=lite");
     await expect(root(page)).toHaveAttribute("data-ready", "true", { timeout: READY });
     await page.goto("/today/");
     await page.waitForLoadState("domcontentloaded");
