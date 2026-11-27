@@ -37,6 +37,8 @@ export function blocksOf(el: HTMLElement): Block[] {
   add(".fl-layer[data-pos='cur'] .gal-card", BLOCK_WEIGHT.card);
   // kain buatan tamu di epilog (Tugas 11.4): seberat teks, supaya Clawd berdiri di sampingnya, bukan di atasnya
   add(".fl-layer[data-pos='cur'] .fs-cloth-sheet", BLOCK_WEIGHT.text);
+  // tiket 2,5D berpegas (film tanpa panggung 3D): kartu DOM seberat teks
+  add(".fl-layer[data-pos='cur'] .pass-toy .pass-turn", BLOCK_WEIGHT.text);
   // tiket 3D bertali (Tugas 12b): kotak kartu di layar dari panggung (`data-pass-box`, persen), juga seberat teks
   const pass = el.dataset.passBox?.split(",").map(Number);
   if (pass?.length === 4 && pass.every(Number.isFinite) && pass[2]! > 0 && pass[3]! > 0) {
@@ -146,8 +148,11 @@ export function createSession({ touch }: { touch: boolean }) {
       if (!ctx.moving && key !== sideKey && t - settledAt >= SETTLE && view.w > 0) {
         sideKey = key;
         const tall = view.w < view.h;
-        const passSlide = el.dataset.kind === "pass" && !!el.dataset.passBox;
-        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"], passSlide ? PASS_CANDIDATES : undefined, passSlide ? PASS_BODY_WEIGHT : 1);
+        // slide tiket: tiket 3D (`data-pass-box`) mendapat calon tempat di samping kartu; badan yang menutupi kartu (3D
+        // atau 2,5D) jauh lebih mahal daripada gelembung
+        const pass3d = el.dataset.kind === "pass" && !!el.dataset.passBox;
+        const passFlat = el.dataset.kind === "pass" && "passFlat" in el.dataset;
+        side = bestSide(blocksOf(el), view, BODY_FRAC[tall ? "tall" : "wide"] * Math.min(view.w, view.h), BUBBLE_EST[tall ? "tall" : "wide"], pass3d ? PASS_CANDIDATES : undefined, pass3d || passFlat ? PASS_BODY_WEIGHT : 1);
       }
       return { clawd: frame, spot, side };
     },
