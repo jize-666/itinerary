@@ -27,6 +27,11 @@ Tafsir Claude:
 2. Tes: lint, typecheck, unit 754/754. E2E memakai `stage=high`/`q=high` (dulu `low`); e2e terdampak sedang dijalankan untuk melihat waktunya di renderer perangkat lunak.
 3. Berikutnya: hasil e2e, gabungkan perbaikan transisi maket (subagen di worktree), video, PR.
 
+**Transisi maket selesai dan digabung (27 Nov):**
+1. Selesai: tirai ditahan (`curtain.hold/release`, batas 5 dtk dari halaman dan 9 dtk dari klik) sampai bingkai pertama maket tergambar; shader dipanaskan (`compileAsync`); chunk maket diunduh dari tautan film/Today; kilau emas di garis tengah tirai selama tertahan (Opus). Diukur di Chromium: long task saat tirai membuka 1,4–3,7 dtk → 0, frame terburuk 1,3–3,0 dtk → 50–150 ms. Catatan di `docs/design/decisions.md`.
+2. Tes: unit 759/759. E2E terdampak di build gabungan: 178 lulus, 49 gagal. Hampir semuanya batas waktu di `stage`, `lawu`, `canting` karena e2e kini memakai High di renderer perangkat lunak. Sedang ditambahkan mode uji tersembunyi `?stage=lite`/`?q=lite` (setelan Low lama, hanya lewat URL, tidak pernah dipilih untuk tamu) untuk tes yang dulu memakai `low`.
+3. Berikutnya: e2e hijau, video masuk maket desktop + HP, PR.
+
 ### Permintaan host 26 Nov (di tengah sisa Tugas 12): "ilangin suara clawd, ganti dengan \"biip\"" — SELESAI (rincian di bagian sisa Tugas 12 di bawah)
 
 **Kata host, kata demi kata:** "ilangin suara clawd, ganti dengan \"biip\"".
